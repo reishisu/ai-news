@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 210">
+  <text x="8" y="22" font-size="15" font-weight="700" fill="var(--fg)">Claude Code の承認フローが変わる(8月14日から)</text>
+  <text x="8" y="58" font-size="13" font-weight="700" fill="var(--sub)">これまで</text>
+  <rect x="8" y="70" width="130" height="44" rx="8" fill="var(--track)"/>
+  <text x="73" y="97" text-anchor="middle" font-size="13" fill="var(--fg)">ツール呼び出し</text>
+  <path d="M148 92 h34" stroke="var(--sub)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M182 92 l-10 -6 M182 92 l-10 6" stroke="var(--sub)" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <rect x="192" y="70" width="150" height="44" rx="8" fill="var(--old)"/>
+  <text x="267" y="97" text-anchor="middle" font-size="13" font-weight="700" fill="var(--fg)">人が毎回承認</text>
+  <path d="M352 92 h34" stroke="var(--sub)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M386 92 l-10 -6 M386 92 l-10 6" stroke="var(--sub)" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <rect x="396" y="70" width="110" height="44" rx="8" fill="var(--track)"/>
+  <text x="451" y="97" text-anchor="middle" font-size="13" fill="var(--fg)">実行</text>
+  <text x="8" y="152" font-size="13" font-weight="700" fill="var(--sub)">これから</text>
+  <rect x="8" y="164" width="130" height="44" rx="8" fill="var(--track)"/>
+  <text x="73" y="191" text-anchor="middle" font-size="13" fill="var(--fg)">ツール呼び出し</text>
+  <path d="M148 186 h34" stroke="var(--sub)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M182 186 l-10 -6 M182 186 l-10 6" stroke="var(--sub)" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <rect x="192" y="164" width="150" height="44" rx="8" fill="var(--new)"/>
+  <text x="267" y="191" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">安全分類器が審査</text>
+  <path d="M352 186 h34" stroke="var(--sub)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M386 186 l-10 -6 M386 186 l-10 6" stroke="var(--sub)" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <rect x="396" y="164" width="110" height="44" rx="8" fill="var(--track)"/>
+  <text x="451" y="191" text-anchor="middle" font-size="13" fill="var(--fg)">実行</text>
+  <text x="520" y="182" font-size="12.5" fill="var(--sub)">危険な操作は</text>
+  <text x="520" y="200" font-size="12.5" fill="var(--sub)">自動でブロック</text>
+</svg>

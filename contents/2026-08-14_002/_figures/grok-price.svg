@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 178">
+  <text x="8" y="22" font-size="15" font-weight="700" fill="var(--fg)">出力価格の比較(100万トークンあたり・標準ティア)</text>
+  <text x="8" y="60" font-size="13" fill="var(--sub)">GPT-5.6 Sol</text>
+  <rect x="170" y="46" width="420" height="20" rx="5" fill="var(--track)"/>
+  <rect x="170" y="46" width="420" height="20" rx="5" fill="var(--old)"/>
+  <text x="600" y="62" font-size="14" font-weight="700" text-anchor="end" fill="var(--fg)">$30</text>
+  <text x="8" y="100" font-size="13" fill="var(--sub)">Claude Opus 4.8</text>
+  <rect x="170" y="86" width="420" height="20" rx="5" fill="var(--track)"/>
+  <rect x="170" y="86" width="350" height="20" rx="5" fill="var(--old)"/>
+  <text x="530" y="102" font-size="14" font-weight="700" fill="var(--fg)">$25</text>
+  <text x="8" y="140" font-size="13" fill="var(--sub)">Grok 4.6</text>
+  <rect x="170" y="126" width="420" height="20" rx="5" fill="var(--track)"/>
+  <rect x="170" y="126" width="84" height="20" rx="5" fill="var(--new)"/>
+  <text x="264" y="142" font-size="14" font-weight="700" fill="var(--fg)">$6</text>
+  <text x="8" y="170" font-size="12.5" fill="var(--sub)">20万トークン以下の標準ティアで比較。総コストはトークン消費量で変わる</text>
+</svg>
