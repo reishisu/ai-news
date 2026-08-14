@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 258">
+  <text x="8" y="22" font-size="15" font-weight="700" fill="var(--fg)">Gemini 3.7 Flash のベンチマーク(薄=3.6 Flash / 濃=3.7 Flash)</text>
+  <text x="8" y="58" font-size="13" fill="var(--sub)">DeepSWE v1.1</text>
+  <rect x="160" y="44" width="400" height="18" rx="4" fill="var(--track)"/>
+  <rect x="160" y="44" width="196" height="18" rx="4" fill="var(--old)"/>
+  <text x="366" y="58" font-size="12.5" fill="var(--sub)">49.0%</text>
+  <rect x="160" y="68" width="400" height="18" rx="4" fill="var(--track)"/>
+  <rect x="160" y="68" width="261" height="18" rx="4" fill="var(--new)"/>
+  <text x="431" y="82" font-size="12.5" font-weight="700" fill="var(--fg)">65.3%</text>
+  <text x="8" y="128" font-size="13" fill="var(--sub)">FrontierCode 1.1</text>
+  <rect x="160" y="114" width="400" height="18" rx="4" fill="var(--track)"/>
+  <rect x="160" y="114" width="138" height="18" rx="4" fill="var(--old)"/>
+  <text x="308" y="128" font-size="12.5" fill="var(--sub)">34.4%</text>
+  <rect x="160" y="138" width="400" height="18" rx="4" fill="var(--track)"/>
+  <rect x="160" y="138" width="174" height="18" rx="4" fill="var(--new)"/>
+  <text x="344" y="152" font-size="12.5" font-weight="700" fill="var(--fg)">43.6%</text>
+  <text x="8" y="198" font-size="13" fill="var(--sub)">AutomationBench</text>
+  <rect x="160" y="184" width="400" height="18" rx="4" fill="var(--track)"/>
+  <rect x="160" y="184" width="68" height="18" rx="4" fill="var(--old)"/>
+  <text x="238" y="198" font-size="12.5" fill="var(--sub)">17.0%</text>
+  <rect x="160" y="208" width="400" height="18" rx="4" fill="var(--track)"/>
+  <rect x="160" y="208" width="122" height="18" rx="4" fill="var(--new)"/>
+  <text x="292" y="222" font-size="12.5" font-weight="700" fill="var(--fg)">30.4%</text>
+  <text x="8" y="246" font-size="12.5" fill="var(--sub)">バーは0〜100%スケール。3項目とも2桁ポイントの改善</text>
+</svg>

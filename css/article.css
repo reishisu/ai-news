@@ -1,0 +1,189 @@
+/* AIニュース デイリーダイジェスト — 記事ページ(号)の共通スタイル
+   方針: 読んで頭に入ることを最優先。1カラム・広い行間・明確な見出し階層。 */
+
+:root {
+  --bg: #f7f8fa;
+  --card: #ffffff;
+  --text: #14161a;
+  --sub: #5b6472;
+  --line: #e3e6ec;
+  --line-soft: #eef0f4;
+  --accent: #2a78d6;
+  --b: #2a78d6;
+  --c: #eb6834;
+  --a: #1baf7a;
+  --d: #b47c00;
+  --ok: #17835d;
+  --ok-bg: rgba(27, 175, 122, 0.10);
+  --warn: #8a6400;
+  --warn-bg: rgba(237, 161, 0, 0.13);
+  --unk: #c0491f;
+  --unk-bg: rgba(235, 104, 52, 0.12);
+  --mark: rgba(42, 120, 214, 0.14);
+  --shadow: 0 1px 2px rgba(20, 22, 26, 0.05), 0 8px 24px -16px rgba(20, 22, 26, 0.28);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101216;
+    --card: #191b1f;
+    --text: #f2f4f8;
+    --sub: #aab3c0;
+    --line: #2a2e35;
+    --line-soft: #23262c;
+    --accent: #4a97ea;
+    --b: #4a97ea;
+    --c: #f0784c;
+    --a: #26c08a;
+    --d: #e2a72c;
+    --ok: #3ecf9a;
+    --ok-bg: rgba(38, 192, 138, 0.14);
+    --warn: #e8bb52;
+    --warn-bg: rgba(226, 167, 44, 0.14);
+    --unk: #ff9068;
+    --unk-bg: rgba(240, 120, 76, 0.14);
+    --mark: rgba(74, 151, 234, 0.22);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -16px rgba(0, 0, 0, 0.8);
+  }
+}
+
+* { box-sizing: border-box; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  font-size: 17px;
+  line-height: 1.95;
+  text-underline-offset: 3px;
+}
+a { color: var(--accent); }
+img, picture { max-width: 100%; }
+
+/* ---------- top bar ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px clamp(16px, 4vw, 28px);
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.topbar a { display: flex; align-items: center; gap: 9px; color: var(--text); text-decoration: none; font-weight: 700; font-size: 15px; }
+.topbar img { border-radius: 7px; }
+
+/* ---------- article shell ---------- */
+.article { max-width: 740px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 24px) 72px; }
+
+.masthead { padding: clamp(30px, 6vw, 52px) 0 8px; }
+.masthead .eyebrow { color: var(--sub); font-size: 14px; font-weight: 600; letter-spacing: .02em; }
+.masthead h1 { margin-top: 8px; font-size: clamp(1.55rem, 4.6vw, 2.15rem); font-weight: 800; line-height: 1.45; letter-spacing: .01em; }
+.masthead .range { margin-top: 12px; color: var(--sub); font-size: 14px; }
+
+/* ---------- 今日の要点 ---------- */
+.summary {
+  margin: 30px 0 8px; padding: 24px 26px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+.summary h2 { font-size: 1.05rem; font-weight: 800; margin-bottom: 14px; }
+.summary ol { margin: 0; padding: 0; list-style: none; counter-reset: pt; }
+.summary li { position: relative; padding-left: 42px; counter-increment: pt; }
+.summary li + li { margin-top: 18px; padding-top: 18px; border-top: 1px dashed var(--line); }
+.summary li::before {
+  content: counter(pt);
+  position: absolute; left: 0; top: 4px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-size: 14px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+.summary b { display: block; font-size: 1.02rem; line-height: 1.7; }
+.summary span { display: block; margin-top: 4px; color: var(--sub); font-size: .9rem; line-height: 1.8; }
+
+/* ---------- 目次 ---------- */
+.toc { margin: 26px 0; padding: 18px 22px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+.toc h2 { font-size: .92rem; font-weight: 800; color: var(--sub); margin-bottom: 8px; }
+.toc ol { margin: 0; padding-left: 1.3em; font-size: .95rem; }
+.toc li { margin: 4px 0; }
+.toc a { color: var(--text); text-decoration: none; }
+.toc a:hover { color: var(--accent); text-decoration: underline; }
+
+/* ---------- セクション ---------- */
+.section { margin-top: 54px; scroll-margin-top: 70px; }
+.section > h2 {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  font-size: 1.32rem; font-weight: 800; line-height: 1.5;
+  padding-bottom: 12px; border-bottom: 2px solid var(--line);
+}
+.section > h2::before { content: ""; width: 6px; height: 1.15em; border-radius: 3px; background: var(--accent); flex: none; }
+.section > h2 .n { margin-left: auto; color: var(--sub); font-size: .78rem; font-weight: 600; }
+.section-b > h2::before { background: var(--b); }
+.section-c > h2::before { background: var(--c); }
+.section-a > h2::before { background: var(--a); }
+.section-d > h2::before { background: var(--d); }
+
+/* ---------- ニュースカード ---------- */
+.item {
+  margin-top: 28px; padding: 26px 28px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+.item .source { display: flex; align-items: center; gap: 8px; color: var(--sub); font-size: 13px; font-weight: 600; }
+.item .source img { width: 17px; height: 17px; border-radius: 4px; }
+.item h3 { margin-top: 10px; font-size: 1.22rem; font-weight: 800; line-height: 1.6; letter-spacing: .005em; }
+
+.tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.tag { font-size: 12px; font-weight: 600; padding: 3px 11px; border-radius: 999px; border: 1px solid var(--line); color: var(--sub); }
+.tag.ok { color: var(--ok); background: var(--ok-bg); border-color: transparent; }
+.tag.warn { color: var(--warn); background: var(--warn-bg); border-color: transparent; }
+.tag.unk { color: var(--unk); background: var(--unk-bg); border-color: transparent; }
+
+.lead { margin-top: 14px; font-size: 1.02rem; line-height: 1.95; }
+.lead mark { background: var(--mark); color: inherit; padding: 1px 3px; border-radius: 3px; font-weight: 700; }
+
+/* 要点3行 — 記憶に残す本体 */
+.points { margin-top: 16px; padding: 16px 20px; border-radius: 11px; background: var(--bg); border: 1px solid var(--line-soft); }
+.points li { list-style: none; position: relative; padding-left: 22px; font-size: .97rem; line-height: 1.85; }
+.points li + li { margin-top: 8px; }
+.points li::before { content: ""; position: absolute; left: 4px; top: .78em; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.points b { font-weight: 700; }
+
+/* ---------- 図版 ---------- */
+figure { margin: 20px 0 0; }
+figure img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 11px; background: var(--card); }
+figure.hero img { aspect-ratio: 1200 / 628; object-fit: cover; }
+figure figcaption { margin-top: 8px; color: var(--sub); font-size: 13px; line-height: 1.7; text-align: center; }
+figure.thumb { float: right; width: 168px; margin: 4px 0 14px 20px; }
+figure.thumb img { border-radius: 9px; }
+.item::after { content: ""; display: block; clear: both; }
+
+/* ---------- 詳細 ---------- */
+details { margin-top: 18px; border-top: 1px solid var(--line-soft); padding-top: 14px; }
+details summary { cursor: pointer; color: var(--accent); font-size: .93rem; font-weight: 700; list-style: none; }
+details summary::-webkit-details-marker { display: none; }
+details summary::before { content: "▸ "; }
+details[open] summary::before { content: "▾ "; }
+details .body { margin-top: 12px; font-size: .96rem; line-height: 1.9; }
+details .body dt { font-weight: 800; color: var(--sub); font-size: .85rem; margin-top: 12px; }
+details .body dt:first-child { margin-top: 0; }
+details .body dd { margin: 3px 0 0; }
+details .body a { word-break: break-all; }
+
+.none { color: var(--sub); margin-top: 20px; font-size: .97rem; }
+
+/* ---------- フッター ---------- */
+.article-foot { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--sub); font-size: 13.5px; text-align: center; line-height: 2.1; }
+.article-foot a { font-weight: 700; text-decoration: none; }
+.article-foot a:hover { text-decoration: underline; }
+
+@media (max-width: 600px) {
+  body { font-size: 16px; line-height: 1.9; }
+  .article { padding-bottom: 56px; }
+  .summary { padding: 20px 18px; }
+  .summary li { padding-left: 36px; }
+  .item { padding: 20px 18px; }
+  .item h3 { font-size: 1.12rem; }
+  .section > h2 { font-size: 1.18rem; }
+  figure.thumb { float: none; width: 100%; margin: 16px 0 0; }
+  .points { padding: 14px 16px; }
+}

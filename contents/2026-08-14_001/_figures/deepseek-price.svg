@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 200">
+  <text x="8" y="22" font-size="15" font-weight="700" fill="var(--fg)">DeepSeek V4-Pro のAPI料金(8月17日 1:00 JST から)</text>
+  <rect x="20" y="150" width="48" height="26" rx="4" fill="var(--old)"/>
+  <rect x="84" y="126" width="48" height="50" rx="4" fill="var(--old)"/>
+  <rect x="148" y="92" width="48" height="84" rx="4" fill="var(--c)"/>
+  <rect x="212" y="52" width="48" height="124" rx="4" fill="var(--c)"/>
+  <path d="M30 130 L246 44" stroke="var(--c)" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M246 44 l-23 2 M246 44 l-5 22" stroke="var(--c)" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <text x="140" y="194" text-anchor="middle" font-size="12.5" fill="var(--sub)">これまで  →  8/17以降(ピーク時)</text>
+  <text x="330" y="72" font-size="17" fill="var(--sub)">値上げ幅は</text>
+  <text x="330" y="126" font-size="46" font-weight="800" fill="var(--c)">最大12倍</text>
+  <text x="330" y="158" font-size="14" fill="var(--sub)">オフピークはその半額。格安路線からの転換</text>
+</svg>

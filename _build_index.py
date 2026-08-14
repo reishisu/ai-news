@@ -153,11 +153,11 @@ def build_card(issue, meta, is_latest):
                  f'alt="" loading="lazy" '
                  "onerror=\"this.outerHTML='<div class=&quot;post-thumb-ph&quot;>📰</div>'\">")
     else:
-        thumb = f'<div class="post-thumb-ph">📰<small>{date_ja}</small></div>'
+        thumb = '<div class="post-thumb-ph">📰</div>'
     return f"""      <a class="post-card" href="{href}">
         {thumb}
         <div class="post-body">
-          <div class="post-date">📅 {date_ja}{new_badge}</div>
+          <div class="post-date">{date_ja}{new_badge}</div>
           <h3 class="post-title">{escape(meta["title"])}</h3>
           <p class="post-summary">{escape(meta["summary"])}</p>
           <span class="post-more">続きを読む →</span>
