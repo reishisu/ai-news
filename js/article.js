@@ -92,29 +92,6 @@
     refresh(false);
   });
 
-  /* ---------- 数字のカウントアップ ---------- */
-  var counters = document.querySelectorAll("[data-count]");
-  if (counters.length) {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        io.unobserve(e.target);
-        var el = e.target;
-        var target = parseFloat(el.dataset.count);
-        if (reduce) { el.textContent = el.dataset.count; return; }
-        var start = performance.now(), dur = 900;
-        (function tick(now) {
-          var t = Math.min((now - start) / dur, 1);
-          var eased = 1 - Math.pow(1 - t, 3);
-          var v = target * eased;
-          el.textContent = Number.isInteger(target) ? Math.round(v) : v.toFixed(1);
-          if (t < 1) requestAnimationFrame(tick);
-        })(start);
-      });
-    }, { threshold: 0.6 });
-    counters.forEach(function (c) { io.observe(c); });
-  }
-
   /* ---------- セクションのふわっと表示 ---------- */
   if (!reduce) {
     var items = document.querySelectorAll(".item, figure, .quiz");

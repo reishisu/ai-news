@@ -13,7 +13,7 @@
 <meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_task-breakdown/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="../../css/article.css?v=ef3b7e06">
+<link rel="stylesheet" href="../../css/article.css?v=19bddda4">
 
 <link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
 </head>
@@ -35,12 +35,6 @@
       <span class="tag">テンプレ配布</span>
       <span class="tag">50行のスクリプト付き</span>
     </div>
-  </div>
-
-  <div class="stats">
-    <div class="stat"><b data-count="7">0</b><span>個に割る</span></div>
-    <div class="stat"><b data-count="7">0</b><span>日が4.5日になる</span></div>
-    <div class="stat"><b data-count="0">0</b><span>日しか縮まない手</span></div>
   </div>
 
   <section class="summary">
@@ -70,6 +64,7 @@
       <li><a href="#s4">一番大きいタスクを縮めてみる</a></li>
       <li><a href="#s5">分解でよくある失敗3つ</a></li>
       <li><a href="#s6">そのまま使うテンプレート</a></li>
+      <li><a href="#refs">参考文献</a></li>
     </ol>
   </nav>
 
@@ -375,16 +370,49 @@ F   入力エラーの表示を作る     1.0   1.5   2.5   0.5日
       </a>
 
       <details>
-        <summary>用語について</summary>
+        <summary>この計算が効かない場面</summary>
         <div class="body">
           <dl>
-            <dt>この記事で「全体の長さを決めている道」と呼んだもの</dt>
-            <dd>一般にはクリティカルパスと呼ばれます。1950年代後半に、非効率なスケジューリングによるコスト増を解決するために作られた考え方です。作業を分解し、全経路の所要時間を計算して最長の経路を特定します。（参考: <a href="https://asana.com/ja/resources/critical-path-method">クリティカルパスとは？ — Asana</a>）</dd>
-            <dt>注意点</dt>
-            <dd>この計算は、見積もりが正しいことを前提にしています。見積もりが雑なら結果も雑です。ただし「どこを見るべきか」の当たりを付ける用途なら、雑な見積もりでも十分役に立ちます。</dd>
+            <dt>前提</dt>
+            <dd>この計算は、見積もりが正しいことを前提にしています。見積もりが雑なら結果も雑です。ただし「どこを見るべきか」の当たりを付ける用途なら、雑な見積もりでも十分に役立ちます。</dd>
+            <dt>人を足すコストは含まれていない</dt>
+            <dd>上の計算は、人を足せばすぐ並行に動ける前提です。実際には引き継ぎと立ち上がりの時間がかかります。遅れているプロジェクトに人を足すとかえって遅れる、という指摘は古くからあります（Brooksの法則）。足した人の立ち上がり日数も、タスクとして計算に入れてください。</dd>
           </dl>
         </div>
       </details>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の計算だけに基づいています。<mark>読んでいないものは「書誌のみ照合」と明記します。</mark></p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag unverified">書誌のみ照合</span>
+          Kelley, J. E., Jr. &amp; Walker, M. R.「Critical-path planning and scheduling」<i>Papers presented at the December 1-3, 1959, eastern joint IRE-AIEE-ACM computer conference (IRE-AIEE-ACM '59 Eastern)</i>, pp.160-173, ACM Press, 1959.
+          <span class="note">クリティカルパス法の原典。書誌情報は Crossref API（DOI: 10.1145/1460299.1460318）で著者・巻号・ページを照合しましたが、<b>本文は有料のため読んでいません</b>。本記事の計算は原典の再現ではなく、依存関係から最早開始・最早終了・余裕を求める一般的な手順の実装です。</span>
+          <a href="https://doi.org/10.1145/1460299.1460318">https://doi.org/10.1145/1460299.1460318</a>（2026年8月14日照合）
+        </li>
+        <li>
+          <span class="flag unverified">書誌のみ照合</span>
+          Brooks, F. P., Jr.『The Mythical Man-Month: Essays on Software Engineering』Anniversary Edition, Addison-Wesley Professional, 1995. ISBN 978-0-201-83595-3.
+          <span class="note">「遅れているプロジェクトに人を足すとさらに遅れる」の出典として広く知られる書籍。書誌情報は Open Library で照合しましたが、<b>本文は今回読んでいません</b>。本記事では通説として言及するにとどめています。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の計算</span>
+          <code>critical_path.py</code> の実行結果。Python 3.11.15、2026年8月14日実施。
+          <span class="note">記事中の3つの出力（そのまま／Dを縮めた場合／Eを縮めた場合）は、実際に実行して得たものをそのまま貼っています。タスクの日数は架空の例です。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「1タスクは0.5〜2日」「3日を超えたらもう1段割る」「調査タスクを作らない」は、<b>筆者の運用上の目安</b>であって、標準や規格ではありません。
+          <span class="note">チームの人数・領域・レビュー体制によって適正値は変わります。自分のチームの実績で上書きしてください。</span>
+        </li>
+      </ol>
     </article>
   </section>
 
@@ -410,7 +438,7 @@ F   入力エラーの表示を作る     1.0   1.5   2.5   0.5日
   <div class="sb-toast" role="status"></div>
 </div>
 <script src="../../js/shared.js?v=1f14af54" defer></script>
-<script src="../../js/article.js?v=740d7826" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
 
 <script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>

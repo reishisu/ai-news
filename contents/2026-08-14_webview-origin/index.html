@@ -13,7 +13,7 @@
 <meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_webview-origin/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="../../css/article.css?v=ef3b7e06">
+<link rel="stylesheet" href="../../css/article.css?v=19bddda4">
 
 <link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
 </head>
@@ -34,12 +34,6 @@
       <span class="tag">Android / iOS 共通</span>
       <span class="tag">CORS 4パターン実測</span>
     </div>
-  </div>
-
-  <div class="stats">
-    <div class="stat"><b data-count="4">0</b><span>通りのCORS設定を実測</span></div>
-    <div class="stat"><b data-count="1">0</b><span>個だけ通る設定がある</span></div>
-    <div class="stat"><b data-count="2">0</b><span>行で直る</span></div>
   </div>
 
   <section class="summary">
@@ -69,6 +63,7 @@
       <li><a href="#s4">よくある回避策が穴になる</a></li>
       <li><a href="#s5">正しい直し方（Android / iOS）</a></li>
       <li><a href="#s6">今すぐ確認するリスト</a></li>
+      <li><a href="#refs">参考文献</a></li>
     </ol>
   </nav>
 
@@ -185,6 +180,56 @@
         <li><b><code>Allow-Origin: *</code> は通りますが、Cookieが送れません。</b>これは仕様です。<code>*</code> と認証情報は併用できません。</li>
         <li><b>つまり「ログインが必要なAPI」は、<code>file://</code> のWebViewからは正攻法では呼べません。</b>これが問題の本質です。</li>
       </ul>
+
+      <h3>この4行は、仕様書の6ステップを写しただけ</h3>
+      <p class="lead">なぜこの結果になるのか。<mark>Fetch仕様に判定手順がそのまま書いてあります。</mark>上から順に読むだけで、表の4行が全部説明できます。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Fetch Standard §4.10「CORS check」— 原文（判定手順）</div>
+        <pre>1. Let origin be the result of getting
+   `Access-Control-Allow-Origin` from response's header list.
+2. If origin is null, then return failure.
+   （注: Null is not `null`. ＝「ヘッダーが無い」と
+     「文字列 null が入っている」は別物）
+3. If request's credentials mode is not "include"
+   and origin is `*`, then return success.
+4. If the result of byte-serializing a request origin with
+   request is not origin, then return failure.
+5. If request's credentials mode is not "include",
+   then return success.
+6. Let credentials be the result of getting
+   `Access-Control-Allow-Credentials` ...
+   If credentials is `true`, then return success.
+   Return failure.</pre>
+      </div>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>表の行</th><th>どのステップで決まるか</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>ヘッダーなし → 両方拒否</b></td>
+              <td data-label="どのステップで決まるか">ステップ2で脱落。ヘッダーが無いので即 failure</td>
+            </tr>
+            <tr>
+              <td><b><code>*</code> → ふつうは通る / Cookieは拒否</b></td>
+              <td data-label="どのステップで決まるか">ステップ3が「credentials でない場合に限り」success。Cookie付きだとここを通れず、ステップ4で <code>null ≠ *</code> となり failure</td>
+            </tr>
+            <tr>
+              <td><b>許可リスト → 両方拒否</b></td>
+              <td data-label="どのステップで決まるか">ステップ4で <code>null ≠ https://app.example.com</code> となり failure</td>
+            </tr>
+            <tr>
+              <td><b>そのまま返す → 両方通る</b></td>
+              <td data-label="どのステップで決まるか">ステップ4を <code>null = null</code> で通過し、ステップ6の <code>Allow-Credentials: true</code> で success。<b>ここが穴</b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">仕様は <code>Access-Control-Allow-Origin</code> の値について、<mark>「Originリクエストヘッダーの値そのまま（<code>null</code> もありうる）か <code>*</code>」</mark>と定義しています。つまり <code>null</code> を返すのは<b>規格違反ではありません</b>。規格の範囲内で、素直に穴が開きます。</p>
     </article>
   </section>
 
@@ -301,17 +346,6 @@ WebSettings.setAllowUniversalAccessFromFileURLs(false)</pre>
         <li><b>回避策ではなく、根本を直す。</b>CORSを緩めるのも、この設定を有効にするのも、穴を開ける方向です。読み込み方を変えるほうが速くて安全です。</li>
       </ul>
 
-      <details>
-        <summary>出典</summary>
-        <div class="body">
-          <dl>
-            <dt>Android公式ドキュメント</dt>
-            <dd><a href="https://developer.android.com/develop/ui/views/layout/webapps/load-local-content">Load in-app content — Android Developers</a>（コードサンプルと推奨事項の引用元）</dd>
-            <dt>Chromiumのプロジェクト文書</dt>
-            <dd><a href="https://chromium.googlesource.com/chromium/src/+/HEAD/android_webview/docs/cors-and-webview-api.md">CORS and WebView API</a></dd>
-          </dl>
-        </div>
-      </details>
     </article>
   </section>
 
@@ -347,6 +381,47 @@ WebSettings.setAllowUniversalAccessFromFileURLs(false)</pre>
     </article>
   </section>
 
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark>確度もラベルで分けています。</p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          WHATWG「Fetch Standard」<i>Living Standard</i>.
+          <span class="note">参照箇所: §3.3.3 HTTP responses（<code>Access-Control-Allow-Origin</code> は Origin ヘッダーの値そのまま、または <code>*</code>）、§4.10 CORS check（判定手順の全ステップ）。本文中の引用は原文のまま。</span>
+          <a href="https://fetch.spec.whatwg.org/">https://fetch.spec.whatwg.org/</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Load in-app content」<i>Android Developers</i>.
+          <span class="note">参照箇所: <code>WebViewAssetLoader</code> のKotlinサンプル、<code>file://</code> と <code>data:</code> が不透明なオリジンである旨、<code>setAllowFileAccessFromFileURLs</code> / <code>setAllowUniversalAccessFromFileURLs</code> を <code>false</code> にする推奨。本文中の「公式の言葉」は同ページの記述の訳。</span>
+          <a href="https://developer.android.com/develop/ui/views/layout/webapps/load-local-content">https://developer.android.com/develop/ui/views/layout/webapps/load-local-content</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          The Chromium Projects「CORS and WebView API」<i>chromium/src, android_webview/docs</i>.
+          <span class="note">参照箇所: ローカルリソースの読み込みに <code>WebViewAssetLoader</code> を推奨する記述、独自スキームが不透明なオリジンとして扱われ <code>*</code> か <code>null</code> が必要になる旨。</span>
+          <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/android_webview/docs/cors-and-webview-api.md">https://chromium.googlesource.com/chromium/src/+/HEAD/android_webview/docs/cors-and-webview-api.md</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          pengda「Issue with loadFileURL in WKWebView on iOS 26.4 Beta」<i>Apple Developer Forums</i>, thread 817245.
+          <span class="note">利用者による投稿のみで、Appleからの回答はありません（2026年8月14日時点で返信0件）。仕様変更か不具合かは確定していないため、本文でも「報告」として扱っています。</span>
+          <a href="https://developer.apple.com/forums/thread/817245">https://developer.apple.com/forums/thread/817245</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          CORSの挙動測定。Chromium 141.0.7390.37 / Python 3.11.15 / Node.js v22.22.2、2026年8月14日実施。
+          <span class="note">同一のHTMLを <code>file://</code> と <code>http://</code> から開き、CORSの返し方4通り × 認証情報の有無で計測。表とログは加工していません。<b>iOS・Androidの実機検証は行っていません</b>。両OSに関する記述は上記の公式文書に基づく説明です。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
   <footer class="article-foot">
     <div>この記事は2026年8月14日時点の内容です。CORSの実測は Chromium 141.0.7390.37 / Python 3.11.15 で行いました。Android・iOSの記述は各公式ドキュメントに基づきます（実機検証は行っていません）。</div>
     <div>公開: 2026年8月14日 JST</div>
@@ -369,7 +444,7 @@ WebSettings.setAllowUniversalAccessFromFileURLs(false)</pre>
   <div class="sb-toast" role="status"></div>
 </div>
 <script src="../../js/shared.js?v=1f14af54" defer></script>
-<script src="../../js/article.js?v=740d7826" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
 
 <script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>

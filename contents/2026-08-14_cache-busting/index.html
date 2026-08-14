@@ -13,7 +13,7 @@
 <meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_cache-busting/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="../../css/article.css?v=ef3b7e06">
+<link rel="stylesheet" href="../../css/article.css?v=19bddda4">
 
 <link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
 </head>
@@ -34,12 +34,6 @@
       <span class="tag">実測ログ全部載せ</span>
       <span class="tag">コピペで再現できる</span>
     </div>
-  </div>
-
-  <div class="stats">
-    <div class="stat"><b data-count="600">0</b><span>秒 嘘をつかれる</span></div>
-    <div class="stat"><b data-count="4">0</b><span>個の対処が無駄</span></div>
-    <div class="stat"><b data-count="8">0</b><span>文字で直る</span></div>
   </div>
 
   <section class="summary">
@@ -69,6 +63,7 @@
       <li><a href="#s4">効かない対処、4つ</a></li>
       <li><a href="#s5">8文字で直す</a></li>
       <li><a href="#s6">あなたのサイトを今すぐ確認する</a></li>
+      <li><a href="#refs">参考文献</a></li>
     </ol>
   </nav>
 
@@ -232,8 +227,30 @@ GET /style.css</pre>
 
       <p class="lead">6回も操作したのに、サーバーに届いたのは<mark>3回だけ</mark>。1〜4はサーバーに1度も来ていません。</p>
 
+      <p class="lead">これは不具合ではなく<mark>仕様どおり</mark>です。HTTPの規格そのものに、そう書いてあります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">RFC 9111「HTTP Caching」§4.2 — 原文</div>
+        <pre>When a response is fresh, it can be used to satisfy subsequent
+requests without contacting the origin server, thereby improving
+efficiency.
+
+（新鮮なうちは、オリジンサーバーに問い合わせることなく
+　後続のリクエストに使ってよい）</pre>
+      </div>
+
+      <p class="lead">では<b>F5</b>はなぜ効かないのか。これもChrome側が公式に説明しています。2017年に挙動を変えたときのアナウンスです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Chromium Blog（2017年1月26日）— 原文</div>
+        <pre>Chrome now has a simplified reload behavior to only validate
+the main resource and continue with a regular page load.
+
+（リロードでは主リソースだけを検証し、あとは通常の読み込みに進む）</pre>
+      </div>
+
       <ul class="points">
-        <li><b>F5は効きません。</b>いまのChromeは、リロードでHTMLは確認し直しますが、CSSや画像は確認しません。</li>
+        <li><b>F5が確認するのはHTMLだけ。</b>CSSや画像は確認しません。仕様変更の理由は速度で、リロードが28%速くなり検証リクエストが60%減ったと報告されています。</li>
         <li><b>ファイルの更新日時も効きません。</b>そもそも聞きに来ないので、サーバー側で何をしても届きません。</li>
         <li><b>デプロイし直しても効きません。</b>同じ理由です。「反映されない」の大半はこれです。</li>
       </ul>
@@ -363,6 +380,40 @@ def add_cache_busting(html, versions):
     </article>
   </section>
 
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          R. Fielding, M. Nottingham, J. Reschke (Eds.)「HTTP Caching」<i>RFC 9111 (STD 98), Internet Engineering Task Force</i>, 2022年6月.
+          <span class="note">参照箇所: §4.2 Freshness、§5.2.2.1 max-age。本文中の引用は原文のまま。</span>
+          <a href="https://www.rfc-editor.org/rfc/rfc9111.html">https://www.rfc-editor.org/rfc/rfc9111.html</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          「Reload, reloaded: faster and leaner page reloads」<i>Chromium Blog</i>, 2017年1月26日.
+          <span class="note">参照箇所: リロード時に主リソースのみを検証する変更点、および28%高速化・検証リクエスト60%減の記述。</span>
+          <a href="https://blog.chromium.org/2017/01/reload-reloaded-faster-and-leaner-page_26.html">https://blog.chromium.org/2017/01/reload-reloaded-faster-and-leaner-page_26.html</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          GitHub Pages のレスポンスヘッダー実測。2026年8月14日 13:04 JST、<code>curl</code> により <code>https://reishisu.github.io/ai-news/css/article.css</code> を取得。
+          <span class="note">GitHub は Pages のキャッシュ指示値を公式には文書化していないため、記事中の <code>max-age=600</code> は「この日時に観測した値」であり、将来変わる可能性があります。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          崩れの再現実験。Chromium 141.0.7390.37 / Python 3.11.15 / Node.js v22.22.2、2026年8月14日実施。
+          <span class="note">記事中のターミナル出力は、加工せずそのまま貼っています。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
   <footer class="article-foot">
     <div>この記事は2026年8月14日時点の内容です。検証環境: Chromium 141.0.7390.37 / Python 3.11.15 / Node.js v22.22.2</div>
     <div>公開: 2026年8月14日 JST</div>
@@ -385,7 +436,7 @@ def add_cache_busting(html, versions):
   <div class="sb-toast" role="status"></div>
 </div>
 <script src="../../js/shared.js?v=1f14af54" defer></script>
-<script src="../../js/article.js?v=740d7826" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
 
 <script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
