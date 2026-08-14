@@ -75,6 +75,7 @@ def load_meta(issue):
 
     thumb = meta.get("thumbnail") or "images/thumb.png"
     meta["thumbnail"] = thumb if (issue["dirpath"] / thumb).is_file() else None
+    meta.setdefault("category", "デイリーダイジェスト")
     return meta
 
 
@@ -157,7 +158,7 @@ def build_card(issue, meta, is_latest):
     return f"""      <a class="post-card" href="{href}">
         {thumb}
         <div class="post-body">
-          <div class="post-date">{date_ja}{new_badge}</div>
+          <div class="post-date"><span class="post-cat">{escape(meta["category"])}</span>{date_ja}{new_badge}</div>
           <h3 class="post-title">{escape(meta["title"])}</h3>
           <p class="post-summary">{escape(meta["summary"])}</p>
           <span class="post-more">続きを読む →</span>

@@ -58,10 +58,8 @@ img { max-width: 100%; }
 .container { max-width: 900px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 32px) 64px; }
 
 /* ---------- hero ---------- */
-.hero { padding: clamp(38px, 7vw, 64px) 0 clamp(26px, 4vw, 40px); border-bottom: 1px solid var(--line); }
-.hero h1 { font-size: clamp(1.6rem, 4.4vw, 2.35rem); font-weight: 800; line-height: 1.45; letter-spacing: .01em; }
-.hero .grad { color: var(--accent); }
-.hero p { margin-top: 14px; color: var(--sub); font-size: 1rem; max-width: 620px; }
+.hero { padding: clamp(30px, 5vw, 44px) 0 clamp(22px, 3vw, 30px); border-bottom: 1px solid var(--line); }
+.hero p { color: var(--sub); font-size: 1rem; max-width: 660px; }
 
 /* ---------- 記事リスト ---------- */
 .posts-head { display: flex; align-items: baseline; gap: 12px; margin: 34px 0 4px; }
@@ -92,6 +90,7 @@ img { max-width: 100%; }
 .post-body { flex: 1; min-width: 0; }
 .post-date { display: flex; align-items: center; gap: 9px; color: var(--sub); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .post-new { padding: 1px 9px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .05em; }
+.post-cat { padding: 2px 10px; border-radius: 6px; background: var(--chip-bg); color: var(--accent); font-size: 11.5px; font-weight: 700; }
 .post-title {
   margin-top: 7px; font-size: 1.2rem; font-weight: 800; line-height: 1.6;
   transition: color .18s ease;

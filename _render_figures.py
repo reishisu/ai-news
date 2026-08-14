@@ -19,7 +19,7 @@ import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-CONTENTS = HERE / "contents"
+SECTION_DIRS = [HERE / "contents", HERE / "notes"]
 CHROMIUM = "/opt/pw-browsers/chromium"
 SCALE = 2
 
@@ -119,12 +119,25 @@ def process_issue(issue_dir):
     return count
 
 
+def resolve(name):
+    """号のディレクトリ名(または相対パス)を実際のパスに解決する。"""
+    direct = HERE / name
+    if direct.is_dir():
+        return direct
+    for base in SECTION_DIRS:
+        if (base / name).is_dir():
+            return base / name
+    return direct
+
+
 def main():
     targets = []
     if len(sys.argv) > 1:
-        targets = [CONTENTS / name for name in sys.argv[1:]]
-    elif CONTENTS.is_dir():
-        targets = [p for p in sorted(CONTENTS.iterdir()) if p.is_dir()]
+        targets = [resolve(name) for name in sys.argv[1:]]
+    else:
+        for base in SECTION_DIRS:
+            if base.is_dir():
+                targets += [p for p in sorted(base.iterdir()) if p.is_dir()]
 
     total = 0
     for issue_dir in targets:

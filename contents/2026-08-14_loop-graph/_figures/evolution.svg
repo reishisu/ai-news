@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 190">
+  <text x="8" y="22" font-size="15" font-weight="700" fill="var(--fg)">AIに開発を任せるやり方は、4段階で変わってきた</text>
+  <rect x="8" y="46" width="140" height="58" rx="9" fill="var(--track)"/>
+  <text x="78" y="70" text-anchor="middle" font-size="13" font-weight="700" fill="var(--sub)">2023</text>
+  <text x="78" y="90" text-anchor="middle" font-size="13" fill="var(--sub)">コード補完</text>
+  <rect x="164" y="46" width="140" height="58" rx="9" fill="var(--track)"/>
+  <text x="234" y="70" text-anchor="middle" font-size="13" font-weight="700" fill="var(--sub)">2024</text>
+  <text x="234" y="90" text-anchor="middle" font-size="13" fill="var(--sub)">プロンプトで書かせる</text>
+  <rect x="320" y="46" width="140" height="58" rx="9" fill="var(--old)"/>
+  <text x="390" y="70" text-anchor="middle" font-size="13" font-weight="700" fill="var(--fg)">2025</text>
+  <text x="390" y="90" text-anchor="middle" font-size="13" fill="var(--fg)">複数を並列で動かす</text>
+  <rect x="476" y="46" width="156" height="58" rx="9" fill="var(--new)"/>
+  <text x="554" y="70" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">2026</text>
+  <text x="554" y="90" text-anchor="middle" font-size="13" fill="#fff">ループ自体を設計する</text>
+  <path d="M152 75 h8 M308 75 h8 M464 75 h8" stroke="var(--sub)" stroke-width="3" stroke-linecap="round"/>
+  <text x="8" y="140" font-size="14" font-weight="700" fill="var(--fg)">変わったのは「誰が次の一手を決めるか」</text>
+  <text x="8" y="166" font-size="13" fill="var(--sub)">人がプロンプトを打つ  →  人は終了条件だけ決め、次の一手はエージェントが決める</text>
+</svg>

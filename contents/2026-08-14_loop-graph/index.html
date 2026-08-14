@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ループエンジニアリングとグラフエンジニアリング — Claude Codeで設計する</title>
+<meta name="description" content="プロンプトを書く時代から、ループとグラフを設計する時代へ。Claude Codeでの停止条件の書き方、サブエージェントとワークフローの使い分けを実務目線で整理します。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ループエンジニアリングとグラフエンジニアリング — Claude Codeで設計する">
+<meta property="og:description" content="プロンプトを書く時代から、ループとグラフを設計する時代へ。停止条件の書き方と、ループからグラフへ移る判断基準を整理します。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_loop-graph/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css">
+
+<link rel="stylesheet" href="../../css/shared.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">AIで作る技術 ｜ 2026年8月14日(金)</div>
+    <h1>プロンプトを書く時代から、ループとグラフを設計する時代へ</h1>
+    <div class="range">Claude Codeでの実践を前提に、ループエンジニアリングとグラフエンジニアリングを整理します</div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ この記事の3行まとめ</h2>
+    <ol>
+      <li>
+        <b>ループエンジニアリングは「終了条件だけ決めて、あとは回させる」設計</b>
+        <span>人が毎回プロンプトを打つのをやめ、エージェント自身に次の一手を決めさせます。</span>
+      </li>
+      <li>
+        <b>成否を分けるのは停止条件。機械が判定できる形に落とせるかがすべて</b>
+        <span>「読みやすくして」は永遠に終わらず、「テストが全部通る」は必ず止まります。</span>
+      </li>
+      <li>
+        <b>グラフエンジニアリングは、ループが破綻し始めたときの次の一手</b>
+        <span>作業をノードに分け、順序・分岐・戻り先を先に決めます。最初から使うと複雑になるだけです。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#why">なぜ「ループ」を設計する話になったのか</a></li>
+      <li><a href="#loop">ループエンジニアリング — 終了条件を決めて回させる</a></li>
+      <li><a href="#stop">停止条件の書き方が9割</a></li>
+      <li><a href="#graph">グラフエンジニアリング — 破綻し始めたら点と線に分ける</a></li>
+      <li><a href="#choice">ループのままか、グラフへ移すかの判断</a></li>
+      <li><a href="#practice">Claude Codeでの組み立て方</a></li>
+    </ol>
+  </section>
+
+  <!-- ============ 背景 ============ -->
+  <section class="section section-b" id="why">
+    <h2>🧭 なぜ「ループ」を設計する話になったのか</h2>
+
+    <article class="item">
+      <h3>変わったのは能力ではなく「誰が次の一手を決めるか」</h3>
+      <p class="lead">AIに開発を任せるやり方は数年で段階的に変わってきました。2026年に入って広まったのは、<mark>プロンプトを書くのではなく、プロンプトを出し続けるループのほうを書く</mark>という考え方です。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/evolution-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/evolution.png" alt="コード補完、プロンプトで書かせる、並列実行、ループ設計と段階的に変化してきた図" loading="lazy">
+        </picture>
+        <figcaption>能力が上がったぶん、人が介入する頻度を下げられるようになった</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>これまでは人がループの中にいた。</b>実行して、結果を見て、次の指示を出す。この判断を毎回人が担っていました。</li>
+        <li><b>いまは人がループの外に出る。</b>人が決めるのは「どうなったら終わりか」だけで、途中の判断はエージェントに委ねます。</li>
+        <li><b>だから設計対象が変わった。</b>プロンプトの上手さより、<b>終了条件・失敗時の戻り方・手を出す境界</b>の設計が成果を左右します。</li>
+      </ul>
+
+      <details>
+        <summary>用語の扱いについて</summary>
+        <div class="body">
+          <dl>
+            <dt>注意</dt>
+            <dd>「ループエンジニアリング」「グラフエンジニアリング」はどちらも2026年に広まった比較的新しい言い方で、定義が完全に固まっているわけではありません。この記事は複数の解説記事で共通している内容を軸にまとめています。</dd>
+            <dt>参考</dt>
+            <dd><a href="https://zenn.dev/aria3/articles/claude-code-loop-goal-engineering">もうプロンプトは打たない!? — Claude Code の /loop と /goal という考え方(Zenn)</a> / <a href="https://fyve.co.jp/claude-code/articles/loop-engineering-guide">Loop Engineeringとは</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ ループ ============ -->
+  <section class="section section-c" id="loop">
+    <h2>🔁 ループエンジニアリング — 終了条件を決めて回させる</h2>
+
+    <article class="item">
+      <h3>「実行 → 確認 → 直す」を、条件を満たすまで自分で繰り返させる</h3>
+      <p class="lead">ループエンジニアリングは、<mark>エージェントに作業と確認を繰り返させ、条件を満たしたときだけ止める</mark>設計です。1回のプロンプトで完璧な出力を狙うのではなく、雑でもいいから回して収束させる、という発想の転換になります。</p>
+
+      <ul class="points">
+        <li><b>ループの最小構成は4つ。</b>やること(目標)、実行、結果の確認、そして<b>止まる条件</b>。このうち最後が抜けると永久に回ります。</li>
+        <li><b>1周の粒度は小さくする。</b>1周で1つのテストを通す、1ファイルだけ直す、くらいが扱いやすいです。大きすぎると失敗時の巻き戻しが重くなります。</li>
+        <li><b>回数の上限は必ず付ける。</b>条件判定が甘くても、上限があれば暴走が事故になりません。</li>
+      </ul>
+
+      <details>
+        <summary>Claude Codeでの入口</summary>
+        <div class="body">
+          <dl>
+            <dt>/goal</dt>
+            <dd>完了条件を渡すと、達成できたかを毎ターン判定しながらターンを跨いで自走します。「終わったら止まる」を宣言的に書ける入口です。</dd>
+            <dt>/loop</dt>
+            <dd>指定した処理を一定間隔で繰り返します。外部の状態を待つ用途(CIの結果を見る、デプロイを見張る)に向きます。</dd>
+            <dt>使い分け</dt>
+            <dd>ざっくり言えば <b>/goal は「達成したら止まる」、/loop は「間隔をあけて何度も見に行く」</b>。終わりが状態で決まるなら/goal、時間で決まるなら/loopです。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 停止条件 ============ -->
+  <section class="section section-c" id="stop">
+    <h2>🛑 停止条件の書き方が9割</h2>
+
+    <article class="item">
+      <h3>「機械が判定できる条件」しか、ループは止められない</h3>
+      <p class="lead">ループ設計でいちばん失敗するのがここです。<mark>人間の主観でしか判定できない条件を渡すと、エージェントは終わったかどうか分からず回り続けます</mark>。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/stop-condition-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/stop-condition.png" alt="回り続けてしまう条件とちゃんと止まる条件の比較" loading="lazy">
+        </picture>
+        <figcaption>コマンドを叩いて真偽が確定するか — これが分かれ目</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>コマンドの終了ステータスに変換する。</b>「テストが通る」「型チェックが通る」「lintがゼロ件」は、そのまま判定できます。</li>
+        <li><b>数を数えられる形にする。</b>「未対応の項目が0件になる」「失敗しているテストが0件になる」のように、残数で表現すると進捗も見えます。</li>
+        <li><b>主観的な目標は、代理指標に置き換える。</b>「読みやすくして」ではなく「1関数50行以下にする」「循環的複雑度を10以下にする」と書けば止まります。</li>
+        <li><b>それでも保険は必要。</b>条件に加えて「20ターンで打ち切る」のような上限を併記しておきます。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>置き換えの例</dt>
+            <dd>「バグを直して」→「再現手順のテストを追加し、それが通る」。目標を<b>先にテストとして書く</b>と、ループの停止条件がそのまま手に入ります。</dd>
+            <dt>最初の一歩</dt>
+            <dd>いきなり大きな改修に使わず、「関数にJSDocコメントを付ける、20ターンで打ち切り」のような小さく安全なタスクで挙動を掴むのが安全です。</dd>
+            <dt>参考</dt>
+            <dd><a href="https://note.com/masa_wunder/n/ncca2f2db5a64">Claude Code ループエンジニアリング入門 /goal・/loopの使い分けと停止条件の設計</a> / <a href="https://dev.classmethod.jp/articles/claude-loop-engineering-practice/">Loop EngineeringをClaudeを使って実践してみた(DevelopersIO)</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ グラフ ============ -->
+  <section class="section section-a" id="graph">
+    <h2>🕸 グラフエンジニアリング — 破綻し始めたら点と線に分ける</h2>
+
+    <article class="item">
+      <h3>1つのループで抱えきれなくなったら、作業をノードに割る</h3>
+      <p class="lead">グラフエンジニアリングは、エージェントの処理を<mark>ノード(作業単位)・エッジ(次にどこへ行くか)・ステート(引き継ぐ情報)</mark>として明示的に設計する考え方です。ループは「自分自身に戻るエッジを1本持つ、最小のグラフ」と捉えられます。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/loop-vs-graph-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/loop-vs-graph.png" alt="ループは1つの円、グラフは複数のノードとエッジで構成される図" loading="lazy">
+        </picture>
+        <figcaption>ループは制御が暗黙、グラフは制御が図として見える</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>ノードは作業単位。</b>LLMの呼び出しに限らず、普通のコード実行や人間の承認ステップもノードとして置けます。</li>
+        <li><b>エッジは「次にどこへ行くか」。</b>条件分岐・並列・失敗時の戻り先を、実行前に決めておける点がループとの決定的な違いです。</li>
+        <li><b>ステートは引き継ぐ情報。</b>各ノードが何を受け取り何を返すかを決めると、途中から再開したりノードを差し替えたりできます。</li>
+        <li><b>強みは再現性と分離。</b>どこで失敗したかが特定でき、失敗したノードだけ作り直せます。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>ループとの関係</dt>
+            <dd>対立する概念ではありません。ループは1つのエージェントの動作サイクルを制御し、グラフは複数ノードのつながりの構造を制御します。実際にはグラフの各ノードの中でループが回ります。</dd>
+            <dt>注意</dt>
+            <dd>グラフ化すると設計と保守のコストが増えます。単純な繰り返し作業に持ち込むと、得られる恩恵より複雑さのほうが勝ちがちです。</dd>
+            <dt>参考</dt>
+            <dd><a href="https://blog.serverworks.co.jp/what-is-graph-engineering">「グラフエンジニアリング」とは何か？(サーバーワークス)</a> / <a href="https://zenn.dev/suwash/articles/graph-engineering_20260727">Graph Engineering入門(Zenn)</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 判断 ============ -->
+  <section class="section section-a" id="choice">
+    <h2>⚖️ ループのままか、グラフへ移すかの判断</h2>
+
+    <article class="item">
+      <h3>「ループが失敗している兆候」が出てから移す</h3>
+      <p class="lead">先にグラフを描きたくなりますが、<mark>まずはループで回して、破綻の兆候が出てから分割する</mark>ほうが結果的に速いです。判断材料は次の4つです。</p>
+
+      <ul class="points">
+        <li><b>同じ失敗を繰り返し始めたら。</b>ループが自力で抜け出せないなら、その工程を独立したノードに切り出して条件を変える余地を作ります。</li>
+        <li><b>複数の領域にまたがるなら。</b>調査・実装・検証・文書化のように必要な文脈が違う作業は、1つのループに詰め込むと文脈が混ざって精度が落ちます。</li>
+        <li><b>並列に走らせたいなら。</b>独立した作業を同時に進めたい時点で、それはもうグラフです。</li>
+        <li><b>途中に人の承認を挟みたいなら。</b>承認をノードとして置けるのはグラフの利点です。</li>
+      </ul>
+
+      <details>
+        <summary>逆に、ループのままでいい場合</summary>
+        <div class="body">
+          <dl>
+            <dt>そのままでよい典型</dt>
+            <dd>対象が1つの領域に収まっていて、停止条件がコマンド1本で判定でき、失敗しても最初からやり直せば済む作業。テストを通す、lintを潰す、型エラーを消す、といった収束型のタスクが該当します。</dd>
+            <dt>考え方</dt>
+            <dd>グラフは「速くするための道具」ではなく「壊れにくくするための道具」です。壊れていないうちは入れなくて構いません。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 実践 ============ -->
+  <section class="section section-b" id="practice">
+    <h2>🛠 Claude Codeでの組み立て方</h2>
+
+    <article class="item">
+      <h3>ループは/goalで、グラフはサブエージェントとワークフローで表現する</h3>
+      <p class="lead">Claude Codeには、ループとグラフをそれぞれ担う道具が揃っています。<mark>1つのセッションで回すか、役割ごとに分けるか</mark>が最初の分岐点です。</p>
+
+      <ul class="points">
+        <li><b>ループを回す: /goal と /loop。</b>状態で終わるなら/goal、時間や外部イベントを待つなら/loop。どちらも上限を添えます。</li>
+        <li><b>ノードを分ける: サブエージェント。</b>調査役・実装役・検証役のように役割ごとに文脈を分離できます。読み取り専用の調査役を別に立てると、本体の文脈が汚れません。</li>
+        <li><b>順序と分岐を決める: ワークフロー。</b>「調べる → 並列で直す → まとめて検証」のような手順を決定的に書き下せます。</li>
+        <li><b>エッジに条件を仕込む: フック。</b>編集後にテストを走らせる、危険なコマンドを止めるといった遷移条件を、プロンプトではなく仕組み側に持たせられます。</li>
+        <li><b>定期実行はスケジュールで。</b>毎朝の定型作業のように「時間で始まるループ」は、セッションの外に出したほうが安定します。</li>
+      </ul>
+
+      <details>
+        <summary>組み立てのコツ</summary>
+        <div class="body">
+          <dl>
+            <dt>まず手で1周やる</dt>
+            <dd>自動化する前に、自分で1周分の作業をやってみて、判断していた箇所を書き出します。その判断がそのままエッジの条件になります。</dd>
+            <dt>検証を独立させる</dt>
+            <dd>実装したエージェント自身に「できましたか?」と聞くと甘い判定になりがちです。検証を別ノードに分けると精度が上がります。</dd>
+            <dt>ログを残す</dt>
+            <dd>どのノードで何回失敗したかが残っていないと、次にどこを分割すべきか判断できません。ループが失敗した記録こそがグラフ設計の材料になります。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>公開: 2026年8月14日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js" defer></script>
+</body>
+</html>

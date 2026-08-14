@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <text x="8" y="22" font-size="15" font-weight="700" fill="var(--fg)">停止条件は「機械が判定できるか」で決まる</text>
+
+  <rect x="8" y="42" width="300" height="160" rx="11" fill="var(--track)"/>
+  <text x="24" y="68" font-size="13.5" font-weight="700" fill="var(--c)">回り続けてしまう条件</text>
+  <text x="24" y="98" font-size="13" fill="var(--fg)">「読みやすくして」</text>
+  <text x="24" y="124" font-size="13" fill="var(--fg)">「いい感じに整えて」</text>
+  <text x="24" y="150" font-size="13" fill="var(--fg)">「バグを直して」</text>
+  <text x="24" y="182" font-size="12.5" fill="var(--sub)">達成したかを判定できない</text>
+
+  <rect x="332" y="42" width="300" height="160" rx="11" fill="var(--track)"/>
+  <text x="348" y="68" font-size="13.5" font-weight="700" fill="var(--a)">ちゃんと止まる条件</text>
+  <text x="348" y="98" font-size="13" fill="var(--fg)">「npm test が全て通る」</text>
+  <text x="348" y="124" font-size="13" fill="var(--fg)">「型エラーが0件になる」</text>
+  <text x="348" y="150" font-size="13" fill="var(--fg)">「未処理の項目が0になる」</text>
+  <text x="348" y="182" font-size="12.5" fill="var(--sub)">コマンドの結果で判定できる</text>
+</svg>
