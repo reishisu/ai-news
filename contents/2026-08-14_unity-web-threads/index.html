@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unity Webが本番だけ動かない。原因はビルドではなくサーバー</title>
+<meta name="description" content="ローカルでは動いたUnity Webビルドが、本番に置いた途端に起動しない。マルチスレッドに必要なHTTPヘッダー2本を実測で確かめ、Unity公式ドキュメントの記述と突き合わせました。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity Webが本番だけ動かない。原因はビルドではなくサーバー">
+<meta property="og:description" content="SharedArrayBufferが消える条件を実測。ヘッダー2本で結果が変わります。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_unity-web-threads/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=19bddda4">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">クライアント技術 ｜ 2026年8月14日(金)</div>
+    <h1>Unity Webが本番だけ動かない。原因はビルドではなくサーバー</h1>
+    <div class="range">ローカルで動いたビルドが、置いた瞬間に起動しない。その条件をブラウザで実測し、Unity公式の記述と突き合わせます。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約6分</span>
+      <span class="tag">実測 + 公式ドキュメント</span>
+      <span class="tag">設定はコピペで足りる</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li>
+        <b>Unity Webのマルチスレッドは、HTTPヘッダー2本が無いと丸ごと死にます</b>
+        <span>ビルド設定ではなく、<b>配信サーバー側の設定</b>で決まります。ここが盲点です。</span>
+      </li>
+      <li>
+        <b>ヘッダーが無いと <code>SharedArrayBuffer</code> は「存在しない」扱いになります</b>
+        <span>値が空なのではなく、参照した瞬間に <code>ReferenceError</code>。実測しました。</span>
+      </li>
+      <li>
+        <b>そもそもC#のスレッドは使えません。これは仕様です</b>
+        <span>Unity公式が理由まで書いています。「重い処理を別スレッドへ」が通りません。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">症状 — ローカルでは動いたのに</a></li>
+      <li><a href="#s2">条件をブラウザで実測する</a></li>
+      <li><a href="#s3">Unity公式が要求しているヘッダー</a></li>
+      <li><a href="#s4">C#のスレッドは使えない</a></li>
+      <li><a href="#s5">配信サーバー別の設定</a></li>
+      <li><a href="#s6">確認リスト</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>症状 — ローカルでは動いたのに</h2>
+
+    <article class="item">
+      <h3>ビルドは同じ。置き場所を変えただけで起動しなくなる</h3>
+      <p class="lead">Unityの「Build And Run」では問題なく動きます。同じ成果物をサーバーに上げると、<mark>ロード画面から先に進まない</mark>。</p>
+      <p class="lead">Unityのビルド設定を疑って何時間も溶かす典型です。<b>ビルドは悪くありません。</b></p>
+
+      <ul class="points">
+        <li><b>「Build And Run」は自前のローカルサーバーを立てています。</b>そのサーバーが必要なヘッダーを付けてくれるので動きます。</li>
+        <li><b>本番のホスティングは何も付けません。</b>だから同じファイルでも結果が変わります。</li>
+        <li><b>エラーが分かりにくい。</b>コンソールに出るのは <code>SharedArrayBuffer is not defined</code> 系で、Unityの文字は出てきません。</li>
+      </ul>
+
+      <div class="quiz">
+        <p class="q">Q. ローカルで動いて本番で動かない。まず疑うのは?</p>
+        <button class="opt" type="button" data-correct="false">ビルド設定の圧縮形式</button>
+        <button class="opt" type="button" data-correct="true">配信サーバーが返しているHTTPヘッダー</button>
+        <button class="opt" type="button" data-correct="false">Unityのバージョン</button>
+        <p class="ans" hidden>正解。成果物が同じなら、違うのは配信の仕方だけです。次でその「違い」を実際に測ります。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>条件をブラウザで実測する</h2>
+
+    <article class="item">
+      <h3>同じHTMLを、ヘッダーだけ変えて2通り配信した</h3>
+      <p class="lead">Unityを持ち出さなくても、条件はブラウザだけで確かめられます。<mark>ヘッダー2本の有無だけが違う</mark>サーバーを立てました。</p>
+
+      <div class="code">
+        <div class="code-head">coi.py — ヘッダーの有無を切り替えるだけのサーバー</div>
+        <pre>class Handler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(PAGE)))
+        if self.path.startswith("/coi"):
+            self.send_header("Cross-Origin-Opener-Policy", "same-origin")
+            self.send_header("Cross-Origin-Embedder-Policy", "require-corp")
+        self.end_headers()
+        self.wfile.write(PAGE)</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">実行結果（node probe.js）</div>
+        <pre>ブラウザ: 141.0.7390.37
+
+■ ヘッダーなしで配信した場合
+  crossOriginIsolated   <span class="ng-line">false</span>
+  SharedArrayBuffer     <span class="ng-line">なし / 作れない (ReferenceError)</span>
+  WebAssembly           あり
+  WebGL2                あり
+  WebGPU                あり
+  論理コア数            4
+
+■ COOP + COEP を付けて配信した場合
+  crossOriginIsolated   <span class="ok-line">true</span>
+  SharedArrayBuffer     <span class="ok-line">あり / 作れる</span>
+  WebAssembly           あり
+  WebGL2                あり
+  WebGPU                あり
+  論理コア数            4</pre>
+      </div>
+
+      <figure>
+        <picture>
+          <source srcset="images/coi-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/coi.png" alt="ヘッダーなしではcrossOriginIsolatedがfalseでSharedArrayBufferが存在せず、COOPとCOEPを付けるとtrueになり使えるようになることを示した図" loading="lazy">
+        </picture>
+        <figcaption>変わったのはヘッダー2本だけ。HTMLは1文字も同じ</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b><code>SharedArrayBuffer</code> は「値が無い」のではなく「存在しない」。</b><code>typeof</code> で見ると <code>undefined</code>、直接触ると <code>ReferenceError</code> です。だから <code>if (SharedArrayBuffer)</code> と書くと、そこで落ちます。</li>
+        <li><b>WebAssembly・WebGL2・WebGPUはヘッダー無しでも使えます。</b>止まるのは<b>スレッド関連だけ</b>。だから「描画は出るのに固まる」といった中途半端な壊れ方をします。</li>
+        <li><b>判定は1行で書けます。</b><code>self.crossOriginIsolated</code> が <code>true</code> かどうか。これがマルチスレッド可否とほぼ同義です。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="section section-c" id="s3">
+    <h2><span class="step">3</span>Unity公式が要求しているヘッダー</h2>
+
+    <article class="item">
+      <h3>推測ではなく、マニュアルに3本が明記されています</h3>
+      <p class="lead">実測は実測として、<mark>Unityが何を要求しているか</mark>を公式マニュアルで確認しました。原文はこうです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Unity Manual (6000.0)「WebGL technical overview」— 原文</div>
+        <pre>The Web platform supports multithreading, when your document is
+within a secure context. The following HTTP response headers must
+be set by the server.
+
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
+Cross-Origin-Resource-Policy: cross-origin</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>Unityは3本挙げています。</b>私が実測したのは上2本で、これだけで <code>crossOriginIsolated</code> は <code>true</code> になりました。3本目の <code>Cross-Origin-Resource-Policy</code> は<b>今回検証していません</b>。Unityが挙げている以上、まとめて設定するのが安全です。</li>
+        <li><b>「secure context」も条件です。</b>つまり <code>https://</code>（または <code>localhost</code>）である必要があります。社内の <code>http://192.168.x.x</code> で配ると、それだけで条件を外します。</li>
+        <li><b>ヘッダーはサーバーの担当です。</b>Unity側の設定をいくらいじっても付きません。</li>
+      </ul>
+
+      <details>
+        <summary>COEP を付けると外部リソースが読めなくなる場合があります</summary>
+        <div class="body">
+          <dl>
+            <dt>何が起きるか</dt>
+            <dd><code>Cross-Origin-Embedder-Policy: require-corp</code> を付けると、外部から読み込む画像・スクリプト・フォントなどが、<b>相手側の許可なしには読めなくなります</b>。広告タグや外部の解析タグを埋めていると、そちらが先に壊れます。</dd>
+            <dt>対処</dt>
+            <dd>読み込み先が <code>Cross-Origin-Resource-Policy</code> や CORS のヘッダーを返しているか確認します。返していない外部リソースは、自分のサーバー経由に置き換えるのが確実です。マルチスレッドを使わない構成なら、そもそもヘッダーを付けないという判断も成立します。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="section section-a" id="s4">
+    <h2><span class="step">4</span>C#のスレッドは使えない</h2>
+
+    <article class="item">
+      <h3>ヘッダーを正しく付けても、C#のスレッドは動きません</h3>
+      <p class="lead">ここが一番の落とし穴です。ヘッダーを整えても、<mark>使えるようになるのはC/C++側のスレッドだけ</mark>です。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Unity Manual — 原文</div>
+        <pre>Managed (C#) threads aren't supported due to the lack of a
+multithreaded garbage collection feature in WebAssembly.
+
+Although Unity provides multithreading support for native C/C++
+code, the Web platform doesn't yet support C# multithreading due
+to limitations of WebAssembly. This means that applications built
+using the Web platform must run on a single C# thread.</pre>
+      </div>
+
+      <figure>
+        <picture>
+          <source srcset="images/threads-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/threads.png" alt="C#のマネージドスレッドは使えず、C/C++のネイティブスレッドのみ条件つきで使えることを示した図" loading="lazy">
+        </picture>
+        <figcaption>WebAssemblyにマルチスレッド対応のGCが無いことが理由</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>C#側は1スレッドで動かすしかありません。</b>他プラットフォーム向けに <code>System.Threading</code> で組んだ処理は、そのままでは持ち込めません。</li>
+        <li><b>公式の代替案は <code>Awaitable</code>。</b>マニュアルは「複雑な非同期処理には <code>Awaitable</code> を使うことを推奨する。多くの場合 <code>System.Threading.Tasks.Task</code> を置き換えられる」としています。</li>
+        <li><b>C/C++スレッドも実験的な扱いです。</b>Player設定の <code>Native C/C++ Multithreading</code> を有効にする必要があります。</li>
+      </ul>
+
+      <div class="quiz">
+        <p class="q">Q. 重い計算でフレームが落ちる。Unity Webでの正しい打ち手は?</p>
+        <button class="opt" type="button" data-correct="false">C#で別スレッドに逃がす</button>
+        <button class="opt" type="button" data-correct="true">Awaitableでフレームをまたいで分割するか、C/C++側へ持っていく</button>
+        <button class="opt" type="button" data-correct="false">サーバーのヘッダーを増やす</button>
+        <p class="ans" hidden>正解。C#スレッドは選択肢に入りません。ヘッダーはC/C++スレッドを解禁するための前提であって、C#を並列にする手段ではありません。ここを混同すると、ヘッダーを直したのに何も速くならない、という結果になります。</p>
+      </div>
+
+      <details>
+        <summary>ほかにも刺さりやすい制限</summary>
+        <div class="body">
+          <dl>
+            <dt>ソケットが使えない</dt>
+            <dd>ブラウザがIPソケットへの直接アクセスを許さないため、<code>System.Net</code> 名前空間のネットワーククラスはサポートされません。通信はHTTPかWebSocketに寄せる必要があります。</dd>
+            <dt>コードの動的生成ができない</dt>
+            <dd>WebはAOTプラットフォームのため <code>System.Reflection.Emit</code> は使えません。これはiOSや多くのコンソールと同じ制約です。</dd>
+            <dt>GCの動き方が違う</dt>
+            <dd>ブラウザがWebAssemblyのスタックへの直接アクセスを塞いでいるため、ガベージコレクションが<b>毎フレームの最後に1回だけ</b>走ります。他プラットフォームのように複数フレームに分散されません。フレーム末尾のスパイクとして観測されます。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="section section-b" id="s5">
+    <h2><span class="step">5</span>配信サーバー別の設定</h2>
+
+    <article class="item">
+      <h3>コピーして貼るだけの設定</h3>
+      <p class="lead">Unityが挙げている3本をまとめて設定します。<mark>あわせて <code>https</code> で配ること。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">nginx</div>
+        <pre>add_header Cross-Origin-Opener-Policy   "same-origin"   always;
+add_header Cross-Origin-Embedder-Policy "require-corp"  always;
+add_header Cross-Origin-Resource-Policy "cross-origin"  always;</pre>
+      </div>
+
+      <div class="code wrap">
+        <div class="code-head">Apache (.htaccess)</div>
+        <pre>Header always set Cross-Origin-Opener-Policy   "same-origin"
+Header always set Cross-Origin-Embedder-Policy "require-corp"
+Header always set Cross-Origin-Resource-Policy "cross-origin"</pre>
+      </div>
+
+      <div class="code wrap">
+        <div class="code-head">Cloudflare Pages / Netlify（_headers ファイル）</div>
+        <pre>/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Resource-Policy: cross-origin</pre>
+      </div>
+
+      <p class="lead"><b>GitHub Pages では設定できません。</b>レスポンスヘッダーを変更する手段が無いため、<mark>マルチスレッドを使うUnity Webビルドは置けません</mark>。単一スレッド構成なら問題なく動きます。</p>
+
+      <div class="code term">
+        <div class="code-head">設定できたかの確認（1コマンド）</div>
+        <pre>$ curl -sS -D - -o /dev/null "https://あなたのサイト/" \
+    | grep -i "cross-origin"
+
+cross-origin-opener-policy: same-origin
+cross-origin-embedder-policy: require-corp
+cross-origin-resource-policy: cross-origin</pre>
+      </div>
+
+      <p class="lead">ブラウザ側からも1行で確認できます。開発者ツールのコンソールで <code>crossOriginIsolated</code> と打つだけです。<b><code>true</code> が返れば成功。</b></p>
+    </article>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="section section-a" id="s6">
+    <h2><span class="step">6</span>確認リスト</h2>
+
+    <article class="item">
+      <h3>本番に置く前に、この5つだけ見てください</h3>
+
+      <p class="lead">上から順に潰せば、この記事の事故は起きません。<span class="cl-count">0 / 5</span></p>
+      <ul class="checklist" data-key="unity-web-threads-2026-08-14">
+        <li><label><input type="checkbox"><span><code>https</code> で配信している（<code>http://192.168.x.x</code> になっていない）</span></label></li>
+        <li><label><input type="checkbox"><span>COOP / COEP / CORP の3本をサーバーに設定した</span></label></li>
+        <li><label><input type="checkbox"><span>本番URLで <code>crossOriginIsolated</code> が <code>true</code> を返すのを確認した</span></label></li>
+        <li><label><input type="checkbox"><span>COEPを付けたあと、外部の画像・タグが壊れていないか見た</span></label></li>
+        <li><label><input type="checkbox"><span>C#スレッド前提の処理が残っていないか確認した（<code>Awaitable</code> に寄せた）</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 これで「本番だけ動かない」は起きません</div>
+
+      <a class="next-up" href="../2026-08-14_webview-origin/">
+        <div class="label">NEXT →</div>
+        <div class="t">WebViewだけ動かない。犯人は Origin: null</div>
+        <div class="d">同じ「置き場所で挙動が変わる」問題を、アプリ内ブラウザで追いかけた回です。</div>
+      </a>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Unity Technologies「WebGL technical overview」<i>Unity Manual 6000.0</i>.
+          <span class="note">参照箇所: マルチスレッドに必要な3つのHTTPレスポンスヘッダー、マネージド(C#)スレッド非対応とその理由、<code>Awaitable</code> の推奨、ネットワーク・コード動的生成・GCの制限。本文中の引用は原文のまま。</span>
+          <a href="https://docs.unity3d.com/6000.0/Documentation/Manual/webgl-technical-overview.html">https://docs.unity3d.com/6000.0/Documentation/Manual/webgl-technical-overview.html</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          クロスオリジン分離の効果測定。Chromium 141.0.7390.37 / Python 3.11.15 / Node.js v22.22.2、2026年8月14日実施。
+          <span class="note">同一のHTMLを、COOP・COEPの有無だけ変えて配信し、<code>crossOriginIsolated</code> と <code>SharedArrayBuffer</code> を計測。出力は加工していません。<b>3本目の <code>Cross-Origin-Resource-Policy</code> は検証していません</b>。また <b>Unityエディタでの実機ビルド検証は行っていません</b>。ブラウザ側の前提条件のみを測っています。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「GitHub Pages にはマルチスレッド構成を置けない」は、同サービスがレスポンスヘッダーの変更手段を提供していないことから導いた<b>筆者の判断</b>です。Unity・GitHub のいずれも、この組み合わせについて明示していません。
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月14日時点の内容です。ブラウザ側の測定は Chromium 141.0.7390.37 で行いました。</div>
+    <div>公開: 2026年8月14日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

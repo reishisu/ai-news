@@ -1,0 +1,12 @@
+{
+  "category": "クライアント技術",
+  "tags": [
+    "Unity Web",
+    "WebAssembly",
+    "実測",
+    "デプロイ"
+  ],
+  "title": "Unity Webが本番だけ動かない。原因はビルドではなくサーバー",
+  "summary": "ローカルでは動いたUnity Webビルドが、本番に置いた途端に起動しない。マルチスレッドに必要なHTTPヘッダーの有無だけを変えて実測し、SharedArrayBufferが存在ごと消えることを確認しました。Unity公式マニュアルの記述と突き合わせ、サーバー別の設定と、C#スレッドが使えない理由まで。",
+  "thumbnail": "images/thumb.png"
+}

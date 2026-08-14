@@ -1,0 +1,35 @@
+<svg viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <defs>
+    <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--sub)"/>
+    </marker>
+  </defs>
+
+  <text x="14" y="24" fill="var(--sub)" font-size="12" font-weight="700">サーバーが返すヘッダー</text>
+  <text x="330" y="24" fill="var(--sub)" font-size="12" font-weight="700">ブラウザ側で使えるもの</text>
+
+  <!-- 上: ヘッダーなし -->
+  <rect x="14" y="40" width="270" height="62" rx="10" fill="var(--track)" stroke="var(--sub)" stroke-width="1"/>
+  <text x="149" y="66" fill="var(--fg)" font-size="13.5" font-weight="700" text-anchor="middle">何も付けない</text>
+  <text x="149" y="87" fill="var(--sub)" font-size="11.5" text-anchor="middle">ふつうの配信</text>
+
+  <path d="M288 71 L322 71" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#a1)"/>
+
+  <rect x="330" y="40" width="296" height="62" rx="10" fill="none" stroke="var(--c)" stroke-width="2"/>
+  <text x="478" y="63" fill="var(--c)" font-size="12.5" font-weight="800" text-anchor="middle">crossOriginIsolated = false</text>
+  <text x="478" y="86" fill="var(--c)" font-size="12.5" font-weight="800" text-anchor="middle">SharedArrayBuffer が存在しない</text>
+
+  <!-- 下: COOP+COEP -->
+  <rect x="14" y="134" width="270" height="76" rx="10" fill="var(--track)" stroke="var(--a)" stroke-width="1.5"/>
+  <text x="149" y="157" fill="var(--fg)" font-size="12" font-weight="700" text-anchor="middle" font-family="ui-monospace, monospace">Cross-Origin-Opener-Policy</text>
+  <text x="149" y="174" fill="var(--fg)" font-size="12" font-weight="700" text-anchor="middle" font-family="ui-monospace, monospace">Cross-Origin-Embedder-Policy</text>
+  <text x="149" y="196" fill="var(--sub)" font-size="11.5" text-anchor="middle">の2本を付ける</text>
+
+  <path d="M288 172 L322 172" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#a1)"/>
+
+  <rect x="330" y="140" width="296" height="62" rx="10" fill="none" stroke="var(--a)" stroke-width="2"/>
+  <text x="478" y="163" fill="var(--a)" font-size="12.5" font-weight="800" text-anchor="middle">crossOriginIsolated = true</text>
+  <text x="478" y="186" fill="var(--a)" font-size="12.5" font-weight="800" text-anchor="middle">SharedArrayBuffer が使える</text>
+
+  <text x="320" y="232" fill="var(--sub)" font-size="12.5" text-anchor="middle">ビルド設定ではなく、配信サーバーの設定で決まる</text>
+</svg>

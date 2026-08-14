@@ -59,7 +59,7 @@
   <section class="posts">
     <div class="posts-head">
       <h2>記事一覧</h2>
-      <span class="posts-count"><b id="hitCount">7</b>件</span>
+      <span class="posts-count"><b id="hitCount">8</b>件</span>
     </div>
 
     <div class="finder">
@@ -70,8 +70,8 @@
       </div>
       <div class="tag-bar" id="tagBar">
       <button class="tag-chip is-on" type="button" data-tag="">すべて</button>
+      <button class="tag-chip" type="button" data-tag="実測">#実測<i>4</i></button>
       <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>3</i></button>
-      <button class="tag-chip" type="button" data-tag="実測">#実測<i>3</i></button>
       <button class="tag-chip" type="button" data-tag="Gemini">#Gemini<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="入門">#入門<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="Android">#Android<i>1</i></button>
@@ -81,6 +81,8 @@
       <button class="tag-chip" type="button" data-tag="Copilot">#Copilot<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="DeepSeek">#DeepSeek<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="GitHub Pages">#GitHub Pages<i>1</i></button>
+      <button class="tag-chip" type="button" data-tag="Unity Web">#Unity Web<i>1</i></button>
+      <button class="tag-chip" type="button" data-tag="WebAssembly">#WebAssembly<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="WebView">#WebView<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="iOS">#iOS<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="xAI">#xAI<i>1</i></button>
@@ -92,6 +94,7 @@
       <button class="tag-chip" type="button" data-tag="セキュリティ">#セキュリティ<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="タスク分解">#タスク分解<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="テスト">#テスト<i>1</i></button>
+      <button class="tag-chip" type="button" data-tag="デプロイ">#デプロイ<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="フック">#フック<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="プロジェクト管理">#プロジェクト管理<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="リード">#リード<i>1</i></button>
@@ -111,6 +114,18 @@
           <h3 class="post-title">WebViewだけ動かない。犯人は Origin: null</h3>
           <p class="post-summary">ブラウザでは動くのに、アプリのWebViewに載せた瞬間APIだけが落ちる。原因のOrigin: nullを実測で確認し、CORSの返し方4通りを全部叩いて結果を表にしました。検索でよく出てくる回避策がCookieごと穴を開ける理由と、AndroidとiOSでの正しい直し方まで。</p>
           <div class="post-tags"><span class="post-tag">#WebView</span><span class="post-tag">#CORS</span><span class="post-tag">#Android</span><span class="post-tag">#iOS</span></div>
+          <span class="post-more">続きを読む →</span>
+        </div>
+      </a>
+      <a class="post-card" href="contents/2026-08-14_unity-web-threads/"
+         data-tags="Unity Web|WebAssembly|実測|デプロイ" data-category="クライアント技術"
+         data-date="2026-08-14" data-search="unity webが本番だけ動かない。原因はビルドではなくサーバー ローカルでは動いたunity webビルドが、本番に置いた途端に起動しない。マルチスレッドに必要なhttpヘッダーの有無だけを変えて実測し、sharedarraybufferが存在ごと消えることを確認しました。unity公式マニュアルの記述と突き合わせ、サーバー別の設定と、c#スレッドが使えない理由まで。 クライアント技術 unity web webassembly 実測 デプロイ unity webが本番だけ動かない。原因はビルドではなくサーバー aiニュース デイリーダイジェスト クライアント技術 ｜ 2026年8月14日(金) unity webが本番だけ動かない。原因はビルドではなくサーバー ローカルで動いたビルドが、置いた瞬間に起動しない。その条件をブラウザで実測し、unity公式の記述と突き合わせます。 ⏱ 約6分 実測 + 公式ドキュメント 設定はコピペで足りる ⭐ 3行で言うと unity webのマルチスレッドは、httpヘッダー2本が無いと丸ごと死にます ビルド設定ではなく、 配信サーバー側の設定 で決まります。ここが盲点です。 ヘッダーが無いと sharedarraybuffer は「存在しない」扱いになります 値が空なのではなく、参照した瞬間に referenceerror 。実測しました。 そもそもc#のスレッドは使えません。これは仕様です unity公式が理由まで書いています。「重い処理を別スレッドへ」が通りません。 目次 症状 — ローカルでは動いたのに 条件をブラウザで実測する unity公式が要求しているヘッダー c#のスレッドは使えない 配信サーバー別の設定 確認リスト 参考文献 1 症状 — ローカルでは動いたのに ビルドは同じ。置き場所を変えただけで起動しなくなる unityの「build and run」では問題なく動きます。同じ成果物をサーバーに上げると、 ロード画面から先に進まない 。 unityのビルド設定を疑って何時間も溶かす典型です。 ビルドは悪くありません。 「build and run」は自前のローカルサーバーを立てています。 そのサーバーが必要なヘッダーを付けてくれるので動きます。 本番のホスティングは何も付けません。 だから同じファイルでも結果が変わります。 エラーが分かりにくい。 コンソールに出るのは sharedarraybuffer is not defined 系で、unityの文字は出てきません。 q. ローカルで動いて本番で動かない。まず疑うのは? ビルド設定の圧縮形式 配信サーバーが返しているhttpヘッダー unityのバージョン 正解。成果物が同じなら、違うのは配信の仕方だけです。次でその「違い」を実際に測ります。 2 条件をブラウザで実測する 同じhtmlを、ヘッダーだけ変えて2通り配信した unityを持ち出さなくても、条件はブラウザだけで確かめられます。 ヘッダー2本の有無だけが違う サーバーを立てました。 coi.py — ヘッダーの有無を切り替えるだけのサーバー class handler(http.server.basehttprequesthandler): def do_get(self): self.send_response(200) self.send_header(&quot;content-type&quot;, &quot;text/html; charset=utf-8&quot;) self.send_header(&quot;content-length&quot;, str(len(page))) if self.path.startswith(&quot;/coi&quot;): self.send_header(&quot;cross-origin-opener-policy&quot;, &quot;same-origin&quot;) self.send_header(&quot;cross-origin-embedder-policy&quot;, &quot;require-corp&quot;) self.end_headers() self.wfile.write(page) 実行結果（node probe.js） ブラウザ: 141.0.7390.37 ■ ヘッダーなしで配信した場合 crossoriginisolated false sharedarraybuffer なし / 作れない (referenceerror) webassembly あり webgl2 あり webgpu あり 論理コア数 4 ■ coop + coep を付けて配信した場合 crossoriginisolated true sharedarraybuffer あり / 作れる webassembly あり webgl2 あり webgpu あり 論理コア数 4 変わったのはヘッダー2本だけ。htmlは1文字も同じ sharedarraybuffer は「値が無い」のではなく「存在しない」。 typeof で見ると undefined 、直接触ると referenceerror です。だから if (sharedarraybuffer) と書くと、そこで落ちます。 webassembly・webgl2・webgpuはヘッダー無しでも使えます。 止まるのは スレッド関連だけ 。だから「描画は出るのに固まる」といった中途半端な壊れ方をします。 判定は1行で書けます。 self.crossoriginisolated が true かどうか。これがマルチスレッド可否とほぼ同義です。 3 unity公式が要求しているヘッダー 推測ではなく、マニュアルに3本が明記されています 実測は実測として、 unityが何を要求しているか を公式マニュアルで確認しました。原文はこうです。 unity manual (6000.0)「webgl technical overview」— 原文 the web platform supports multithreading, when your document is within a secure context. the following http response headers must be set by the server. cross-origin-opener-policy: same-origin cross-origin-embedder-policy: require-corp cross-origin-resource-policy: cross-origin unityは3本挙げています。 私が実測したのは上2本で、これだけで crossoriginisolated は true になりました。3本目の cross-origin-resource-policy は 今回検証していません 。unityが挙げている以上、まとめて設定するのが安全です。 「secure context」も条件です。 つまり https:// （または localhost ）である必要があります。社内の http://192.168.x.x で配ると、それだけで条件を外します。 ヘッダーはサーバーの担当です。 unity側の設定をいくらいじっても付きません。 coep を付けると外部リソースが読めなくなる場合があります 何が起きるか cross-origin-embedder-policy: require-corp を付けると、外部から読み込む画像・スクリプト・フォントなどが、 相手側の許可なしには読めなくなります 。広告タグや外部の解析タグを埋めていると、そちらが先に壊れます。 対処 読み込み先が cross-origin-resource-policy や cors のヘッダーを返しているか確認します。返していない外部リソースは、自分のサーバー経由に置き換えるのが確実です。マルチスレッドを使わない構成なら、そもそもヘッダーを付けないという判断も成立します。 4 c#のスレッドは使えない ヘッダーを正しく付けても、c#のスレッドは動きません ここが一番の落とし穴です。ヘッダーを整えても、 使えるようになるのはc/c++側のスレッドだけ です。 unity manual — 原文 managed (c#) threads aren't supported due to the lack of a multithreaded garbage collection feature in webassembly. although unity provides multithreading support for native c/c++ code, the web platform doesn't yet support c# multithreading due to limitations of webassembly. this means that applications built using the web platform must run on a single c# thread. webassemblyにマルチスレッド対応のgcが無いことが理由 c#側は1スレッドで動かすしかありません。 他プラットフォーム向けに system.threading で組んだ処理は、そのままでは持ち込めません。 公式の代替案は awaitable 。 マニュアルは「複雑な非同期処理には awaitable を使うことを推奨する。多くの場合 system.threading.tasks.task を置き換えられる」としています。 c/c++スレッドも実験的な扱いです。 player設定の native c/c++ multithreading を有効にする必要があります。 q. 重い計算でフレームが落ちる。unity webでの正しい打ち手は? c#で別スレッドに逃がす awaitableでフレームをまたいで分割するか、c/c++側へ持っていく ">
+        <img class="post-thumb" src="contents/2026-08-14_unity-web-threads/images/thumb.png" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;post-thumb-ph&quot;>📰</div>'">
+        <div class="post-body">
+          <div class="post-date"><span class="post-cat">クライアント技術</span>2026年8月14日(金)</div>
+          <h3 class="post-title">Unity Webが本番だけ動かない。原因はビルドではなくサーバー</h3>
+          <p class="post-summary">ローカルでは動いたUnity Webビルドが、本番に置いた途端に起動しない。マルチスレッドに必要なHTTPヘッダーの有無だけを変えて実測し、SharedArrayBufferが存在ごと消えることを確認しました。Unity公式マニュアルの記述と突き合わせ、サーバー別の設定と、C#スレッドが使えない理由まで。</p>
+          <div class="post-tags"><span class="post-tag">#Unity Web</span><span class="post-tag">#WebAssembly</span><span class="post-tag">#実測</span><span class="post-tag">#デプロイ</span></div>
           <span class="post-more">続きを読む →</span>
         </div>
       </a>
