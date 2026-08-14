@@ -78,7 +78,8 @@ def load_popular():
     data = load_json(HERE / "popular.json", {})
     counts = {}
     for item in data.get("items", []):
-        m = re.search(r"contents/([^/]+)/", str(item.get("path", "")))
+        # 末尾スラッシュ付き・無し・index.html付き・クエリ付きのどれでも拾う
+        m = re.search(r"contents/([^/?#]+)", str(item.get("path", "")))
         if m:
             counts[m.group(1)] = counts.get(m.group(1), 0) + int(item.get("count", 0))
     return counts, data.get("updated", "")
