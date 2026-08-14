@@ -26,6 +26,8 @@
 │   └── home.html         # ホームのテンプレート
 ├── _build_index.py       # サイトビルダー(ホーム生成+共有バー注入)
 ├── _render_figures.py    # 図版レンダラー(SVG → PNG、ライト/ダーク2種)
+├── _fetch_popular.py     # GoatCounterから閲覧数を取得 → popular.json
+├── site.json             # サイト設定(アクセス解析のサイトコード)
 ├── favicon.svg           # サイトアイコン
 └── ogp.png               # SNSシェア用OGP画像
 ```
@@ -58,6 +60,32 @@ HTML側は `<picture>` で出し分けます。SVGソースは色を直書きせ
 - `tags` — ホームのタグ絞り込みに使われます(多い順に並びます)
 - `featured` — `true` の記事が「🔥 注目の記事」に最大3件出ます(無ければ新しい順)
 - 検索はタイトル・概要・タグ・**本文**が対象。`?q=` と `?tag=` でURLに状態が残ります
+
+## アクセス解析と「よく読まれている記事」
+
+計測には [GoatCounter](https://www.goatcounter.com/)(無料・Cookieなし)を使います。
+
+**1. 計測を有効にする**
+`site.json` の `analytics.code` に GoatCounter のサイトコードを書くと、
+`_build_index.py` が全ページに計測タグを自動で埋め込みます。空なら何も埋め込まれません。
+
+```json
+{ "analytics": { "provider": "goatcounter", "code": "あなたのサイトコード" } }
+```
+
+**2. 閲覧数でランキングを出す(任意)**
+GoatCounterのAPIトークン(権限は Read statistics のみでよい)を環境変数に入れて実行します。
+
+```bash
+GOATCOUNTER_TOKEN=xxxxx python3 _fetch_popular.py       # 直近30日
+GOATCOUNTER_TOKEN=xxxxx python3 _fetch_popular.py 7     # 直近7日
+```
+
+`popular.json` が作られると、トップの見出しが「🔥 注目の記事」から
+**「🔥 よく読まれている記事」**(順位と閲覧数つき)に切り替わります。
+ファイルが無い・取得に失敗した場合は `featured` による表示のままなので、サイトは壊れません。
+
+**トークンはリポジトリに置かないでください。** 実行環境の環境変数に設定します。
 
 ## 仕組み
 

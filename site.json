@@ -1,0 +1,7 @@
+{
+  "analytics": {
+    "provider": "goatcounter",
+    "code": "",
+    "_comment": "GoatCounter のサイトコード。https://<code>.goatcounter.com の <code> の部分だけを書く。空のままなら計測タグは埋め込まれない。"
+  }
+}

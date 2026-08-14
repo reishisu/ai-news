@@ -29,6 +29,7 @@ ISSUE_PREFIX = "../../"
 
 # CSS/JSはブラウザに強くキャッシュされるため、内容が変わったら別URLになるようにする
 VERSIONS = {}
+ANALYTICS = ""
 ASSETS = ["css/style.css", "css/article.css", "css/shared.css",
           "js/shared.js", "js/article.js", "js/home.js"]
 
@@ -53,6 +54,34 @@ def add_cache_busting(html, versions):
             html,
         )
     return html
+
+
+def load_json(path, default):
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return default
+
+
+def analytics_snippet():
+    """site.json にサイトコードがあればアクセス解析タグを返す(無ければ空)。"""
+    conf = load_json(HERE / "site.json", {}).get("analytics") or {}
+    code = str(conf.get("code") or "").strip()
+    if not code or conf.get("provider") != "goatcounter":
+        return ""
+    return ('\n<script data-goatcounter="https://' + code + '.goatcounter.com/count"'
+            ' async src="//gc.zgo.at/count.js"></script>\n')
+
+
+def load_popular():
+    """_fetch_popular.py が書き出した閲覧数。{dirname: count}"""
+    data = load_json(HERE / "popular.json", {})
+    counts = {}
+    for item in data.get("items", []):
+        m = re.search(r"contents/([^/]+)/", str(item.get("path", "")))
+        if m:
+            counts[m.group(1)] = counts.get(m.group(1), 0) + int(item.get("count", 0))
+    return counts, data.get("updated", "")
 
 
 def format_date_ja(date):
@@ -182,6 +211,9 @@ def enhance_issue(issue, meta):
     # 記事の小物(コピーボタン・進捗バー・クイズ等)
     if "js/article.js" not in html:
         html = inject_before_body(html, f'<script src="{ISSUE_PREFIX}js/article.js" defer></script>\n')
+    # アクセス解析(site.json にコードがあるときだけ)
+    if ANALYTICS and "goatcounter" not in html:
+        html = inject_before_body(html, ANALYTICS)
 
     html = add_cache_busting(html, VERSIONS)
 
@@ -226,23 +258,45 @@ def build_card(issue, meta, is_latest):
       </a>"""
 
 
-def build_featured(issues_meta):
-    """注目の記事(meta.json の featured。無ければ新しい順)を最大3件。"""
-    picked = [x for x in issues_meta if x[1]["featured"]][:3]
-    if not picked:
-        picked = issues_meta[:3]
-    if not picked:
-        return ""
-    cards = []
-    for issue, meta in picked:
-        href = f"contents/{issue['dirname']}/"
-        cards.append(f"""        <a class="pick-card" href="{href}">
+def build_featured(issues_meta, popular, updated):
+    """人気の記事(閲覧数がある場合)。無ければ注目の記事(featured)。どちらも最大3件。"""
+    if popular:
+        ranked = sorted(
+            [x for x in issues_meta if popular.get(x[0]["dirname"])],
+            key=lambda x: -popular[x[0]["dirname"]],
+        )[:3]
+    else:
+        ranked = []
+
+    if ranked:
+        heading = "🔥 よく読まれている記事"
+        note = f'<span class="posts-count">{escape(updated)} 時点</span>' if updated else ""
+        cards = []
+        for i, (issue, meta) in enumerate(ranked, 1):
+            href = f"contents/{issue['dirname']}/"
+            views = popular[issue["dirname"]]
+            cards.append(f"""        <a class="pick-card" href="{href}">
+          <span class="pick-rank">{i}</span>
+          <span class="pick-cat">{escape(meta["category"])}</span>
+          <span class="pick-title">{escape(meta["title"])}</span>
+          <span class="pick-date">{format_date_ja(issue["date"])} ・ {views:,} 回</span>
+        </a>""")
+    else:
+        picked = [x for x in issues_meta if x[1]["featured"]][:3] or issues_meta[:3]
+        if not picked:
+            return ""
+        heading, note = "🔥 注目の記事", ""
+        cards = []
+        for issue, meta in picked:
+            href = f"contents/{issue['dirname']}/"
+            cards.append(f"""        <a class="pick-card" href="{href}">
           <span class="pick-cat">{escape(meta["category"])}</span>
           <span class="pick-title">{escape(meta["title"])}</span>
           <span class="pick-date">{format_date_ja(issue["date"])}</span>
         </a>""")
+
     return f"""  <section class="featured">
-    <div class="posts-head"><h2>🔥 注目の記事</h2></div>
+    <div class="posts-head"><h2>{heading}</h2>{note}</div>
     <div class="pick-grid">
 {chr(10).join(cards)}
     </div>
@@ -267,8 +321,10 @@ def build_tagbar(issues_meta):
 
 
 def main():
-    global VERSIONS
+    global VERSIONS, ANALYTICS
     VERSIONS = asset_versions()
+    ANALYTICS = analytics_snippet()
+    popular, popular_updated = load_popular()
     issues = collect_issues()
     cards = []
     issues_meta = []
@@ -282,8 +338,10 @@ def main():
     html = template.replace("{{CARDS}}", "\n".join(cards) if cards else
                             '      <p class="posts-empty">まだ記事がありません。明日の朝6:00をお楽しみに。</p>')
     html = html.replace("{{COUNT}}", str(len(issues)))
-    html = html.replace("{{FEATURED}}", build_featured(issues_meta))
+    html = html.replace("{{FEATURED}}", build_featured(issues_meta, popular, popular_updated))
     html = html.replace("{{TAGBAR}}", build_tagbar(issues_meta))
+    if ANALYTICS and "goatcounter" not in html:
+        html = inject_before_body(html, ANALYTICS)
     html = add_cache_busting(html, VERSIONS)
     (HERE / "index.html").write_text(html, encoding="utf-8")
     print(f"index.html を生成しました(全{len(issues)}号)")
