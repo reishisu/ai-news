@@ -1,4 +1,12 @@
 {
+  "tags": [
+    "Claude Code",
+    "Gemini",
+    "xAI",
+    "Copilot",
+    "オープンウェイト"
+  ],
+  "featured": true,
   "title": "Claude Codeが承認を待たなくなり、Geminiが10億人に届いた週",
   "summary": "Claude Codeの自動モードがPro/Max/Teamで標準になり、承認ポップアップが消えました。Geminiアプリは月間利用者10億人を突破。xAIは競合の5分の1の出力価格でGrok 4.6を投入。Qwen3.8-MaxとMeta Muse Glimmerのオープンウェイト公開も。",
   "thumbnail": "images/thumb.png"

@@ -1,4 +1,11 @@
 {
+  "tags": [
+    "DeepSeek",
+    "ChatGPT",
+    "Anthropic",
+    "Gemini",
+    "料金改定"
+  ],
   "title": "DeepSeekが値上げに舵を切り、ChatGPTはPC操作を覚え始めた日",
   "summary": "DeepSeekが旗艦V4-Proを正式公開すると同時にAPI料金を最大12倍へ値上げ。ChatGPTのMac版はPC上の作業履歴を記録・検索できるようになりました。AnthropicはAIエージェント同士が妨害し合う実験結果を公開。Gemini 3.7 Flashやサカナの日本語モデル無料開放も。",
   "thumbnail": "images/thumb.png"

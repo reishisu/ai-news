@@ -29,7 +29,8 @@ ISSUE_PREFIX = "../../"
 
 # CSS/JSはブラウザに強くキャッシュされるため、内容が変わったら別URLになるようにする
 VERSIONS = {}
-ASSETS = ["css/style.css", "css/article.css", "css/shared.css", "js/shared.js", "js/article.js"]
+ASSETS = ["css/style.css", "css/article.css", "css/shared.css",
+          "js/shared.js", "js/article.js", "js/home.js"]
 
 
 def asset_versions():
@@ -103,7 +104,24 @@ def load_meta(issue):
     thumb = meta.get("thumbnail") or "images/thumb.png"
     meta["thumbnail"] = thumb if (issue["dirpath"] / thumb).is_file() else None
     meta.setdefault("category", "デイリーダイジェスト")
+    tags = meta.get("tags")
+    meta["tags"] = ([str(t).replace("|", " ").strip() for t in tags if str(t).strip()]
+                    if isinstance(tags, list) else [])
+    meta["featured"] = bool(meta.get("featured"))
+    meta["_body"] = plain_text(html)
     return meta
+
+
+TAG_RE = re.compile(r"<(script|style|svg)[^>]*>.*?</\1>", flags=re.DOTALL | re.IGNORECASE)
+
+
+def plain_text(html, limit=4000):
+    """検索用に本文をざっくり平文化する。"""
+    text = TAG_RE.sub(" ", html)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = (text.replace("&lt;", "<").replace("&gt;", ">")
+                .replace("&quot;", '"').replace("&amp;", "&").replace("&nbsp;", " "))
+    return re.sub(r"\s+", " ", text).strip()[:limit]
 
 
 def head_extras(prefix, page_url, title):
@@ -187,15 +205,65 @@ def build_card(issue, meta, is_latest):
                  "onerror=\"this.outerHTML='<div class=&quot;post-thumb-ph&quot;>📰</div>'\">")
     else:
         thumb = '<div class="post-thumb-ph">📰</div>'
-    return f"""      <a class="post-card" href="{href}">
+    tag_chips = "".join(
+        f'<span class="post-tag">#{escape(t)}</span>' for t in meta["tags"][:4]
+    )
+    # タグ名に空白が入るため、区切りは "|"(タグ側の "|" は除去済み)
+    tags_attr = escape("|".join(meta["tags"]))
+    haystack = escape(" ".join([meta["title"], meta["summary"], meta["category"],
+                                " ".join(meta["tags"]), meta["_body"]]).lower())
+    return f"""      <a class="post-card" href="{href}"
+         data-tags="{tags_attr}" data-category="{escape(meta['category'])}"
+         data-date="{issue['date'].isoformat()}" data-search="{haystack}">
         {thumb}
         <div class="post-body">
           <div class="post-date"><span class="post-cat">{escape(meta["category"])}</span>{date_ja}{new_badge}</div>
           <h3 class="post-title">{escape(meta["title"])}</h3>
           <p class="post-summary">{escape(meta["summary"])}</p>
+          <div class="post-tags">{tag_chips}</div>
           <span class="post-more">続きを読む →</span>
         </div>
       </a>"""
+
+
+def build_featured(issues_meta):
+    """注目の記事(meta.json の featured。無ければ新しい順)を最大3件。"""
+    picked = [x for x in issues_meta if x[1]["featured"]][:3]
+    if not picked:
+        picked = issues_meta[:3]
+    if not picked:
+        return ""
+    cards = []
+    for issue, meta in picked:
+        href = f"contents/{issue['dirname']}/"
+        cards.append(f"""        <a class="pick-card" href="{href}">
+          <span class="pick-cat">{escape(meta["category"])}</span>
+          <span class="pick-title">{escape(meta["title"])}</span>
+          <span class="pick-date">{format_date_ja(issue["date"])}</span>
+        </a>""")
+    return f"""  <section class="featured">
+    <div class="posts-head"><h2>🔥 注目の記事</h2></div>
+    <div class="pick-grid">
+{chr(10).join(cards)}
+    </div>
+  </section>
+"""
+
+
+def build_tagbar(issues_meta):
+    """出現数の多い順にタグを並べる。"""
+    counts = {}
+    for _, meta in issues_meta:
+        for t in meta["tags"]:
+            counts[t] = counts.get(t, 0) + 1
+    ordered = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+    chips = ['      <button class="tag-chip is-on" type="button" data-tag="">すべて</button>']
+    for tag, n in ordered:
+        chips.append(
+            f'      <button class="tag-chip" type="button" data-tag="{escape(tag)}">'
+            f'#{escape(tag)}<i>{n}</i></button>'
+        )
+    return "\n".join(chips)
 
 
 def main():
@@ -203,15 +271,19 @@ def main():
     VERSIONS = asset_versions()
     issues = collect_issues()
     cards = []
+    issues_meta = []
     for i, issue in enumerate(issues):
         meta = load_meta(issue)
         enhance_issue(issue, meta)
         cards.append(build_card(issue, meta, i == 0))
+        issues_meta.append((issue, meta))
 
     template = TEMPLATE.read_text(encoding="utf-8")
     html = template.replace("{{CARDS}}", "\n".join(cards) if cards else
-                            '      <p class="posts-empty">まだ号がありません。明日の朝6:00をお楽しみに。</p>')
+                            '      <p class="posts-empty">まだ記事がありません。明日の朝6:00をお楽しみに。</p>')
     html = html.replace("{{COUNT}}", str(len(issues)))
+    html = html.replace("{{FEATURED}}", build_featured(issues_meta))
+    html = html.replace("{{TAGBAR}}", build_tagbar(issues_meta))
     html = add_cache_busting(html, VERSIONS)
     (HERE / "index.html").write_text(html, encoding="utf-8")
     print(f"index.html を生成しました(全{len(issues)}号)")

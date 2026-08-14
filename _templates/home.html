@@ -38,14 +38,28 @@
     <p>世界中のAIニュースを集めて一次情報で裏を取り、日本語のダイジェストとして毎朝お届けします。あわせて、Claude Codeでの設計・開発・実装の実践記事も掲載しています。</p>
   </section>
 
+{{FEATURED}}
   <section class="posts">
     <div class="posts-head">
       <h2>記事一覧</h2>
-      <span class="posts-count">{{COUNT}}件</span>
+      <span class="posts-count"><b id="hitCount">{{COUNT}}</b>件</span>
     </div>
-    <div class="post-list">
+
+    <div class="finder">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="searchInput" type="search" placeholder="キーワードで検索(本文も対象)" autocomplete="off" enterkeyhint="search">
+        <button id="searchClear" type="button" hidden aria-label="検索をクリア">×</button>
+      </div>
+      <div class="tag-bar" id="tagBar">
+{{TAGBAR}}
+      </div>
+    </div>
+
+    <div class="post-list" id="postList">
 {{CARDS}}
     </div>
+    <p class="no-hit" id="noHit" hidden>該当する記事がありません。別のキーワードやタグを試してください。</p>
   </section>
 
 </main>
@@ -67,6 +81,7 @@
   <div class="sb-toast" role="status"></div>
 </div>
 <script src="js/shared.js" defer></script>
+<script src="js/home.js" defer></script>
 
 </body>
 </html>
