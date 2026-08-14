@@ -1,15 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git *)",
-      "Bash(python3 *)",
-      "Bash(mkdir *)",
-      "Bash(ls *)",
-      "Bash(cp *)",
-      "Bash(mv *)",
+      "Bash",
       "Read",
       "Edit",
-      "Write"
+      "Write",
+      "Glob",
+      "Grep",
+      "WebSearch",
+      "WebFetch",
+      "Task",
+      "Agent",
+      "TodoWrite",
+      "NotebookEdit"
     ],
     "defaultMode": "acceptEdits"
   }
