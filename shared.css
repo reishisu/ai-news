@@ -1,0 +1,80 @@
+/* AIニュース デイリーダイジェスト — 全ページ共通(build_index.py が注入)
+   過去の号一覧 (#ai-news-archive) と SNS共有バー (#ai-news-sharebar) */
+
+/* ---------- 過去の号一覧 ---------- */
+#ai-news-archive {
+  max-width: 820px; margin: 40px auto 32px; padding: 0 16px;
+  font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --an-card: #fcfcfb; --an-text: #0b0b0b; --an-muted: #52514e;
+  --an-border: rgba(11, 11, 11, 0.10); --an-accent: #2a78d6;
+  color: var(--an-text);
+}
+@media (prefers-color-scheme: dark) {
+  #ai-news-archive {
+    --an-card: #1a1a19; --an-text: #ffffff; --an-muted: #c3c2b7;
+    --an-border: rgba(255, 255, 255, 0.10); --an-accent: #3987e5;
+  }
+}
+#ai-news-archive h2 { font-size: 1.25em; margin: 0 0 14px; }
+#ai-news-archive .an-grid { display: grid; gap: 10px; }
+#ai-news-archive .an-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 18px; border-radius: 14px;
+  background: var(--an-card); border: 1px solid var(--an-border);
+  border-left: 5px solid var(--an-accent);
+  color: var(--an-text); text-decoration: none;
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+#ai-news-archive .an-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 8px 22px -14px rgba(23, 43, 88, .55);
+}
+#ai-news-archive .an-date { font-weight: 700; font-variant-numeric: tabular-nums; }
+#ai-news-archive .an-label { color: var(--an-muted); font-size: .92em; }
+#ai-news-archive .an-new {
+  margin-left: 8px; padding: 2px 9px; border-radius: 999px;
+  background: var(--an-accent); color: #fff; font-size: .72em; font-weight: 800;
+  vertical-align: 1px;
+}
+#ai-news-archive .an-arrow { margin-left: auto; color: var(--an-accent); font-weight: 700; }
+@media (max-width: 600px) {
+  #ai-news-archive .an-item { flex-wrap: wrap; padding: 12px 14px; }
+  #ai-news-archive .an-arrow { display: none; }
+}
+
+/* ---------- SNS共有フローティングバー ---------- */
+#ai-news-sharebar {
+  position: fixed; right: 16px; bottom: 16px; z-index: 9999;
+  display: flex; flex-direction: column; gap: 8px;
+  font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --sb-bg: rgba(255, 255, 255, 0.92); --sb-border: rgba(11, 11, 11, 0.12); --sb-text: #0b0b0b;
+}
+@media (prefers-color-scheme: dark) {
+  #ai-news-sharebar { --sb-bg: rgba(26, 26, 25, 0.92); --sb-border: rgba(255, 255, 255, 0.14); --sb-text: #ffffff; }
+}
+#ai-news-sharebar .sb-toggle, #ai-news-sharebar .sb-btn {
+  width: 48px; height: 48px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--sb-bg); border: 1px solid var(--sb-border); color: var(--sb-text);
+  cursor: pointer; text-decoration: none;
+  box-shadow: 0 8px 24px -10px rgba(0, 0, 0, .45);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  transition: transform .16s ease;
+  font-size: 0;
+}
+#ai-news-sharebar .sb-toggle:hover, #ai-news-sharebar .sb-btn:hover { transform: scale(1.1); }
+#ai-news-sharebar .sb-btn svg, #ai-news-sharebar .sb-toggle svg { width: 20px; height: 20px; }
+#ai-news-sharebar .sb-menu { display: none; flex-direction: column; gap: 8px; }
+#ai-news-sharebar.open .sb-menu { display: flex; animation: sb-pop .22s ease both; }
+@keyframes sb-pop {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+#ai-news-sharebar .sb-toast {
+  position: fixed; right: 76px; bottom: 28px;
+  padding: 8px 14px; border-radius: 10px;
+  background: var(--sb-bg); border: 1px solid var(--sb-border); color: var(--sb-text);
+  font-size: 13px; font-weight: 600; white-space: nowrap;
+  opacity: 0; pointer-events: none; transition: opacity .25s ease;
+}
+#ai-news-sharebar .sb-toast.show { opacity: 1; }

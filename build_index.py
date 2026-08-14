@@ -2,10 +2,9 @@
 """ai-news-YYYY-MM-DD.html の最新号から index.html を生成するスクリプト。
 
 - 同じディレクトリの ai-news-YYYY-MM-DD.html を日付降順で列挙
-- 最新号のHTMLに以下を差し込んで index.html として保存:
-  - <head>: favicon / OGP・Twitterカードメタ(未設定の場合のみ)
-  - </body> 直前: 「📚 過去の号一覧」セクション + SNS共有フローティングバー
-  - <title> を「AIニュース デイリーダイジェスト」に置換
+- 各号のページに favicon / OGPメタ / shared.css / SNS共有バー(shared.js)を注入(未注入の号のみ)
+- 最新号のHTMLの </body> 直前に「📚 過去の号一覧」セクションを差し込み、
+  <title> を「AIニュース デイリーダイジェスト」に置換して index.html として保存
 - 号が1つも無い場合は何もせず正常終了
 """
 
@@ -52,6 +51,8 @@ def head_extras(page_url, title):
 <meta name="twitter:card" content="summary_large_image">
 """
 
+SHARED_CSS_LINK = '\n<link rel="stylesheet" href="shared.css">\n'
+
 
 def build_archive_section(issues):
     items = []
@@ -67,47 +68,6 @@ def build_archive_section(issues):
     return f"""
 <!-- ai-news-archive -->
 <section id="ai-news-archive">
-  <style>
-    #ai-news-archive {{
-      max-width: 820px; margin: 40px auto 32px; padding: 0 16px;
-      font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
-      --an-card: #fcfcfb; --an-text: #0b0b0b; --an-muted: #52514e;
-      --an-border: rgba(11,11,11,0.10); --an-accent: #2a78d6;
-      color: var(--an-text);
-    }}
-    @media (prefers-color-scheme: dark) {{
-      #ai-news-archive {{
-        --an-card: #1a1a19; --an-text: #ffffff; --an-muted: #c3c2b7;
-        --an-border: rgba(255,255,255,0.10); --an-accent: #3987e5;
-      }}
-    }}
-    #ai-news-archive h2 {{ font-size: 1.25em; margin: 0 0 14px; }}
-    #ai-news-archive .an-grid {{ display: grid; gap: 10px; }}
-    #ai-news-archive .an-item {{
-      display: flex; align-items: center; gap: 10px;
-      padding: 14px 18px; border-radius: 14px;
-      background: var(--an-card); border: 1px solid var(--an-border);
-      border-left: 5px solid var(--an-accent);
-      color: var(--an-text); text-decoration: none;
-      transition: transform .16s ease, box-shadow .16s ease;
-    }}
-    #ai-news-archive .an-item:hover {{
-      transform: translateX(4px);
-      box-shadow: 0 8px 22px -14px rgba(23,43,88,.55);
-    }}
-    #ai-news-archive .an-date {{ font-weight: 700; font-variant-numeric: tabular-nums; }}
-    #ai-news-archive .an-label {{ color: var(--an-muted); font-size: .92em; }}
-    #ai-news-archive .an-new {{
-      margin-left: 8px; padding: 2px 9px; border-radius: 999px;
-      background: var(--an-accent); color: #fff; font-size: .72em; font-weight: 800;
-      vertical-align: 1px;
-    }}
-    #ai-news-archive .an-arrow {{ margin-left: auto; color: var(--an-accent); font-weight: 700; }}
-    @media (max-width: 600px) {{
-      #ai-news-archive .an-item {{ flex-wrap: wrap; padding: 12px 14px; }}
-      #ai-news-archive .an-arrow {{ display: none; }}
-    }}
-  </style>
   <h2>📚 過去の号一覧</h2>
   <nav class="an-grid">
 {links}
@@ -116,43 +76,9 @@ def build_archive_section(issues):
 """
 
 
-SHARE_BAR = f"""
+SHARE_BAR = """
 <!-- ai-news-sharebar -->
 <div id="ai-news-sharebar" aria-label="SNSでシェア">
-  <style>
-    #ai-news-sharebar {{
-      position: fixed; right: 16px; bottom: 16px; z-index: 9999;
-      display: flex; flex-direction: column; gap: 8px;
-      font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
-      --sb-bg: rgba(255,255,255,0.92); --sb-border: rgba(11,11,11,0.12); --sb-text: #0b0b0b;
-    }}
-    @media (prefers-color-scheme: dark) {{
-      #ai-news-sharebar {{ --sb-bg: rgba(26,26,25,0.92); --sb-border: rgba(255,255,255,0.14); --sb-text: #ffffff; }}
-    }}
-    #ai-news-sharebar .sb-toggle, #ai-news-sharebar .sb-btn {{
-      width: 48px; height: 48px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      background: var(--sb-bg); border: 1px solid var(--sb-border); color: var(--sb-text);
-      cursor: pointer; text-decoration: none;
-      box-shadow: 0 8px 24px -10px rgba(0,0,0,.45);
-      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-      transition: transform .16s ease;
-      font-size: 0;
-    }}
-    #ai-news-sharebar .sb-toggle:hover, #ai-news-sharebar .sb-btn:hover {{ transform: scale(1.1); }}
-    #ai-news-sharebar .sb-btn svg, #ai-news-sharebar .sb-toggle svg {{ width: 20px; height: 20px; }}
-    #ai-news-sharebar .sb-menu {{ display: none; flex-direction: column; gap: 8px; }}
-    #ai-news-sharebar.open .sb-menu {{ display: flex; animation: sb-pop .22s ease both; }}
-    @keyframes sb-pop {{ from {{ opacity: 0; transform: translateY(8px); }} to {{ opacity: 1; transform: none; }} }}
-    #ai-news-sharebar .sb-toast {{
-      position: fixed; right: 76px; bottom: 28px;
-      padding: 8px 14px; border-radius: 10px;
-      background: var(--sb-bg); border: 1px solid var(--sb-border); color: var(--sb-text);
-      font-size: 13px; font-weight: 600; white-space: nowrap;
-      opacity: 0; pointer-events: none; transition: opacity .25s ease;
-    }}
-    #ai-news-sharebar .sb-toast.show {{ opacity: 1; }}
-  </style>
   <div class="sb-menu">
     <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
     <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
@@ -162,46 +88,8 @@ SHARE_BAR = f"""
   </div>
   <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
   <div class="sb-toast" role="status"></div>
-  <script>
-  (function () {{
-    var bar = document.getElementById("ai-news-sharebar");
-    var toggle = bar.querySelector(".sb-toggle");
-    var toast = bar.querySelector(".sb-toast");
-    var url = location.href.split("#")[0];
-    var title = document.title || {SITE_TITLE!r};
-    var u = encodeURIComponent(url), t = encodeURIComponent(title);
-    var links = {{
-      x: "https://twitter.com/intent/tweet?text=" + t + "&url=" + u,
-      line: "https://social-plugins.line.me/lineit/share?url=" + u,
-      fb: "https://www.facebook.com/sharer/sharer.php?u=" + u,
-      hatena: "https://b.hatena.ne.jp/entry/panel/?url=" + u + "&btitle=" + t
-    }};
-    bar.querySelectorAll("[data-share]").forEach(function (el) {{
-      var kind = el.getAttribute("data-share");
-      if (links[kind]) el.href = links[kind];
-    }});
-    function showToast(msg) {{
-      toast.textContent = msg; toast.classList.add("show");
-      setTimeout(function () {{ toast.classList.remove("show"); }}, 2000);
-    }}
-    bar.querySelector('[data-share="copy"]').addEventListener("click", function () {{
-      (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject())
-        .then(function () {{ showToast("リンクをコピーしました ✓"); }})
-        .catch(function () {{ window.prompt("このURLをコピーしてください", url); }});
-    }});
-    toggle.addEventListener("click", function () {{
-      if (navigator.share && !bar.classList.contains("open")) {{
-        navigator.share({{ title: title, url: url }}).catch(function () {{
-          bar.classList.add("open"); toggle.setAttribute("aria-expanded", "true");
-        }});
-        return;
-      }}
-      var open = bar.classList.toggle("open");
-      toggle.setAttribute("aria-expanded", String(open));
-    }});
-  }})();
-  </script>
 </div>
+<script src="shared.js" defer></script>
 """
 
 
@@ -211,16 +99,18 @@ def inject_before_body(html, snippet):
     return html + snippet
 
 
+def inject_into_head(html, snippet):
+    if re.search(r"</head>", html, flags=re.IGNORECASE):
+        return re.sub(r"</head>", lambda m: snippet + "</head>", html, count=1, flags=re.IGNORECASE)
+    return snippet + html
+
+
 def enhance(html, page_url, title):
-    """favicon/OGPメタと共有バーを未注入なら差し込む。"""
-    if "favicon.svg" not in html and re.search(r"</head>", html, flags=re.IGNORECASE):
-        html = re.sub(
-            r"</head>",
-            lambda m: head_extras(page_url, title) + "</head>",
-            html,
-            count=1,
-            flags=re.IGNORECASE,
-        )
+    """favicon/OGPメタ・shared.css・共有バーを未注入なら差し込む。"""
+    if "favicon.svg" not in html:
+        html = inject_into_head(html, head_extras(page_url, title))
+    if "shared.css" not in html:
+        html = inject_into_head(html, SHARED_CSS_LINK)
     if "ai-news-sharebar" not in html:
         html = inject_before_body(html, SHARE_BAR)
     return html

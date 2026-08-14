@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git log)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push)",
+      "Bash(git push *)",
+      "Bash(git pull)",
+      "Bash(git pull *)",
+      "Bash(git fetch)",
+      "Bash(git fetch *)",
+      "Bash(git ls-remote)",
+      "Bash(git ls-remote *)",
+      "Bash(git rev-parse *)",
+      "Bash(git checkout *)",
+      "Bash(git branch *)",
+      "Bash(python3 build_index.py)"
+    ]
+  }
+}
