@@ -20,7 +20,7 @@
       "Bash(git rev-parse *)",
       "Bash(git checkout *)",
       "Bash(git branch *)",
-      "Bash(python3 build_index.py)"
+      "Bash(python3 _build_index.py)"
     ]
   }
 }

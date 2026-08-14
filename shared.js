@@ -1,4 +1,4 @@
-// AIニュース デイリーダイジェスト — SNS共有フローティングバー(build_index.py が注入)
+// AIニュース デイリーダイジェスト — SNS共有フローティングバー(_build_index.py が注入)
 (function () {
   var bar = document.getElementById("ai-news-sharebar");
   if (!bar) return;
