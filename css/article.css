@@ -157,6 +157,56 @@ figure.thumb { float: right; width: 168px; margin: 4px 0 14px 20px; }
 figure.thumb img { border-radius: 9px; }
 .item::after { content: ""; display: block; clear: both; }
 
+/* ---------- コード ---------- */
+:root { --code-bg: #f2f4f8; --code-fg: #1c2430; --term-bg: #14161a; --term-fg: #e6e9ef; }
+@media (prefers-color-scheme: dark) {
+  :root { --code-bg: #14171c; --code-fg: #e4e8ef; --term-bg: #0a0c0f; --term-fg: #dfe4ec; }
+}
+.code {
+  margin-top: 16px;
+  border: 1px solid var(--line); border-radius: 11px; overflow: hidden;
+}
+.code-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 14px;
+  background: var(--code-bg); border-bottom: 1px solid var(--line);
+  font-size: 12px; font-weight: 700; color: var(--sub);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.code pre {
+  margin: 0; padding: 14px 16px; overflow-x: auto;
+  background: var(--code-bg); color: var(--code-fg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px; line-height: 1.75; white-space: pre;
+}
+.code.term pre { background: var(--term-bg); color: var(--term-fg); }
+/* 日本語まじりの文章ブロックは折り返す(コード/ログは折り返さない) */
+.code.wrap pre { white-space: pre-wrap; word-break: break-word; }
+.code.term .code-head { background: var(--term-bg); color: #9aa4b2; border-bottom-color: rgba(255,255,255,.12); }
+p code, li code, dd code {
+  padding: 1px 6px; border-radius: 5px;
+  background: var(--code-bg); color: var(--code-fg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .89em;
+}
+.ok-line { color: #3ecf9a; }
+.ng-line { color: #ff8a6b; }
+
+/* ---------- 所要時間・ステップ ---------- */
+.meta-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.time-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 999px;
+  background: var(--ok-bg); color: var(--ok);
+  font-size: 12.5px; font-weight: 700;
+}
+.step {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 8px; flex: none;
+  background: var(--accent); color: #fff; font-size: 13px; font-weight: 800;
+  margin-right: 8px;
+}
+
 /* ---------- 詳細 ---------- */
 details { margin-top: 18px; border-top: 1px solid var(--line-soft); padding-top: 14px; }
 details summary { cursor: pointer; color: var(--accent); font-size: .93rem; font-weight: 700; list-style: none; }
@@ -186,4 +236,5 @@ details .body a { word-break: break-all; }
   .section > h2 { font-size: 1.18rem; }
   figure.thumb { float: none; width: 100%; margin: 16px 0 0; }
   .points { padding: 14px 16px; }
+  .code pre { font-size: 12px; padding: 12px 13px; }
 }

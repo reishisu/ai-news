@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>コピペで動く、AIに任せる範囲の広げ方 — プロンプトからループまで</title>
+<meta name="description" content="プロンプトを打つところから、テストが通るまで自走させるループまで。実際に動かしたコードと実行ログをそのまま載せた、コピペで試せる入門。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="コピペで動く、AIに任せる範囲の広げ方 — プロンプトからループまで">
+<meta property="og:description" content="実際に動かしたコードと実行ログをそのまま掲載。1分ずつ試せる4ステップの入門。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_ai-basics/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css">
+
+<link rel="stylesheet" href="../../css/shared.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">AIで作る技術 ｜ 2026年8月14日(金)</div>
+    <h1>コピペで動く、AIに任せる範囲の広げ方</h1>
+    <div class="range">全部この環境で実際に動かしました。出てきたログはそのまま載せています。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 1ステップ 約1分</span>
+      <span class="tag">前提知識ゼロ</span>
+      <span class="tag">コピペOK</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li>
+        <b>いきなり自動化しない。「頼む → 型にする → 見張る → 回す」の順で広げる</b>
+        <span>3を飛ばして4に行くと事故ります。逆に3まで作れば4は一瞬です。</span>
+      </li>
+      <li>
+        <b>鍵は「テストが通ったか」を機械が判定できること。それだけ</b>
+        <span>この1行があるだけで、AIは自分で直して自分で止まれるようになります。</span>
+      </li>
+      <li>
+        <b>この記事のコードは全部その場で動かして、失敗ログも成功ログも載せた</b>
+        <span>実際に踏んだ落とし穴(パイプの罠)もそのまま公開しています。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#map">全体像 — 4段の階段</a></li>
+      <li><a href="#s1">ステップ1: 頼む(いまここの人が大半)</a></li>
+      <li><a href="#s2">ステップ2: 型にする(毎回同じ説明をやめる)</a></li>
+      <li><a href="#s3">ステップ3: 見張る(ここが本番)</a></li>
+      <li><a href="#s4">ステップ4: 回す(やっとループ)</a></li>
+      <li><a href="#trap">実際に踏んだ落とし穴</a></li>
+      <li><a href="#next">次は何を読めばいいか</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 全体像 ============ -->
+  <section class="section section-b" id="map">
+    <h2>🗺 全体像 — 4段の階段</h2>
+
+    <article class="item">
+      <h3>「ループエンジニアリング」は4段目。1段目から上がれば怖くない</h3>
+      <p class="lead">最近よく聞く<mark>ループエンジニアリング</mark>や<mark>グラフエンジニアリング</mark>は、いきなり手を出すと難しい話です。実際には下の階段の上のほうにあるだけで、順番に上がれば自然にたどり着きます。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/steps-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/steps.png" alt="頼む、型にする、見張る、回す、の4段階の階段図" loading="lazy">
+        </picture>
+        <figcaption>各段は1分で試せます。飛ばさないことだけが条件</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>1. 頼む。</b>毎回プロンプトを打つ。いまここにいる人が大半です。</li>
+        <li><b>2. 型にする。</b>よく使う頼み方をファイルに保存して、名前で呼び出せるようにする。</li>
+        <li><b>3. 見張る。</b>テストを書き、編集のたびに自動で走らせる。<b>ここが山場</b>です。</li>
+        <li><b>4. 回す。</b>「テストが通るまで直して」と投げて、席を立つ。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ ステップ1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>頼む — 効きが変わる3つの型</h2>
+
+    <article class="item">
+      <h3>「良いプロンプト」の話は忘れていい。効くのはこの3つだけ</h3>
+      <p class="lead">プロンプトのコツは山ほど流通していますが、<mark>実務で効き目が大きいのはこの3つ</mark>です。それ以外は誤差だと思って構いません。</p>
+
+      <ul class="points">
+        <li><b>①ゴールを先に、条件を後に。</b>「送料計算のバグを直して。3000円ちょうどは無料が正しい」のように、達成状態を先頭に書きます。</li>
+        <li><b>②現物を渡す。</b>「このファイルを見て」ではなく、失敗しているテストの出力をそのまま貼る。これだけで精度が跳ねます。</li>
+        <li><b>③やってほしくないことを1行。</b>「他のファイルは触らないで」「テストは書き換えないで」。事故の9割はここで防げます。</li>
+      </ul>
+
+      <div class="code wrap">
+        <div class="code-head">そのまま使える頼み方</div>
+        <pre>shipping.py の送料計算を直してください。
+
+正しい仕様:
+- 購入額 3000円以上 → 送料 0円
+- 3000円未満 → 送料 500円
+
+いま失敗しているテスト:
+FAILED test_shipping.py::test_ちょうど3000円は送料無料 - assert 500 == 0
+
+条件:
+- test_shipping.py は書き換えないでください
+- shipping.py 以外は触らないでください</pre>
+      </div>
+
+      <details>
+        <summary>なぜテストを書き換えさせてはいけないのか</summary>
+        <div class="body">
+          <dl>
+            <dt>よくある事故</dt>
+            <dd>「テストが通るようにして」とだけ頼むと、コードではなくテストのほうを緩めて通してくることがあります。<b>テストは仕様書</b>なので、触らせない指定を1行入れておくのが安全です。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ ステップ2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>型にする — 毎回同じ説明をやめる</h2>
+
+    <article class="item">
+      <h3>同じ頼み方を2回したら、その時点でファイルに保存する</h3>
+      <p class="lead">Claude Codeには<mark>スキル</mark>という仕組みがあります。手順書をファイルに置いておくと、<code>/名前</code> で呼び出せるようになります。作り方はフォルダを1つ作るだけです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">.claude/skills/fix-test/SKILL.md</div>
+        <pre>---
+name: fix-test
+description: 失敗しているテストを直す。テスト自体は書き換えない。
+---
+
+# 失敗テストを直す
+
+1. `python3 -m pytest -q` を実行して、失敗しているテストを確認する
+2. 失敗の原因をコード側で直す(テストファイルは変更しない)
+3. もう一度テストを実行し、全部通ったことを確認する
+4. 通らなければ 2 に戻る。5回試して直らなければ、原因を報告して止まる
+
+## やらないこと
+- テストファイルの書き換え
+- 関係ないファイルの整形やリファクタリング</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>置き場所は2つ。</b>そのプロジェクトだけなら <code>.claude/skills/</code>、全プロジェクトで使うなら <code>~/.claude/skills/</code>。</li>
+        <li><b>中身はただのMarkdown。</b>冒頭の <code>name</code> と <code>description</code> だけが決まりごとで、あとは日本語の手順書で構いません。</li>
+        <li><b>「やらないこと」を必ず書く。</b>ここがスキルの実質的な本体です。禁止事項のないスキルは事故ります。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>description の書き方</dt>
+            <dd>この一文を見てAIが「いま使うべきか」を判断します。「〜のとき使う」と用途を書くと呼ばれやすくなります。</dd>
+            <dt>注意</dt>
+            <dd>スキルの仕様は更新が入る領域です。使う前に公式ドキュメントで最新の書式を確認してください。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ ステップ3 ============ -->
+  <section class="section section-c" id="s3">
+    <h2><span class="step">3</span>見張る — ここが本番</h2>
+
+    <article class="item">
+      <h3>「直ったか」を機械が判定できるようにする。それが全部の土台</h3>
+      <p class="lead">ここだけは飛ばせません。<mark>テストが通ったかどうかを機械が判定できる</mark>状態を作れば、あとの自動化は全部その上に乗ります。実際に動かした例で見ます。</p>
+
+      <div class="code">
+        <div class="code-head">shipping.py — わざとバグを入れた状態</div>
+        <pre>FREE_THRESHOLD = 3000
+SHIPPING_FEE = 500
+
+
+def shipping_fee(total: int) -&gt; int:
+    """購入額に応じた送料を返す。3000円以上で送料無料。"""
+    if total &gt; FREE_THRESHOLD:      # ← 本当は &gt;= が正しい
+        return 0
+    return SHIPPING_FEE</pre>
+      </div>
+
+      <div class="code">
+        <div class="code-head">test_shipping.py — 仕様を日本語のまま書ける</div>
+        <pre>from shipping import shipping_fee
+
+
+def test_安い買い物は送料がかかる():
+    assert shipping_fee(2999) == 500
+
+
+def test_ちょうど3000円は送料無料():
+    assert shipping_fee(3000) == 0
+
+
+def test_高額は送料無料():
+    assert shipping_fee(5000) == 0</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">実行結果(この環境で実際に出た出力)</div>
+        <pre>$ python3 -m pytest -q
+.F.                                                                      [100%]
+=================================== FAILURES ===================================
+_____________________________ test_ちょうど3000円は送料無料 ______________________________
+
+    def test_ちょうど3000円は送料無料():
+&gt;       assert shipping_fee(3000) == 0
+E       assert 500 == 0
+E        +  where 500 = shipping_fee(3000)
+
+test_shipping.py:9: AssertionError
+=========================== short test summary info ============================
+FAILED test_shipping.py::test_ちょうど3000円は送料無料 - assert 500 == 0
+<span class="ng-line">1 failed, 2 passed in 0.02s</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>この出力をそのままAIに貼る。</b>どのテストが、どういう値で落ちたかが全部入っています。説明文を書くより早くて正確です。</li>
+        <li><b>テスト名は日本語でいい。</b>Pythonは日本語の関数名が使えます。仕様書としてそのまま読めるので、AIにも人にも伝わります。</li>
+        <li><b>3件で十分。</b>境界(3000)・境界の手前(2999)・普通の値(5000)。この3点で off-by-one は捕まります。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <h3>編集のたびに自動でテストを走らせる(フック)</h3>
+      <p class="lead">毎回自分でテストを打つのはすぐ飽きます。<mark>ファイルが編集されたら自動でテストを走らせる</mark>設定を置きます。設定ファイル1つで終わります。</p>
+
+      <div class="code">
+        <div class="code-head">.claude/settings.json</div>
+        <pre>{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read -r f; case \"$f\" in *.py) python3 -m pytest -q ;; esac; } 2&gt;&amp;1 || true"
+          }
+        ]
+      }
+    ]
+  }
+}</pre>
+      </div>
+
+      <p class="lead">設定を書いたら、<b>Claude Codeを起動する前に動作確認</b>します。フックには編集情報がJSONで渡ってくるので、それを手で流し込めば単体で試せます。</p>
+
+      <div class="code term">
+        <div class="code-head">フック単体の動作確認(実際の出力)</div>
+        <pre>$ echo '{"tool_name":"Edit","tool_input":{"file_path":"shipping.py"}}' | eval "$CMD"
+...                                                                      [100%]
+<span class="ok-line">3 passed in 0.00s</span>
+
+# わざとバグを戻してから、もう一度叩く
+$ echo '{"tool_name":"Edit","tool_input":{"file_path":"shipping.py"}}' | eval "$CMD"
+FAILED test_shipping.py::test_ちょうど3000円は送料無料 - assert 500 == 0
+<span class="ng-line">1 failed, 2 passed in 0.01s</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>壊したときにちゃんと赤くなるかまで確認する。</b>「通ったログ」だけ見て安心すると、実は何も検査していないフックが出来上がります。</li>
+        <li><b>末尾の <code>|| true</code> は意図的。</b>テストが落ちてもフック自体はエラーにせず、結果だけをAIに見せる形にしています。</li>
+        <li><b>拡張子で絞る。</b><code>case "$f" in *.py)</code> の部分。Markdownを直すたびにテストが走ると邪魔になります。</li>
+      </ul>
+
+      <details>
+        <summary>設定が効かないときの確認順</summary>
+        <div class="body">
+          <dl>
+            <dt>1. JSONが壊れていないか</dt>
+            <dd><code>jq -e . .claude/settings.json</code> で確認。JSONが壊れているとファイル全体の設定が黙って無効になります。</dd>
+            <dt>2. コマンド単体で動くか</dt>
+            <dd>上のように手でJSONを流し込んで確認します。</dd>
+            <dt>3. 設定が読み込まれているか</dt>
+            <dd>セッション開始後に作った設定は読み込まれないことがあります。読み直すか、起動し直してください。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ ステップ4 ============ -->
+  <section class="section section-a" id="s4">
+    <h2><span class="step">4</span>回す — やっとループ</h2>
+
+    <article class="item">
+      <h3>止まる条件があるなら、ループはたった10行</h3>
+      <p class="lead">ここまで来ればループは簡単です。<mark>「テストが通るまで直す。ただし5回まで」</mark>をそのまま書き下します。まずは骨組みを、AI抜きで動かして確かめます。</p>
+
+      <div class="code">
+        <div class="code-head">loop.sh</div>
+        <pre>#!/bin/bash
+# 「テストが全部通るまで直す」ループ。最大5回で打ち切る。
+MAX=5
+for i in $(seq 1 $MAX); do
+  echo "--- $i 回目 ---"
+  if python3 -m pytest -q; then
+    echo "✅ 全部通ったので終了"
+    exit 0
+  fi
+  echo "🔧 直します"
+  ./fix_agent.sh          # ここを実際はAIの呼び出しに差し替える
+done
+echo "⛔ $MAX 回やっても直らないので打ち切り"
+exit 1</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">実行結果(実際に走らせたログ)</div>
+        <pre>$ ./loop.sh
+--- 1 回目 ---
+.F.                                                                      [100%]
+FAILED test_shipping.py::test_ちょうど3000円は送料無料 - assert 500 == 0
+<span class="ng-line">1 failed, 2 passed in 0.02s</span>
+🔧 直します
+--- 2 回目 ---
+...                                                                      [100%]
+<span class="ok-line">3 passed in 0.01s</span>
+<span class="ok-line">✅ 全部通ったので終了</span>
+
+$ echo $?
+0</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>1回目で落ちて、直して、2回目で止まった。</b>これがループの全てです。難しい概念は何も要りません。</li>
+        <li><b>上限(<code>MAX=5</code>)は必ず付ける。</b>止まらないループは、時間とお金だけを溶かします。</li>
+        <li><b>終了コードを返す。</b><code>exit 0</code> / <code>exit 1</code> にしておくと、このループ自体を他の仕組みから呼べます。</li>
+        <li><b>AIの差し込み口は1行だけ。</b><code>./fix_agent.sh</code> のところを実際のAI呼び出しに置き換えれば、そのまま自走ループになります。</li>
+      </ul>
+
+      <details>
+        <summary>Claude Code側の機能で回す場合</summary>
+        <div class="body">
+          <dl>
+            <dt>状態で終わるなら</dt>
+            <dd>完了条件を渡してターンを跨いで自走させる仕組み(<code>/goal</code>)があります。「<code>python3 -m pytest -q</code> が全部通る。20ターンで打ち切り」のように書きます。</dd>
+            <dt>時間で回すなら</dt>
+            <dd>一定間隔で繰り返す仕組み(<code>/loop</code>)。CIの結果待ちなど、外の状態が変わるのを待つ用途向けです。</dd>
+            <dt>注意</dt>
+            <dd>コマンド名や挙動は更新されることがあります。使う前に <code>/help</code> と公式ドキュメントで現在の仕様を確認してください。この記事は2026年8月14日時点の理解に基づいています。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 落とし穴 ============ -->
+  <section class="section section-a" id="trap">
+    <h2>💣 実際に踏んだ落とし穴</h2>
+
+    <article class="item">
+      <h3>パイプを1本足しただけで、ループが「嘘の成功」を返した</h3>
+      <p class="lead">この記事を書きながら実際にやらかした話です。出力が長いのが嫌で <code>| tail -1</code> を足したところ、<mark>テストが落ちているのにループが「✅ 全部通った」と言って終了しました</mark>。</p>
+
+      <div class="code term">
+        <div class="code-head">壊れていたときの実際の出力</div>
+        <pre>$ ./loop.sh          # if python3 -m pytest -q | tail -1; then と書いていた
+--- 1 回目 ---
+<span class="ng-line">1 failed, 2 passed in 0.01s</span>
+<span class="ok-line">✅ 全部通ったので終了</span>     ← 落ちているのに成功扱い</pre>
+      </div>
+
+      <figure>
+        <picture>
+          <source srcset="images/pipe-trap-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/pipe-trap.png" alt="パイプでつなぐと判定対象が最後のコマンドになる図" loading="lazy">
+        </picture>
+        <figcaption>判定されるのは最後のコマンドの成否。tail はいつも成功する</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>原因は単純。</b>パイプでつなぐと、シェルが見るのは<b>いちばん最後のコマンド</b>の成否です。<code>tail</code> は常に成功するので、判定が常に成功になります。</li>
+        <li><b>直し方も単純。</b>判定に使う行ではパイプを使わない。出力を減らしたいなら <code>-q</code> などコマンド側の引数で減らします。</li>
+        <li><b>教訓。</b>停止条件は<b>わざと失敗させて赤くなるか</b>を必ず確認する。緑しか見ていないと、何も検査していない仕組みが完成します。</li>
+      </ul>
+
+      <details>
+        <summary>どうしてもパイプを挟みたいとき</summary>
+        <div class="body">
+          <dl>
+            <dt>方法</dt>
+            <dd>bashなら <code>${PIPESTATUS[0]}</code> で最初のコマンドの終了コードが取れます。<code>set -o pipefail</code> を使う手もありますが、判定行を素直に分けるほうが読みやすく事故りません。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 次 ============ -->
+  <section class="section section-b" id="next">
+    <h2>🎯 次は何をすればいいか</h2>
+
+    <article class="item">
+      <h3>今日やるなら、ステップ3だけでいい</h3>
+      <p class="lead">全部を一気にやる必要はありません。<mark>手元のプロジェクトにテストを3件書いて、フックで自動実行にする</mark>。ここまでで自動化の土台は完成します。</p>
+
+      <ul class="points">
+        <li><b>今日: テスト3件 + フック1個。</b>境界・境界の手前・普通の値。これだけで壊れたら気づける状態になります。</li>
+        <li><b>今週: よく使う頼み方をスキルに1つ。</b>2回同じ説明をしたものが候補です。</li>
+        <li><b>来週: ループを1本。</b>上限付きで、小さい対象(1ファイル、1種類のエラー)から始めます。</li>
+        <li><b>その先: グラフ。</b>ループが同じ失敗を繰り返し始めたら、そこで初めて工程を分割する話になります。</li>
+      </ul>
+
+      <details>
+        <summary>この記事の環境と検証について</summary>
+        <div class="body">
+          <dl>
+            <dt>実行環境</dt>
+            <dd>Python 3 / pytest 9.1.1 / bash。掲載したコードは全てこの環境で実行し、出力はそのまま貼り付けています(色付けのみ追加)。</dd>
+            <dt>注意</dt>
+            <dd>Claude Codeの機能名・コマンド・設定書式は更新される可能性があります。設定を書く前に公式ドキュメントで最新の仕様を確認してください。この記事は2026年8月14日時点の内容です。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>公開: 2026年8月14日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js" defer></script>
+</body>
+</html>

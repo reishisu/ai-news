@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 250">
+  <text x="8" y="22" font-size="15" font-weight="700" fill="var(--fg)">AIに任せる範囲は、この順に広げると転ばない</text>
+
+  <rect x="10" y="180" width="140" height="52" rx="9" fill="var(--track)"/>
+  <text x="80" y="203" text-anchor="middle" font-size="14" font-weight="700" fill="var(--fg)">1. 頼む</text>
+  <text x="80" y="222" text-anchor="middle" font-size="12" fill="var(--sub)">毎回プロンプト</text>
+
+  <rect x="166" y="136" width="140" height="96" rx="9" fill="var(--track)"/>
+  <text x="236" y="159" text-anchor="middle" font-size="14" font-weight="700" fill="var(--fg)">2. 型にする</text>
+  <text x="236" y="178" text-anchor="middle" font-size="12" fill="var(--sub)">スキルに保存</text>
+
+  <rect x="322" y="92" width="140" height="140" rx="9" fill="var(--old)"/>
+  <text x="392" y="115" text-anchor="middle" font-size="14" font-weight="700" fill="var(--fg)">3. 見張る</text>
+  <text x="392" y="134" text-anchor="middle" font-size="12" fill="var(--fg)">テスト+フック</text>
+
+  <rect x="478" y="48" width="152" height="184" rx="9" fill="var(--new)"/>
+  <text x="554" y="71" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">4. 回す</text>
+  <text x="554" y="90" text-anchor="middle" font-size="12" fill="#fff">条件まで自走</text>
+
+  <text x="8" y="248" font-size="12.5" fill="var(--sub)">3を飛ばして4に行くと事故る。「止められる状態」を先に作るのが近道</text>
+</svg>
