@@ -1,78 +1,93 @@
 #!/usr/bin/env python3
-"""ai-news-YYYY-MM-DD.html の最新号から index.html を生成するスクリプト。
+"""AIニュース デイリーダイジェスト — サイトビルダー。
 
-- 同じディレクトリの ai-news-YYYY-MM-DD.html を日付降順で列挙
-- 各号のページに favicon / OGPメタ / shared.css / SNS共有バー(shared.js)を注入(未注入の号のみ)
-- 最新号のHTMLの </body> 直前に「📚 過去の号一覧」セクションを差し込み、
-  <title> を「AIニュース デイリーダイジェスト」に置換して index.html として保存
-- 号が1つも無い場合は何もせず正常終了
+- contents/YYYY-MM-DD_id/index.html を号として日付降順で列挙
+- 各号のメタ情報を contents/*/meta.json(無ければHTMLのtitle/og:description)から取得
+- 各号のページに favicon/OGP・css/shared.css・SNS共有バー(js/shared.js)を
+  相対パスで注入(未注入の号のみ更新)
+- _templates/home.html から、サムネイル+タイトル+概要のカード一覧を持つ
+  トップページ index.html を生成
+- 号が1つも無い場合はカード0件のトップページを生成して正常終了
 """
 
 import datetime
+import json
 import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-PATTERN = re.compile(r"^ai-news-(\d{4})-(\d{2})-(\d{2})\.html$")
+CONTENTS = HERE / "contents"
+TEMPLATE = HERE / "_templates" / "home.html"
+DIR_RE = re.compile(r"^(\d{4})-(\d{2})-(\d{2})_[A-Za-z0-9-]+$")
 WEEKDAYS_JA = ["月", "火", "水", "木", "金", "土", "日"]
 SITE_URL = "https://reishisu.github.io/ai-news/"
 SITE_TITLE = "AIニュース デイリーダイジェスト"
 
-
-def collect_issues():
-    """(date, filename) のリストを日付降順で返す。"""
-    issues = []
-    for path in HERE.iterdir():
-        m = PATTERN.match(path.name)
-        if not m:
-            continue
-        try:
-            date = datetime.date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
-        except ValueError:
-            continue
-        issues.append((date, path.name))
-    issues.sort(key=lambda x: x[0], reverse=True)
-    return issues
+# 号ページ(contents/<dir>/index.html)からサイトルートへの相対プレフィックス
+ISSUE_PREFIX = "../../"
 
 
 def format_date_ja(date):
     return f"{date.year}年{date.month}月{date.day}日({WEEKDAYS_JA[date.weekday()]})"
 
 
-def head_extras(page_url, title):
+def collect_issues():
+    """[{date, dirname, dirpath, html_path}] を日付降順で返す。"""
+    issues = []
+    if not CONTENTS.is_dir():
+        return issues
+    for path in CONTENTS.iterdir():
+        m = DIR_RE.match(path.name)
+        if not m or not (path / "index.html").is_file():
+            continue
+        try:
+            date = datetime.date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        except ValueError:
+            continue
+        issues.append({
+            "date": date,
+            "dirname": path.name,
+            "dirpath": path,
+            "html_path": path / "index.html",
+        })
+    issues.sort(key=lambda x: (x["date"], x["dirname"]), reverse=True)
+    return issues
+
+
+def load_meta(issue):
+    """meta.json 優先、無ければHTMLから title / og:description を抽出。"""
+    meta = {}
+    meta_path = issue["dirpath"] / "meta.json"
+    if meta_path.is_file():
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            meta = {}
+
+    html = issue["html_path"].read_text(encoding="utf-8")
+    if not meta.get("title"):
+        m = re.search(r'<meta property="og:title" content="([^"]*)"', html) or \
+            re.search(r"<title>(.*?)</title>", html, flags=re.IGNORECASE | re.DOTALL)
+        meta["title"] = (m.group(1).strip() if m else issue["dirname"])
+    if not meta.get("summary"):
+        m = re.search(r'<meta (?:property="og:description"|name="description") content="([^"]*)"', html)
+        meta["summary"] = m.group(1).strip() if m else ""
+
+    thumb = meta.get("thumbnail") or "images/thumb.png"
+    meta["thumbnail"] = thumb if (issue["dirpath"] / thumb).is_file() else None
+    return meta
+
+
+def head_extras(prefix, page_url, title):
     return f"""
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="apple-touch-icon" href="favicon.svg">
+<link rel="icon" type="image/svg+xml" href="{prefix}favicon.svg">
+<link rel="apple-touch-icon" href="{prefix}favicon.svg">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="世界のAIニュースを日本語で、毎朝6:00にお届け">
 <meta property="og:url" content="{page_url}">
 <meta property="og:image" content="{SITE_URL}ogp.png">
 <meta name="twitter:card" content="summary_large_image">
-"""
-
-SHARED_CSS_LINK = '\n<link rel="stylesheet" href="shared.css">\n'
-
-
-def build_archive_section(issues):
-    items = []
-    for i, (date, name) in enumerate(issues):
-        badge = '<span class="an-new">NEW</span>' if i == 0 else ""
-        items.append(
-            f'      <a class="an-item" href="{name}">'
-            f'<span class="an-date">{format_date_ja(date)}</span>'
-            f'<span class="an-label">の号を読む{badge}</span>'
-            f'<span class="an-arrow" aria-hidden="true">→</span></a>'
-        )
-    links = "\n".join(items)
-    return f"""
-<!-- ai-news-archive -->
-<section id="ai-news-archive">
-  <h2>📚 過去の号一覧</h2>
-  <nav class="an-grid">
-{links}
-  </nav>
-</section>
 """
 
 
@@ -89,7 +104,6 @@ SHARE_BAR = """
   <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
   <div class="sb-toast" role="status"></div>
 </div>
-<script src="shared.js" defer></script>
 """
 
 
@@ -105,51 +119,66 @@ def inject_into_head(html, snippet):
     return snippet + html
 
 
-def enhance(html, page_url, title):
-    """favicon/OGPメタ・shared.css・共有バーを未注入なら差し込む。"""
+def enhance_issue(issue, meta):
+    """号ページに favicon/OGP・shared.css・共有バーを未注入なら差し込む。"""
+    html = original = issue["html_path"].read_text(encoding="utf-8")
+    page_url = f"{SITE_URL}contents/{issue['dirname']}/"
+    title = f"{SITE_TITLE} {format_date_ja(issue['date'])}"
+
     if "favicon.svg" not in html:
-        html = inject_into_head(html, head_extras(page_url, title))
+        html = inject_into_head(html, head_extras(ISSUE_PREFIX, page_url, title))
     if "shared.css" not in html:
-        html = inject_into_head(html, SHARED_CSS_LINK)
+        html = inject_into_head(html, f'\n<link rel="stylesheet" href="{ISSUE_PREFIX}css/shared.css">\n')
     if "ai-news-sharebar" not in html:
-        html = inject_before_body(html, SHARE_BAR)
-    return html
+        html = inject_before_body(
+            html, SHARE_BAR + f'<script src="{ISSUE_PREFIX}js/shared.js" defer></script>\n'
+        )
+
+    if html != original:
+        issue["html_path"].write_text(html, encoding="utf-8")
+        print(f"contents/{issue['dirname']}/index.html に共有バー/メタ情報を注入しました")
+
+
+def escape(text):
+    return (text.replace("&", "&amp;").replace("<", "&lt;")
+                .replace(">", "&gt;").replace('"', "&quot;"))
+
+
+def build_card(issue, meta, is_latest):
+    href = f"contents/{issue['dirname']}/"
+    date_ja = format_date_ja(issue["date"])
+    new_badge = '<span class="post-new">NEW</span>' if is_latest else ""
+    if meta["thumbnail"]:
+        thumb = (f'<img class="post-thumb" src="{href}{meta["thumbnail"]}" '
+                 f'alt="" loading="lazy" '
+                 "onerror=\"this.outerHTML='<div class=&quot;post-thumb-ph&quot;>📰</div>'\">")
+    else:
+        thumb = f'<div class="post-thumb-ph">📰<small>{date_ja}</small></div>'
+    return f"""      <a class="post-card" href="{href}">
+        {thumb}
+        <div class="post-body">
+          <div class="post-date">📅 {date_ja}{new_badge}</div>
+          <h3 class="post-title">{escape(meta["title"])}</h3>
+          <p class="post-summary">{escape(meta["summary"])}</p>
+          <span class="post-more">続きを読む →</span>
+        </div>
+      </a>"""
 
 
 def main():
     issues = collect_issues()
-    if not issues:
-        return
+    cards = []
+    for i, issue in enumerate(issues):
+        meta = load_meta(issue)
+        enhance_issue(issue, meta)
+        cards.append(build_card(issue, meta, i == 0))
 
-    # 各号のページ自体にも favicon/OGP/共有バーを注入(未注入の号のみ更新)
-    for date, name in issues:
-        path = HERE / name
-        original = path.read_text(encoding="utf-8")
-        enhanced = enhance(original, SITE_URL + name, f"{SITE_TITLE} {format_date_ja(date)}")
-        if enhanced != original:
-            path.write_text(enhanced, encoding="utf-8")
-            print(f"{name} に共有バー/メタ情報を注入しました")
-
-    latest = HERE / issues[0][1]
-    html = latest.read_text(encoding="utf-8")
-
-    html = enhance(html, SITE_URL, SITE_TITLE)
-    html = inject_before_body(html, build_archive_section(issues))
-
-    # index.html はサイトのトップとして og:url / og:title を上書き
-    html = re.sub(r'(<meta property="og:url" content=")[^"]*(")', rf"\g<1>{SITE_URL}\g<2>", html, count=1)
-    html = re.sub(r'(<meta property="og:title" content=")[^"]*(")', rf"\g<1>{SITE_TITLE}\g<2>", html, count=1)
-
-    html = re.sub(
-        r"<title>.*?</title>",
-        f"<title>{SITE_TITLE}</title>",
-        html,
-        count=1,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-
+    template = TEMPLATE.read_text(encoding="utf-8")
+    html = template.replace("{{CARDS}}", "\n".join(cards) if cards else
+                            '      <p class="posts-empty">まだ号がありません。明日の朝6:00をお楽しみに。</p>')
+    html = html.replace("{{COUNT}}", str(len(issues)))
     (HERE / "index.html").write_text(html, encoding="utf-8")
-    print(f"index.html を生成しました(最新号: {issues[0][1]}、全{len(issues)}号)")
+    print(f"index.html を生成しました(全{len(issues)}号)")
 
 
 if __name__ == "__main__":
