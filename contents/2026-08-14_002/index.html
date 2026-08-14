@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIニュース デイリーダイジェスト 2026年8月14日(金)号外</title>
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AIニュース デイリーダイジェスト 2026年8月14日(金)号外">
+<meta property="og:description" content="Claude Codeの「自動モード」が本日デフォルト化、Geminiアプリが月間利用者10億人突破、xAI「Grok 4.6」投入など、8月11日以降の主要AIニュースを号外でお届け。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_002/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root{
+  --bg:#f9f9f7; --card:#fcfcfb; --text:#0b0b0b; --sub:#52514e;
+  --line:rgba(11,11,11,0.10);
+  --bar-old:#9ec5f4; --bar-new:#2a78d6; --track:#efeeea;
+  --b:#2a78d6; --c:#eb6834; --a:#1baf7a; --d:#eda100; --d-text:#3a2b00;
+  --ok:#1baf7a; --warn:#b58900; --unk:#d95926;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0d0d0d; --card:#1a1a19; --text:#ffffff; --sub:#c3c2b7;
+    --line:rgba(255,255,255,0.10);
+    --bar-old:#5a80ad; --bar-new:#3987e5; --track:#262624;
+    --b:#3987e5; --c:#d95926; --a:#199e70; --d:#c98500;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.65}
+.wrap{max-width:820px;margin:0 auto;padding:24px 18px 48px}
+header.masthead{text-align:center;padding:14px 0 4px}
+header.masthead h1{font-size:26px;margin:0 0 6px}
+.datebar{color:var(--sub);font-size:14px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0 0}
+.legend span{font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card)}
+.legend .lb{border-left:4px solid var(--b)} .legend .lc{border-left:4px solid var(--c)}
+.legend .la{border-left:4px solid var(--a)} .legend .ld{border-left:4px solid var(--d)}
+.top3{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:22px 0}
+.top3 h2{margin:0 0 10px;font-size:18px}
+.top3 ol{margin:0;padding-left:22px}
+.top3 li{margin-bottom:10px}
+.top3 li b{display:block}
+.top3 li small{color:var(--sub)}
+section.cat{margin-top:34px}
+section.cat>h2{font-size:20px;margin:0 0 4px;padding-left:10px;border-left:5px solid var(--line)}
+section.cat>p.count{color:var(--sub);font-size:13px;margin:0 0 14px;padding-left:15px}
+section.cat.catB>h2{border-color:var(--b)} section.cat.catC>h2{border-color:var(--c)}
+section.cat.catA>h2{border-color:var(--a)} section.cat.catD>h2{border-color:var(--d)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:18px;transition:transform .18s ease, box-shadow .18s ease}
+.card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.10)}
+.card.b{border-left:5px solid var(--b)} .card.c{border-left:5px solid var(--c)}
+.card.a{border-left:5px solid var(--a)} .card.d{border-left:5px solid var(--d)}
+.src{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--sub);margin-bottom:6px}
+.src img{width:16px;height:16px;border-radius:4px}
+.card h3{margin:0 0 8px;font-size:17.5px;line-height:1.5}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.tag{font-size:11.5px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--sub)}
+.tag.badge-b{background:var(--b);color:#fff;border:none} .tag.badge-c{background:var(--c);color:#fff;border:none}
+.tag.badge-a{background:var(--a);color:#fff;border:none} .tag.badge-d{background:var(--d);color:var(--d-text);border:none}
+.tag.ok{color:var(--ok);border-color:var(--ok)} .tag.warn{color:var(--warn);border-color:var(--warn)} .tag.unk{color:var(--unk);border-color:var(--unk)}
+.lead{margin:0 0 12px;color:var(--sub)}
+.hero{width:100%;aspect-ratio:1200/628;object-fit:cover;border-radius:10px;border:1px solid var(--line);margin-bottom:12px}
+.row{display:flex;gap:14px;align-items:flex-start}
+.row-main{flex:1;min-width:0}
+.thumb{width:148px;flex-shrink:0;border-radius:8px;border:1px solid var(--line)}
+.viz{margin:4px 0 12px}
+.viz svg{width:100%;height:auto;display:block}
+.illust{display:block;margin:4px auto 12px;height:150px}
+details{border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
+summary{cursor:pointer;font-size:14px;color:var(--sub)}
+details ul{margin:10px 0 4px;padding-left:20px;font-size:14.5px}
+details li{margin-bottom:6px}
+.none{color:var(--sub);font-size:14.5px;padding-left:15px}
+.srcs{margin-top:36px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 20px}
+.srcs ul{font-size:13px;word-break:break-all;padding-left:20px}
+.srcs a{color:var(--b)}
+footer.end{margin-top:36px;color:var(--sub);font-size:13px;text-align:center;line-height:2}
+footer.end a{color:var(--b)}
+@media (max-width:600px){
+  body{font-size:15px}
+  .wrap{padding:16px 12px 40px}
+  .card{padding:14px 14px}
+  .top3{padding:14px 14px}
+  .row{flex-direction:column-reverse}
+  .thumb{width:100%}
+  .illust{height:110px}
+  .viz{overflow-x:auto}
+  .viz svg{min-width:540px}
+}
+</style>
+
+<link rel="stylesheet" href="../../css/shared.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <div class="datebar">2026年8月14日(金)号外 ｜ 対象期間: 8月11日(火)〜8月14日(金)18:00 JST(当日朝の号の続報)</div>
+  <div class="legend">
+    <span class="lb">🧰 B: 実務者向け</span>
+    <span class="lc">🔬 C: 技術・研究</span>
+    <span class="la">🏢 A: モデル・業界</span>
+    <span class="ld">🗾 D: 日本国内</span>
+  </div>
+</header>
+
+<div class="top3">
+  <h2>⭐ 今日の要点</h2>
+  <ol>
+    <li><b>Claude Codeの「自動モード」が本日8/14からPro/Max/Teamで標準に</b><small>承認ポップアップ無しで作業を継続、安全分類器が破壊的操作を自動ブロック。分類器のトークン課金も無償化された。</small></li>
+    <li><b>Googleの「Gemini」アプリが月間アクティブ利用者10億人を突破(8/11発表)</b><small>Google史上最速ペースでの到達と発表。ChatGPTと並ぶ規模に。</small></li>
+    <li><b>xAIが最新モデル「Grok 4.6」を投入 — コーディング/エージェント系で首位級、出力価格は競合より大幅に安い</b><small>500Kトークンコンテキスト、$2/$6(100万トークンあたり入力/出力、20万トークン以下)。</small></li>
+  </ol>
+</div>
+
+<!-- ======================= B ======================= -->
+<section class="cat catB">
+  <h2>🧰 B. 実務者向けアップデート</h2>
+  <p class="count">4件</p>
+
+  <article class="card b">
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=claude.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic(Claude Code 公式)</div>
+    <h3>Claude Codeの「自動モード」が本日8/14からPro/Max/Teamで標準に — 承認は安全分類器にお任せ、トークン課金も無料化</h3>
+    <div class="tags">
+      <span class="tag badge-b">B</span><span class="tag">8/14</span><span class="tag ok">✓公式確認済</span><span class="tag">Claude Code</span><span class="tag">Pro/Max/Team</span>
+    </div>
+    <svg class="hero" viewBox="0 0 1200 628" role="img" aria-label="自動モードのイラスト、ロボットが承認を得ずに安全な操作を進めるイメージ">
+      <rect width="1200" height="628" fill="var(--track)"/>
+      <circle cx="300" cy="314" r="150" fill="var(--card)" stroke="var(--line)"/>
+      <rect x="230" y="240" width="140" height="150" rx="18" fill="var(--bar-old)"/>
+      <rect x="255" y="270" width="90" height="60" rx="8" fill="var(--card)"/>
+      <circle cx="278" cy="298" r="8" fill="var(--bar-new)"/><circle cx="322" cy="298" r="8" fill="var(--bar-new)"/>
+      <rect x="270" y="392" width="60" height="30" rx="6" fill="var(--bar-old)"/>
+      <path d="M480 314 h180" stroke="var(--bar-new)" stroke-width="6" stroke-linecap="round" stroke-dasharray="4 14"/>
+      <path d="M660 314 l-16 -12 M660 314 l-16 12" stroke="var(--bar-new)" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <circle cx="860" cy="314" r="150" fill="var(--card)" stroke="var(--a)" stroke-width="4"/>
+      <path d="M800 320 l40 40 l80 -90" stroke="var(--a)" stroke-width="18" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="300" y="500" text-anchor="middle" font-size="30" fill="var(--text)" font-weight="bold">Claude</text>
+      <text x="860" y="500" text-anchor="middle" font-size="30" fill="var(--a)" font-weight="bold">自動承認</text>
+      <text x="600" y="120" text-anchor="middle" font-size="26" fill="var(--sub)">Auto Mode が既定値に</text>
+    </svg>
+    <p class="lead">Claude Codeの自律実行モード「Auto Mode」が、Pro/Max/Teamプランの新規セッションで本日8月14日から既定(デフォルト)に切り替わった。ツール呼び出しのたびに人が承認ボタンを押す従来方式から、安全分類器が審査する方式へ移行する。</p>
+    <details><summary>詳細を見る</summary>
+      <ul>
+        <li><b>事実:</b> 分類器は「不可逆・破壊的な操作」「gitリポジトリの公開状態」「データの持ち出し」「外部コンテンツ経由のプロンプトインジェクション」などを審査し、危険と判断した操作は自動でブロックまたは差し戻す。管理者が設定できる「強制拒否」ルールも用意。</li>
+        <li><b>事実:</b> Anthropicは「分類器は1回のツール呼び出しにつきわずかなトークンを追加消費するが、Pro/Max/Teamユーザーへの追加課金は本日付けで廃止した」と明言。</li>
+        <li><b>事実:</b> Enterprise・API・Bedrock・Google Cloud・Microsoft Foundry・AWS経由の利用は当面オプトインのまま。今後1か月ほどかけて展開予定。すでに手動承認を選んでいるユーザーの設定はそのまま尊重される。</li>
+        <li><b>注意:</b> 「平均的なユーザーがポップアップをクリックするのと同程度以上に安全」というのはAnthropic自身の主張であり、第三者による独立検証はまだ確認できていない。エスカレーション(3回警告で手動承認に戻す仕組み)はあるが、自動化前提の運用では設定の見直しを推奨。</li>
+        <li><b>出典:</b> claude.com/blog(公式発表)、InfoWorld、The Register(8/10)</li>
+      </ul>
+    </details>
+  </article>
+
+  <article class="card b">
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=x.ai&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">xAI</div>
+    <h3>xAIが「Grok 4.6」を投入 — コーディング/エージェント作業で首位級、出力価格はGPT-5.6・Claude Opusよりかなり割安</h3>
+    <div class="tags">
+      <span class="tag badge-b">B</span><span class="tag">8/12</span><span class="tag ok">✓公式確認済</span><span class="tag">新モデル</span><span class="tag">Grok</span>
+    </div>
+    <p class="lead">xAIが8月12日、フラッグシップ「Grok 4.6」を公開。土台のパラメータ規模は前モデルGrok 4.5(1.5兆パラメータ)から据え置きつつ、指示追従・強化学習の改善でコーディングやエージェント作業のベンチマークを底上げした。価格は主要フロンティアモデルより大幅に安い。</p>
+    <div class="viz" role="img" aria-label="出力価格の比較棒グラフ。GPT-5.6 Solが100万トークンあたり30ドル、Claude Opus 4.8が25ドル、Grok 4.6が6ドル">
+      <svg viewBox="0 0 640 165">
+        <text x="8" y="20" font-size="14" font-weight="bold" fill="var(--text)">出力価格の比較(100万トークンあたり・標準ティア)</text>
+        <text x="8" y="52" font-size="13" fill="var(--sub)">GPT-5.6 Sol</text>
+        <rect x="160" y="38" width="430" height="18" rx="4" fill="var(--track)"/>
+        <rect x="160" y="38" width="430" height="18" rx="4" fill="var(--bar-old)"/>
+        <text x="580" y="52" font-size="12" text-anchor="end" fill="#fff" font-weight="bold">$30</text>
+        <text x="8" y="86" font-size="13" fill="var(--sub)">Claude Opus 4.8</text>
+        <rect x="160" y="72" width="430" height="18" rx="4" fill="var(--track)"/>
+        <rect x="160" y="72" width="358" height="18" rx="4" fill="var(--bar-old)"/>
+        <text x="508" y="86" font-size="12" text-anchor="end" fill="#fff" font-weight="bold">$25</text>
+        <text x="8" y="120" font-size="13" fill="var(--sub)">Grok 4.6</text>
+        <rect x="160" y="106" width="430" height="18" rx="4" fill="var(--track)"/>
+        <rect x="160" y="106" width="86" height="18" rx="4" fill="var(--bar-new)"/>
+        <text x="256" y="120" font-size="12" fill="var(--text)" font-weight="bold">$6</text>
+        <text x="8" y="150" font-size="11.5" fill="var(--sub)">※各社公式レート表より。20万トークン以下の標準ティアで比較。実際の総コストはトークン消費量で変動</text>
+      </svg>
+    </div>
+    <details><summary>詳細を見る</summary>
+      <ul>
+        <li><b>事実:</b> 500Kトークンのコンテキスト、テキスト・画像入力/テキスト出力。API価格は20万トークン以下で入力$2/キャッシュ入力$0.50/出力$6(100万トークンあたり)、それを超えると入力$4/キャッシュ$1/出力$12(x.ai公式ドキュメントで確認)。</li>
+        <li><b>事実:</b> xAI発表のGDPval-AA v2 Eloは1753、Artificial Analysis Intelligence Indexは61(前モデルGrok 4.5は56)。実運用テストでは単一プロンプトから約22分間自律的にタスクをこなす様子も報告されている。</li>
+        <li><b>注意:</b> ベンチマーク数値はxAI自身の発表・一部独立系サイトの追試に基づく。Grok 4.7(2.1兆パラメータ級)が数週間以内、Grok 5が年内という報道もあるが未確定の観測情報。</li>
+        <li><b>出典:</b> docs.x.ai(公式リリースノート)、Perplexity Agent API、BaseNor</li>
+      </ul>
+    </details>
+  </article>
+
+  <article class="card b">
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=microsoft.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Microsoft</div>
+    <h3>Microsoft、Copilotの個人向け/法人向けアプリを統合へ — Deep Research・Podcasts・グループチャット・Micoは8/18に終了</h3>
+    <div class="tags">
+      <span class="tag badge-b">B</span><span class="tag">8/13</span><span class="tag warn">⚠報道ベース</span><span class="tag">Copilot</span><span class="tag">8/18終了</span>
+    </div>
+    <div class="row">
+      <div class="row-main">
+        <p class="lead">Microsoftが個人向けCopilotアプリと法人向け「Microsoft 365 Copilot」の統合を開始。あわせてDeep Research・AI生成ポッドキャスト・グループチャット・アニメキャラクター「Mico」など、利用が伸び悩んだ機能群を8月18日で終了する。</p>
+      </div>
+      <img class="thumb" src="https://techcrunch.com/wp-content/uploads/2025/10/Mico-1.png?w=1024" alt="Copilotのキャラクター「Mico」" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+    </div>
+    <details><summary>詳細を見る</summary>
+      <ul>
+        <li><b>事実:</b> Deep Researchは8月18日から新規リクエストを受け付けなくなるが、既存レポートは閲覧・Word形式へのエクスポートが可能。Microsoft 365 Premium加入者は後継の「Researcher」機能で同種のリサーチが継続利用できる。</li>
+        <li><b>事実:</b> Copilot Labsの実験的機能や、音声モードのキャラクター「Mico」も同時に終了。Microsoft幹部は「アプリはその存在意義を証明しなければならない」とし、伸びなかった機能の整理と個人・法人アプリの統合を進めると説明。</li>
+        <li><b>注意:</b> Microsoft公式サポートページでのアナウンス本文は本日時点で直接確認できておらず、TechCrunch・Thurrottなど複数メディアの報道に基づく。日本語圏での案内時期は要確認。</li>
+        <li><b>出典:</b> TechCrunch(8/13)、Thurrott、Microsoft Support(Deep Research解説ページ)</li>
+      </ul>
+    </details>
+  </article>
+
+  <article class="card b">
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=openai.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">OpenAI</div>
+    <h3>ChatGPTがレストラン予約に対応 — OpenTable・Resy・Yelpと連携し、チャットのまま空席検索から予約まで</h3>
+    <div class="tags">
+      <span class="tag badge-b">B</span><span class="tag">8/10</span><span class="tag ok">✓公式確認済</span><span class="tag">ChatGPT</span><span class="tag">全プラン</span>
+    </div>
+    <div class="row">
+      <div class="row-main">
+        <p class="lead">ChatGPTに、OpenTable・Resy・Yelpと連携したレストラン予約機能が追加された。日時・人数・料理ジャンルなどをチャットで伝えると空き時間が回答内に表示され、そのまま予約や順番待ちリストへの登録まで完結する。</p>
+      </div>
+      <svg class="illust" viewBox="0 0 240 150" role="img" aria-label="チャットでレストラン予約するイラスト">
+        <rect x="20" y="30" width="120" height="90" rx="14" fill="var(--bar-old)"/>
+        <path d="M40 120 l0 20 l24 -20 z" fill="var(--bar-old)"/>
+        <rect x="38" y="48" width="84" height="10" rx="5" fill="var(--card)"/>
+        <rect x="38" y="66" width="60" height="10" rx="5" fill="var(--card)"/>
+        <rect x="38" y="84" width="72" height="10" rx="5" fill="var(--bar-new)"/>
+        <circle cx="185" cy="70" r="38" fill="var(--card)" stroke="var(--a)" stroke-width="4"/>
+        <path d="M170 55 v30 M178 55 v14 a6 6 0 0 1 -8 6 M200 55 q10 0 10 16 t-10 16" stroke="var(--a)" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <text x="185" y="128" text-anchor="middle" font-size="12" fill="var(--sub)">OpenTable / Resy / Yelp</text>
+      </svg>
+    </div>
+    <details><summary>詳細を見る</summary>
+      <ul>
+        <li><b>事実:</b> 対応エリアはOpenTableが世界各地、Resyは米国、Yelpは米国・カナダ。全プラン(Freeを含む)のモバイル・ウェブ・デスクトップで順次展開。ChatGPT Work(法人プラン)は対象外。</li>
+        <li><b>注意:</b> チャット内で完結するのは検索〜予約(または順番待ち登録)まで。予約の変更・キャンセルは各予約サービス側での操作が必要で、ChatGPT内では行えない。</li>
+        <li><b>出典:</b> OpenAI公式発表、Android Authority、ITechPost</li>
+      </ul>
+    </details>
+  </article>
+</section>
+
+<!-- ======================= C ======================= -->
+<section class="cat catC">
+  <h2>🔬 C. 技術・研究</h2>
+  <p class="count">2件</p>
+
+  <article class="card c">
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=alibabacloud.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Alibaba(Qwen)</div>
+    <h3>アリババが「Qwen3.8-Max」のオープンウェイトを公開 — 2.4兆パラメータ級、ただしライセンスは収益上限付きに変更</h3>
+    <div class="tags">
+      <span class="tag badge-c">C</span><span class="tag">8/12</span><span class="tag ok">✓公式確認済</span><span class="tag">オープンウェイト</span><span class="tag">ライセンス変更</span>
+    </div>
+    <div class="viz" role="img" aria-label="オープンウェイトモデルの総パラメータ数比較。Qwen3.8-Maxが2.4兆、Meta Muse Glimmerが300億">
+      <svg viewBox="0 0 640 130">
+        <text x="8" y="20" font-size="14" font-weight="bold" fill="var(--text)">直近公開のオープンウェイトモデル(総パラメータ数)</text>
+        <text x="8" y="52" font-size="13" fill="var(--sub)">Qwen3.8-Max</text>
+        <rect x="150" y="38" width="440" height="18" rx="4" fill="var(--track)"/>
+        <rect x="150" y="38" width="440" height="18" rx="4" fill="var(--bar-new)"/>
+        <text x="440" y="52" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold">2.4兆(うち推論時950億が活性化)</text>
+        <text x="8" y="94" font-size="13" fill="var(--sub)">Meta Muse Glimmer</text>
+        <rect x="150" y="80" width="440" height="18" rx="4" fill="var(--track)"/>
+        <rect x="150" y="80" width="6" height="18" rx="3" fill="var(--bar-old)"/>
+        <text x="164" y="94" font-size="12" fill="var(--text)">300億(端末で動作)</text>
+        <text x="8" y="120" font-size="11.5" fill="var(--sub)">※Qwen3.8-MaxはMoE構成で1トークンごとに全体の一部だけ使う設計。単純な性能比ではない</text>
+      </svg>
+    </div>
+    <p class="lead">アリババが8月12日、旗艦モデル「Qwen3.8-Max」の重みを公開。MoE構成で総パラメータ2.4兆・推論時活性化は約950億、92層512エキスパートという大規模構成。一方でライセンスは従来のApache 2.0から、競合するMaaS・コーディング支援事業に年間5000万ドルの収益上限を課す独自ライセンスに変更された。</p>
+    <details><summary>詳細を見る</summary>
+      <ul>
+        <li><b>事実:</b> 公開されたのはテキスト専用のチェックポイントで、視覚(マルチモーダル)機能と100万トークンの長文脈機能は今回のオープンウェイト版には含まれない。</li>
+        <li><b>事実:</b> 新ライセンスは商用ファインチューニング・再配布・大規模推論展開の前に利用者自身がライセンス条文を確認することを推奨する内容で、一定の売上高を超える競合事業者には別途契約が必要になる設計。</li>
+        <li><b>注意:</b> 一部メディアは「公開直後、Hugging Face上のモデルページが空だった」と報じており、実際のダウンロード可否は時点により変動した可能性がある。中国系メガモデルの相次ぐオープン化競争の一環という位置づけ。</li>
+        <li><b>出典:</b> TechRepublic、Forkast、MarkTechPost、BigGo Finance</li>
+      </ul>
+    </details>
+  </article>
+
+  <article class="card c">
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=meta.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Meta AI</div>
+    <h3>Metaが端末動作の軽量オープンモデル「Muse Glimmer」を公開 — ノートPC1台のGPUでエージェント作業</h3>
+    <div class="tags">
+      <span class="tag badge-c">C</span><span class="tag">8/10</span><span class="tag ok">✓公式確認済</span><span class="tag">オープンウェイト</span><span class="tag">Apache 2.0</span>
+    </div>
+    <div class="row">
+      <div class="row-main">
+        <p class="lead">Metaが300億パラメータの新モデル「Muse Glimmer」をApache 2.0ライセンスで公開。上位モデル「Muse Spark 1.2」から推論能力を蒸留し、量子化で容量を約17GBまで圧縮。24〜32GBクラスの民生用GPU1枚で、スケジュール管理・ファイル整理・簡単なコーディングなどのエージェント作業をクラウド接続なしで動かせる。</p>
+      </div>
+      <img class="thumb" src="https://www.engadget.com/img/gallery/metas-open-source-muse-glimmer-model-can-run-on-a-single-computer/intro-1786364909.jpg" alt="Meta Muse Glimmerのイメージ画像" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+    </div>
+    <details><summary>詳細を見る</summary>
+      <ul>
+        <li><b>事実:</b> フル精度なら55GB超になるモデルを量子化で約17GBに圧縮。テキスト生成を高速化する軽量な補助モデルも同梱。Hugging Faceで無料ダウンロード可能。</li>
+        <li><b>事実:</b> llama.cpp・MLX・ExecuTorchとの連携、Ollama・LM Studio・Together AI・Fireworks AI経由での提供も順次対応予定。</li>
+        <li><b>注意:</b> 性能はトップ級の大型モデルには及ばないとMeta自身が位置づけており、狙いは「クラウドにデータを送りたくない」用途でのプライバシー重視の選択肢。</li>
+        <li><b>出典:</b> Meta AI Research公式ブログ、VentureBeat、Engadget、CNBC</li>
+      </ul>
+    </details>
+  </article>
+</section>
+
+<!-- ======================= A ======================= -->
+<section class="cat catA">
+  <h2>🏢 A. モデル・製品・業界</h2>
+  <p class="count">2件</p>
+
+  <article class="card a">
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=blog.google&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Google</div>
+    <h3>Googleの「Gemini」アプリ、月間アクティブ利用者10億人を突破 — 自社史上最速ペースでの到達</h3>
+    <div class="tags">
+      <span class="tag badge-a">A</span><span class="tag">8/11</span><span class="tag ok">✓公式確認済</span><span class="tag">利用者数</span><span class="tag">マイルストーン</span>
+    </div>
+    <img class="hero" src="https://techcrunch.com/wp-content/uploads/2026/06/gemini-app-GettyImages-2276204472-1.jpg?w=1024" alt="Geminiアプリのアイコン" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+    <p class="lead">Google CEOのサンダー・ピチャイ氏が8月11日、Geminiアプリの月間アクティブ利用者数(MAU)が10億人を突破したと発表。検索・Gmail・Android・YouTubeに続く、同社14番目の「10億人サービス」となった。</p>
+    <details><summary>詳細を見る</summary>
+      <ul>
+        <li><b>事実:</b> 2025年5月のGoogle I/Oで4億人、10月に6.5億人、2026年2月に7.5億人、5月のI/O 2026で9億人、7月22日の決算発表で9.5億人と報告されており、そこから約3週間で10億人に到達。</li>
+        <li><b>注意:</b> 「ChatGPTとほぼ並ぶ規模」という比較はGoogle側の説明で、集計方法(何をもって「利用」とするか)は各社で異なる可能性があり単純比較には注意が必要。有料サブスクリプション者数など収益に直結する指標は今回の発表には含まれていない。</li>
+        <li><b>出典:</b> Sundar Pichai氏の投稿、TechCrunch、9to5Google、MLQ News</li>
+      </ul>
+    </details>
+  </article>
+
+  <article class="card a">
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=manus.im&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Manus</div>
+    <h3>AIエージェント「Manus」、Metaとの資本提携解消で独立企業に復帰へ — 中国当局の命令が背景</h3>
+    <div class="tags">
+      <span class="tag badge-a">A</span><span class="tag">8/11</span><span class="tag ok">✓公式確認済</span><span class="tag">M&A解消</span><span class="tag">エージェント</span>
+    </div>
+    <svg class="illust" viewBox="0 0 240 150" role="img" aria-label="2社が分かれるイラスト">
+      <circle cx="80" cy="75" r="42" fill="var(--bar-old)"/>
+      <text x="80" y="82" text-anchor="middle" font-size="16" fill="var(--card)" font-weight="bold">Meta</text>
+      <circle cx="170" cy="75" r="34" fill="var(--a)"/>
+      <text x="170" y="81" text-anchor="middle" font-size="14" fill="var(--card)" font-weight="bold">Manus</text>
+      <path d="M118 60 l16 -14 M118 90 l16 14" stroke="var(--c)" stroke-width="6" stroke-linecap="round"/>
+      <text x="120" y="135" text-anchor="middle" font-size="12" fill="var(--sub)">2026年12月に29億ドルの買収を解消</text>
+    </svg>
+    <details><summary>詳細を見る</summary>
+      <ul>
+        <li><b>事実:</b> Metaは2025年12月29日にManusの買収を完了していたが、中国の国家発展改革委員会(NDRC)が技術輸出・対外投資に関する規制違反を理由に2026年4月、買収の巻き戻しを命令。Manusは8月11日、独立企業として活動を再開すると発表した。</li>
+        <li><b>事実:</b> 分離に伴い、2025年12月29日以降に一部ユーザーが生成したデータは日本時間8月23日午前7時59分までにバックアップが必要で、8月23〜24日にデータ削除、25日から復元開始という日程が案内されている。</li>
+        <li><b>注意:</b> Manusはもともと中国発だがシンガポールへ拠点を移した経緯があり、今後は中国のテンセントが筆頭株主になる可能性が報じられている。データ移行対象者は公式アナウンスを個別に確認する必要がある。</li>
+        <li><b>出典:</b> Bloomberg、CNBC、Yahoo Finance、Manus公式ユーザー通知</li>
+      </ul>
+    </details>
+  </article>
+</section>
+
+<!-- ======================= D ======================= -->
+<section class="cat catD">
+  <h2>🗾 D. 日本国内</h2>
+  <p class="count">2件</p>
+
+  <article class="card d">
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=asteria.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">アステリア</div>
+    <h3>アステリアが人型ロボットのFigure AIへ出資 — 国内企業によるロボティクスAI領域への布石</h3>
+    <div class="tags">
+      <span class="tag badge-d">D</span><span class="tag">8/13</span><span class="tag ok">✓公式確認済</span><span class="tag">出資</span><span class="tag">ロボティクス</span>
+    </div>
+    <p class="lead">東証プライム上場のアステリア(3853)が8月13日、米国の人型ロボット先端企業Figure AIへの出資を適時開示で発表した。フィジカルAI・ロボティクス分野への国内企業の関心の高まりを示す動きの一つ。</p>
+    <details><summary>詳細を見る</summary>
+      <ul>
+        <li><b>事実:</b> 開示は2026年8月13日13:00付。出資額や具体的な事業連携内容は、日本経済新聞の該当ページが有料会員限定のため本稿執筆時点では確認できていない。</li>
+        <li><b>注意:</b> 詳細な出資条件・提携内容は続報および同社の適時開示資料で確認が必要。</li>
+        <li><b>出典:</b> 日本経済新聞(適時開示)</li>
+      </ul>
+    </details>
+  </article>
+
+  <article class="card d">
+    <div class="src"><img src="https://www.google.com/s2/favicons?domain=jiji.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">時事通信 / 読売新聞</div>
+    <h3>自衛隊の指揮統制システムに国産AI導入検討 — 「サカナフグ」が有力候補、中国製モデルは排除の方針</h3>
+    <div class="tags">
+      <span class="tag badge-d">D</span><span class="tag">続報</span><span class="tag warn">⚠報道ベース</span><span class="tag">安全保障</span>
+    </div>
+    <p class="lead">政府が自衛隊の部隊運用を担う指揮統制システムへのAI活用を検討していることが報じられている。情報収集・分析を担わせ意思決定を迅速化する狙いで、国産AIの有力候補としてSakana AIの「Sakana Fugu」の名が挙がっている。防衛用途では中国製AIモデルを排除する方針という。</p>
+    <details><summary>詳細を見る</summary>
+      <ul>
+        <li><b>事実(報道):</b> 自衛隊の指揮統制へのAI導入はこれが初めてとなる見込み。国産AIを中枢に据えつつ、米国製の最先端AIとも連携させる案が検討されている。Sakana AIは2026年3月、防衛装備庁 防衛イノベーション科学技術研究所との委託研究契約を締結済み。</li>
+        <li><b>事実(報道):</b> Sakana Fuguは開発過程で中国製AIモデルを利用してきた経緯があるが、防衛分野への提供にあたっては中国製モデルを排除し、開発チームも日本国籍者に限定する方向という。</li>
+        <li><b>注意:</b> 防衛省・自衛隊からの公式発表は本日時点で確認できておらず、日本経済新聞・読売新聞・時事通信など複数メディアの報道に基づく。導入の可否・時期は未確定。</li>
+        <li><b>出典:</b> 日本経済新聞、読売新聞(Yahoo!ニュース経由)、時事通信</li>
+      </ul>
+    </details>
+  </article>
+</section>
+
+<section class="srcs">
+  <details>
+    <summary>📎 Sources(出典URL一覧)</summary>
+    <ul>
+      <li><a href="https://claude.com/blog/auto-mode-default-in-claude-code">Claude公式ブログ: Auto mode is now the default in Claude Code</a></li>
+      <li><a href="https://www.infoworld.com/article/4207959/anthropic-makes-claude-codes-auto-mode-default-for-paid-users.html">InfoWorld: Anthropic makes Claude Code's auto mode default</a></li>
+      <li><a href="https://www.theregister.com/ai-and-ml/2026/08/10/claude-code-puts-auto-mode-in-the-drivers-seat/5285326">The Register: Claude Code puts auto mode in the driver's seat</a></li>
+      <li><a href="https://docs.x.ai/developers/release-notes">xAI公式: Developer release notes(Grok 4.6)</a></li>
+      <li><a href="https://www.basenor.com/blogs/news/xai-launches-grok-4-6-1753-elo-half-the-price-of-rival-frontier-models">BaseNor: xAI Launches Grok 4.6</a></li>
+      <li><a href="https://techcrunch.com/2026/08/13/microsoft-kills-off-unsuccessful-ai-features-while-merging-its-separate-copilot-apps/">TechCrunch: Microsoft kills off unsuccessful AI features</a></li>
+      <li><a href="https://www.thurrott.com/a-i/microsoft-copilot-a-i/339475/microsoft-is-retiring-copilot-deep-research-and-podcasts">Thurrott: Microsoft is Retiring Copilot Deep Research and Podcasts</a></li>
+      <li><a href="https://support.microsoft.com/en-us/microsoft-copilot/deep-research-in-microsoft-copilot">Microsoft Support: Deep Research in Microsoft Copilot</a></li>
+      <li><a href="https://www.androidauthority.com/chatgpt-restaurant-reservations-and-waitlists-3696712/">Android Authority: ChatGPT can now help secure your spot at a restaurant</a></li>
+      <li><a href="https://www.itechpost.com/articles/237000/20260810/chatgpt-partners-yelp-book-tables-reservations-directly-ai-chat.htm">iTech Post: ChatGPT Partners With Yelp</a></li>
+      <li><a href="https://www.techrepublic.com/article/news-alibaba-qwen3-8-max-pricing-open-weights/">TechRepublic: Alibaba's Qwen3.8-Max Promises Open Weights</a></li>
+      <li><a href="https://forkast.news/open-weights-closed-revenue-ceiling-alibabas-qwen-3-8-license-is-a-platform-play-not-a-gift/">Forkast: Qwen 3.8 License Is a Platform Play, Not a Gift</a></li>
+      <li><a href="https://research.meta.ai/blog/introducing-muse-glimmer-open-agentic-model">Meta AI Research公式: Introducing Muse Glimmer</a></li>
+      <li><a href="https://www.engadget.com/2233312/metas-open-source-muse-glimmer-model-can-run-on-a-single-computer/">Engadget: Meta's open source Muse Glimmer model</a></li>
+      <li><a href="https://techcrunch.com/2026/08/11/googles-gemini-app-surges-to-one-billion-users/">TechCrunch: Google's Gemini app surges to one billion users</a></li>
+      <li><a href="https://mlq.ai/news/google-says-gemini-reached-1-billion-monthly-users-on-aug-11/">MLQ News: Google says Gemini reached 1 billion monthly users</a></li>
+      <li><a href="https://www.cnbc.com/2026/08/11/manus-china-meta-acquisition.html">CNBC: Manus to return as independent company</a></li>
+      <li><a href="https://www.compsmag.com/news/manus-to-resume-independent-operations-as-meta-unwinds-2-billion-acquisition/">Compsmag: Manus to Resume Independent Operations</a></li>
+      <li><a href="https://www.nikkei.com/markets/company/sys/redirect_dis.aspr?ano=g2rvx9">日本経済新聞: アステリア Figure AIへ出資(適時開示)</a></li>
+      <li><a href="https://www.nikkei.com/article/DGXZQOUA23B870T20C26A7000000/">日本経済新聞: 自衛隊指揮に米国AI複数導入、中枢は日系サカナAI案</a></li>
+      <li><a href="https://news.yahoo.co.jp/articles/273b37fa434683828fb16329a96200d25719aaa9">読売新聞(Yahoo!ニュース): 自衛隊指揮に国産AI、「サカナAI」有力・中国製排除</a></li>
+      <li><a href="https://www.jiji.com/jc/article?k=2026081000706&g=pol">時事通信: 自衛隊指揮に国産人工知能</a></li>
+    </ul>
+  </details>
+</section>
+
+<footer class="end">
+  <div>号外の対象期間: 8月11日〜8月14日18:00 JST(当日朝号の続報) ｜ 生成: 2026年8月14日 JST</div>
+  <div><a href="../../">← ホームに戻る</a></div>
+</footer>
+
+</div>
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js" defer></script>
+</body>
+</html>
