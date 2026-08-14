@@ -64,6 +64,7 @@
       <li><a href="#s4">4. 回す(やっとループ)</a></li>
       <li><a href="#trap">私が事故った話</a></li>
       <li><a href="#next">今日やることリスト</a></li>
+      <li><a href="#refs">参考文献</a></li>
     </ol>
   </nav>
 
@@ -455,6 +456,39 @@ $ echo $?
       <div class="t">プロンプトを書く時代から、ループとグラフを設計する時代へ</div>
       <div class="d">4段目の先の話。ループが破綻し始めたら、作業をノードとエッジに分ける「グラフエンジニアリング」へ。</div>
     </a>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Skills」<i>Claude Code Documentation</i>.
+          <span class="note">参照箇所: スキルの置き場所と呼び出し方。</span>
+          <a href="https://code.claude.com/docs/en/skills">https://code.claude.com/docs/en/skills</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Hooks」<i>Claude Code Documentation</i>.
+          <span class="note">参照箇所: <code>PostToolUse</code> の設定書式と matcher の指定方法。</span>
+          <a href="https://code.claude.com/docs/en/hooks">https://code.claude.com/docs/en/hooks</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Settings」<i>Claude Code Documentation</i>.
+          <span class="note">参照箇所: <code>settings.json</code> の配置場所と権限の書き方。</span>
+          <a href="https://code.claude.com/docs/en/settings">https://code.claude.com/docs/en/settings</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          記事内のコードと実行ログ。Python 3.11.15 / pytest 9.1.1 / bash、2026年8月14日実施。
+          <span class="note">失敗ログ・成功ログとも、実際に出た出力をそのまま貼っています。「パイプの罠」も執筆中に実際に踏んだものです。</span>
+        </li>
+      </ol>
+    </article>
   </section>
 
   <footer class="article-foot">
