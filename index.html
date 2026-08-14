@@ -59,7 +59,7 @@
   <section class="posts">
     <div class="posts-head">
       <h2>記事一覧</h2>
-      <span class="posts-count"><b id="hitCount">8</b>件</span>
+      <span class="posts-count"><b id="hitCount">9</b>件</span>
     </div>
 
     <div class="finder">
@@ -82,6 +82,7 @@
       <button class="tag-chip" type="button" data-tag="DeepSeek">#DeepSeek<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="GitHub Pages">#GitHub Pages<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="Unity Web">#Unity Web<i>1</i></button>
+      <button class="tag-chip" type="button" data-tag="VRChat">#VRChat<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="WebAssembly">#WebAssembly<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="WebView">#WebView<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="iOS">#iOS<i>1</i></button>
@@ -99,6 +100,8 @@
       <button class="tag-chip" type="button" data-tag="プロジェクト管理">#プロジェクト管理<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="リード">#リード<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="ループエンジニアリング">#ループエンジニアリング<i>1</i></button>
+      <button class="tag-chip" type="button" data-tag="ワールド制作">#ワールド制作<i>1</i></button>
+      <button class="tag-chip" type="button" data-tag="公式ドキュメント">#公式ドキュメント<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="料金改定">#料金改定<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="見積もり">#見積もり<i>1</i></button>
       </div>
@@ -114,6 +117,18 @@
           <h3 class="post-title">WebViewだけ動かない。犯人は Origin: null</h3>
           <p class="post-summary">ブラウザでは動くのに、アプリのWebViewに載せた瞬間APIだけが落ちる。原因のOrigin: nullを実測で確認し、CORSの返し方4通りを全部叩いて結果を表にしました。検索でよく出てくる回避策がCookieごと穴を開ける理由と、AndroidとiOSでの正しい直し方まで。</p>
           <div class="post-tags"><span class="post-tag">#WebView</span><span class="post-tag">#CORS</span><span class="post-tag">#Android</span><span class="post-tag">#iOS</span></div>
+          <span class="post-more">続きを読む →</span>
+        </div>
+      </a>
+      <a class="post-card" href="contents/2026-08-14_vrchat-discovery/"
+         data-tags="VRChat|ワールド制作|公式ドキュメント" data-category="クライアント技術"
+         data-date="2026-08-14" data-search="vrchatのワールドが誰にも見つからない、公式に決まっている理由 アップロードしたワールドは初期状態がprivateで、community labsに出してもworldsページには載りません。しかも新規公開は週1本まで。さらにlabsの行はプレイヤーが設定をオンにしないと表示されません。公式ドキュメントで確認できた数字と仕様だけをまとめました。 クライアント技術 vrchat ワールド制作 公式ドキュメント vrchatのワールドが誰にも見つからない、公式に決まっている理由 aiニュース デイリーダイジェスト クライアント技術 ｜ 2026年8月14日(金) vrchatのワールドが誰にも見つからない、公式に決まっている理由 出来はいいのに人が来ない。原因の多くは作りではなく、公開の仕組み側にあります。 ⏱ 約5分 公式ドキュメント準拠 数字は全部出典つき ⭐ 3行で言うと アップロードしただけのワールドは private。リンクを知る人しか入れません 「公開したつもり」で誰も来ないパターンの大半がこれです。 community labs に出しても、worlds ページにはまだ載りません しかも 新規ワールドの公開は週1本まで 。ここを知らずに何本も抱えると詰まります。 labs の行は、プレイヤーが設定でオンにしないと画面に出てきません 初期状態の人には、あなたのワールドは存在していないのと同じです。 目次 公開までの3段階 週1本の制限が効く場所 labs は見えない人には見えない プレイヤー設定で見え方が変わる 確認リスト 参考文献 1 公開までの3段階 アップロード ≠ 公開。段階が3つあります vrchatのワールドは 初期状態が private です。公式ドキュメントの表現では「自分自身と、ワールドへのリンクを持つユーザーだけがアクセスできる」状態です。 2段目までは自分で進める。3段目は自分では進められない private → community labs は自分で押します。 sdkの「online publishing」に出る「world visibility」か、vrchatのサイトの「my worlds」から「publish to community labs」を押します。 community labs → public は自動です。 公式は「この処理は完全に自動」とし、判断材料を「ユーザーがそのワールドをどれだけ楽しんでいるように見えるか」と説明しています。 期間の定めはありません。 「決まった時間はない」と明記されています。注目されなければ「かなり長い間 labs に留まる可能性がある」とも書かれています。 q. ワールドをアップロードした。フレンド以外にも来てほしい。次にやることは? snsでワールドidを配る community labs に公開する public になるまで待つ 正解。labs に出さない限り private のままで、待っていても永久に public にはなりません。id配布も有効ですが、それは private のまま個別に招いているだけで、vrchat内の導線には一切乗りません。 2 週1本の制限が効く場所 「週1本」は新規公開だけ。更新は何回でもできます 公式の記述はこうです。 「labsへ公開できるのは週に1ワールドまで」 。ただし対象は限定されています。 vrchat公式ドキュメント — 原文 you are permitted to publish one world to the labs per week, and you must have a trust rank of at least &quot;user&quot; to submit a world to labs. you can update your world whenever you like, even more than once, regardless of whether it's private, in community labs, or public. やりたいこと 制限 新しいワールドを labs に出す 週1本まで 。trust rank「user」以上が必要 すでにあるワールドを更新する 制限なし 。private / labs / public のどの状態でも、何度でも可 公式faqでも念を押されています。 「この制限は 新しいワールドを公開するときだけ に適用される。既存ワールドの更新はいつでもよく、状態も変わらない」と書かれています。 だから「小出しに何本も出す」戦略は詰まります。 4本作ったら公開に1か月かかります。1本を磨いて更新し続けるほうが、制限に当たりません。 trust rank が足りないと、そもそも出せません。 作る前にアカウント側の条件を満たしているか確認してください。 3 labs は見えない人には見えない 初期設定のプレイヤーには、labs の行が表示されていません ここが一番効きます。公式ドキュメントには、labs の行を見るための 前提条件 がはっきり書かれています。 vrchat公式ドキュメント — 原文 you can find community labs in your worlds tab. there's a row dedicated to community labs. (&quot;show community labs&quot; must first be enabled in the &quot;comfort and safety&quot; settings in order to see this tab.) 「comfort and safety」設定の &quot;show community labs&quot; をオンにした人にしか、行が出ません。 つまり labs に出した直後の見込み客は、 設定を触ったことがある人だけ です。 入る前に警告が出ます。 labs のワールドへのポータルには専用アイコンとリングが付き、読み込み中に「このワールドは labs にあり、審査されていない」旨の警告が表示されます。承諾すると読み込みが続きます。 だから初速は自分で作るしかありません。 labs の導線は細いので、最初の来訪者はフレンドやsnsから連れてくることになります。そこで「楽しまれている」信号が立てば、自動でpublicへ上がります。 通報とレビュー爆撃について 通報の扱い 正当な理由で通報されたワールドは labs から削除され、悪質な場合は作者に対してモデレーションが行われる、と明記されています。quick menu に「report this world」の導線があります。 組織的な低評価への対策 公式は「現行の通報システムと同様、&quot;review bombing&quot; を防ぐための安全策を用意している」と述べています。少数の悪意で沈む設計にはなっていない、という説明です。 4 プレイヤー設定で見え方が変わる あなたのワールドは、作ったとおりには見られていません 来場者は自分の端末の設定で、 アバターを勝手に隠したり、簡易表示に落としたり しています。公式に数値が決まっているものだけ挙げます。 プレイヤー側の設定 公式に書かれている値 maximum avatar download size これを超えるアバターは自動で読まない 初期値 200mb 。左右の矢印で5mb刻み。5mb未満に設定すると「no limit」になる maximum uncompressed size 展開後のサイズ上限 推奨値 300mb hide avatars beyond 距離でアバターを隠す 指定距離より遠いアバターを非表示にし、 「ghost diamond」の記号 に置き換える block poorly optimized avatars 性能ランクで足切り 表示を許す最低ランクを選ぶ。「don't block」で全表示 上限を超えたアバターは消えるのではなく、代替表示になります。 fallback か impostor があればそれが出ます。 ワールド内の見た目が想定と変わる ということです。 距離で隠れても、動きは止まりません。 公式は「レンダラーは全部オフになるが、整合性の問題を避けるため一部のコンポーネント（アニメーター）は動き続ける」としています。演出をアバターの動きに依存させると、見えない場所で走り続けます。 dynamic bones は将来のリリースで削除予定です。 公式が明記しており、physbones の使用を推奨しています。quest とモバイルではそもそも dynamic bones は使えません。 q. 遠くのアバターが非表示になっている。そのアバターのアニメーションは? 完全に停止する 動き続けている（表示だけ切られている） 距離に応じて間引かれる 正解。公式は「整合性の問題を避けるため、一部のコンポーネント（アニメーター）は動き続ける」と説明しています。見えなくなった＝負荷が消えた、ではありません。重い演出をアバター任せにすると、見えない場所でも走り続けます。 5 確認リスト 作り込む前に、公開側の条件を先に潰しておく 実装より先にここを確認しておくと、完成後に詰まりません。 0 / 5 自分のアカウントの trust rank が「user」以上か確認した ワールドが private のままになっていないか確認した 新規公開は週1本だと理解した上で、出す順番を決めた labs の導線が細いことを踏まえ、最初の来訪者を連れてくる手段を用意した アバターが隠れる・簡易表示になる前提で、ワールドの見え方を確認した 🎉 公開側の落とし穴はこれで回避できます next → unity webが本番だけ動かない。原因はビルドではなくサーバー 同じunity系で、置き場所によって挙動が変わる話。こちらは実測つきです。 参考文献 この記事に書いた数字と仕様は、すべて公式ドキュメントの記述です。 推測で補った箇">
+        <img class="post-thumb" src="contents/2026-08-14_vrchat-discovery/images/thumb.png" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;post-thumb-ph&quot;>📰</div>'">
+        <div class="post-body">
+          <div class="post-date"><span class="post-cat">クライアント技術</span>2026年8月14日(金)</div>
+          <h3 class="post-title">VRChatのワールドが誰にも見つからない、公式に決まっている理由</h3>
+          <p class="post-summary">アップロードしたワールドは初期状態がPrivateで、Community Labsに出してもWorldsページには載りません。しかも新規公開は週1本まで。さらにLabsの行はプレイヤーが設定をオンにしないと表示されません。公式ドキュメントで確認できた数字と仕様だけをまとめました。</p>
+          <div class="post-tags"><span class="post-tag">#VRChat</span><span class="post-tag">#ワールド制作</span><span class="post-tag">#公式ドキュメント</span></div>
           <span class="post-more">続きを読む →</span>
         </div>
       </a>

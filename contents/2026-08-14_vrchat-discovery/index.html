@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VRChatのワールドが誰にも見つからない、公式に決まっている理由</title>
+<meta name="description" content="アップロードしたVRChatワールドが誰にも来てもらえない。公開の仕組みには週1本の制限と、プレイヤー側が設定をオンにしないと見えない行がありました。公式ドキュメントで確認した数字だけをまとめます。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="VRChatのワールドが誰にも見つからない、公式に決まっている理由">
+<meta property="og:description" content="公開の仕組みと、プレイヤー側の設定。公式ドキュメントで確認した事実だけ。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_vrchat-discovery/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=19bddda4">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">クライアント技術 ｜ 2026年8月14日(金)</div>
+    <h1>VRChatのワールドが誰にも見つからない、公式に決まっている理由</h1>
+    <div class="range">出来はいいのに人が来ない。原因の多くは作りではなく、公開の仕組み側にあります。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約5分</span>
+      <span class="tag">公式ドキュメント準拠</span>
+      <span class="tag">数字は全部出典つき</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li>
+        <b>アップロードしただけのワールドは Private。リンクを知る人しか入れません</b>
+        <span>「公開したつもり」で誰も来ないパターンの大半がこれです。</span>
+      </li>
+      <li>
+        <b>Community Labs に出しても、Worlds ページにはまだ載りません</b>
+        <span>しかも<b>新規ワールドの公開は週1本まで</b>。ここを知らずに何本も抱えると詰まります。</span>
+      </li>
+      <li>
+        <b>Labs の行は、プレイヤーが設定でオンにしないと画面に出てきません</b>
+        <span>初期状態の人には、あなたのワールドは存在していないのと同じです。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">公開までの3段階</a></li>
+      <li><a href="#s2">週1本の制限が効く場所</a></li>
+      <li><a href="#s3">Labs は見えない人には見えない</a></li>
+      <li><a href="#s4">プレイヤー設定で見え方が変わる</a></li>
+      <li><a href="#s5">確認リスト</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>公開までの3段階</h2>
+
+    <article class="item">
+      <h3>アップロード ≠ 公開。段階が3つあります</h3>
+      <p class="lead">VRChatのワールドは<mark>初期状態が Private</mark>です。公式ドキュメントの表現では「自分自身と、ワールドへのリンクを持つユーザーだけがアクセスできる」状態です。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/pipeline-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/pipeline.png" alt="PrivateからCommunity Labsへは自分で公開ボタンを押し、PublicへはVRChat側が自動で上げる、という3段階を示した図" loading="lazy">
+        </picture>
+        <figcaption>2段目までは自分で進める。3段目は自分では進められない</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>Private → Community Labs は自分で押します。</b>SDKの「Online Publishing」に出る「World Visibility」か、VRChatのサイトの「My Worlds」から「Publish to Community Labs」を押します。</li>
+        <li><b>Community Labs → Public は自動です。</b>公式は「この処理は完全に自動」とし、判断材料を「ユーザーがそのワールドをどれだけ楽しんでいるように見えるか」と説明しています。</li>
+        <li><b>期間の定めはありません。</b>「決まった時間はない」と明記されています。注目されなければ「かなり長い間 Labs に留まる可能性がある」とも書かれています。</li>
+      </ul>
+
+      <div class="quiz">
+        <p class="q">Q. ワールドをアップロードした。フレンド以外にも来てほしい。次にやることは?</p>
+        <button class="opt" type="button" data-correct="false">SNSでワールドIDを配る</button>
+        <button class="opt" type="button" data-correct="true">Community Labs に公開する</button>
+        <button class="opt" type="button" data-correct="false">Public になるまで待つ</button>
+        <p class="ans" hidden>正解。Labs に出さない限り Private のままで、待っていても永久に Public にはなりません。ID配布も有効ですが、それは Private のまま個別に招いているだけで、VRChat内の導線には一切乗りません。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>週1本の制限が効く場所</h2>
+
+    <article class="item">
+      <h3>「週1本」は新規公開だけ。更新は何回でもできます</h3>
+      <p class="lead">公式の記述はこうです。<mark>「Labsへ公開できるのは週に1ワールドまで」</mark>。ただし対象は限定されています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">VRChat公式ドキュメント — 原文</div>
+        <pre>You are permitted to publish one world to the Labs per week, and
+you must have a Trust Rank of at least "User" to submit a world
+to Labs. You can update your world whenever you like, even more
+than once, regardless of whether it's private, in Community Labs,
+or Public.</pre>
+      </div>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>やりたいこと</th><th>制限</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>新しいワールドを Labs に出す</b></td>
+              <td data-label="制限"><span class="n">週1本まで</span>。Trust Rank「User」以上が必要</td>
+            </tr>
+            <tr>
+              <td><b>すでにあるワールドを更新する</b></td>
+              <td data-label="制限"><span class="y">制限なし</span>。Private / Labs / Public のどの状態でも、何度でも可</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="points">
+        <li><b>公式FAQでも念を押されています。</b>「この制限は<b>新しいワールドを公開するときだけ</b>に適用される。既存ワールドの更新はいつでもよく、状態も変わらない」と書かれています。</li>
+        <li><b>だから「小出しに何本も出す」戦略は詰まります。</b>4本作ったら公開に1か月かかります。1本を磨いて更新し続けるほうが、制限に当たりません。</li>
+        <li><b>Trust Rank が足りないと、そもそも出せません。</b>作る前にアカウント側の条件を満たしているか確認してください。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="section section-a" id="s3">
+    <h2><span class="step">3</span>Labs は見えない人には見えない</h2>
+
+    <article class="item">
+      <h3>初期設定のプレイヤーには、Labs の行が表示されていません</h3>
+      <p class="lead">ここが一番効きます。公式ドキュメントには、Labs の行を見るための<mark>前提条件</mark>がはっきり書かれています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">VRChat公式ドキュメント — 原文</div>
+        <pre>You can find Community Labs in your Worlds tab. There's a row
+dedicated to Community Labs. ("Show Community Labs" must first be
+enabled in the "Comfort and Safety" settings in order to see this
+tab.)</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>「Comfort and Safety」設定の "Show Community Labs" をオンにした人にしか、行が出ません。</b>つまり Labs に出した直後の見込み客は、<b>設定を触ったことがある人だけ</b>です。</li>
+        <li><b>入る前に警告が出ます。</b>Labs のワールドへのポータルには専用アイコンとリングが付き、読み込み中に「このワールドは Labs にあり、審査されていない」旨の警告が表示されます。承諾すると読み込みが続きます。</li>
+        <li><b>だから初速は自分で作るしかありません。</b>Labs の導線は細いので、最初の来訪者はフレンドやSNSから連れてくることになります。そこで「楽しまれている」信号が立てば、自動でPublicへ上がります。</li>
+      </ul>
+
+      <details>
+        <summary>通報とレビュー爆撃について</summary>
+        <div class="body">
+          <dl>
+            <dt>通報の扱い</dt>
+            <dd>正当な理由で通報されたワールドは Labs から削除され、悪質な場合は作者に対してモデレーションが行われる、と明記されています。Quick Menu に「Report this world」の導線があります。</dd>
+            <dt>組織的な低評価への対策</dt>
+            <dd>公式は「現行の通報システムと同様、"review bombing" を防ぐための安全策を用意している」と述べています。少数の悪意で沈む設計にはなっていない、という説明です。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="section section-c" id="s4">
+    <h2><span class="step">4</span>プレイヤー設定で見え方が変わる</h2>
+
+    <article class="item">
+      <h3>あなたのワールドは、作ったとおりには見られていません</h3>
+      <p class="lead">来場者は自分の端末の設定で、<mark>アバターを勝手に隠したり、簡易表示に落としたり</mark>しています。公式に数値が決まっているものだけ挙げます。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>プレイヤー側の設定</th><th>公式に書かれている値</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Maximum Avatar Download Size</b><br><span class="cap">これを超えるアバターは自動で読まない</span></td>
+              <td data-label="公式に書かれている値">初期値 <b>200MB</b>。左右の矢印で5MB刻み。5MB未満に設定すると「No Limit」になる</td>
+            </tr>
+            <tr>
+              <td><b>Maximum Uncompressed Size</b><br><span class="cap">展開後のサイズ上限</span></td>
+              <td data-label="公式に書かれている値">推奨値 <b>300MB</b></td>
+            </tr>
+            <tr>
+              <td><b>Hide Avatars Beyond</b><br><span class="cap">距離でアバターを隠す</span></td>
+              <td data-label="公式に書かれている値">指定距離より遠いアバターを非表示にし、<b>「ghost diamond」の記号</b>に置き換える</td>
+            </tr>
+            <tr>
+              <td><b>Block Poorly Optimized Avatars</b><br><span class="cap">性能ランクで足切り</span></td>
+              <td data-label="公式に書かれている値">表示を許す最低ランクを選ぶ。「Don't Block」で全表示</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="points">
+        <li><b>上限を超えたアバターは消えるのではなく、代替表示になります。</b>Fallback か Impostor があればそれが出ます。<b>ワールド内の見た目が想定と変わる</b>ということです。</li>
+        <li><b>距離で隠れても、動きは止まりません。</b>公式は「レンダラーは全部オフになるが、整合性の問題を避けるため一部のコンポーネント（アニメーター）は動き続ける」としています。演出をアバターの動きに依存させると、見えない場所で走り続けます。</li>
+        <li><b>Dynamic Bones は将来のリリースで削除予定です。</b>公式が明記しており、PhysBones の使用を推奨しています。Quest とモバイルではそもそも Dynamic Bones は使えません。</li>
+      </ul>
+
+      <div class="quiz">
+        <p class="q">Q. 遠くのアバターが非表示になっている。そのアバターのアニメーションは?</p>
+        <button class="opt" type="button" data-correct="false">完全に停止する</button>
+        <button class="opt" type="button" data-correct="true">動き続けている（表示だけ切られている）</button>
+        <button class="opt" type="button" data-correct="false">距離に応じて間引かれる</button>
+        <p class="ans" hidden>正解。公式は「整合性の問題を避けるため、一部のコンポーネント（アニメーター）は動き続ける」と説明しています。見えなくなった＝負荷が消えた、ではありません。重い演出をアバター任せにすると、見えない場所でも走り続けます。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="section section-a" id="s5">
+    <h2><span class="step">5</span>確認リスト</h2>
+
+    <article class="item">
+      <h3>作り込む前に、公開側の条件を先に潰しておく</h3>
+
+      <p class="lead">実装より先にここを確認しておくと、完成後に詰まりません。<span class="cl-count">0 / 5</span></p>
+      <ul class="checklist" data-key="vrchat-discovery-2026-08-14">
+        <li><label><input type="checkbox"><span>自分のアカウントの Trust Rank が「User」以上か確認した</span></label></li>
+        <li><label><input type="checkbox"><span>ワールドが Private のままになっていないか確認した</span></label></li>
+        <li><label><input type="checkbox"><span>新規公開は週1本だと理解した上で、出す順番を決めた</span></label></li>
+        <li><label><input type="checkbox"><span>Labs の導線が細いことを踏まえ、最初の来訪者を連れてくる手段を用意した</span></label></li>
+        <li><label><input type="checkbox"><span>アバターが隠れる・簡易表示になる前提で、ワールドの見え方を確認した</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 公開側の落とし穴はこれで回避できます</div>
+
+      <a class="next-up" href="../2026-08-14_unity-web-threads/">
+        <div class="label">NEXT →</div>
+        <div class="t">Unity Webが本番だけ動かない。原因はビルドではなくサーバー</div>
+        <div class="d">同じUnity系で、置き場所によって挙動が変わる話。こちらは実測つきです。</div>
+      </a>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead"><mark>この記事に書いた数字と仕様は、すべて公式ドキュメントの記述です。</mark>推測で補った箇所はありません。逆に、確認できなかった領域には踏み込んでいません。</p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          VRChat「VRChat Community Labs」<i>VRChat Documentation Hub</i>. 最終更新 2025年11月13日.
+          <span class="note">参照箇所: Private の定義、Labs への公開手順、週1本の制限と Trust Rank 要件、Public への自動昇格とその判断基準、"Show Community Labs" 設定、ポータルの表示と警告、通報とレビュー爆撃対策。本文中の引用は原文のまま。</span>
+          <a href="https://docs.vrchat.com/docs/vrchat-community-labs">https://docs.vrchat.com/docs/vrchat-community-labs</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          VRChat「VRChat Performance Options」<i>VRChat Documentation Hub</i>. 最終更新 2025年11月13日.
+          <span class="note">参照箇所: Maximum Avatar Download Size の初期値200MBと5MB刻み、Maximum Uncompressed Size の推奨300MB、Hide Avatars Beyond の挙動とアニメーターが動き続ける旨、Block Poorly Optimized Avatars、Dynamic Bones の将来的な削除予定。</span>
+          <a href="https://docs.vrchat.com/docs/vrchat-configuration-window">https://docs.vrchat.com/docs/vrchat-configuration-window</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag unverified">確認できず</span>
+          creators.vrchat.com（Worlds SDK、Udon / UdonSharp、ワールドのパフォーマンスランク、アップロード容量制限、Quest対応の最適化基準）
+          <span class="note">この記事の執筆環境からは、同ドメインへのアクセスが遮断されていて読めませんでした。<b>そのため、SDKのバージョン・Udonの仕様・ワールド側のパフォーマンス基準・容量上限には一切触れていません。</b>記憶で書くと誤りが混ざるためです。アクセスできる環境で確認でき次第、別記事で扱います。</span>
+        </li>
+      </ol>
+
+      <p class="lead">なお筆者は<b>VRChatでの実機検証を行っていません</b>。この記事は公開ドキュメントの読解であり、実際の画面での確認は含みません。</p>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月14日時点の内容です。参照した公式ドキュメントの最終更新日は2025年11月13日です。</div>
+    <div>公開: 2026年8月14日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
