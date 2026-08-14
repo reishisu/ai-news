@@ -1,0 +1,29 @@
+<svg viewBox="0 0 640 260" xmlns="http://www.w3.org/2000/svg" role="img">
+  <defs>
+    <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--c)"/>
+    </marker>
+  </defs>
+
+  <!-- API -->
+  <rect x="160" y="14" width="320" height="60" rx="11" fill="var(--track)" stroke="var(--c)" stroke-width="2"/>
+  <text x="320" y="40" fill="var(--fg)" font-size="14" font-weight="800" text-anchor="middle">あなたのAPI</text>
+  <text x="320" y="61" fill="var(--sub)" font-size="12" text-anchor="middle">「送られてきたOriginをそのまま許可する」実装</text>
+
+  <!-- 矢印 -->
+  <path d="M150 150 C150 100, 240 100, 260 80" fill="none" stroke="var(--c)" stroke-width="2" marker-end="url(#ar2)"/>
+  <path d="M490 150 C490 100, 400 100, 380 80" fill="none" stroke="var(--c)" stroke-width="2" marker-end="url(#ar2)"/>
+
+  <!-- 左: 正規のアプリ -->
+  <rect x="20" y="156" width="260" height="66" rx="10" fill="var(--track)" stroke="var(--a)" stroke-width="1.5"/>
+  <text x="150" y="182" fill="var(--fg)" font-size="13.5" font-weight="700" text-anchor="middle">あなたのアプリのWebView</text>
+  <text x="150" y="205" fill="var(--a)" font-size="13" font-weight="800" text-anchor="middle" font-family="ui-monospace, monospace">Origin: null</text>
+
+  <!-- 右: 攻撃者 -->
+  <rect x="360" y="156" width="260" height="66" rx="10" fill="var(--track)" stroke="var(--c)" stroke-width="1.5"/>
+  <text x="490" y="182" fill="var(--fg)" font-size="13.5" font-weight="700" text-anchor="middle">攻撃者が用意したHTML</text>
+  <text x="490" y="205" fill="var(--c)" font-size="13" font-weight="800" text-anchor="middle" font-family="ui-monospace, monospace">Origin: null</text>
+
+  <text x="320" y="130" fill="var(--c)" font-size="14" font-weight="800" text-anchor="middle">サーバーからは区別できない</text>
+  <text x="320" y="248" fill="var(--sub)" font-size="12.5" text-anchor="middle">しかもCookieが付いたまま通る（実測で確認）</text>
+</svg>

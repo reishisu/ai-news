@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebViewだけ動かない。犯人は Origin: null</title>
+<meta name="description" content="ブラウザでは動くのにアプリの中のWebViewだけAPIが落ちる。原因のOrigin: nullを実測で確認し、CORS設定4通りの結果表と、よくある回避策が穴になる理由まで。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WebViewだけ動かない。犯人は Origin: null">
+<meta property="og:description" content="CORS設定4通りを実測。よくある回避策がCookieごと穴を開ける話まで。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_webview-origin/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=ef3b7e06">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">クライアント技術 ｜ 2026年8月14日(金)</div>
+    <h1>WebViewだけ動かない。犯人は Origin: null</h1>
+    <div class="range">ブラウザでは動く。アプリの中に入れた瞬間だけAPIが落ちる。その理由を実測で突き止めます。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約7分</span>
+      <span class="tag">Android / iOS 共通</span>
+      <span class="tag">CORS 4パターン実測</span>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b data-count="4">0</b><span>通りのCORS設定を実測</span></div>
+    <div class="stat"><b data-count="1">0</b><span>個だけ通る設定がある</span></div>
+    <div class="stat"><b data-count="2">0</b><span>行で直る</span></div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li>
+        <b><code>file://</code> や <code>loadData</code> で読み込むと、APIには <code>Origin: null</code> が届く</b>
+        <span>Androidの公式ドキュメントの言葉では「不透明なオリジン(opaque origin)」です。</span>
+      </li>
+      <li>
+        <b>だから許可リスト方式のAPIは100%落ちます。nullは絶対に一致しないからです</b>
+        <span>CORSの返し方4通りを実際に叩いて、どれが通るか表にしました。</span>
+      </li>
+      <li>
+        <b>「じゃあnullも許可する」が一番危ない。Cookie付きで誰でも通れる穴になります</b>
+        <span>これも実測しました。正しい直し方は、そもそもnullにしないことです。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">症状 — ブラウザでは動くのに</a></li>
+      <li><a href="#s2">Originに何が入るかを測る</a></li>
+      <li><a href="#s3">CORS設定4通りの結果表</a></li>
+      <li><a href="#s4">よくある回避策が穴になる</a></li>
+      <li><a href="#s5">正しい直し方（Android / iOS）</a></li>
+      <li><a href="#s6">今すぐ確認するリスト</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>症状 — ブラウザでは動くのに</h2>
+
+    <article class="item">
+      <h3>同じHTMLなのに、アプリに載せた瞬間だけAPIが落ちる</h3>
+      <p class="lead">Webとして作っているときは完璧に動きます。アプリのWebViewに載せると、<mark>APIの呼び出しだけが失敗</mark>する。</p>
+      <p class="lead">しかもエラーメッセージが不親切です。JS側には <code>TypeError: Failed to fetch</code> としか出ません。ネットワークの問題にも、サーバー障害にも見えます。</p>
+
+      <ul class="points">
+        <li><b>HTMLの中身は関係ありません。</b>1文字も変えなくても、読み込み方が違うだけで結果が変わります。</li>
+        <li><b>画像やCSSは普通に表示されます。</b>だから「通信自体はできている」と思ってしまい、原因から遠ざかります。</li>
+        <li><b>Androidでも iOSでも起きます。</b>どちらも同じ理屈です。</li>
+      </ul>
+
+      <div class="quiz">
+        <p class="q">Q. 同じHTMLなのに、WebViewの中だけAPIが落ちるのはなぜ?</p>
+        <button class="opt" type="button" data-correct="false">WebViewは fetch に対応していないから</button>
+        <button class="opt" type="button" data-correct="true">読み込み方によって、APIに名乗るオリジンが変わるから</button>
+        <button class="opt" type="button" data-correct="false">アプリからの通信はOSにブロックされるから</button>
+        <p class="ans" hidden>正解。ブラウザは「このページはどこから来たか」をAPIに伝えます。ローカルのファイルから読み込むと、名乗る先が無いので null になります。次でその実物を見ます。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>Originに何が入るかを測る</h2>
+
+    <article class="item">
+      <h3>同じHTMLを2通りの方法で開いて、APIに届いた値を記録した</h3>
+      <p class="lead">推測をやめて実物を見ます。APIサーバー側で、受け取った <code>Origin</code> ヘッダーをそのまま記録しました。</p>
+
+      <div class="code term">
+        <div class="code-head">APIサーバーが受け取ったOrigin（実測）</div>
+        <pre>$ cat api.log
+<span class="ng-line">GET /none  Origin: null</span>
+<span class="ng-line">GET /star  Origin: null</span>
+<span class="ng-line">GET /allowlist  Origin: null</span>
+<span class="ok-line">GET /none  Origin: http://127.0.0.1:8802</span>
+<span class="ok-line">GET /star  Origin: http://127.0.0.1:8802</span>
+<span class="ok-line">GET /allowlist  Origin: http://127.0.0.1:8802</span></pre>
+      </div>
+
+      <p class="lead">上3行が <code>file://</code> で開いた場合、下3行がサーバーから配信した場合です。<mark>HTMLの中身は完全に同一</mark>です。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/origin-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/origin.png" alt="file://で読み込むとOriginがnullになり拒否され、https://で読み込むと通常のオリジンになり許可リストに書けることを示した図" loading="lazy">
+        </picture>
+        <figcaption>変わるのはHTMLではなく「読み込み方」だけ</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>Androidの公式ドキュメントも同じことを言っています。</b>「<code>file://</code> URLと <code>data:</code> URLは<b>不透明なオリジン</b>とみなされ、<code>fetch()</code> や <code>XMLHttpRequest</code> のような強力なWeb APIを利用できません」</li>
+        <li><b>iOSでも同じです。</b><code>loadFileURL</code> で読み込むと、リクエストのオリジンは <code>null</code> になります。</li>
+        <li><b>localStorage は使えます。</b>ここが紛らわしいところで、保存系は動くのに通信系だけ死ぬので、原因の切り分けが遅れます。</li>
+      </ul>
+
+      <details>
+        <summary>実測に使ったコード（コピペで再現できます）</summary>
+        <div class="body">
+          <dl>
+            <dt>やっていること</dt>
+            <dd>同じHTMLを <code>file://</code> と <code>http://</code> の両方から開き、別オリジンのAPIへ <code>fetch</code> して結果を比べています。ブラウザはヘッドレスChromium、サーバーはPythonの標準ライブラリだけです。</dd>
+            <dt>ポイント</dt>
+            <dd>APIサーバー側で <code>self.headers.get("Origin")</code> をログに書くだけで、何が届いているかは一発で分かります。WebViewの調査でも、まずここを見るのが最短です。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="section section-c" id="s3">
+    <h2><span class="step">3</span>CORS設定4通りの結果表</h2>
+
+    <article class="item">
+      <h3>APIの返し方を4通り用意して、全部叩いた</h3>
+      <p class="lead"><code>file://</code> のページ（つまり <code>Origin: null</code>）から呼んだ結果です。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>APIの返し方</th><th>ふつうのfetch</th><th>Cookie付きfetch</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>CORSヘッダーを返さない</b></td>
+              <td class="n" data-label="ふつうのfetch">拒否</td><td class="n" data-label="Cookie付きfetch">拒否</td>
+            </tr>
+            <tr>
+              <td><b>Allow-Origin: *</b><br><span class="cap">全部許可する</span></td>
+              <td class="y" data-label="ふつうのfetch">通る</td><td class="n" data-label="Cookie付きfetch">拒否</td>
+            </tr>
+            <tr>
+              <td><b>Allow-Origin: https://app.example.com</b><br><span class="cap">許可リスト方式</span></td>
+              <td class="n" data-label="ふつうのfetch">拒否</td><td class="n" data-label="Cookie付きfetch">拒否</td>
+            </tr>
+            <tr>
+              <td><b>届いたOriginをそのまま返す</b><br><span class="cap">＋ Allow-Credentials: true</span></td>
+              <td class="y" data-label="ふつうのfetch">通る</td><td class="y" data-label="Cookie付きfetch">通る</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="points">
+        <li><b>許可リスト方式は絶対に通りません。</b><code>null</code> が許可リストに載ることはないからです。ここで多くの人が詰まります。</li>
+        <li><b><code>Allow-Origin: *</code> は通りますが、Cookieが送れません。</b>これは仕様です。<code>*</code> と認証情報は併用できません。</li>
+        <li><b>つまり「ログインが必要なAPI」は、<code>file://</code> のWebViewからは正攻法では呼べません。</b>これが問題の本質です。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="section section-a" id="s4">
+    <h2><span class="step">4</span>よくある回避策が穴になる</h2>
+
+    <article class="item">
+      <h3>「届いたOriginをそのまま返す」は、鍵をかけずに札を貼るのと同じ</h3>
+      <p class="lead">表の一番下だけが両方通ります。だから検索するとこの実装がよく出てきます。<mark>これが一番危険です。</mark></p>
+
+      <div class="code">
+        <div class="code-head">やってはいけない実装</div>
+        <pre>self.send_header("Access-Control-Allow-Origin",
+                 self.headers.get("Origin", "*"))     # 届いたものをそのまま返す
+self.send_header("Access-Control-Allow-Credentials", "true")</pre>
+      </div>
+
+      <p class="lead">このAPIは「<code>null</code> から来たら <code>null</code> を許可する」と答えます。ところが <code>null</code> は<mark>誰でも名乗れます</mark>。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/hole-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/hole.png" alt="あなたのWebViewと攻撃者のHTMLがどちらもOrigin nullを名乗るため、サーバーからは区別できないことを示した図" loading="lazy">
+        </picture>
+        <figcaption>ローカルに置いたHTML、sandbox属性付きのiframe。どれも null を名乗れます</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>Cookieが付いたまま通ることを実測しました。</b>表の右下です。ユーザーのログイン状態を使って、そのままAPIを叩けてしまいます。</li>
+        <li><b>サーバー側に見分ける手段がありません。</b>あなたのアプリのWebViewも、攻撃者のHTMLも、まったく同じ <code>Origin: null</code> です。</li>
+        <li><b>「アプリ内でしか使わないから大丈夫」は成立しません。</b>APIはインターネットに面しています。呼ぶ側を制限しているのはCORSだけです。</li>
+      </ul>
+
+      <div class="quiz">
+        <p class="q">Q. Originをそのまま返す実装で、いちばんまずいのはどれ?</p>
+        <button class="opt" type="button" data-correct="false">APIの応答が遅くなる</button>
+        <button class="opt" type="button" data-correct="false">古いブラウザで動かなくなる</button>
+        <button class="opt" type="button" data-correct="true">誰でもnullを名乗れるので、ユーザーのCookieごとAPIを叩かれる</button>
+        <p class="ans" hidden>正解。CORSは「呼んでいいのは誰か」を決める仕組みです。届いた名前をそのまま許可するのは、名乗った人を全員通すのと同じことです。しかもCredentialsを許可しているので、被害者のログイン状態が使われます。</p>
+      </div>
+
+      <details>
+        <summary>どうしても許可リストを動的にしたい場合</summary>
+        <div class="body">
+          <dl>
+            <dt>最低条件</dt>
+            <dd>受け取ったOriginを<b>自分の許可リストと照合してから</b>返すこと。一致したときだけ、その値をそのまま返します。一致しなければCORSヘッダーを返しません。</dd>
+            <dt>絶対にやらないこと</dt>
+            <dd><code>null</code> を許可リストに入れること。前方一致や部分一致で判定すること（<code>https://app.example.com.evil.com</code> が通ります）。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="section section-b" id="s5">
+    <h2><span class="step">5</span>正しい直し方（Android / iOS）</h2>
+
+    <article class="item">
+      <h3>CORSをいじるのではなく、そもそもnullにしない</h3>
+      <p class="lead">ローカルのファイルを <code>https://</code> のURLとして読み込ませます。<mark>普通のWebページと同じ扱いになる</mark>ので、CORSの話が全部普通に通ります。</p>
+
+      <p class="lead"><b>Android</b> は公式に専用のクラスがあります。<code>androidx.webkit</code> の <code>WebViewAssetLoader</code> です。</p>
+
+      <div class="code">
+        <div class="code-head">Android — 公式ドキュメントのサンプル</div>
+        <pre>private class LocalContentWebViewClient(private val assetLoader: WebViewAssetLoader) : WebViewClientCompat() {
+    @RequiresApi(21)
+    override fun shouldInterceptRequest(
+        view: WebView,
+        request: WebResourceRequest
+    ): WebResourceResponse? {
+        return assetLoader.shouldInterceptRequest(request.url)
+    }
+}
+
+val assetLoader = WebViewAssetLoader.Builder()
+                       .addPathHandler("/assets/", AssetsPathHandler(this))
+                       .addPathHandler("/res/", ResourcesPathHandler(this))
+                       .build()
+webView.webViewClient = LocalContentWebViewClient(assetLoader)
+
+webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>読み込むURLが <code>https://appassets.androidplatform.net/…</code> になります。</b>実際に通信は出ません。アプリ内のファイルを返しているだけです。</li>
+        <li><b>このドメインをAPIの許可リストに書けます。</b>これで通常のCORS運用に戻せます。ドメインは <code>setDomain()</code> で自分のものに変えられます。</li>
+        <li><b>おまけに安全なコンテキスト扱いになります。</b><code>https</code> を名乗るので、Service Workerなど「安全なページでしか使えないAPI」も使えるようになります。</li>
+      </ul>
+
+      <p class="lead"><b>iOS</b> には同名のクラスはありません。<code>WKURLSchemeHandler</code> で独自スキームを処理するか、<code>loadFileURL(_:allowingReadAccessTo:)</code> を使います。</p>
+
+      <div class="code wrap">
+        <div class="code-head">iOSでの選び方</div>
+        <pre>ローカルHTMLを表示するだけ  → loadFileURL(_:allowingReadAccessTo:)
+APIも呼ぶ                → WKURLSchemeHandler で独自スキームを実装し、
+                          サーバー側の許可リストにそのオリジンを登録する
+どうしても間に合わない      → アプリ側(ネイティブ)で通信し、結果をJSに渡す</pre>
+      </div>
+
+      <div class="code">
+        <div class="code-head">Androidで必ず false にしておく設定</div>
+        <pre>WebSettings.setAllowFileAccessFromFileURLs(false)
+WebSettings.setAllowUniversalAccessFromFileURLs(false)</pre>
+      </div>
+
+      <p class="lead">この2つを <code>true</code> にすると <code>file://</code> の制限を回避できます。<mark>ただし公式が明確に推奨していません。</mark></p>
+
+      <ul class="points">
+        <li><b>公式の言葉。</b>「これらを <code>true</code> にすることは推奨しません。ファイルベースの攻撃に対して脆弱になるためです。最も強い安全性のために、すべてのAPIレベルで明示的に <code>false</code> を設定することを推奨します」</li>
+        <li><b>回避策ではなく、根本を直す。</b>CORSを緩めるのも、この設定を有効にするのも、穴を開ける方向です。読み込み方を変えるほうが速くて安全です。</li>
+      </ul>
+
+      <details>
+        <summary>出典</summary>
+        <div class="body">
+          <dl>
+            <dt>Android公式ドキュメント</dt>
+            <dd><a href="https://developer.android.com/develop/ui/views/layout/webapps/load-local-content">Load in-app content — Android Developers</a>（コードサンプルと推奨事項の引用元）</dd>
+            <dt>Chromiumのプロジェクト文書</dt>
+            <dd><a href="https://chromium.googlesource.com/chromium/src/+/HEAD/android_webview/docs/cors-and-webview-api.md">CORS and WebView API</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="section section-a" id="s6">
+    <h2><span class="step">6</span>今すぐ確認するリスト</h2>
+
+    <article class="item">
+      <h3>iOS 26.4で loadFileURL の挙動が変わったという報告があります</h3>
+      <p class="lead">Appleの開発者フォーラムに、<code>loadFileURL(_:allowingReadAccessTo:)</code> の第2引数に関する報告が出ています。</p>
+
+      <ul class="points">
+        <li><b>報告内容。</b>iOS 26.3までは第1引数と第2引数に同じパス（<code>h5path/index.html</code>）を渡しても動いていたが、iOS 26.4 Betaではエラーになり、第2引数は<b>親ディレクトリ</b>を指す必要がある、というもの。</li>
+        <li><b>状態は未確認です。</b>スレッドにAppleからの回答は付いていません（2026年8月14日時点で返信0件）。仕様変更なのか不具合なのかは確定していません。</li>
+        <li><b>やること。</b>ローカルHTMLを表示しているiOSアプリを持っているなら、ベータで一度確認しておくと安全です。<a href="https://developer.apple.com/forums/thread/817245">報告スレッド</a></li>
+      </ul>
+
+      <p class="lead">最後に、自分のプロジェクトを点検するリストです。<span class="cl-count">0 / 5</span></p>
+      <ul class="checklist" data-key="webview-origin-2026-08-14">
+        <li><label><input type="checkbox"><span>APIサーバーで、受け取った <code>Origin</code> をログに出して実物を確認した</span></label></li>
+        <li><label><input type="checkbox"><span><code>null</code> を許可リストに入れていない</span></label></li>
+        <li><label><input type="checkbox"><span>届いたOriginをそのまま返す実装になっていない（照合してから返している）</span></label></li>
+        <li><label><input type="checkbox"><span>ローカルHTMLを <code>https://</code> として読み込んでいる（Androidは <code>WebViewAssetLoader</code>）</span></label></li>
+        <li><label><input type="checkbox"><span><code>setAllowUniversalAccessFromFileURLs</code> を明示的に <code>false</code> にした</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 これで「WebViewだけ動かない」は卒業です</div>
+
+      <a class="next-up" href="../2026-08-14_task-breakdown/">
+        <div class="label">NEXT →</div>
+        <div class="t">一番大きいタスクを速くしても、納期は1日も縮まない</div>
+        <div class="d">タスク分解を計算で検証します。縮めるべき場所は、たいてい直感と違います。</div>
+      </a>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月14日時点の内容です。CORSの実測は Chromium 141.0.7390.37 / Python 3.11.15 で行いました。Android・iOSの記述は各公式ドキュメントに基づきます（実機検証は行っていません）。</div>
+    <div>公開: 2026年8月14日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=740d7826" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

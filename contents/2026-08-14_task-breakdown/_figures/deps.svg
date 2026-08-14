@@ -1,0 +1,57 @@
+<svg viewBox="0 0 640 250" xmlns="http://www.w3.org/2000/svg" role="img">
+  <defs>
+    <marker id="thin" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--sub)"/>
+    </marker>
+    <marker id="thick" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--new)"/>
+    </marker>
+  </defs>
+
+  <!-- 余裕のある線 -->
+  <path d="M114 132 L138 172" fill="none" stroke="var(--sub)" stroke-width="1.6" marker-end="url(#thin)"/>
+  <path d="M242 88 L266 112" fill="none" stroke="var(--sub)" stroke-width="1.6" marker-end="url(#thin)"/>
+  <path d="M242 170 L266 140" fill="none" stroke="var(--sub)" stroke-width="1.6" marker-end="url(#thin)"/>
+  <path d="M370 140 C440 168, 480 150, 522 116" fill="none" stroke="var(--sub)" stroke-width="1.6" marker-end="url(#thin)"/>
+
+  <!-- 全体の長さを決めている線 -->
+  <path d="M114 118 L138 82" fill="none" stroke="var(--new)" stroke-width="3" marker-end="url(#thick)"/>
+  <path d="M242 60 L266 46" fill="none" stroke="var(--new)" stroke-width="3" marker-end="url(#thick)"/>
+  <path d="M370 40 L394 40" fill="none" stroke="var(--new)" stroke-width="3" marker-end="url(#thick)"/>
+  <path d="M498 50 L522 84" fill="none" stroke="var(--new)" stroke-width="3" marker-end="url(#thick)"/>
+
+  <!-- ノード -->
+  <rect x="14" y="100" width="100" height="52" rx="9" fill="var(--track)" stroke="var(--new)" stroke-width="2"/>
+  <text x="64" y="122" fill="var(--fg)" font-size="12" font-weight="800" text-anchor="middle">A 仕様</text>
+  <text x="64" y="140" fill="var(--sub)" font-size="11.5" text-anchor="middle">0.5日</text>
+
+  <rect x="142" y="46" width="100" height="52" rx="9" fill="var(--track)" stroke="var(--new)" stroke-width="2"/>
+  <text x="192" y="68" fill="var(--fg)" font-size="12" font-weight="800" text-anchor="middle">B API設計</text>
+  <text x="192" y="86" fill="var(--sub)" font-size="11.5" text-anchor="middle">0.5日</text>
+
+  <rect x="142" y="156" width="100" height="52" rx="9" fill="var(--track)" stroke="var(--sub)" stroke-width="1"/>
+  <text x="192" y="178" fill="var(--fg)" font-size="12" font-weight="800" text-anchor="middle">C DB設計</text>
+  <text x="192" y="196" fill="var(--sub)" font-size="11.5" text-anchor="middle">0.5日</text>
+
+  <rect x="270" y="14" width="100" height="52" rx="9" fill="var(--track)" stroke="var(--new)" stroke-width="2"/>
+  <text x="320" y="36" fill="var(--fg)" font-size="12" font-weight="800" text-anchor="middle">E 画面</text>
+  <text x="320" y="54" fill="var(--sub)" font-size="11.5" text-anchor="middle">1.5日</text>
+
+  <rect x="270" y="100" width="100" height="52" rx="9" fill="var(--track)" stroke="var(--sub)" stroke-width="1"/>
+  <text x="320" y="122" fill="var(--fg)" font-size="12" font-weight="800" text-anchor="middle">D 認証API</text>
+  <text x="320" y="140" fill="var(--c)" font-size="11.5" font-weight="700" text-anchor="middle">2.0日（最大）</text>
+
+  <rect x="398" y="14" width="100" height="52" rx="9" fill="var(--track)" stroke="var(--new)" stroke-width="2"/>
+  <text x="448" y="36" fill="var(--fg)" font-size="12" font-weight="800" text-anchor="middle">F エラー表示</text>
+  <text x="448" y="54" fill="var(--sub)" font-size="11.5" text-anchor="middle">1.0日</text>
+
+  <rect x="526" y="74" width="100" height="52" rx="9" fill="var(--track)" stroke="var(--new)" stroke-width="2"/>
+  <text x="576" y="96" fill="var(--fg)" font-size="12" font-weight="800" text-anchor="middle">G E2Eテスト</text>
+  <text x="576" y="114" fill="var(--sub)" font-size="11.5" text-anchor="middle">1.0日</text>
+
+  <!-- 凡例 -->
+  <line x1="20" y1="228" x2="56" y2="228" stroke="var(--new)" stroke-width="3"/>
+  <text x="64" y="233" fill="var(--fg)" font-size="12" font-weight="700">全体の長さを決めている道（4.5日）</text>
+  <line x1="330" y1="228" x2="366" y2="228" stroke="var(--sub)" stroke-width="1.6"/>
+  <text x="374" y="233" fill="var(--sub)" font-size="12">余裕がある道</text>
+</svg>

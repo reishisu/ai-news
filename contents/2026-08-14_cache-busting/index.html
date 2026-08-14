@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pushしたのに直らない。犯人は10分前のCSS</title>
+<meta name="description" content="CSSを直してpushしたのにサイトが崩れたまま。原因をヘッドレスブラウザで実測しました。効く対処と効かない対処、そして8文字で直す方法。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pushしたのに直らない。犯人は10分前のCSS">
+<meta property="og:description" content="実測でキャッシュ事故を再現。効かない対処4つと、8文字で直す方法。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_cache-busting/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=ef3b7e06">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">Web開発・インフラ ｜ 2026年8月14日(金)</div>
+    <h1>pushしたのに直らない。犯人は10分前のCSS</h1>
+    <div class="range">このサイトで実際に起きた崩れです。原因をヘッドレスブラウザで再現して、直すまでを全部載せます。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約6分</span>
+      <span class="tag">実測ログ全部載せ</span>
+      <span class="tag">コピペで再現できる</span>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b data-count="600">0</b><span>秒 嘘をつかれる</span></div>
+    <div class="stat"><b data-count="4">0</b><span>個の対処が無駄</span></div>
+    <div class="stat"><b data-count="8">0</b><span>文字で直る</span></div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li>
+        <b>ブラウザは一度読んだCSSを、600秒間サーバーに聞かずに使い回す</b>
+        <span>GitHub Pagesが実際にそう指示しています。実物のヘッダーを載せました。</span>
+      </li>
+      <li>
+        <b>HTMLだけ先に新しくなるので「新HTML × 旧CSS」になって崩れる</b>
+        <span>この状態を実際に作り出して、色が消える瞬間を測りました。</span>
+      </li>
+      <li>
+        <b>シークレットウィンドウでは直って見える。だからこのバグは世に出る</b>
+        <span>自分の画面で確認すると直っているのに、読者の画面では壊れたまま。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">何が起きたか</a></li>
+      <li><a href="#s2">犯人を実測で捕まえる</a></li>
+      <li><a href="#s3">崩れる瞬間を再現する</a></li>
+      <li><a href="#s4">効かない対処、4つ</a></li>
+      <li><a href="#s5">8文字で直す</a></li>
+      <li><a href="#s6">あなたのサイトを今すぐ確認する</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>何が起きたか</h2>
+
+    <article class="item">
+      <h3>CSSを直してpushした。数時間後、スマホで見たらまだ崩れていた</h3>
+      <p class="lead">このサイトでコードブロックの表示が壊れていました。CSSを直して、pushして、確認して、直っていました。</p>
+      <p class="lead">なのに<mark>スマホで開いたら崩れたまま</mark>。ファイルは正しい。サーバーにも正しいものが乗っている。それでも崩れている。</p>
+
+      <ul class="points">
+        <li><b>手元では直っている。</b>だから原因がコードだと思い込むと、永遠に見つかりません。</li>
+        <li><b>犯人はコードの外にいます。</b>ブラウザが「もう持ってるから取りに行かない」と判断していました。</li>
+      </ul>
+
+      <div class="quiz">
+        <p class="q">Q. サーバー上のCSSは新しい。それでも古い表示になるのはなぜ?</p>
+        <button class="opt" type="button" data-correct="false">サーバーの反映に時間がかかっているから</button>
+        <button class="opt" type="button" data-correct="true">ブラウザが手元のコピーを使っていて、サーバーに聞きに行っていないから</button>
+        <button class="opt" type="button" data-correct="false">CSSの書き方が間違っているから</button>
+        <p class="ans" hidden>正解。ブラウザは前回受け取った「◯秒間は聞きに来なくていい」という指示を守っています。サーバーには1回もリクエストが飛んでいません。次の章で、実際に飛んでいないことを確認します。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>犯人を実測で捕まえる</h2>
+
+    <article class="item">
+      <h3>GitHub Pagesは「600秒は聞きに来るな」と言っている</h3>
+      <p class="lead">推測せず、実物を見ます。このサイトのCSSにヘッダーだけ取りに行きました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（2026年8月14日 実測）</div>
+        <pre>$ curl -sS -D - -o /dev/null "https://reishisu.github.io/ai-news/css/article.css"
+
+HTTP/2 200
+server: GitHub.com
+content-type: text/css; charset=utf-8
+last-modified: Fri, 14 Aug 2026 12:46:26 GMT
+etag: "6a7f0e22-3cf5"
+expires: Fri, 14 Aug 2026 13:14:19 GMT
+<span class="ng-line">cache-control: max-age=600</span>
+age: 0
+via: 1.1 varnish</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>max-age=600</code> が犯人。</b>「受け取ってから600秒間は、このファイルをサーバーに確認しなくていい」という意味です。</li>
+        <li><b>ETagがあっても関係ありません。</b>ETagは「聞きに行ったとき」に使う照合用。600秒のあいだ、そもそも聞きに行きません。</li>
+        <li><b>GitHub Pagesではこの値を変えられません。</b>ヘッダーを自由に設定できるホスティングではないので、別の手で解決する必要があります。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>HTMLはどうなっているのか</dt>
+            <dd>HTMLにも同じ <code>max-age=600</code> が付きます。ただしHTMLは戻る・進む・リンク遷移で新しく取り直される機会が多く、CSSより先に新しくなりがちです。この「寿命のズレ」が崩れの正体です。</dd>
+            <dt>expires と cache-control</dt>
+            <dd>両方ありますが、<code>cache-control</code> が優先されます。<code>expires</code> は古いブラウザ向けの保険です。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="section section-c" id="s3">
+    <h2><span class="step">3</span>崩れる瞬間を再現する</h2>
+
+    <article class="item">
+      <h3>HTMLとCSSの寿命が違う。だからズレた組み合わせが生まれる</h3>
+      <p class="lead">言葉より図が速いので、先に貼ります。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/lifetime-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/lifetime.png" alt="HTMLはすぐ新しくなるがCSSは600秒古いままで、その区間だけ表示が崩れることを示した図" loading="lazy">
+        </picture>
+        <figcaption>崩れるのは「更新した瞬間」ではなく、寿命がズレている区間</figcaption>
+      </figure>
+
+      <p class="lead">これを本当に作れるか、手元で確かめます。まずGitHub Pagesと同じ指示を返すサーバーを立てます。</p>
+
+      <div class="code">
+        <div class="code-head">serve.py — 確認用サーバー</div>
+        <pre>#!/usr/bin/env python3
+"""HTML は毎回聞きに来させ、CSS は600秒キャッシュさせる。"""
+import functools, http.server, socketserver
+
+class Handler(http.server.SimpleHTTPRequestHandler):
+    def end_headers(self):
+        if self.path.split("?")[0].endswith((".css", ".js")):
+            self.send_header("Cache-Control", "max-age=600")   # GitHub Pages と同じ値
+        else:
+            self.send_header("Cache-Control", "no-cache")
+        super().end_headers()
+
+    def log_message(self, fmt, *args):
+        with open("access.log", "a", encoding="utf-8") as f:
+            f.write(f"{self.command} {self.path}\n")
+
+socketserver.TCPServer.allow_reuse_address = True
+handler = functools.partial(Handler, directory="pub")
+with socketserver.TCPServer(("127.0.0.1", 8802), handler) as httpd:
+    httpd.serve_forever()</pre>
+      </div>
+
+      <p class="lead">次に、<mark>クラス名を変えるよくある改修</mark>をします。HTMLの <code>class="title"</code> を <code>class="headline"</code> にして、CSSも合わせて書き換える。ごく普通の作業です。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（node repro.js）</div>
+        <pre>$ node repro.js
+1. 読者が初回訪問
+ class=title     rgb(220, 40, 40)
+2. HTMLもCSSも新しくして公開
+3. 読者が再訪問
+<span class="ng-line"> class=headline  rgb(0, 0, 0)     ← 崩れた</span>
+4. href に ?v=a38e0f24 を付けた
+5. 読者が再訪問
+<span class="ok-line"> class=headline  rgb(30, 160, 90) ← 直った</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>3行目が事故そのもの。</b>HTMLは新しい(<code>headline</code>)のに、CSSには <code>.headline</code> の指定がまだありません。当たるルールが無いので、色が初期値の黒に落ちました。</li>
+        <li><b>本物のサイトではこれが「レイアウト崩れ」に見えます。</b>背景が消える、余白が死ぬ、文字がはみ出す。全部これです。</li>
+        <li><b>エラーは1件も出ません。</b>JSエラーもコンソール警告も無し。だから気づくのが遅れます。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="section section-a" id="s4">
+    <h2><span class="step">4</span>効かない対処、4つ</h2>
+
+    <article class="item">
+      <h3>思いつく手を順に全部試しました。半分は無駄でした</h3>
+      <p class="lead">CSSを緑に書き換えたあと、色が変わるかどうかで判定します。<mark>赤のままなら効いていない</mark>ということです。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（node notwork.js）</div>
+        <pre>0. 初回アクセス        rgb(220, 40, 40)
+   → style.css を緑に書き換えて公開した
+
+<span class="ng-line">1. もう一度開く        rgb(220, 40, 40)</span>
+<span class="ng-line">2. リロード(F5)        rgb(220, 40, 40)</span>
+<span class="ng-line">3. 更新日時を新しく    rgb(220, 40, 40)</span>
+<span class="ng-line">4. 別タブで開く        rgb(220, 40, 40)</span>
+<span class="ok-line">5. シークレットで開く  rgb(30, 160, 90)</span>
+<span class="ok-line">6. Ctrl+Shift+R        rgb(30, 160, 90)</span>
+
+=== サーバーに届いた style.css ===
+GET /style.css
+GET /style.css
+GET /style.css</pre>
+      </div>
+
+      <p class="lead">6回も操作したのに、サーバーに届いたのは<mark>3回だけ</mark>。1〜4はサーバーに1度も来ていません。</p>
+
+      <ul class="points">
+        <li><b>F5は効きません。</b>いまのChromeは、リロードでHTMLは確認し直しますが、CSSや画像は確認しません。</li>
+        <li><b>ファイルの更新日時も効きません。</b>そもそも聞きに来ないので、サーバー側で何をしても届きません。</li>
+        <li><b>デプロイし直しても効きません。</b>同じ理由です。「反映されない」の大半はこれです。</li>
+      </ul>
+
+      <div class="quiz">
+        <p class="q">Q. なぜ5と6は直ったのに、この2つでは解決にならない?</p>
+        <button class="opt" type="button" data-correct="false">たまたま運が良かっただけだから</button>
+        <button class="opt" type="button" data-correct="true">直ったのは自分の画面だけで、読者には同じ操作を頼めないから</button>
+        <button class="opt" type="button" data-correct="false">シークレットウィンドウは表示が違うから</button>
+        <p class="ans" hidden>正解。しかもこれが一番怖いところで、開発者はシークレットウィンドウで確認しがちです。自分の目には直って見えるので「直した」と判断して、読者の画面だけが壊れたまま残ります。</p>
+      </div>
+
+      <details>
+        <summary>この罠がバグを世に出す仕組み</summary>
+        <div class="body">
+          <dl>
+            <dt>典型的な流れ</dt>
+            <dd>直す → シークレットで確認 → 直っている → 公開 → 読者「まだ崩れてます」 → 自分で見ると直っている → 原因不明で迷走。</dd>
+            <dt>見分け方</dt>
+            <dd>「自分では再現しないが、他人の環境では再現する」表示バグは、まずキャッシュを疑ってください。コードを読み直すのは、そのあとです。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="section section-b" id="s5">
+    <h2><span class="step">5</span>8文字で直す</h2>
+
+    <article class="item">
+      <h3>URLの末尾に中身のハッシュを付ける。それだけ</h3>
+      <p class="lead">ブラウザは<mark>URLが1文字でも違えば別のファイル</mark>として扱います。この性質を使います。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/bust-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/bust.png" alt="style.cssはキャッシュされるが、style.css?v=ハッシュは別URLなので必ず取りに行くことを示した図" loading="lazy">
+        </picture>
+        <figcaption>中身が変わればハッシュも変わる＝URLが変わる＝必ず取りに行く</figcaption>
+      </figure>
+
+      <div class="code wrap">
+        <div class="code-head">やること（HTMLのこの1箇所）</div>
+        <pre>変更前: &lt;link rel="stylesheet" href="css/style.css?v=6afc843a"&gt;
+変更後: &lt;link rel="stylesheet" href="css/style.css?v=6afc843a"&gt;</pre>
+      </div>
+
+      <p class="lead">大事なのは<mark>この8文字を手で書かない</mark>ことです。手で書くと必ず忘れます。ファイルの中身から自動で作ります。</p>
+
+      <div class="code">
+        <div class="code-head">_build_index.py — このサイトで実際に動いているコード</div>
+        <pre>def asset_versions():
+    """{'css/article.css': 'a1b2c3d4', ...} を返す(内容ハッシュの先頭8桁)。"""
+    versions = {}
+    for rel in ASSETS:
+        path = HERE / rel
+        if path.is_file():
+            versions[rel] = hashlib.sha256(path.read_bytes()).hexdigest()[:8]
+    return versions
+
+
+def add_cache_busting(html, versions):
+    """既存の ?v=... を捨てて、現在の内容ハッシュを付け直す。"""
+    for rel, ver in versions.items():
+        name = rel.split("/")[-1]
+        html = re.sub(
+            r'((?:href|src)="[^"]*' + re.escape(name) + r')(?:\?v=[0-9a-f]+)?(")',
+            lambda m: f"{m.group(1)}?v={ver}{m.group(2)}",
+            html,
+        )
+    return html</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>日付や連番ではなく、中身のハッシュにする。</b>中身が変わっていないのにURLが変わると、変える必要のないファイルまで再ダウンロードさせてしまいます。</li>
+        <li><b>既存の <code>?v=</code> を一度消してから付け直す。</b>これを忘れると <code>?v=aaa?v=bbb</code> のように壊れます。上の正規表現の <code>(?:\?v=[0-9a-f]+)?</code> がその処理です。</li>
+        <li><b>ビルド時に全ページへ一括で付ける。</b>人間が書く場所を1つも残さないのがコツです。</li>
+      </ul>
+
+      <details>
+        <summary>ヘッダーを自由に設定できる環境なら、もっと良い形にできます</summary>
+        <div class="body">
+          <dl>
+            <dt>理想の組み合わせ</dt>
+            <dd>HTMLは <code>Cache-Control: no-cache</code>（毎回確認させる）、ハッシュ付きのCSS/JSは <code>max-age=31536000, immutable</code>（1年間、確認すらさせない）。URLが変わったときだけ取り直されるので、速さと確実さが両立します。</dd>
+            <dt>GitHub Pagesの場合</dt>
+            <dd>ヘッダーを変更できないため、全ファイルが <code>max-age=600</code> のままです。それでも <code>?v=</code> を付けておけば「新HTML × 旧CSS」の崩れは起きません。HTMLが新しくなった時点で、CSSのURLも一緒に新しくなるからです。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="section section-a" id="s6">
+    <h2><span class="step">6</span>あなたのサイトを今すぐ確認する</h2>
+
+    <article class="item">
+      <h3>1コマンドで、自分のサイトが何秒嘘をつくか分かります</h3>
+
+      <div class="code wrap">
+        <div class="code-head">自分のCSSのURLに置き換えて実行</div>
+        <pre>curl -sS -D - -o /dev/null "https://あなたのサイト/css/style.css" | grep -i "cache-control\|etag"</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>max-age</code> が0以外で、URLに <code>?v=</code> が無い。</b>→ その秒数だけ崩れる可能性があります。今日やるべきです。</li>
+        <li><b><code>max-age=0</code> か <code>no-cache</code>。</b>→ 崩れませんが、毎回ダウンロードするので表示が遅くなります。</li>
+        <li><b>URLにハッシュが入っている。</b>→ 対策済みです。何もしなくて大丈夫。</li>
+      </ul>
+
+      <p class="lead">最後に、確認するところまでやり切るためのリストです。<span class="cl-count">0 / 4</span></p>
+      <ul class="checklist" data-key="cache-busting-2026-08-14">
+        <li><label><input type="checkbox"><span>自分のサイトの <code>cache-control</code> を実際に見た</span></label></li>
+        <li><label><input type="checkbox"><span>CSS/JSのURLにハッシュを付ける仕組みを入れた</span></label></li>
+        <li><label><input type="checkbox"><span>ハッシュがビルドで自動生成される（手書きしていない）</span></label></li>
+        <li><label><input type="checkbox"><span>表示確認をシークレットウィンドウではなく、ふだんのブラウザでやった</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 これでもう「直したのに直らない」は起きません</div>
+
+      <a class="next-up" href="../2026-08-14_webview-origin/">
+        <div class="label">NEXT →</div>
+        <div class="t">WebViewだけ動かない。犯人は Origin: null</div>
+        <div class="d">アプリの中のブラウザでだけAPIが落ちる問題を、同じように実測で追い詰めます。</div>
+      </a>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月14日時点の内容です。検証環境: Chromium 141.0.7390.37 / Python 3.11.15 / Node.js v22.22.2</div>
+    <div>公開: 2026年8月14日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=740d7826" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

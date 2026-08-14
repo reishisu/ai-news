@@ -1,0 +1,30 @@
+<svg viewBox="0 0 640 250" xmlns="http://www.w3.org/2000/svg" role="img">
+  <!-- 更新の瞬間 -->
+  <line x1="300" y1="42" x2="300" y2="208" stroke="var(--sub)" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="300" y="32" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle">サイトを更新して公開</text>
+
+  <!-- HTML の行 -->
+  <text x="12" y="76" fill="var(--sub)" font-size="13" font-weight="700">HTML</text>
+  <rect x="100" y="58" width="200" height="28" rx="6" fill="var(--track)"/>
+  <text x="200" y="77" fill="var(--sub)" font-size="12.5" text-anchor="middle">古いHTML</text>
+  <rect x="300" y="58" width="320" height="28" rx="6" fill="var(--new)"/>
+  <text x="460" y="77" fill="#ffffff" font-size="12.5" font-weight="700" text-anchor="middle">すぐ新しいHTMLになる</text>
+
+  <!-- CSS の行 -->
+  <text x="12" y="146" fill="var(--sub)" font-size="13" font-weight="700">CSS</text>
+  <rect x="100" y="128" width="420" height="28" rx="6" fill="var(--old)"/>
+  <text x="310" y="147" fill="var(--fg)" font-size="12.5" font-weight="700" text-anchor="middle">古いCSSを使い続ける（最大600秒）</text>
+  <rect x="520" y="128" width="100" height="28" rx="6" fill="var(--new)"/>
+  <text x="570" y="147" fill="#ffffff" font-size="12.5" font-weight="700" text-anchor="middle">新しいCSS</text>
+
+  <!-- 崩れる区間 -->
+  <rect x="300" y="50" width="220" height="114" rx="8" fill="none" stroke="var(--c)" stroke-width="2"/>
+  <text x="410" y="186" fill="var(--c)" font-size="13.5" font-weight="800" text-anchor="middle">この区間だけ 新HTML × 旧CSS</text>
+  <text x="410" y="205" fill="var(--c)" font-size="13.5" font-weight="800" text-anchor="middle">＝ レイアウトが崩れる</text>
+
+  <!-- 時間軸 -->
+  <line x1="100" y1="228" x2="620" y2="228" stroke="var(--sub)" stroke-width="1"/>
+  <line x1="520" y1="222" x2="520" y2="234" stroke="var(--sub)" stroke-width="1.5"/>
+  <text x="100" y="245" fill="var(--sub)" font-size="11.5">読者の初回アクセス</text>
+  <text x="520" y="245" fill="var(--sub)" font-size="11.5" text-anchor="middle">600秒後</text>
+</svg>

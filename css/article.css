@@ -183,11 +183,13 @@ figure.thumb img { border-radius: 9px; }
 /* 日本語まじりの文章ブロックは折り返す(コード/ログは折り返さない) */
 .code.wrap pre { white-space: pre-wrap; word-break: break-word; }
 .code.term .code-head { background: var(--term-bg); color: #9aa4b2; border-bottom-color: rgba(255,255,255,.12); }
-p code, li code, dd code {
+p code, li code, dd code, td code {
   padding: 1px 6px; border-radius: 5px;
   background: var(--code-bg); color: var(--code-fg);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: .89em;
+  /* 長いクラス名やURLでも狭い画面からはみ出さないように折り返す */
+  overflow-wrap: anywhere;
 }
 .ok-line { color: #3ecf9a; }
 .ng-line { color: #ff8a6b; }
@@ -321,6 +323,35 @@ details .body dd { margin: 3px 0 0; }
 details .body a { word-break: break-all; }
 
 .none { color: var(--sub); margin-top: 20px; font-size: .97rem; }
+
+/* ---------- 比較表(狭い画面では横スクロール) ---------- */
+.table { margin-top: 18px; overflow-x: auto; border: 1px solid var(--line); border-radius: 11px; background: var(--card); }
+.table table { border-collapse: collapse; width: 100%; font-size: .93rem; line-height: 1.7; }
+.table th, .table td { padding: 10px 15px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line-soft); }
+.table thead th { background: var(--bg); color: var(--sub); font-size: .8rem; font-weight: 800; white-space: nowrap; }
+.table tbody tr:last-child > * { border-bottom: none; }
+.table td b { font-weight: 800; }
+.table .y { color: var(--ok); font-weight: 800; white-space: nowrap; }
+.table .n { color: var(--unk); font-weight: 800; white-space: nowrap; }
+.table .cap { color: var(--sub); font-size: .85rem; }
+
+/* 狭い画面では表を縦積みのカードに組み替える(横スクロールで潰さない) */
+@media (max-width: 620px) {
+  .table { border: none; border-radius: 0; background: none; overflow: visible; margin-top: 6px; }
+  .table thead { display: none; }
+  .table table, .table tbody, .table tr, .table td { display: block; width: 100%; }
+  .table tr {
+    margin-top: 14px; padding: 4px 0;
+    border: 1px solid var(--line); border-radius: 11px; background: var(--card);
+  }
+  .table td { padding: 11px 16px; border-bottom: 1px solid var(--line-soft); }
+  .table tr > td:last-child { border-bottom: none; }
+  .table td:first-child { font-size: 1.02rem; }
+  .table td[data-label]::before {
+    content: attr(data-label); display: block;
+    color: var(--sub); font-size: .76rem; font-weight: 800; margin-bottom: 1px;
+  }
+}
 
 /* ---------- フッター ---------- */
 .article-foot { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--sub); font-size: 13.5px; text-align: center; line-height: 2.1; }

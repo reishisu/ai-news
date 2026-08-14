@@ -1,0 +1,13 @@
+{
+  "category": "Web開発・インフラ",
+  "tags": [
+    "キャッシュ",
+    "GitHub Pages",
+    "実測",
+    "入門"
+  ],
+  "featured": true,
+  "title": "pushしたのに直らない。犯人は10分前のCSS",
+  "summary": "CSSを直してpushしたのにサイトが崩れたまま。原因をヘッドレスブラウザで再現し、GitHub Pagesが返す実物のヘッダーまで確認しました。F5もデプロイし直しも効きません。シークレットウィンドウでだけ直って見える罠と、8文字で直す方法まで。",
+  "thumbnail": "images/thumb.png"
+}

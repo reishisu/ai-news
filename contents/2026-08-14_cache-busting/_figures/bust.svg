@@ -1,0 +1,31 @@
+<svg viewBox="0 0 640 230" xmlns="http://www.w3.org/2000/svg" role="img">
+  <!-- 左: そのまま -->
+  <text x="20" y="26" fill="var(--c)" font-size="13.5" font-weight="800">そのまま</text>
+  <rect x="20" y="40" width="270" height="46" rx="9" fill="var(--track)" stroke="var(--sub)" stroke-width="1"/>
+  <text x="155" y="69" fill="var(--fg)" font-size="14" font-weight="700" text-anchor="middle" font-family="ui-monospace, monospace">style.css</text>
+
+  <path d="M155 92 L155 116" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#ar)"/>
+
+  <rect x="20" y="124" width="270" height="66" rx="9" fill="none" stroke="var(--c)" stroke-width="2"/>
+  <text x="155" y="150" fill="var(--c)" font-size="13" font-weight="800" text-anchor="middle">ブラウザ「持ってるから</text>
+  <text x="155" y="171" fill="var(--c)" font-size="13" font-weight="800" text-anchor="middle">取りに行かない」</text>
+  <text x="155" y="212" fill="var(--sub)" font-size="12" text-anchor="middle">＝ 直しても届かない</text>
+
+  <!-- 右: ハッシュ付き -->
+  <text x="350" y="26" fill="var(--a)" font-size="13.5" font-weight="800">中身のハッシュを付ける</text>
+  <rect x="350" y="40" width="270" height="46" rx="9" fill="var(--track)" stroke="var(--a)" stroke-width="1.5"/>
+  <text x="485" y="69" fill="var(--fg)" font-size="14" font-weight="700" text-anchor="middle" font-family="ui-monospace, monospace">style.css?v=a38e0f24</text>
+
+  <path d="M485 92 L485 116" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#ar)"/>
+
+  <rect x="350" y="124" width="270" height="66" rx="9" fill="none" stroke="var(--a)" stroke-width="2"/>
+  <text x="485" y="150" fill="var(--a)" font-size="13" font-weight="800" text-anchor="middle">ブラウザ「知らないURLだ。</text>
+  <text x="485" y="171" fill="var(--a)" font-size="13" font-weight="800" text-anchor="middle">取りに行く」</text>
+  <text x="485" y="212" fill="var(--sub)" font-size="12" text-anchor="middle">＝ 必ず最新が届く</text>
+
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--sub)"/>
+    </marker>
+  </defs>
+</svg>

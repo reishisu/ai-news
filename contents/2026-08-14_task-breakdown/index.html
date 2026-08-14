@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一番大きいタスクを速くしても、納期は1日も縮まない</title>
+<meta name="description" content="ログイン機能を7個に分解し、依存関係から最短日数を計算しました。一番大きいタスクを半分にしても全体は変わりません。50行のスクリプトと、そのまま使えるテンプレート付き。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一番大きいタスクを速くしても、納期は1日も縮まない">
+<meta property="og:description" content="ログイン機能を7個に分解して計算。縮めるべき場所は直感と違います。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_task-breakdown/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=ef3b7e06">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">チームで作る技術 ｜ 2026年8月14日(金)</div>
+    <h1>一番大きいタスクを速くしても、納期は1日も縮まない</h1>
+    <div class="range">「ログイン機能を作る」を7個に割って、実際に計算しました。縮めるべき場所は直感と違います。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約7分</span>
+      <span class="tag">リード向け</span>
+      <span class="tag">テンプレ配布</span>
+      <span class="tag">50行のスクリプト付き</span>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b data-count="7">0</b><span>個に割る</span></div>
+    <div class="stat"><b data-count="7">0</b><span>日が4.5日になる</span></div>
+    <div class="stat"><b data-count="0">0</b><span>日しか縮まない手</span></div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li>
+        <b>作業量の合計と、終わるまでの日数は別物</b>
+        <span>合計7日ぶんの作業が、並行にすれば4.5日で終わります。分解の目的はこれです。</span>
+      </li>
+      <li>
+        <b>一番大きいタスクを半分にしても、全体は1日も縮まなかった</b>
+        <span>実際に計算した結果です。4.5日のまま変わりません。</span>
+      </li>
+      <li>
+        <b>縮むのは「余裕ゼロの道」を縮めたときだけ。しかも縮めると道が移る</b>
+        <span>だから毎回計算し直します。50行のスクリプトを置いておきます。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">まず7個に割ってみる</a></li>
+      <li><a href="#s2">依存関係を書くと、並行にできる形が見える</a></li>
+      <li><a href="#s3">計算する（50行）</a></li>
+      <li><a href="#s4">一番大きいタスクを縮めてみる</a></li>
+      <li><a href="#s5">分解でよくある失敗3つ</a></li>
+      <li><a href="#s6">そのまま使うテンプレート</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>まず7個に割ってみる</h2>
+
+    <article class="item">
+      <h3>「ログイン機能を作る」は、そのままでは誰も着手できない</h3>
+      <p class="lead">このままIssueにすると、担当者は<mark>どこから手を付けるかを自分で決める</mark>ところから始めます。そこで止まります。</p>
+      <p class="lead">実際に割ります。基準は<b>「明日の朝これを見て、すぐ手が動くか」</b>だけです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">ログイン機能を作る → 7個</div>
+        <pre>A  仕様を1枚にまとめる        0.5日   前提なし
+B  APIの入出力を決める        0.5日   A のあと
+C  DBのテーブルを決める        0.5日   A のあと
+D  認証APIを実装する          2.0日   B と C のあと
+E  ログイン画面を作る          1.5日   B のあと
+F  入力エラーの表示を作る       1.0日   E のあと
+G  つないでE2Eテストを書く      1.0日   D と F のあと</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>1タスクは0.5〜2日に収める。</b>3日を超えたら、まだ中で何か決まっていません。もう1段割ります。</li>
+        <li><b>「◯◯のあと」を必ず書く。</b>ここを書かない分解は、ただのリストです。順番が決まらないので並行にできません。</li>
+        <li><b>調査タスクは作らない。</b>「調べる」は終わりが定義できません。「Bを決めて1枚に書く」のように、<b>成果物</b>で書きます。</li>
+      </ul>
+
+      <div class="quiz">
+        <p class="q">Q. 分解して「5日」と見積もったタスクがある。どうする?</p>
+        <button class="opt" type="button" data-correct="false">バッファを足して7日にする</button>
+        <button class="opt" type="button" data-correct="true">まだ何かが決まっていないので、もう1段割る</button>
+        <button class="opt" type="button" data-correct="false">経験のあるメンバーに任せる</button>
+        <p class="ans" hidden>正解。5日と言えてしまうのは、中身が見えていないからです。見えていれば「2日と1日と2日」に分かれます。大きい見積もりは、実力ではなく解像度の問題です。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>依存関係を書くと、並行にできる形が見える</h2>
+
+    <article class="item">
+      <h3>7個を線でつなぐと、2本の道に分かれる</h3>
+
+      <figure>
+        <picture>
+          <source srcset="images/deps-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/deps.png" alt="7つのタスクの依存関係。A仕様からB API設計とC DB設計に分かれ、E画面とF エラー表示を通る道が全体の長さを決めている" loading="lazy">
+        </picture>
+        <figcaption>太い線が、全体の長さを決めている道</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>Aが終わるまで誰も動けません。</b>だからAは最優先で、しかも一番短くすべきです。ここが詰まると全員が止まります。</li>
+        <li><b>BとCは同時にやれます。</b>2人いれば0.5日で両方終わります。1人なら1日かかります。</li>
+        <li><b>Eは「Bのあと」でDを待ちません。</b>APIの入出力さえ決まれば、画面はモックで作り始められるからです。<mark>この1本を分けられるかどうかが分岐点</mark>です。</li>
+      </ul>
+
+      <details>
+        <summary>Eを「Dのあと」にしてしまうと何が起きるか</summary>
+        <div class="body">
+          <dl>
+            <dt>よくある書き方</dt>
+            <dd>「APIができてから画面を作る」。自然に見えますが、これだと E は D の完了（3.0日時点）まで開始できません。全体は 3.0 + 1.5 + 1.0 + 1.0 = 6.5日になります。<b>2日の損</b>です。</dd>
+            <dt>分けるための条件</dt>
+            <dd>Bで<b>入出力の形だけ</b>先に確定させること。中身の実装は後でいい。ここを合意しておけば、画面はダミーの応答で進められます。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="section section-c" id="s3">
+    <h2><span class="step">3</span>計算する（50行）</h2>
+
+    <article class="item">
+      <h3>目で追うと間違えるので、書かせて計算させる</h3>
+      <p class="lead">タスクが7個ならまだ目で追えます。<mark>15個を超えると人間には無理</mark>です。計算させます。</p>
+
+      <div class="code">
+        <div class="code-head">critical_path.py — 依存関係から最短日数を出す</div>
+        <pre># id, 名前, 日数, 依存(先に終わっている必要があるタスク)
+TASKS = [
+    ("A", "仕様を1枚にまとめる",        0.5, []),
+    ("B", "APIの入出力を決める",        0.5, ["A"]),
+    ("C", "DBのテーブルを決める",        0.5, ["A"]),
+    ("D", "認証APIを実装する",          2.0, ["B", "C"]),
+    ("E", "ログイン画面を作る",          1.5, ["B"]),
+    ("F", "入力エラーの表示を作る",      1.0, ["E"]),
+    ("G", "つないでE2Eテストを書く",     1.0, ["D", "F"]),
+]
+
+
+def schedule(tasks):
+    """各タスクの最早開始日と最早終了日を出す。"""
+    days = {t[0]: t[2] for t in tasks}
+    deps = {t[0]: t[3] for t in tasks}
+    start, finish = {}, {}
+
+    def finish_of(tid):
+        if tid in finish:
+            return finish[tid]
+        s = max([finish_of(d) for d in deps[tid]], default=0.0)
+        start[tid] = s
+        finish[tid] = s + days[tid]
+        return finish[tid]
+
+    for tid in days:
+        finish_of(tid)
+    return start, finish
+
+
+def critical_path(tasks, finish, deps):
+    """終わりから逆にたどって、全体の長さを決めている一本道を出す。"""
+    end = max(finish, key=lambda k: finish[k])
+    path = [end]
+    while deps[path[-1]]:
+        prev = max(deps[path[-1]], key=lambda d: finish[d])
+        path.append(prev)
+    return list(reversed(path))</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">実行結果（実際の出力）</div>
+        <pre>$ python3 critical_path.py
+=== そのまま ===
+id  タスク                    日数   開始   完了    余裕
+A   仕様を1枚にまとめる        0.5   0.0   0.5   0.0日  ←余裕なし
+B   APIの入出力を決める        0.5   0.5   1.0   0.0日  ←余裕なし
+C   DBのテーブルを決める       0.5   0.5   1.0   0.0日  ←余裕なし
+D   認証APIを実装する          2.0   1.0   3.0   0.5日
+E   ログイン画面を作る         1.5   1.0   2.5   0.0日  ←余裕なし
+F   入力エラーの表示を作る     1.0   2.5   3.5   0.0日  ←余裕なし
+G   つないでE2Eテストを書く    1.0   3.5   4.5   0.0日  ←余裕なし
+
+<span class="ok-line">全部を1人で順番にやると : 7.0 日
+人を足して並行にやると   : 4.5 日
+全体の長さを決めている道 : A → B → E → F → G</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>「余裕」の列が全部です。</b>0.0日のタスクは、1時間遅れたら全体が1時間遅れます。ここだけ毎日見ればいい。</li>
+        <li><b>Dだけ0.5日の余裕があります。</b>つまりDは半日遅れても納期に影響しません。<b>Dの担当者に毎日進捗を聞く必要はありません。</b></li>
+        <li><b>見るべきはA・B・E・F・Gの5つ。</b>7個全部を追いかけるより、5個に集中したほうが早く異常に気づけます。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="section section-a" id="s4">
+    <h2><span class="step">4</span>一番大きいタスクを縮めてみる</h2>
+
+    <article class="item">
+      <h3>2日のタスクを1日にした。全体は1日も縮まなかった</h3>
+      <p class="lead">遅れそうなとき、まず<mark>一番大きいタスク</mark>に人を足したくなります。この例ではD（認証API、2.0日）です。やってみます。</p>
+
+      <div class="code term">
+        <div class="code-head">Dを 2.0日 → 1.0日 にした結果</div>
+        <pre>=== 一番大きい D を 2.0日 → 1.0日 に縮めた ===
+D   認証APIを実装する          1.0   1.0   2.0   1.5日
+E   ログイン画面を作る         1.5   1.0   2.5   0.0日  ←余裕なし
+
+全部を1人で順番にやると : 6.0 日
+<span class="ng-line">人を足して並行にやると   : 4.5 日      ← 変わっていない</span>
+全体の長さを決めている道 : A → B → E → F → G</pre>
+      </div>
+
+      <p class="lead">作業量は7日から6日に減りました。<mark>それでも終わる日は1日も動きません。</mark>Dは元々余裕のある道にいたからです。</p>
+
+      <div class="code term">
+        <div class="code-head">今度は余裕ゼロのE（1.5日 → 0.5日）</div>
+        <pre>=== 余裕なしの E を 1.5日 → 0.5日 に縮めた ===
+D   認証APIを実装する          2.0   1.0   3.0   0.0日  ←余裕なし
+E   ログイン画面を作る         0.5   1.0   1.5   0.0日  ←余裕なし
+F   入力エラーの表示を作る     1.0   1.5   2.5   0.5日
+
+全部を1人で順番にやると : 6.0 日
+<span class="ok-line">人を足して並行にやると   : 4.0 日      ← 0.5日 縮んだ</span>
+<span class="ok-line">全体の長さを決めている道 : A → B → D → G   ← 道が移った</span></pre>
+      </div>
+
+      <figure>
+        <picture>
+          <source srcset="images/shrink-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/shrink.png" alt="一番大きいDを半分にしても4.5日のまま変わらず、余裕ゼロのEを縮めると4.0日になることを示した棒グラフ" loading="lazy">
+        </picture>
+        <figcaption>同じ「1日ぶんの短縮」でも、どこを縮めたかで結果がまったく違う</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>縮めていいのは、余裕ゼロのタスクだけ。</b>それ以外に人を足すのは、作業量を減らしているだけで納期には効きません。</li>
+        <li><b>縮めると道が移ります。</b>今回は E を縮めた瞬間、Dが余裕ゼロになりました。<b>1回縮めたら必ず計算し直す。</b></li>
+        <li><b>0.5日しか縮まなかったことにも意味があります。</b>「1日ぶん頑張っても半日しか効かない」と分かれば、そもそも別の手を探せます。</li>
+      </ul>
+
+      <div class="quiz">
+        <p class="q">Q. 納期に間に合わない。人を1人足せる。どこに入れる?</p>
+        <button class="opt" type="button" data-correct="false">一番大きいタスクに入れる</button>
+        <button class="opt" type="button" data-correct="false">一番遅れているタスクに入れる</button>
+        <button class="opt" type="button" data-correct="true">余裕ゼロの道の中で、一番大きいタスクに入れる</button>
+        <p class="ans" hidden>正解。条件が2つ重なっているのがポイントです。「余裕ゼロの道の上にある」かつ「その中で大きい」。片方だけだと効きません。なお、人を足すこと自体に引き継ぎのコストがかかるので、それも日数に足して計算してください。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="section section-a" id="s5">
+    <h2><span class="step">5</span>分解でよくある失敗3つ</h2>
+
+    <article class="item">
+      <h3>兆候が出た時点で気づけば、まだ間に合います</h3>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>失敗</th><th>先に出る兆候</th><th>手当て</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>割りすぎ</b><br><span class="cap">30分単位まで刻む</span></td>
+              <td data-label="先に出る兆候">タスクの更新作業そのものに時間が溶ける。誰も一覧を見なくなる</td>
+              <td data-label="手当て">0.5日を下限にする。それ未満は親タスクの中のチェックリストへ</td>
+            </tr>
+            <tr>
+              <td><b>依存を書かない</b><br><span class="cap">リストにしただけ</span></td>
+              <td data-label="先に出る兆候">着手できるタスクが常に1個しかない。人が余っているのに進まない</td>
+              <td data-label="手当て">各タスクに「◯◯のあと」を1行足す。それだけで並行できる形が見える</td>
+            </tr>
+            <tr>
+              <td><b>終わりが決まっていない</b><br><span class="cap">「調査」「対応」「改善」</span></td>
+              <td data-label="先に出る兆候">進捗を聞くと毎回「だいたい8割です」と返ってくる</td>
+              <td data-label="手当て">成果物の名前に書き換える。「調べる」→「比較表を1枚出す」</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="points">
+        <li><b>「だいたい8割」は最強の危険信号です。</b>終わりが定義されていないタスクは、永遠に8割のままです。</li>
+        <li><b>割りすぎの害は見えにくい。</b>細かく割るほど正しく管理している気分になりますが、更新コストだけが増えます。</li>
+        <li><b>迷ったら「明日の朝、これを見て手が動くか」。</b>動かないなら大きすぎ、管理が面倒なら小さすぎです。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="section section-b" id="s6">
+    <h2><span class="step">6</span>そのまま使うテンプレート</h2>
+
+    <article class="item">
+      <h3>コピーして、名前を書き換えるだけで動きます</h3>
+
+      <div class="code wrap">
+        <div class="code-head">Issue の雛形（コピーして使えます）</div>
+        <pre>## 完了の定義（これができたら閉じる）
+- [ ]
+
+## 前提（このタスクの前に終わっている必要があるもの）
+-
+
+## 見積もり
+0.5日 / 1日 / 1.5日 / 2日  ← どれかに丸を付ける。2日を超えるなら割る
+
+## 余裕
+□ 余裕ゼロ（遅れたら全体が遅れる）
+□ 余裕あり（◯日まで遅れてよい）
+
+## 触るもの
+- ファイル / テーブル / 画面：
+
+## 触らないもの（他の人の担当）
+- </pre>
+      </div>
+
+      <p class="lead">「触らないもの」の欄が地味に効きます。<mark>複数人で並行するときの事故は、ほぼ全部ここ</mark>で起きます。</p>
+
+      <div class="code wrap">
+        <div class="code-head">分解できたかの判定基準（5つ全部Yesで着手可）</div>
+        <pre>1. 完了の定義が、見ただけで判定できるか（「動く」ではなく「テストが通る」）
+2. 見積もりが2日以内か
+3. 「◯◯のあと」が書いてあるか
+4. 触るファイル・画面が具体名で書けるか
+5. 担当者が1人に決まるか（2人必要なら、まだ割れる）</pre>
+      </div>
+
+      <p class="lead">最後に、明日の朝からやることです。<span class="cl-count">0 / 5</span></p>
+      <ul class="checklist" data-key="task-breakdown-2026-08-14">
+        <li><label><input type="checkbox"><span>いま一番大きいタスクを、0.5〜2日の粒度まで割った</span></label></li>
+        <li><label><input type="checkbox"><span>各タスクに「◯◯のあと」を1行書いた</span></label></li>
+        <li><label><input type="checkbox"><span>スクリプトで計算して、余裕ゼロのタスクを特定した</span></label></li>
+        <li><label><input type="checkbox"><span>毎日の確認対象を、余裕ゼロのタスクだけに絞った</span></label></li>
+        <li><label><input type="checkbox"><span>「調査」「対応」で終わっているタスク名を、成果物の名前に直した</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 これでもう「頑張ったのに縮まない」は起きません</div>
+
+      <a class="next-up" href="../2026-08-14_cache-busting/">
+        <div class="label">NEXT →</div>
+        <div class="t">pushしたのに直らない。犯人は10分前のCSS</div>
+        <div class="d">同じ「実測で追い詰める」やり方を、キャッシュ事故に使った回です。</div>
+      </a>
+
+      <details>
+        <summary>用語について</summary>
+        <div class="body">
+          <dl>
+            <dt>この記事で「全体の長さを決めている道」と呼んだもの</dt>
+            <dd>一般にはクリティカルパスと呼ばれます。1950年代後半に、非効率なスケジューリングによるコスト増を解決するために作られた考え方です。作業を分解し、全経路の所要時間を計算して最長の経路を特定します。（参考: <a href="https://asana.com/ja/resources/critical-path-method">クリティカルパスとは？ — Asana</a>）</dd>
+            <dt>注意点</dt>
+            <dd>この計算は、見積もりが正しいことを前提にしています。見積もりが雑なら結果も雑です。ただし「どこを見るべきか」の当たりを付ける用途なら、雑な見積もりでも十分役に立ちます。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月14日時点の内容です。掲載したスクリプトは Python 3.11.15 で実際に実行し、出力をそのまま載せています。</div>
+    <div>公開: 2026年8月14日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=740d7826" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
