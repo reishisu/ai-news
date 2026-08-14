@@ -11,6 +11,7 @@
 """
 
 import datetime
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -25,6 +26,32 @@ SITE_TITLE = "AIニュース デイリーダイジェスト"
 
 # 号ページ(contents/<dir>/index.html)からサイトルートへの相対プレフィックス
 ISSUE_PREFIX = "../../"
+
+# CSS/JSはブラウザに強くキャッシュされるため、内容が変わったら別URLになるようにする
+VERSIONS = {}
+ASSETS = ["css/style.css", "css/article.css", "css/shared.css", "js/shared.js", "js/article.js"]
+
+
+def asset_versions():
+    """{'css/article.css': 'a1b2c3d4', ...} を返す(内容ハッシュの先頭8桁)。"""
+    versions = {}
+    for rel in ASSETS:
+        path = HERE / rel
+        if path.is_file():
+            versions[rel] = hashlib.sha256(path.read_bytes()).hexdigest()[:8]
+    return versions
+
+
+def add_cache_busting(html, versions):
+    """既存の ?v=... を捨てて、現在の内容ハッシュを付け直す。"""
+    for rel, ver in versions.items():
+        name = rel.split("/")[-1]
+        html = re.sub(
+            r'((?:href|src)="[^"]*' + re.escape(name) + r')(?:\?v=[0-9a-f]+)?(")',
+            lambda m: f"{m.group(1)}?v={ver}{m.group(2)}",
+            html,
+        )
+    return html
 
 
 def format_date_ja(date):
@@ -134,6 +161,11 @@ def enhance_issue(issue, meta):
         html = inject_before_body(
             html, SHARE_BAR + f'<script src="{ISSUE_PREFIX}js/shared.js" defer></script>\n'
         )
+    # 記事の小物(コピーボタン・進捗バー・クイズ等)
+    if "js/article.js" not in html:
+        html = inject_before_body(html, f'<script src="{ISSUE_PREFIX}js/article.js" defer></script>\n')
+
+    html = add_cache_busting(html, VERSIONS)
 
     if html != original:
         issue["html_path"].write_text(html, encoding="utf-8")
@@ -167,6 +199,8 @@ def build_card(issue, meta, is_latest):
 
 
 def main():
+    global VERSIONS
+    VERSIONS = asset_versions()
     issues = collect_issues()
     cards = []
     for i, issue in enumerate(issues):
@@ -178,6 +212,7 @@ def main():
     html = template.replace("{{CARDS}}", "\n".join(cards) if cards else
                             '      <p class="posts-empty">まだ号がありません。明日の朝6:00をお楽しみに。</p>')
     html = html.replace("{{COUNT}}", str(len(issues)))
+    html = add_cache_busting(html, VERSIONS)
     (HERE / "index.html").write_text(html, encoding="utf-8")
     print(f"index.html を生成しました(全{len(issues)}号)")
 
