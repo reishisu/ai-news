@@ -1,26 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git status)",
-      "Bash(git status *)",
-      "Bash(git diff)",
-      "Bash(git diff *)",
-      "Bash(git log)",
-      "Bash(git log *)",
-      "Bash(git add *)",
-      "Bash(git commit *)",
-      "Bash(git push)",
-      "Bash(git push *)",
-      "Bash(git pull)",
-      "Bash(git pull *)",
-      "Bash(git fetch)",
-      "Bash(git fetch *)",
-      "Bash(git ls-remote)",
-      "Bash(git ls-remote *)",
-      "Bash(git rev-parse *)",
-      "Bash(git checkout *)",
-      "Bash(git branch *)",
-      "Bash(python3 _build_index.py)"
-    ]
+      "Bash(git *)",
+      "Bash(python3 *)",
+      "Bash(mkdir *)",
+      "Bash(ls *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Read",
+      "Edit",
+      "Write"
+    ],
+    "defaultMode": "acceptEdits"
   }
 }
