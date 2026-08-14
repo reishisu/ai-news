@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIニュース デイリーダイジェスト 2026年8月15日(土)</title>
+<meta name="description" content="Claude Codeでサブエージェントのforkが既定化、ChatGPTがGoogle Driveを直接編集可能に。PostgreSQLは28件の脆弱性を一括修正。Z.aiのGLM-5.3は「オープンウェイト最強」を名乗りつつ重みを2週間隠す。8月15日朝までの主要ニュース。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AIニュース デイリーダイジェスト 2026年8月15日(土)">
+<meta property="og:description" content="Claude Codeのサブエージェントfork既定化、ChatGPTのGoogle Drive直接編集、PostgreSQLの脆弱性28件一括修正、GLM-5.3の重み非公開など。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-15_001/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=19bddda4">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">2026年8月15日(土)</div>
+    <h1>Claude Codeのサブエージェントが黙って背景実行になり、GLM-5.3は重みを隠したまま「最強」を名乗った日</h1>
+    <div class="range">対象期間: 8月14日(金) 6:00 〜 8月15日(土) 6:00 JST(クライアント技術は直近1週間)</div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 今日の3行まとめ</h2>
+    <ol>
+      <li>
+        <b>Claude Code 2.1.232で、サブエージェントの並行実行がデフォルトの挙動になった</b>
+        <span>会話とキャッシュを引き継ぐforkが標準に。同時にPowerShellやWindowsのシンボリックリンクを悪用した権限まわりの不具合も修正。</span>
+      </li>
+      <li>
+        <b>PostgreSQLの全サポート版が更新され、28件の脆弱性が一斉に塞がれた</b>
+        <span>うち14件は緊急度が高いCVSS 8.8で、任意コード実行につながるものも複数。更新後にGINインデックスの手動チェックが必要な場合あり。PG14は11月12日でサポート終了。</span>
+      </li>
+      <li>
+        <b>Z.aiの新モデル「GLM-5.3」は「オープンウェイト最強」を名乗るが、当日時点で重みは未公開だった</b>
+        <span>「安全性審査のため2週間後に公開」と説明。自社ベンチマークでも脆弱性の「発見」は強いが「攻撃」はFable 5やGPT-5.6 Solに大差で負けている。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#work">今日から効いてくる実務のアップデート(4件)</a></li>
+      <li><a href="#dev">Web開発・インフラ(3件)</a></li>
+      <li><a href="#client">クライアント技術(3件)</a></li>
+      <li><a href="#research">技術・研究(2件)</a></li>
+      <li><a href="#industry">モデル・業界(2件)</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 実務者向け ============ -->
+  <section class="section section-b" id="work">
+    <h2>🧰 今日から効いてくる実務のアップデート<span class="n">4件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude Code 2.1.232で、サブエージェントの同時実行が「デフォルトで動く」ように変わった</h3>
+      <div class="tags">
+        <span class="tag">8/13</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">Claude Code</span>
+        <span class="tag">v2.1.232</span>
+      </div>
+      <p class="lead">サブエージェントとは、Claude Codeが本体とは別に呼び出す「作業担当のAI」のこと。その中でも会話の続きをそのまま複製して並行で動かす「fork」が、これまでオプトインだったのが<mark>標準の挙動</mark>になりました。forkしたサブエージェントは会話全体とプロンプトキャッシュ(過去のやり取りの再利用可能な記憶)を引き継ぎ、対話セッション中に生成される他のエージェントも既定でバックグラウンド実行になります。</p>
+
+      <ul class="points">
+        <li><b>知らないうちに並行実行が増える。</b>fork型サブエージェントを使う設定なら、今日から明示的なオプトインなしに会話・キャッシュを引き継いで動きます。自動化スクリプトの前提が変わっていないか確認を。</li>
+        <li><b>セッションを名前で呼べるようになった。</b>プロンプト内で「@」に続けてセッション名を書くと、Claudeが`SendMessage`でそのセッションに直接話しかけます。</li>
+        <li><b>権限まわりの不具合を複数修正。</b>本来許可されていないファイルに書き込めてしまうケースが直りました。例えばWindowsでは、ショートカットの一種「シンボリックリンク」を経由すると、Claude Codeの権限チェックをすり抜けて書き込めてしまうことがありました。</li>
+        <li><b>GitLabのトークンも自動マスク対象に。</b>`glrt-`や`glpat-`など複数プレフィックスのトークンをログ・出力から隠すようになりました。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>あわせて直った不具合</dt>
+            <dd>ネストしたgitリポジトリが親ディレクトリの信頼設定を継承してしまう問題(各リポジトリで個別に信頼確認が必要になった)、Bashのリダイレクト`&lt; file`が引数指定と同じ権限チェックを受けていなかった問題も修正されています。8月12日のv2.1.229では、`/commit-push-pr`が`--force`や`--no-verify`など危険フラグ付きのgit/ghコマンドを自動承認しないよう変更されました。</dd>
+            <dt>注意</dt>
+            <dd>この記事は挙動変更の告知そのものであり、Anthropicの公式リリースノートに基づいています。「デフォルト化」によって既存の自動化やCI連携がどう変わるかは、各自の設定で確認してください。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://code.claude.com/docs/en/changelog">Claude Code Changelog(公式)</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=openai.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">OpenAI</div>
+      <h3>ChatGPTのLibraryから、Google Driveのファイルを直接開いて編集できるようになった</h3>
+      <div class="tags">
+        <span class="tag">8/13</span>
+        <span class="tag warn">⚠ 報道ベース</span>
+        <span class="tag">ファイル処理</span>
+        <span class="tag">Plus / Pro / Enterprise</span>
+      </div>
+      <p class="lead">Google Driveプラグインを接続していれば、Drive内のファイルをLibraryから直接見て、<mark>コピーを作らずに元ファイルへ書き戻せる</mark>ようになりました。Google Docs・Sheets・Slidesは会話の隣に開いたまま作業できます。</p>
+
+      <ul class="points">
+        <li><b>再アップロードが要らない。</b>チャットの入力欄(composer)や@メンションから、共有されたファイルも含めてDrive内のファイル・フォルダをそのまま呼び出せます。</li>
+        <li><b>対応が支援できる範囲でのみ、元ファイルを直接更新。</b>対応形式ではその場で保存され、コピーが増えません。</li>
+        <li><b>まずWeb版から、Plus / Pro / Enterprise / Edu / Healthcare / Business向け。</b>モバイル対応は追って提供予定です。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>注意</dt>
+            <dd>OpenAI公式のリリースノートページに直接アクセスできず(Cloudflareの検証画面でブロック)、内容はミラーサイトに転載された全文と9to5Macの報道で確認しています。同じ「今週の機能追加」に含まれるという「Quizzes」機能は、OpenAI公式リリースノートのミラー本文には記載がなく、9to5Mac記事内のOpenAI社員のX投稿引用のみで言及されています。公式発表そのものでは確認できていません。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://9to5mac.com/2026/08/14/chatgpt-subscribers-can-now-open-and-edit-google-drive-files-from-inside-the-chat/">9to5Mac</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=github.blog&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">GitHub</div>
+      <h3>GitHub Copilotの週次アップデート — CLIに`/rewind`、プラグインをエディタ横断で使い回せる仕組みがGAに</h3>
+      <div class="tags">
+        <span class="tag">8/13-14</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">Copilot</span>
+        <span class="tag">VS Code 1.133</span>
+      </div>
+      <p class="lead">週次リリースの目玉は<mark>Agent Plugins 1.0の正式提供(GA)</mark>で、1つ作ったプラグインをVS Code・Copilot CLI・SDK・Copilot appの間で使い回せます。CLIには`/rewind`が追加され、<mark>gitを使わずに変更を元に戻せる</mark>ようになりました。</p>
+
+      <ul class="points">
+        <li><b>Grok 4.6がCopilotに追加。</b>ただしBusiness/Enterpriseでは<mark>管理者がポリシーを有効化するまで既定でOFF</mark>です。課金はプロバイダーの定価に基づく従量制。</li>
+        <li><b>CLIの`/tasks`でサブエージェントを一覧管理。</b>エージェントの実行中でもプロンプトやシェルコマンドをキューに積めるようになりました。</li>
+        <li><b>VS Code 1.133では、Claudeセッション内でモデルを切り替え可能に。</b>ターンごとにClaude BYOKとCopilot内蔵モデルを選べます。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>その他</dt>
+            <dd>Kimi K3がPro/Pro+/Max/Business/Enterpriseへ展開中。MAI-Code-1.1-Flashはネイティブ画像理解に対応。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://github.blog/changelog/2026-08-13-github-copilot-weekly-releases-august-10">GitHub Changelog(週次リリース)</a> / <a href="https://github.blog/changelog/2026-08-14-grok-4-6-is-now-available-in-github-copilot">GitHub Changelog(Grok 4.6)</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=cursor.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Cursor</div>
+      <h3>CursorのCloud Agentsが「Builds」で起動3倍速に — 追加費用なし</h3>
+      <div class="tags">
+        <span class="tag">8/13</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">Cursor</span>
+        <span class="tag">Cloud Agents</span>
+      </div>
+      <p class="lead">開発環境のコピーをバックグラウンドで事前に用意しておく「Builds」機能が入り、<mark>エージェントが毎回ゼロから環境構築する代わりに用意済みの環境で起動</mark>するようになりました。起動は10倍速、最初のトークンが出るまでは3倍速とのことです。</p>
+
+      <ul class="points">
+        <li><b>新規環境は自動で有効。</b>既存環境は「Cloud Agentsダッシュボード → Builds タブ → Enable Builds」で手動有効化が必要です。</li>
+        <li><b>壊れたビルドは使われない。</b>依存関係の更新で環境が壊れても、直前の成功ビルドを使い続け、裏でデバッグしている間もエージェントは動き続けます。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>出典</dt>
+            <dd><a href="https://cursor.com/changelog">Cursor Changelog</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ Web開発・インフラ ============ -->
+  <section class="section section-c" id="dev">
+    <h2>🧑‍💻 Web開発・インフラ<span class="n">3件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=postgresql.org&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">PostgreSQL</div>
+      <h3>PostgreSQL全サポート版が更新 — 28件の脆弱性を一括修正、うち14件は緊急度の高いCVSS 8.8</h3>
+      <div class="tags">
+        <span class="tag">8/13</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">脆弱性</span>
+        <span class="tag">要対応</span>
+      </div>
+      <p class="lead">18.6・17.11・16.15・15.19・14.24が同時リリースされました。<mark>28件のセキュリティ修正と110件超のバグ修正</mark>を含む、通常より大きめの更新です。危険度は「CVSS」という0〜10のスコアで表され、数字が大きいほど深刻です。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/pg-eol-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/pg-eol.png" alt="PostgreSQL各バージョンのサポート終了日。14は2026年11月12日" loading="lazy">
+        </picture>
+        <figcaption>PG14を使っているなら、11月12日までに18か17への移行計画が必要</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>更新するだけでは終わらない場合がある。</b>検索を高速化する仕組み「GINインデックス」を使うテーブルは、更新後に内部の行数カウント(`reltuples`)が異常値(Infinityなど)になっていないか公式が案内するクエリで確認が必要。放置すると自動お掃除機能(autovacuum)が二度と走らなくなります。</li>
+        <li><b>14/15/16はレプリケーション(複製先サーバー)に注意。</b>古いマイナーバージョンの本体から更新履歴(WAL)を受け取ると複製先がお互い待ち合ったまま固まる(自己デッドロック)回帰が今回のバグ修正対象。ローリング更新の順序に影響します。</li>
+        <li><b>PG14は2026年11月12日でサポート終了。</b>移行の計画が必要な人はここが締め切りです。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>CVEの一例(公式一覧より)</dt>
+            <dd>正規表現・`to_char`・`pg_stat_statements`・`pg_dump`のヒープバッファオーバーフロー(いずれもCVSS 8.8、任意コード実行につながる)、`EXTRACT`引数経由のSQLインジェクション(CVSS 8.8)、`psql`の`COPY FROM STDIN`が失敗時にデータ行をpsqlコマンドとして処理する不具合(CVSS 8.1)。CVSS 8.8は公式一覧全体で14件あり、うち任意コード実行につながる旨が明記されているものは9件です。</dd>
+            <dt>訂正</dt>
+            <dd>一部の二次情報が「30件の脆弱性」と報じていますが、公式発表とCVE一覧を数えた結果は28件でした。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://www.postgresql.org/about/news/postgresql-186-1711-1615-1519-1424-and-19-beta-3-released-3365/">PostgreSQL公式アナウンス</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=cloudflare.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Cloudflare</div>
+      <h3>Cloudflare、Worker単位でAccessを強制できるように — 「vibe codingで作って公開範囲を間違える」事故対策</h3>
+      <div class="tags">
+        <span class="tag">8/14</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">Workers</span>
+        <span class="tag">セキュリティ</span>
+      </div>
+      <p class="lead">これまでCloudflare Accessはホスト名単位でしか設定できず、Workerにカスタムドメインを後から足すと<mark>認証なしでアクセスできる穴</mark>が構造的に生まれていました。今回、Workerそのもの・アカウント全体にAccessを紐づけられるようになり、この穴が塞がれます。</p>
+
+      <ul class="points">
+        <li><b>優先順位はホスト名 &gt; Worker &gt; アカウントの順。</b>最も具体的な設定が勝ちます。</li>
+        <li><b>同日、無許可の「MCP」通信を見つける機能も発表。</b>MCPはAIアシスタントが外部ツールを呼び出す際の共通規格です。固定のホスト名やパスを使わないため通常のHTTPS APIと見分けが付きにくく、Cloudflare Gatewayが通信の特徴からMCP通信を見つけ、許可した経路以外のアクセスを制御できるようにします。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>対応要否</dt>
+            <dd>Cloudflare Workers + Access(Cloudflare One)を使っている人は、既存構成でホスト名単位の穴が残っていないか棚卸しする価値があります。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://blog.cloudflare.com/workers-protected-by-access/">Cloudflare Blog</a> / <a href="https://blog.cloudflare.com/mcp-security-updates/">Cloudflare Blog(MCP検知)</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=vercel.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Vercel</div>
+      <h3>Vercel CDNがEncrypted Client Hello(ECH)に対応 — 設定不要で自動有効</h3>
+      <div class="tags">
+        <span class="tag">8/15</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">TLS</span>
+        <span class="tag">Vercel DNS</span>
+      </div>
+      <p class="lead">TLSハンドシェイクの接続先ホスト名(SNI)を暗号化する<mark>ECH</mark>が、Vercel DNSで管理しているドメイン向けに自動で有効になりました。設定は不要です。</p>
+
+      <ul class="points">
+        <li><b>対象はVercel DNS管理ドメインのみ。</b>プラットフォーム側で自動有効化され、対応ブラウザ(最新のChrome・Edge・Firefox)から見ると接続先は共有ホスト名`vercel-ech.com`に見えます。</li>
+        <li><b>SNIベースの監視・フィルタリングに影響しうる。</b>社内でSNIを見てホスト名を振り分けるファイアウォールやログ基盤がある場合、挙動が変わる可能性があります(公式告知には明記なし)。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>出典</dt>
+            <dd><a href="https://vercel.com/changelog/encrypted-client-hello-now-supported-on-vercel-cdn">Vercel Changelog</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ クライアント技術 ============ -->
+  <section class="section section-a" id="client">
+    <h2>📱 クライアント技術<span class="n">3件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=developer.android.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Google</div>
+      <h3>androidx.webkit 1.17.0が安定版に — `loadUrl`を置き換える`navigate()`、WebViewは Chromeより先にv152へ</h3>
+      <div class="tags">
+        <span class="tag">8/12(直近1週間)</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">WebView</span>
+        <span class="tag">Android</span>
+      </div>
+      <p class="lead">`WebView#loadUrl`を置き換える`WebViewCompat#navigate()`が安定版に入りました。追跡可能な`Navigation`オブジェクトを返すため、<mark>1画面に複数WebViewがある場合や並行遷移の追跡</mark>がしやすくなります。</p>
+
+      <ul class="points">
+        <li><b>lintルールが新規追加。</b>カスタム`WebViewClient`を使っていて`onRenderProcessGone`未実装だと、既存プロジェクトのビルドで新しく警告が出るようになります。</li>
+        <li><b>HTTPキャッシュの容量制御や、favicon自動取得の無効化も追加。</b>静的コンテンツが多いアプリのキャッシュ肥大やメモリ消費を抑えられます。`navigate()`はWebView M151以上が必要です。</li>
+        <li><b>Android System WebViewはv152が8月12日配信。</b>同日時点でChrome for AndroidのChrome 152は「一部ユーザー向けearly stable」段階で、<mark>WebViewのバージョン進行はChrome本体と同期していません</mark>。「Chromeがまだ151だからWebViewも151のはず」という前提でのテストは外れます。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>あわせて確認</dt>
+            <dd>Chrome 151安定版(8/11)ではV8・TabStrip・Extensions・HTML・Blinkのuse-after-free 5件(いずれもHigh)を修正済み。HTML/Blinkのレンダラ脆弱性はWebView埋め込みアプリにも影響するため、アプリ側では`onRenderProcessGone`の実装が緩和策になります。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://developer.android.com/jetpack/androidx/releases/webkit">Android Developers(androidx.webkit)</a> / <a href="https://support.google.com/product-documentation/answer/14343500?hl=en">Google System Services Release Notes</a> / <a href="https://chromereleases.googleblog.com/2026/08/">Chrome Releases</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=unity.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Unity</div>
+      <h3>Unity 6.6ベータで、WebGPUから「実験的」の表記が外れた — Emscriptenも4.0.19に更新</h3>
+      <div class="tags">
+        <span class="tag">8/12(直近1週間)</span>
+        <span class="tag ok">✓ 公式確認済(ベータ)</span>
+        <span class="tag">Unity Web</span>
+        <span class="tag">6000.6</span>
+      </div>
+      <p class="lead">6000.6.0b8のリリースノートに「WebGL: Removed the experimental tag from WebGPU」の1行。マニュアルを見比べると、6.5版にあった<mark>「WebGPUは実験的機能」という注意書きが6.6版では丸ごと削除</mark>されています。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/unity-web-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/unity-web.png" alt="Unity 6.6ベータのWeb関連変更点" loading="lazy">
+        </picture>
+        <figcaption>安定版・LTSのマイナー更新にはWeb関連の変更が無く、動きは6.6ベータに集中している</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>ブラウザで動くWebGLビルドが、最大16GBのメモリを扱えるように。</b>「Wasm64」という64ビット対応の仕組みで上限が広がり、処理を高速化する「Burst」機能も一緒に使えるようになりました。大規模プロジェクトのWebビルドでメモリ上限に当たりにくくなります。</li>
+        <li><b>C/C++コードをWeb用に変換する土台「Emscripten」が3.1.38 → 4.0.19に大幅更新。</b>外部ライブラリ(ネイティブプラグイン)を使っているプロジェクトは6.6での再ビルドが必要になる可能性があります。互換性確認用に「Web Platform向けプラグイン設定」も新設。</li>
+        <li><b>progressive asset loading(シーン単位の段階読み込み)も6.6に前倒しで搭載。</b>7月時点のロードマップ報道では次のLTS(6.7)予定と伝えられていましたが、8月12日のベータには既に入っています。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>実機バグ修正も</dt>
+            <dd>モバイルGPUが`float32-blendable`拡張を持たない場合のWebGPUエラーをb8で修正。「一部のモバイル端末で発生」と公式が明記しており、機種依存のタイプの不具合でした。</dd>
+            <dt>注意</dt>
+            <dd>現時点では6000.6系のベータのみの変更です。安定版6000.5.8f1・LTS6000.3.22f1(いずれも8月12〜13日リリース)のリリースノートにWeb関連の変更はありませんでした。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://docs.unity3d.com/6000.6/Documentation/Manual/WebGPU.html">Unity Manual 6000.6(WebGPU)</a> / Unity 6000.6.0b8 公式リリースノート</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=vrchat.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">VRChat</div>
+      <h3>VRChat 2026.3.1が2連発リリース — クライアントは動いたが、SDKは6月から止まったまま</h3>
+      <div class="tags">
+        <span class="tag">8/12-13</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">VRChat</span>
+        <span class="tag">Build 1885/1886</span>
+      </div>
+      <p class="lead">8月12日にBuild 1885、13日にBuild 1886(p1)と立て続けに更新。目玉はSDF(符号付き距離場)によるステッカー・絵文字の描画改善と、<mark>`VRCObjectSync`の同期信頼性向上</mark>です。一方でワールド制作に使うSDKは6月17日の3.10.4から動きがありません。</p>
+
+      <ul class="points">
+        <li><b>Androidの動画再生バグを回避。</b>`rtspt://`のURLを内部で`rtsp://`に置き換えるようになり、ExoPlayerの制約で動かなかった動画がQuest等で再生できるようになります。</li>
+        <li><b>`VRCObjectSync`の最終位置が全員で一致しやすく。</b>回線が遅いユーザーがワールド原点に一瞬表示されてから正しい位置へ移動する、という現象が起きにくくなりました。</li>
+        <li><b>公式が「SDKはまだ」と明言。</b>リリースノートに「関連する修正を可能にするSDKは今回のパッチには含まれない、次回に入る」と明記されています。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>予告(未リリース)</dt>
+            <dd>8月13日のDeveloper Updateで、Udonの毎フレーム処理を減らす`VRCBillboard.Register()`(オブジェクトをローカルプレイヤーに向ける)と`AttachTransformToBone()`(アバターのボーンへの追従)がSDKに追加予定と案内。ただし「リリースまで仕様は変わりうる」と公式が明記しており未確定です。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://docs.vrchat.com/docs/vrchat-202631">VRChat公式リリースノート(2026.3.1)</a> / <a href="https://docs.vrchat.com/docs/vrchat-202631p1">同(2026.3.1p1)</a> / <a href="https://ask.vrchat.com/t/developer-update-13-august-2026/48800">Developer Update</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 技術・研究 ============ -->
+  <section class="section section-c" id="research">
+    <h2>🔬 技術・研究<span class="n">2件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">arXiv</div>
+      <h3>プロンプトに条件を7個詰め込むと、どのモデルも半分以下しか守れなくなる — 「計画させる」対策は効果ゼロ</h3>
+      <div class="tags">
+        <span class="tag">8/12</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">研究</span>
+        <span class="tag">プロンプト設計</span>
+      </div>
+      <p class="lead">15モデル・36種類の制約・36万9753件のチェックを使った検証で、<mark>同時に満たすべき条件が7個を超えると最強のモデルでも成功率が50%を割る</mark>ことが分かりました。個々の条件の通過率はゆるやかにしか落ちないのに、全部同時に満たす確率は掛け算で崩れます。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/constraint-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/constraint.png" alt="同時に満たすべき条件の数が増えるほど、全条件達成率が急落する" loading="lazy">
+        </picture>
+        <figcaption>個別の条件通過率は約41%を保っても、8個同時だと成功率は5.7%まで落ちる</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>「先に計画させる」は閾値を1ミリも動かさない。</b>事前にCoTで計画させても、崩壊が始まる制約数は変わりませんでした。</li>
+        <li><b>自己修正・複数回試行も焼け石に水。</b>生成後の自己修正やbest-of-5の再試行は、崩壊点をわずか1〜2個分先送りするだけでした。</li>
+        <li><b>効くのは「1条件あたりの精度そのものを上げる」ことだけ。</b>プロンプトへの条件の積み増しには構造的な上限があるという結論です。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>評価方法</dt>
+            <dd>採点はすべてルールベースの検証器で行い、LLM-as-a-judgeは使っていません。評価対象はGPT・Claude・Gemini・Llama・Qwen・DeepSeek・Kimi・Grokの主要モデル群。</dd>
+            <dt>開発者への意味</dt>
+            <dd>システムプロンプトに出力スキーマ・安全境界・推論手順・文字数などを積み上げるほど、実際に守られる条件数は5〜6個が現実的な上限です。分割するか、各条件の精度そのものを上げる設計が必要になります。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://arxiv.org/abs/2608.12426">arXiv:2608.12426</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">arXiv</div>
+      <h3>過去の実行ログをそのまま貼るより、「今回向けに要約し直す」方が精度10.7pt高くトークンは半分</h3>
+      <div class="tags">
+        <span class="tag">8/13</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">研究</span>
+        <span class="tag">コンテキスト管理</span>
+      </div>
+      <p class="lead">2391件のタスクで検証したところ、過去のエージェント実行ログをそのままコンテキストに入れる方式より、<mark>再利用可能な手順・取り直すべき値・適用条件だけを抜き出したメモに変換する方式</mark>が成功率10.7ポイント上回り、使うトークン量もほぼ半分になりました。</p>
+
+      <ul class="points">
+        <li><b>「検索」と「渡し方」は別問題。</b>候補の探し方は同じにしたまま、渡す情報の形だけを変えて比較したのがこの研究のポイントです。</li>
+        <li><b>ログが長くなるほど、生ログをそのまま貼る方式は分が悪くなる。</b>タスクが変わるたびに変わる値(ログイン先URLなど)を毎回引き直す前提のメモの方が有効でした。</li>
+        <li><b>保存は豊かに、投入は絞る。</b>ログ自体は詳細に保存しつつ、実際にモデルへ渡すのは今回のタスク向けに書き直した短い要約、という設計が結論です。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>実験条件</dt>
+            <dd>WebArena・WorkArena・AppWorldの3ベンチマーク、軌跡生成にDeepSeek-V4-Proを使用。何もメモを使わない場合と比べ、汎用要約だけでも9.5ポイント改善、そこからこの手法でさらに伸びています。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://arxiv.org/abs/2608.12847">arXiv:2608.12847</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ モデル・業界 ============ -->
+  <section class="section section-a" id="industry">
+    <h2>🏢 モデル・業界<span class="n">2件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=z.ai&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Z.ai</div>
+      <h3>Z.aiが「オープンウェイト最強」のGLM-5.3を発表 — なのに当日、重みはまだ公開されていない</h3>
+      <div class="tags">
+        <span class="tag">8/14</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">新モデル</span>
+        <span class="tag">オープンウェイト</span>
+      </div>
+      <p class="lead">「重み」とは学習済みAIモデルの中身そのもの、「オープンウェイト」とはそれを誰でもダウンロードできる形で公開するモデルを指します。Z.aiは「コーディング向けオープンウェイトモデルとして最も高性能」と発表しましたが、公式ブログ自身に<mark>「安全性評価と対策が終わる2週間後に重みを公開する」</mark>と書かれています。発表時点でHugging Faceにモデルは存在しません。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/glm-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/glm.png" alt="GLM-5.3のTerminal-Bench 3.0スコアはGLM-5.2から改善したが、Fable5やGPT-5.6 Solにはまだ届かない" loading="lazy">
+        </picture>
+        <figcaption>Terminal-Bench 3.0は4.6→28.3に伸びたが、フロンティア級の30台にはまだ差がある</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>ベースモデルは同じ、伸びたのはポスト学習だけ。</b>GLM-5.2と同じベースモデルのまま追加学習し、Terminal-Bench 3.0は4.6→28.3、DeepSWE v1.1は46.2→66.9に改善。出力トークンは減りながら精度は上がっています。</li>
+        <li><b>「最強」の主張は自社の表とも食い違う。</b>同じブログの比較表で、Terminal-Bench 2.1やDeepSWEなど4項目はKimi K3の方が上回っています。</li>
+        <li><b>脆弱性の「発見」は強いが「攻撃」は大差で負ける。</b>脆弱性発見のCyberGymでは他モデルを上回る一方、攻撃の実行(ExploitBench)はFable 5の78.0%・GPT-5.6 Solの76.5%に対しGLM-5.3は54.4%。重み公開を遅らせた理由はこの発見能力の伸びだと読めます。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>訂正・注意</dt>
+            <dd>一部の二次報道は「743Bパラメータ」としていますが、同じベースを使うGLM-5.2のHugging Face上のメタデータを直接確認したところ約753.3Bでした。GLM-5.2は6月にMITライセンスで即日公開されており、今回の「2週間保留」はGLMシリーズとしては方針転換にあたります。API価格は公式ドキュメントに「近日公開」とあるのみで未確認です。なお、ExploitBenchの78.0%というスコアは、Z.ai公式ブログの地の文では「Mythos 5」、比較表では「Fable 5」という異なる名前で言及されており、Z.ai自身の資料内で表記が揺れています(数値は両箇所で一致)。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://z.ai/blog/glm-5.3">Z.ai公式ブログ</a> / <a href="https://docs.z.ai/guides/llm/glm-5.3">Z.ai公式ドキュメント</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=openai.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">OpenAI</div>
+      <h3>OpenAIが「Ultrafast」を限定プレビュー — GPT-5.6 Solが最大14倍速、Cerebras製チップで動く</h3>
+      <div class="tags">
+        <span class="tag">8/13</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">新機能</span>
+        <span class="tag">限定プレビュー</span>
+      </div>
+      <p class="lead">Cerebras社のウェハスケールチップ上でGPT-5.6 Solを動かす新サービス階層「Ultrafast」の先行公開です。標準処理と比べて<mark>最大14倍速、毎秒最大750トークン</mark>を生成します。</p>
+
+      <ul class="points">
+        <li><b>まだ一部顧客限定。</b>本日時点では「選ばれた顧客向けの限定プレビュー」段階。価格は未公開です。</li>
+        <li><b>想定用途はインシデント対応や金融の不正検知など「1秒を争う」場面。</b>OpenAI社内でもインシデント対応とリサーチに使っているとのことです。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>注意</dt>
+            <dd>OpenAI公式ページに直接アクセスできず(Cloudflareの検証画面でブロック)、テキストミラー経由で本文を確認しました。「Claude比11倍」「Opus Fast比5倍」などの倍率はCerebras側の計測で、OpenAI本文には記載がありません。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://openai.com/index/previewing-ultrafast/">OpenAI公式</a> / <a href="https://www.cerebras.ai/blog/accelerating-gpt-5-6-sol-ultrafast-with-openai">Cerebras Blog</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>生成: 2026年8月15日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

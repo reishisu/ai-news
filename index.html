@@ -41,16 +41,22 @@
   <section class="featured">
     <div class="posts-head"><h2>🔥 よく読まれている記事</h2><span class="posts-count">2026-08-14 時点</span></div>
     <div class="pick-grid">
-        <a class="pick-card" href="contents/2026-08-14_loop-graph/">
+        <a class="pick-card" href="contents/2026-08-14_webview-origin/">
           <span class="pick-rank">1</span>
-          <span class="pick-cat">AIで作る技術</span>
-          <span class="pick-title">プロンプトを書く時代から、ループとグラフを設計する時代へ</span>
+          <span class="pick-cat">クライアント技術</span>
+          <span class="pick-title">WebViewだけ動かない。犯人は Origin: null</span>
           <span class="pick-date">2026年8月14日(金) ・ 1 回</span>
         </a>
-        <a class="pick-card" href="contents/2026-08-14_ai-basics/">
+        <a class="pick-card" href="contents/2026-08-14_vrchat-discovery/">
           <span class="pick-rank">2</span>
-          <span class="pick-cat">AIで作る技術</span>
-          <span class="pick-title">AIに丸投げできるまで、たった4ステップ</span>
+          <span class="pick-cat">クライアント技術</span>
+          <span class="pick-title">VRChatのワールドが誰にも見つからない、公式に決まっている理由</span>
+          <span class="pick-date">2026年8月14日(金) ・ 1 回</span>
+        </a>
+        <a class="pick-card" href="contents/2026-08-14_unity-web-threads/">
+          <span class="pick-rank">3</span>
+          <span class="pick-cat">クライアント技術</span>
+          <span class="pick-title">Unity Webが本番だけ動かない。原因はビルドではなくサーバー</span>
           <span class="pick-date">2026年8月14日(金) ・ 1 回</span>
         </a>
     </div>
@@ -59,7 +65,7 @@
   <section class="posts">
     <div class="posts-head">
       <h2>記事一覧</h2>
-      <span class="posts-count"><b id="hitCount">9</b>件</span>
+      <span class="posts-count"><b id="hitCount">10</b>件</span>
     </div>
 
     <div class="finder">
@@ -70,9 +76,12 @@
       </div>
       <div class="tag-bar" id="tagBar">
       <button class="tag-chip is-on" type="button" data-tag="">すべて</button>
+      <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>4</i></button>
       <button class="tag-chip" type="button" data-tag="実測">#実測<i>4</i></button>
-      <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>3</i></button>
       <button class="tag-chip" type="button" data-tag="Gemini">#Gemini<i>2</i></button>
+      <button class="tag-chip" type="button" data-tag="WebView">#WebView<i>2</i></button>
+      <button class="tag-chip" type="button" data-tag="オープンウェイト">#オープンウェイト<i>2</i></button>
+      <button class="tag-chip" type="button" data-tag="セキュリティ">#セキュリティ<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="入門">#入門<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="Android">#Android<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="Anthropic">#Anthropic<i>1</i></button>
@@ -81,18 +90,16 @@
       <button class="tag-chip" type="button" data-tag="Copilot">#Copilot<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="DeepSeek">#DeepSeek<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="GitHub Pages">#GitHub Pages<i>1</i></button>
+      <button class="tag-chip" type="button" data-tag="PostgreSQL">#PostgreSQL<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="Unity Web">#Unity Web<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="VRChat">#VRChat<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="WebAssembly">#WebAssembly<i>1</i></button>
-      <button class="tag-chip" type="button" data-tag="WebView">#WebView<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="iOS">#iOS<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="xAI">#xAI<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="エージェント設計">#エージェント設計<i>1</i></button>
-      <button class="tag-chip" type="button" data-tag="オープンウェイト">#オープンウェイト<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="キャッシュ">#キャッシュ<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="グラフエンジニアリング">#グラフエンジニアリング<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="スキル">#スキル<i>1</i></button>
-      <button class="tag-chip" type="button" data-tag="セキュリティ">#セキュリティ<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="タスク分解">#タスク分解<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="テスト">#テスト<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="デプロイ">#デプロイ<i>1</i></button>
@@ -108,12 +115,24 @@
     </div>
 
     <div class="post-list" id="postList">
+      <a class="post-card" href="contents/2026-08-15_001/"
+         data-tags="Claude Code|PostgreSQL|セキュリティ|WebView|オープンウェイト" data-category="デイリーダイジェスト"
+         data-date="2026-08-15" data-search="claude codeのサブエージェントが黙って背景実行になり、glm-5.3は重みを隠したまま「最強」を名乗った日 claude code 2.1.232でサブエージェントの並行実行が既定化。postgresqlは28件の脆弱性を一括修正しpg14は11月にeol。z.aiの新モデルglm-5.3は「オープンウェイト最強」を名乗りながら重みを2週間隠しました。webview・unity web・vrchatの更新もまとめています。 デイリーダイジェスト claude code postgresql セキュリティ webview オープンウェイト aiニュース デイリーダイジェスト 2026年8月15日(土) aiニュース デイリーダイジェスト 2026年8月15日(土) claude codeのサブエージェントが黙って背景実行になり、glm-5.3は重みを隠したまま「最強」を名乗った日 対象期間: 8月14日(金) 6:00 〜 8月15日(土) 6:00 jst(クライアント技術は直近1週間) ⭐ 今日の3行まとめ claude code 2.1.232で、サブエージェントの並行実行がデフォルトの挙動になった 会話とキャッシュを引き継ぐforkが標準に。同時にpowershellやwindowsのシンボリックリンクを悪用した権限まわりの不具合も修正。 postgresqlの全サポート版が更新され、28件の脆弱性が一斉に塞がれた うち14件は緊急度が高いcvss 8.8で、任意コード実行につながるものも複数。更新後にginインデックスの手動チェックが必要な場合あり。pg14は11月12日でサポート終了。 z.aiの新モデル「glm-5.3」は「オープンウェイト最強」を名乗るが、当日時点で重みは未公開だった 「安全性審査のため2週間後に公開」と説明。自社ベンチマークでも脆弱性の「発見」は強いが「攻撃」はfable 5やgpt-5.6 solに大差で負けている。 目次 今日から効いてくる実務のアップデート(4件) web開発・インフラ(3件) クライアント技術(3件) 技術・研究(2件) モデル・業界(2件) 🧰 今日から効いてくる実務のアップデート 4件 anthropic claude code 2.1.232で、サブエージェントの同時実行が「デフォルトで動く」ように変わった 8/13 ✓ 公式確認済 claude code v2.1.232 サブエージェントとは、claude codeが本体とは別に呼び出す「作業担当のai」のこと。その中でも会話の続きをそのまま複製して並行で動かす「fork」が、これまでオプトインだったのが 標準の挙動 になりました。forkしたサブエージェントは会話全体とプロンプトキャッシュ(過去のやり取りの再利用可能な記憶)を引き継ぎ、対話セッション中に生成される他のエージェントも既定でバックグラウンド実行になります。 知らないうちに並行実行が増える。 fork型サブエージェントを使う設定なら、今日から明示的なオプトインなしに会話・キャッシュを引き継いで動きます。自動化スクリプトの前提が変わっていないか確認を。 セッションを名前で呼べるようになった。 プロンプト内で「@」に続けてセッション名を書くと、claudeが`sendmessage`でそのセッションに直接話しかけます。 権限まわりの不具合を複数修正。 本来許可されていないファイルに書き込めてしまうケースが直りました。例えばwindowsでは、ショートカットの一種「シンボリックリンク」を経由すると、claude codeの権限チェックをすり抜けて書き込めてしまうことがありました。 gitlabのトークンも自動マスク対象に。 `glrt-`や`glpat-`など複数プレフィックスのトークンをログ・出力から隠すようになりました。 もう少し詳しく あわせて直った不具合 ネストしたgitリポジトリが親ディレクトリの信頼設定を継承してしまう問題(各リポジトリで個別に信頼確認が必要になった)、bashのリダイレクト`&lt; file`が引数指定と同じ権限チェックを受けていなかった問題も修正されています。8月12日のv2.1.229では、`/commit-push-pr`が`--force`や`--no-verify`など危険フラグ付きのgit/ghコマンドを自動承認しないよう変更されました。 注意 この記事は挙動変更の告知そのものであり、anthropicの公式リリースノートに基づいています。「デフォルト化」によって既存の自動化やci連携がどう変わるかは、各自の設定で確認してください。 出典 claude code changelog(公式) openai chatgptのlibraryから、google driveのファイルを直接開いて編集できるようになった 8/13 ⚠ 報道ベース ファイル処理 plus / pro / enterprise google driveプラグインを接続していれば、drive内のファイルをlibraryから直接見て、 コピーを作らずに元ファイルへ書き戻せる ようになりました。google docs・sheets・slidesは会話の隣に開いたまま作業できます。 再アップロードが要らない。 チャットの入力欄(composer)や@メンションから、共有されたファイルも含めてdrive内のファイル・フォルダをそのまま呼び出せます。 対応が支援できる範囲でのみ、元ファイルを直接更新。 対応形式ではその場で保存され、コピーが増えません。 まずweb版から、plus / pro / enterprise / edu / healthcare / business向け。 モバイル対応は追って提供予定です。 もう少し詳しく 注意 openai公式のリリースノートページに直接アクセスできず(cloudflareの検証画面でブロック)、内容はミラーサイトに転載された全文と9to5macの報道で確認しています。同じ「今週の機能追加」に含まれるという「quizzes」機能は、openai公式リリースノートのミラー本文には記載がなく、9to5mac記事内のopenai社員のx投稿引用のみで言及されています。公式発表そのものでは確認できていません。 出典 9to5mac github github copilotの週次アップデート — cliに`/rewind`、プラグインをエディタ横断で使い回せる仕組みがgaに 8/13-14 ✓ 公式確認済 copilot vs code 1.133 週次リリースの目玉は agent plugins 1.0の正式提供(ga) で、1つ作ったプラグインをvs code・copilot cli・sdk・copilot appの間で使い回せます。cliには`/rewind`が追加され、 gitを使わずに変更を元に戻せる ようになりました。 grok 4.6がcopilotに追加。 ただしbusiness/enterpriseでは 管理者がポリシーを有効化するまで既定でoff です。課金はプロバイダーの定価に基づく従量制。 cliの`/tasks`でサブエージェントを一覧管理。 エージェントの実行中でもプロンプトやシェルコマンドをキューに積めるようになりました。 vs code 1.133では、claudeセッション内でモデルを切り替え可能に。 ターンごとにclaude byokとcopilot内蔵モデルを選べます。 もう少し詳しく その他 kimi k3がpro/pro+/max/business/enterpriseへ展開中。mai-code-1.1-flashはネイティブ画像理解に対応。 出典 github changelog(週次リリース) / github changelog(grok 4.6) cursor cursorのcloud agentsが「builds」で起動3倍速に — 追加費用なし 8/13 ✓ 公式確認済 cursor cloud agents 開発環境のコピーをバックグラウンドで事前に用意しておく「builds」機能が入り、 エージェントが毎回ゼロから環境構築する代わりに用意済みの環境で起動 するようになりました。起動は10倍速、最初のトークンが出るまでは3倍速とのことです。 新規環境は自動で有効。 既存環境は「cloud agentsダッシュボード → builds タブ → enable builds」で手動有効化が必要です。 壊れたビルドは使われない。 依存関係の更新で環境が壊れても、直前の成功ビルドを使い続け、裏でデバッグしている間もエージェントは動き続けます。 もう少し詳しく 出典 cursor changelog 🧑‍💻 web開発・インフラ 3件 postgresql postgresql全サポート版が更新 — 28件の脆弱性を一括修正、うち14件は緊急度の高いcvss 8.8 8/13 ✓ 公式確認済 脆弱性 要対応 18.6・17.11・16.15・15.19・14.24が同時リリースされました。 28件のセキュリティ修正と110件超のバグ修正 を含む、通常より大きめの更新です。危険度は「cvss」という0〜10のスコアで表され、数字が大きいほど深刻です。 pg14を使っているなら、11月12日までに18か17への移行計画が必要 更新するだけでは終わらない場合がある。 検索を高速化する仕組み「ginインデックス」を使うテーブルは、更新後に内部の行数カウント(`reltuples`)が異常値(infinityなど)になっていないか公式が案内するクエリで確認が必要。放置すると自動お掃除機能(autovacuum)が二度と走らなくなります。 14/15/16はレプリケーション(複製先サーバー)に注意。 古いマイナーバージョンの本体から更新履歴(wal)を受け取ると複製先がお互い待ち合ったまま固まる(自己デッドロック)回帰が今回のバグ修正対象。ローリング更新の順序に影響します。 pg14は2026年11月12日でサポート終了。 移行の計画が必要な人はこ">
+        <img class="post-thumb" src="contents/2026-08-15_001/images/thumb.png" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;post-thumb-ph&quot;>📰</div>'">
+        <div class="post-body">
+          <div class="post-date"><span class="post-cat">デイリーダイジェスト</span>2026年8月15日(土)<span class="post-new">NEW</span></div>
+          <h3 class="post-title">Claude Codeのサブエージェントが黙って背景実行になり、GLM-5.3は重みを隠したまま「最強」を名乗った日</h3>
+          <p class="post-summary">Claude Code 2.1.232でサブエージェントの並行実行が既定化。PostgreSQLは28件の脆弱性を一括修正しPG14は11月にEOL。Z.aiの新モデルGLM-5.3は「オープンウェイト最強」を名乗りながら重みを2週間隠しました。WebView・Unity Web・VRChatの更新もまとめています。</p>
+          <div class="post-tags"><span class="post-tag">#Claude Code</span><span class="post-tag">#PostgreSQL</span><span class="post-tag">#セキュリティ</span><span class="post-tag">#WebView</span></div>
+          <span class="post-more">続きを読む →</span>
+        </div>
+      </a>
       <a class="post-card" href="contents/2026-08-14_webview-origin/"
          data-tags="WebView|CORS|Android|iOS|セキュリティ|実測" data-category="クライアント技術"
          data-date="2026-08-14" data-search="webviewだけ動かない。犯人は origin: null ブラウザでは動くのに、アプリのwebviewに載せた瞬間apiだけが落ちる。原因のorigin: nullを実測で確認し、corsの返し方4通りを全部叩いて結果を表にしました。検索でよく出てくる回避策がcookieごと穴を開ける理由と、androidとiosでの正しい直し方まで。 クライアント技術 webview cors android ios セキュリティ 実測 webviewだけ動かない。犯人は origin: null aiニュース デイリーダイジェスト クライアント技術 ｜ 2026年8月14日(金) webviewだけ動かない。犯人は origin: null ブラウザでは動く。アプリの中に入れた瞬間だけapiが落ちる。その理由を実測で突き止めます。 ⏱ 約7分 android / ios 共通 cors 4パターン実測 ⭐ 3行で言うと file:// や loaddata で読み込むと、apiには origin: null が届く androidの公式ドキュメントの言葉では「不透明なオリジン(opaque origin)」です。 だから許可リスト方式のapiは100%落ちます。nullは絶対に一致しないからです corsの返し方4通りを実際に叩いて、どれが通るか表にしました。 「じゃあnullも許可する」が一番危ない。cookie付きで誰でも通れる穴になります これも実測しました。正しい直し方は、そもそもnullにしないことです。 目次 症状 — ブラウザでは動くのに originに何が入るかを測る cors設定4通りの結果表 よくある回避策が穴になる 正しい直し方（android / ios） 今すぐ確認するリスト 参考文献 1 症状 — ブラウザでは動くのに 同じhtmlなのに、アプリに載せた瞬間だけapiが落ちる webとして作っているときは完璧に動きます。アプリのwebviewに載せると、 apiの呼び出しだけが失敗 する。 しかもエラーメッセージが不親切です。js側には typeerror: failed to fetch としか出ません。ネットワークの問題にも、サーバー障害にも見えます。 htmlの中身は関係ありません。 1文字も変えなくても、読み込み方が違うだけで結果が変わります。 画像やcssは普通に表示されます。 だから「通信自体はできている」と思ってしまい、原因から遠ざかります。 androidでも iosでも起きます。 どちらも同じ理屈です。 q. 同じhtmlなのに、webviewの中だけapiが落ちるのはなぜ? webviewは fetch に対応していないから 読み込み方によって、apiに名乗るオリジンが変わるから アプリからの通信はosにブロックされるから 正解。ブラウザは「このページはどこから来たか」をapiに伝えます。ローカルのファイルから読み込むと、名乗る先が無いので null になります。次でその実物を見ます。 2 originに何が入るかを測る 同じhtmlを2通りの方法で開いて、apiに届いた値を記録した 推測をやめて実物を見ます。apiサーバー側で、受け取った origin ヘッダーをそのまま記録しました。 apiサーバーが受け取ったorigin（実測） $ cat api.log get /none origin: null get /star origin: null get /allowlist origin: null get /none origin: http://127.0.0.1:8802 get /star origin: http://127.0.0.1:8802 get /allowlist origin: http://127.0.0.1:8802 上3行が file:// で開いた場合、下3行がサーバーから配信した場合です。 htmlの中身は完全に同一 です。 変わるのはhtmlではなく「読み込み方」だけ androidの公式ドキュメントも同じことを言っています。 「 file:// urlと data: urlは 不透明なオリジン とみなされ、 fetch() や xmlhttprequest のような強力なweb apiを利用できません」 iosでも同じです。 loadfileurl で読み込むと、リクエストのオリジンは null になります。 localstorage は使えます。 ここが紛らわしいところで、保存系は動くのに通信系だけ死ぬので、原因の切り分けが遅れます。 実測に使ったコード（コピペで再現できます） やっていること 同じhtmlを file:// と http:// の両方から開き、別オリジンのapiへ fetch して結果を比べています。ブラウザはヘッドレスchromium、サーバーはpythonの標準ライブラリだけです。 ポイント apiサーバー側で self.headers.get(&quot;origin&quot;) をログに書くだけで、何が届いているかは一発で分かります。webviewの調査でも、まずここを見るのが最短です。 3 cors設定4通りの結果表 apiの返し方を4通り用意して、全部叩いた file:// のページ（つまり origin: null ）から呼んだ結果です。 apiの返し方 ふつうのfetch cookie付きfetch corsヘッダーを返さない 拒否 拒否 allow-origin: * 全部許可する 通る 拒否 allow-origin: https://app.example.com 許可リスト方式 拒否 拒否 届いたoriginをそのまま返す ＋ allow-credentials: true 通る 通る 許可リスト方式は絶対に通りません。 null が許可リストに載ることはないからです。ここで多くの人が詰まります。 allow-origin: * は通りますが、cookieが送れません。 これは仕様です。 * と認証情報は併用できません。 つまり「ログインが必要なapi」は、 file:// のwebviewからは正攻法では呼べません。 これが問題の本質です。 この4行は、仕様書の6ステップを写しただけ なぜこの結果になるのか。 fetch仕様に判定手順がそのまま書いてあります。 上から順に読むだけで、表の4行が全部説明できます。 fetch standard §4.10「cors check」— 原文（判定手順） 1. let origin be the result of getting `access-control-allow-origin` from response's header list. 2. if origin is null, then return failure. （注: null is not `null`. ＝「ヘッダーが無い」と 「文字列 null が入っている」は別物） 3. if request's credentials mode is not &quot;include&quot; and origin is `*`, then return success. 4. if the result of byte-serializing a request origin with request is not origin, then return failure. 5. if request's credentials mode is not &quot;include&quot;, then return success. 6. let credentials be the result of getting `access-control-allow-credentials` ... if credentials is `true`, then return success. return failure. 表の行 どのステップで決まるか ヘッダーなし → 両方拒否 ステップ2で脱落。ヘッダーが無いので即 failure * → ふつうは通る / cookieは拒否 ステップ3が「credentials でない場合に限り」success。cookie付きだとここを通れず、ステップ4で null ≠ * となり failure 許可リスト → 両方拒否 ステップ4で null ≠ https://app.example.com となり failure そのまま返す → 両方通る ステップ4を null = null で通過し、ステップ6の allow-credentials: true で success。 ここが穴 仕様は access-control-allow-origin の値について、 「originリクエストヘッダーの値そのまま（ null もありうる）か * 」 と定義しています。つまり null を返すのは 規格違反ではありません 。規格の範囲内で、素直に穴が開きます。 4 よくある回避策が穴になる 「届いたoriginをそのまま返す」は、鍵をかけずに札を貼るのと同じ 表の一番下だけが両方通ります。だから検索するとこの実装がよく出てきます。 これが一番危険です。 やってはいけない実装 self.send_header(&quot;access-control-allow-origin&quot;, self.headers.get(&quot;origin&quot;, &quot;*&quot;)) # 届いたものをそのまま返す self.send_header(&quot;access-control-allow-credentials&quot;, &quot;true&quot;) このapiは「 null から来たら null を許可する」と答えます。ところが null は 誰でも名乗れます 。 ローカルに置いたhtml、sandbox属性付きのiframe。どれも null を名乗れます cookieが付いたまま通ることを実測しました。 表の右下で">
         <img class="post-thumb" src="contents/2026-08-14_webview-origin/images/thumb.png" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;post-thumb-ph&quot;>📰</div>'">
         <div class="post-body">
-          <div class="post-date"><span class="post-cat">クライアント技術</span>2026年8月14日(金)<span class="post-new">NEW</span></div>
+          <div class="post-date"><span class="post-cat">クライアント技術</span>2026年8月14日(金)</div>
           <h3 class="post-title">WebViewだけ動かない。犯人は Origin: null</h3>
           <p class="post-summary">ブラウザでは動くのに、アプリのWebViewに載せた瞬間APIだけが落ちる。原因のOrigin: nullを実測で確認し、CORSの返し方4通りを全部叩いて結果を表にしました。検索でよく出てくる回避策がCookieごと穴を開ける理由と、AndroidとiOSでの正しい直し方まで。</p>
           <div class="post-tags"><span class="post-tag">#WebView</span><span class="post-tag">#CORS</span><span class="post-tag">#Android</span><span class="post-tag">#iOS</span></div>

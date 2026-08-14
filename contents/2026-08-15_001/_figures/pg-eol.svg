@@ -1,0 +1,25 @@
+<svg viewBox="0 0 640 210" xmlns="http://www.w3.org/2000/svg" role="img">
+  <!-- 軸: 2026-08 = x40, 2027-02 = x600 (6ヶ月) -->
+  <line x1="40" y1="20" x2="40" y2="176" stroke="var(--sub)" stroke-width="1" stroke-dasharray="3 3"/>
+  <text x="40" y="14" fill="var(--sub)" font-size="11.5" text-anchor="middle">今(8月)</text>
+
+  <!-- PG14: 3ヶ月後にEOL -->
+  <text x="4" y="46" fill="var(--fg)" font-size="12.5" font-weight="700">14.24</text>
+  <rect x="40" y="34" width="140" height="22" rx="5" fill="var(--c)"/>
+  <text x="188" y="50" fill="var(--c)" font-size="12" font-weight="800">11/12 EOL</text>
+
+  <!-- PG15 -->
+  <text x="4" y="90" fill="var(--fg)" font-size="12.5" font-weight="700">15.19</text>
+  <rect x="40" y="78" width="500" height="22" rx="5" fill="var(--old)"/>
+
+  <!-- PG16 -->
+  <text x="4" y="134" fill="var(--fg)" font-size="12.5" font-weight="700">16.15</text>
+  <rect x="40" y="122" width="500" height="22" rx="5" fill="var(--old)"/>
+
+  <!-- PG18 (latest, safe) -->
+  <text x="4" y="178" fill="var(--fg)" font-size="12.5" font-weight="700">18.6</text>
+  <rect x="40" y="166" width="500" height="22" rx="5" fill="var(--new)"/>
+  <text x="552" y="182" fill="var(--new)" font-size="12" font-weight="800">最新</text>
+
+  <text x="40" y="204" fill="var(--sub)" font-size="11.5">14だけ11月に締め切りが来る。15/16/18は継続サポート中</text>
+</svg>
