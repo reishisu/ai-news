@@ -30,6 +30,7 @@ ISSUE_PREFIX = "../../"
 # CSS/JSはブラウザに強くキャッシュされるため、内容が変わったら別URLになるようにする
 VERSIONS = {}
 ANALYTICS = ""
+COMMENTS = ""
 ASSETS = ["css/style.css", "css/article.css", "css/shared.css",
           "js/shared.js", "js/article.js", "js/home.js"]
 
@@ -99,6 +100,53 @@ def load_popular():
         if m:
             counts[m.group(1)] = counts.get(m.group(1), 0) + int(item.get("count", 0))
     return counts, data.get("updated", "")
+
+
+def comments_snippet():
+    """site.json で有効なら、記事末尾に置くコメント欄(giscus)を返す(無効なら空)。
+
+    GitHub Discussions を保存先にする。バックエンド不要で、投稿内容は
+    リポジトリの Discussions にそのまま残るため、あとから移行もできる。
+    """
+    conf = load_json(HERE / "site.json", {}).get("comments") or {}
+    if not conf.get("enabled") or conf.get("provider") != "giscus":
+        return ""
+    repo = str(conf.get("repo") or "").strip()
+    repo_id = str(conf.get("repoId") or "").strip()
+    if not repo or not repo_id:
+        return ""
+    category = str(conf.get("category") or "").strip()
+    category_id = str(conf.get("categoryId") or "").strip()
+    cat_attrs = ""
+    if category:
+        cat_attrs += f'\n        data-category="{category}"'
+    if category_id:
+        cat_attrs += f'\n        data-category-id="{category_id}"'
+    return f"""
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead">気づいた点・間違いの指摘・補足があれば書いてください。<mark>特に事実の誤りは歓迎します。</mark></p>
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/{repo}/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="{repo}"
+        data-repo-id="{repo_id}"{cat_attrs}
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+"""
 
 
 def format_date_ja(date):
@@ -228,6 +276,18 @@ def enhance_issue(issue, meta):
     # 記事の小物(コピーボタン・進捗バー・クイズ等)
     if "js/article.js" not in html:
         html = inject_before_body(html, f'<script src="{ISSUE_PREFIX}js/article.js" defer></script>\n')
+    # コメント欄(site.json で有効なときだけ)。記事の本文の最後に置く
+    if COMMENTS and "ai-news-comments" not in html:
+        # 本文の直後・フッターの前に置く(フッターが無ければ </main> の直前)
+        if re.search(r'<footer class="article-foot">', html):
+            html = re.sub(r'<footer class="article-foot">',
+                          lambda m: COMMENTS + '\n  <footer class="article-foot">',
+                          html, count=1)
+        elif re.search(r"</main>", html, flags=re.IGNORECASE):
+            html = re.sub(r"</main>", lambda m: COMMENTS + "</main>", html,
+                          count=1, flags=re.IGNORECASE)
+        else:
+            html = inject_before_body(html, COMMENTS)
     # アクセス解析(site.json にコードがあるときだけ)
     if ANALYTICS and "goatcounter" not in html:
         html = inject_before_body(html, ANALYTICS)
@@ -338,9 +398,10 @@ def build_tagbar(issues_meta):
 
 
 def main():
-    global VERSIONS, ANALYTICS
+    global VERSIONS, ANALYTICS, COMMENTS
     VERSIONS = asset_versions()
     ANALYTICS = analytics_snippet()
+    COMMENTS = comments_snippet()
     popular, popular_updated = load_popular()
     issues = collect_issues()
     cards = []

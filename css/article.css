@@ -286,6 +286,11 @@ p code, li code, dd code, td code {
 .reads .by { display: block; margin-top: 3px; color: var(--sub); font-size: .82rem; }
 .reads .why { display: block; margin-top: 6px; font-size: .93rem; line-height: 1.8; }
 
+/* ---------- コメント欄(giscus) ---------- */
+.comment-note { color: var(--sub); font-size: .9rem; }
+#comments .giscus, #comments .giscus-frame { width: 100%; }
+#comments .giscus-frame { border: none; color-scheme: normal; }
+
 /* ---------- 出現アニメーション ---------- */
 .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
 .reveal.shown { opacity: 1; transform: none; }

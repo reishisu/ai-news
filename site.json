@@ -3,5 +3,14 @@
     "provider": "goatcounter",
     "code": "reishisu-ai-news",
     "_comment": "GoatCounter のサイトコード。https://<code>.goatcounter.com の <code> の部分だけを書く。空のままなら計測タグは埋め込まれない。"
+  },
+  "comments": {
+    "provider": "giscus",
+    "enabled": false,
+    "repo": "reishisu/ai-news",
+    "repoId": "R_kgDOT35KIA",
+    "category": "Announcements",
+    "categoryId": "",
+    "_comment": "GitHub Discussions を使ったコメント欄(giscus)。有効にする手順: (1) リポジトリの Settings → General → Features で Discussions にチェック (2) https://github.com/apps/giscus をこのリポジトリにインストール (3) https://giscus.app でリポジトリを入力し、表示される data-category-id を categoryId に入れる (4) enabled を true にして python3 _build_index.py を実行。categoryId が空でも動きますが、カテゴリ指定なしになります。"
   }
 }
