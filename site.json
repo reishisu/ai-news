@@ -6,11 +6,11 @@
   },
   "comments": {
     "provider": "giscus",
-    "enabled": false,
+    "enabled": true,
     "repo": "reishisu/ai-news",
     "repoId": "R_kgDOT35KIA",
     "category": "Announcements",
-    "categoryId": "",
-    "_comment": "GitHub Discussions を使ったコメント欄(giscus)。有効にする手順: (1) リポジトリの Settings → General → Features で Discussions にチェック (2) https://github.com/apps/giscus をこのリポジトリにインストール (3) https://giscus.app でリポジトリを入力し、表示される data-category-id を categoryId に入れる (4) enabled を true にして python3 _build_index.py を実行。categoryId が空でも動きますが、カテゴリ指定なしになります。"
+    "categoryId": "DIC_kwDOT35KIM4DDatF",
+    "_comment": "GitHub Discussions を使ったコメント欄(giscus)。enabled を false にすると全記事から外れる。記事のディレクトリ名(URL)を変えると、それまでのコメントとの紐付けが切れるので変えないこと。"
   }
 }
