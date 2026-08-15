@@ -349,6 +349,8 @@ _labs/2026-08-14_cache-busting/
 | アプリケーション | **Laravel / PHP / Composer** | 業務で使い始めたところ |
 | データベース | **TiDB** | 超基礎から。MySQLとの違いを明示する |
 | クラウド | **AWS / ECS on Fargate / ALB / CloudFront** | 超基礎から |
+| セキュリティ | **AWSのセキュリティサービス全般（IAMを起点に）** | 超基礎から。「IAMがあるのは知っている」程度 |
+| IaC | **Terraform** | 超基礎から。**CloudFormationは扱わない** |
 | コンテナ | **Docker** | 超基礎から |
 
 引き続き扱うもの: クライアント技術(WebView / Unity Web / VRChat)、チーム運営、
@@ -379,7 +381,8 @@ AIで作る技術、ブラウザとWeb標準、CI/CD。
 | **Laravel / PHP** | ✅ できる | PHP 8.4.19 + Composer。`composer create-project laravel/laravel` が通る。DBは `DB_CONNECTION=sqlite` で完結 |
 | **TiDB** | ✅ できる | TiUP 1.17.0 を導入済み。`tiup playground` でローカルにクラスタを起動できる |
 | **Docker** | ❌ できない | CLIはあるが**デーモンが動いていない**。コンテナは起動できない。Dockerfileの記述と `docker build` の説明は公式ドキュメントに基づいて書き、実行結果は載せない |
-| **AWS(ECS/Fargate/ALB/CloudFront)** | ❌ できない | 認証情報が無い。**実際のリソース作成・課金の発生する操作は一切しない** |
+| **Terraform** | ✅ 一部できる | Terraform v1.14.3 を導入済み。`init` / `validate` / **`plan` は本物の認証情報なしでも実出力が取れる**（下記）。`apply` は不可 |
+| **AWS(ECS/Fargate/ALB/CloudFront/IAM)** | ❌ できない | 認証情報が無い。**実際のリソース作成・課金の発生する操作は一切しない** |
 
 AWS CLI (aws-cli/1.46.0) は導入済みで、**認証情報が要らない操作なら実行できます。**
 
@@ -391,7 +394,43 @@ aws ecs describe-services help                             # コマンドの仕�
 雛形やヘルプは実出力として載せてよいですが、**API呼び出しの結果を載せてはいけません**
 （呼べないので、載せたらそれは捏造です）。
 
-### AWS・Dockerの記事で守ること
+### Terraformの実測のやり方（認証情報なしで plan まで出せる）
+
+プロバイダにダミーの認証情報と検証スキップを渡すと、`terraform plan` が通ります。
+**差分の実出力を記事に載せられる**ので、超基礎の説明と相性が良いです。
+
+```hcl
+provider "aws" {
+  region                      = "ap-northeast-1"
+  access_key                  = "dummy"
+  secret_key                  = "dummy"
+  skip_credentials_validation = true
+  skip_requesting_account_id  = true
+}
+```
+
+```bash
+terraform init      # プロバイダを取得
+terraform validate  # 書式と型の検査
+terraform plan      # 何が作られるかの差分（ここまで実行できる）
+```
+
+- **既存リソースを読む必要がある構成（`data` ソースなど）は plan でも失敗します。** その場合は失敗した事実をそのまま書く
+- **`terraform apply` は絶対に実行しない。** 実行していないので、適用後の状態を書かない
+- `plan` の出力は長いので、CLAUDE.md 第4節（幅380px）に合わせて必要な行だけ抜く。
+  抜いたことは「(中略)」で明示する
+
+### AWSのセキュリティを扱うときの注意
+
+読者は「IAMというものがあるらしい」という段階です。**用語の地図を先に描いてください。**
+
+- IAMユーザー / ロール / ポリシー / 信頼ポリシー の違いを、**何を守るためのものか**から説明する
+- ECS on Fargate の文脈では、**タスクロールと実行ロールの違い**が最初の関門になる
+- 最小権限の話は、原則論ではなく**具体的なポリシーJSON**で示す
+- セキュリティグループとNACLのように「似ていて紛らわしいもの」は必ず対比表にする
+- **推測でポリシーを書かない。** 公式ドキュメントのアクション名・条件キーを確認してから書く
+
+### AWS・Docker・Terraformの記事で守ること
 
 1. 構成や手順は**AWS公式ドキュメント**（docs.aws.amazon.com）を一次資料にする
 2. 料金に触れるときは公式の料金ページを取得して確認する。「だいたい◯ドル」と書かない
