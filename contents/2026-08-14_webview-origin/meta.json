@@ -9,7 +9,7 @@
     "実測"
   ],
   "featured": true,
-  "title": "WebViewだけ動かない。犯人は Origin: null",
+  "title": "WebViewのfetchが失敗する理由 — Origin: null とCORSの関係",
   "summary": "ブラウザでは動くのに、アプリのWebViewに載せた瞬間APIだけが落ちる。原因のOrigin: nullを実測で確認し、CORSの返し方4通りを全部叩いて結果を表にしました。検索でよく出てくる回避策がCookieごと穴を開ける理由と、Androidでの直し方まで。iOSは一次資料が見つからなかった箇所を未確認と明記しています。",
   "thumbnail": "images/thumb.png"
 }

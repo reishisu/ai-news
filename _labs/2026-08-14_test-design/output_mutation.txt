@@ -1,0 +1,38 @@
+########## python3 run_mutation.py ##########
+suite     変異  殺した  残った
+------------------------------
+bad         53      39      14
+good        53      38      15
+
+生き残った変異の場所
+------------------------------
+                 bad    good
+bill.py            5      12
+price.py           9       3
+
+########## mutmut show（bad が殺せなかった変異）##########
+# app.price.x_volume_discount_rate__mutmut_9: survived
+--- app/price.py
++++ app/price.py
+@@ -4,6 +4,6 @@
+         raise ValueError("seats must be >= 1")
+     if seats >= 50:
+         return 0.20
+-    if seats >= 10:
++    if seats > 10:
+         return 0.10
+     return 0.0
+
+########## mutmut show（good が殺せなかった変異）##########
+# app.bill.x_make_invoice__mutmut_21: survived
+--- app/bill.py
++++ app/bill.py
+@@ -11,7 +11,7 @@
+     subtotal = unit * months
+     tax = int(subtotal * TAX_RATE)
+     return {
+-        "seats": seats,
++        "XXseatsXX": seats,
+         "plan": plan,
+         "months": months,
+         "subtotal": subtotal,

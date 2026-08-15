@@ -1,0 +1,127 @@
+########## python3 run_cov.py ##########
+テストセット  cov%  未到達 検出
+----------------------------------
+cov_only      100.0     0行 1/4
+3粒度セット    59.1    18行 4/4
+
+(app/ の総ステートメント数: 44)
+
+########## python3 run_matrix.py ##########
+壊し方         unit  intg   e2e
+-------------------------------
+(なし)          12P    4P    3P
+b1 境界ズレ   2F/12    4P    3P
+b2 年割無視     12P  2F/4  1F/3
+b3 出力取違     12P    4P  2F/3
+b4 改名漏れ   5F/12  3F/4  2F/3
+
+########## python3 run_covmap.py ##########
+file           unit  intg   e2e  cov1
+-------------------------------------
+price.py       100%   85%    0%  100%
+bill.py          0%  100%    0%  100%
+api.py           0%    0%    0%  100%
+cli.py           0%    0%    0%  100%
+
+########## python3 run_diffcov.py ##########
+全体cov  変更前: 100.0%
+全体cov  変更後: 92.9%
+追加行: 14行 / 通った: 10行
+差分cov: 71.4%
+-- 誰も通していない追加行 --
+coupon.py:13 c = code.strip().upper()
+coupon.py:14 if c not in CODES:
+coupon.py:15 raise ValueError("unknown coupon: %s" % c)
+coupon.py:16 return CODES[c]
+
+########## python3 run_subproc_cov.py ##########
+計測ファイル数: 4
+Name              Stmts   Miss  Cover
+-------------------------------------
+app/__init__.py       0      0   100%
+app/api.py           10      1    90%
+app/bill.py          14      1    93%
+app/cli.py            8      0   100%
+app/coupon.py        11      4    64%
+app/price.py         13      2    85%
+-------------------------------------
+TOTAL                56      8    86%
+
+########## python3 run_isolate.py ##########
+=== t_unit.py ===
+.......F
+=============== FAILURES ===============
+________ test_subtotal[1-1000] _________
+t_unit.py:39: in test_subtotal
+    assert price.monthly_subtotal(seats) == yen
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/price.py:20: in monthly_subtotal
+    gross = PRICE * seats
+            ^^^^^
+E   NameError: name 'PRICE' is not defined
+======= short test summary info ========
+FAILED t_unit.py::test_subtotal[1-1000]
+!!!!!! stopping after 1 failures !!!!!!!
+1 failed, 7 passed in 0.02s
+
+=== t_e2e.py ===
+F
+=============== FAILURES ===============
+__________ test_e2e_monthly_3 __________
+t_e2e.py:22: in test_e2e_monthly_3
+    code, body = run(req)
+                 ^^^^^^^^
+t_e2e.py:16: in run
+    body = json.loads(p.stdout)
+           ^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.11/json/__init__.py:346: in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.11/json/decoder.py:337: in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.11/json/decoder.py:355: in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+E   json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+======= short test summary info ========
+FAILED t_e2e.py::test_e2e_monthly_3
+!!!!!! stopping after 1 failures !!!!!!!
+1 failed in 0.05s
+
+
+########## python3 run_spec.py ##########
+=== t_spec_bad.py ===
+..F                              [100%]
+=============== FAILURES ===============
+________________ test_3 ________________
+t_spec_bad.py:29: in test_3
+    assert r["total"] == 44000
+E   assert 41250 == 44000
+1 failed, 2 passed in 0.03s
+
+=== t_spec_good.py ===
+.F.FF.F                          [100%]
+=============== FAILURES ===============
+___________ test_invoice[m9] ___________
+t_spec_good.py:24: in test_invoice
+    assert inv["subtotal"] == sub, why
+E   AssertionError: 9席までは割引なし
+E   assert 8100 == 9000
+__________ test_invoice[m49] ___________
+t_spec_good.py:24: in test_invoice
+    assert inv["subtotal"] == sub, why
+E   AssertionError: 49席までは10%引き
+E   assert 36750 == 44100
+__________ test_invoice[m50] ___________
+t_spec_good.py:24: in test_invoice
+    assert inv["subtotal"] == sub, why
+E   AssertionError: 50席から20%引き
+E   assert 37500 == 40000
+__________ test_invoice[a50] ___________
+t_spec_good.py:24: in test_invoice
+    assert inv["subtotal"] == sub, why
+E   AssertionError: 割引と年払いは併用
+E   assert 375000 == 400000
+4 failed, 3 passed in 0.03s
+
+

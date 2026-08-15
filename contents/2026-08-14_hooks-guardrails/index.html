@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CLAUDE.mdに「承認済み」と書いても止まった。効いたのは4つだけ</title>
+<title>Claude Codeのフックと権限設計 — AIを仕組みで止める</title>
 <meta name="description" content="AIに任せる範囲を、口約束ではなく設定で決める。Claude Code 2.1.233で8通りのガードを実測しました。止まったのは4つ。exit 1・パス誤記・timeoutは書いてあるのに素通りします。">
 <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="apple-touch-icon" href="../../favicon.svg">
 <meta property="og:type" content="article">
-<meta property="og:title" content="CLAUDE.mdに「承認済み」と書いても止まった。効いたのは4つだけ">
+<meta property="og:title" content="Claude Codeのフックと権限設計 — AIを仕組みで止める">
 <meta property="og:description" content="8通りのガードを実測。exit 1と書いた瞬間にゲートが消えます。">
 <meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_hooks-guardrails/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="../../css/article.css?v=19bddda4">
+<link rel="stylesheet" href="../../css/article.css?v=8aef8429">
 
 <link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
 </head>
@@ -27,7 +27,7 @@
 
   <div class="masthead">
     <div class="eyebrow">AIで作る技術 ｜ 2026年8月14日(金)</div>
-    <h1>CLAUDE.mdに「承認済み」と書いても止まった。効いたのは4つだけ</h1>
+    <h1>Claude Codeのフックと権限設計 — AIを仕組みで止める</h1>
     <div class="range">Claude Code 2.1.233 で、同じ <code>git push</code> を8通りの設定に投げました。成否はモデルの自己申告ではなく、リモートのコミットIDが動いたかどうかで判定しています。</div>
     <div class="meta-row">
       <span class="time-chip">⏱ 約9分</span>

@@ -13,7 +13,7 @@
 <meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_002/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="../../css/article.css?v=19bddda4">
+<link rel="stylesheet" href="../../css/article.css?v=8aef8429">
 
 <link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
 </head>
@@ -27,7 +27,7 @@
 
   <div class="masthead">
     <div class="eyebrow">2026年8月14日(金) 号外</div>
-    <h1>Claude Codeが承認を待たなくなり、Geminiが10億人に届いた週</h1>
+    <h1>AI-news：2026/08/14 号外 — Claude Codeの自動モード標準化とCopilotの機能終了</h1>
     <div class="range">対象期間: 8月11日(火) 〜 8月14日(金) JST</div>
   </div>
 
@@ -184,7 +184,7 @@ falls back to manual approvals.</pre>
 
     <article class="item">
       <div class="source"><img src="https://www.google.com/s2/favicons?domain=microsoft.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Microsoft</div>
-      <h3>Copilotの一部機能が8月18日で終了 — Deep Research・ポッドキャスト・グループチャット・Mico</h3>
+      <h3>Copilotの一部機能が8月18日で終了 — Deep Research・ポッドキャスト・グループチャット</h3>
       <div class="tags">
         <span class="tag">8/13</span>
         <span class="tag warn">⚠ 報道ベース</span>
@@ -200,7 +200,8 @@ falls back to manual approvals.</pre>
       <ul class="points">
         <li><b>Deep Researchは新規受付を停止。</b>既存レポートの閲覧とWord形式へのエクスポートは引き続き可能です。</li>
         <li><b>後継はMicrosoft 365 Premiumの「Researcher」。</b>加入者は同種のリサーチを継続できます。</li>
-        <li><b>音声キャラクター「Mico」とグループチャットも終了。</b>Copilot Labsの実験機能も同日で止まります。Microsoftが挙げている狙いは「よりシンプルで一貫した体験(a simpler, more cohesive experience)」です。</li>
+        <li><b>グループチャットとCopilot Labsの実験機能も同日で止まります。</b>Microsoftが挙げている狙いは「よりシンプルで一貫した体験(a simpler, more cohesive experience)」です。</li>
+        <li><b>「Mico」は終了ではありません。</b>公式FAQは「Copilot Voice のアニメーションキャラクターである Mico は Learn Live へ移る。Copilot の音声機能が無くなるわけではない」と明記しています。<mark>音声で話す機能はそのまま使えて、Micoがその場に出てこなくなるだけ</mark>です。Learn Live では引き続きチューター役として動きます。</li>
         <li><b>移行中に他の機能も一時的に消えることがある、とMicrosoftは警告。</b>単体のCopilotアプリが生成したファイルはOneDriveへ移されます。</li>
       </ul>
 
@@ -442,6 +443,8 @@ falls back to manual approvals.</pre>
       <h3>2026年8月15日 — 一次資料に当たり直し、16か所を訂正しました</h3>
       <p class="lead">全項目の出典を取得し直したところ、<mark>一次資料と食い違う記述が多数見つかりました</mark>。以下、何をどう直したかを残します。</p>
       <ul class="points">
+        <li><b>「Micoも8月18日で終了」を訂正しました。</b>Microsoft公式FAQは「Mico は Learn Live へ移る。Copilot の音声機能が無くなるわけではない」と明記しています。終了するのはグループチャットとCopilot Labs、そしてDeep Researchとポッドキャストです。</li>
+        <li><b>「Microsoft公式サポートページに到達できていない」という記述を撤回しました。</b>実際には取得できました(HTTP 200)。読めるはずの一次資料を読まずに「読めなかった」と書いていたことになります。公式FAQを参考文献に追加し、TechCrunchに付けていた「一次資料」ラベルを「報道(二次資料)」へ直しました。</li>
         <li><b>Claude Code「分類器が見るのは4種類」→ 3系統に訂正。</b>公式ブログが分類器の対象としているのは「不可逆・破壊的・環境の外に向かう」操作です。以前挙げていた4項目は別章「Making auto mode even safer」の最近の追加機能であり、分類器の審査対象そのものではありませんでした。</li>
         <li><b>プロンプトインジェクションは「ブロック」しない。</b>公式の挙動は「injectionらしいと判断したら、結果を渡す前にClaudeの文脈に警告を追加する」です。ブロックすると書いていたのを訂正しました。</li>
         <li><b>「3回警告が出ると手動承認へ戻す」→「ブロックが3回連続、またはセッション全体で20回」。</b>「警告」ではなく「ブロック」、「3回」ではなく「3回連続」で、「セッション全体で20回」という条件が抜けていました。</li>
@@ -541,9 +544,16 @@ falls back to manual approvals.</pre>
           <a href="https://manus.im/blog/a-note-to-our-users">https://manus.im/blog/a-note-to-our-users</a>（2026年8月15日参照）
         </li>
         <li>
+          <li>
           <span class="flag primary">一次資料</span>
+          Microsoft「Frequently asked questions about retired Copilot features」<i>Microsoft サポート</i>.
+          <span class="note">参照箇所: グループチャット・Mico・Copilot Labs の扱い。原文「Mico, the animated character in Copilot Voice, is moving to Learn Live. Voice in Copilot isn't going away.」「Can I still use Mico? Yes, just in a different place. Mico continues in Learn Live」。2026年8月15日に全文取得(HTTP 200)。<b>当初「到達できていない」と書いていましたが誤りで、実際には取得できました。</b></span>
+          <a href="https://support.microsoft.com/en-us/microsoft-365-copilot/frequently-asked-questions-about-retired-copilot-features">https://support.microsoft.com/en-us/microsoft-365-copilot/frequently-asked-questions-about-retired-copilot-features</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag unverified">報道(二次資料)</span>
           Sarah Perez「Microsoft kills off unsuccessful AI features while merging its separate Copilot apps」<i>TechCrunch</i>, 2026年8月13日.
-          <span class="note">Microsoft公式サポートページの本文には到達できていないため、報道としての扱いですが、"the right to exist" 引用の伝聞構造を確認するための出どころ本体として全文を取得しました。参照箇所: 8月18日までに失われる機能の列挙、"a simpler, more cohesive experience"、The Information経由のJacob Andreou発言、移行中の一時的な機能消失とOneDriveへのファイル移行。</span>
+          <span class="note">報道(二次資料)としての扱いです。公式サポートページは後日あらためて取得でき、内容を照合しました(下記)。"the right to exist" 引用の伝聞構造を確認するための出どころ本体として全文を取得しました。参照箇所: 8月18日までに失われる機能の列挙、"a simpler, more cohesive experience"、The Information経由のJacob Andreou発言、移行中の一時的な機能消失とOneDriveへのファイル移行。</span>
           <a href="https://techcrunch.com/2026/08/13/microsoft-kills-off-unsuccessful-ai-features-while-merging-its-separate-copilot-apps/">https://techcrunch.com/2026/08/13/microsoft-kills-off-unsuccessful-ai-features-while-merging-its-separate-copilot-apps/</a>（2026年8月15日参照）
         </li>
         <li>

@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>「進捗どうですか」をやめる。7日で探すと0件、43分で探すと1件</title>
+<title>進行管理の指標 — gitログから停滞を検出する</title>
 <meta name="description" content="詰まっている人は自分からは言い出しません。監査人ですら黙ると査読論文にあります。代わりに何を見るか。7日決め打ちのしきい値と、履歴から出したSLEを同じ実データにぶつけて実測しました。">
 <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="apple-touch-icon" href="../../favicon.svg">
 <meta property="og:type" content="article">
-<meta property="og:title" content="「進捗どうですか」をやめる。7日で探すと0件、43分で探すと1件">
-<meta property="og:description" content="詰まっている人を本人が言い出す前に見つける。スクラムガイドに3つの質問は無く、しきい値の決め打ちは実データで何も検出しませんでした。">
+<meta property="og:title" content="進行管理の指標 — gitログから停滞を検出する">
+<meta property="og:description" content="詰まっている人を本人が言い出す前に見つける。2020年版スクラムガイドに3つの質問は無く、しきい値の決め打ちは実データで何も検出しませんでした。">
 <meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_progress-signals/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="../../css/article.css?v=19bddda4">
+<link rel="stylesheet" href="../../css/article.css?v=8aef8429">
 
 <link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
 </head>
@@ -27,10 +27,10 @@
 
   <div class="masthead">
     <div class="eyebrow">チームで作る技術 ｜ 2026年8月14日(金)</div>
-    <h1>「進捗どうですか」をやめる。7日で探すと0件、43分で探すと1件</h1>
-    <div class="range">詰まっている人は、自分からは言いません。だから聞くのをやめて、見る信号を決めます。実際に自分のリポジトリで測りました。</div>
+    <h1>進行管理の指標 — gitログから停滞を検出する</h1>
+    <div class="range">詰まっている人は、自分からは言いません。だから聞くのをやめて、見る信号を決めます。実際に自分のリポジトリ（プログラムの変更履歴が丸ごと入っている保管庫）で測りました。</div>
     <div class="meta-row">
-      <span class="time-chip">⏱ 約9分</span>
+      <span class="time-chip">⏱ 約11分</span>
       <span class="tag">リード向け</span>
       <span class="tag">実測ログ全部載せ</span>
       <span class="tag">gitコマンドだけで再現できる</span>
@@ -41,16 +41,16 @@
     <h2>⭐ 3行で言うと</h2>
     <ol>
       <li>
-        <b>「昨日やったこと・今日やること・困っていること」は、スクラムガイドに書いていない</b>
-        <span>2020年版には1文字もありません。2017年版でさえ「使われうるものの一例」としか書かれていませんでした。</span>
+        <b>「昨日やったこと・今日やること・困っていること」は、2016年版を最後に規定ではなくなった</b>
+        <span>2016年版までは断定形の規定でした。2017年版で「使われうるものの一例」に格下げされ、2020年版には1文字も残っていません。</span>
       </li>
       <li>
         <b>悪い知らせは上に届かない。監査人ですら「キャリアの自殺」と言って黙る</b>
         <span>査読論文の中に、当事者の生の言葉として載っています。性格の問題ではなく構造の問題です。</span>
       </li>
       <li>
-        <b>「7日以上動いていない枝」を探したら検出0件。履歴から出したSLEで探したら同じ瞬間に1件出た</b>
-        <span>止まっている枝は実在していました。しきい値が自分たちの速度と無関係なだけでした。</span>
+        <b>「7日以上動いていない枝」を探したら検出0件。履歴から出したSLEで探したら1件出た</b>
+        <span>枝＝まだ本体に合流していない作業のこと。止まっている枝は実在していました。しきい値が自分たちの速度と無関係なだけです。SLE＝過去の実績から出した「たいていこれくらいで終わる」の線。</span>
       </li>
     </ol>
   </section>
@@ -58,7 +58,7 @@
   <nav class="toc">
     <h2>目次</h2>
     <ol>
-      <li><a href="#s1">「進捗どうですか」は、スクラムのどこにも書いていない</a></li>
+      <li><a href="#s1">3つの質問は2016年版では規定だった。2020年版では消えている</a></li>
       <li><a href="#s2">本人は言い出せない。監査人ですら黙る</a></li>
       <li><a href="#s3">代わりに見る信号は「時間」だと決まっている</a></li>
       <li><a href="#s4">実測：7日決め打ちは0件、SLEは1件</a></li>
@@ -71,11 +71,11 @@
 
   <!-- ============ 1 ============ -->
   <section class="section section-b" id="s1">
-    <h2><span class="step">1</span>「進捗どうですか」は、スクラムのどこにも書いていない</h2>
+    <h2><span class="step">1</span>3つの質問は2016年版では規定だった。2020年版では消えている</h2>
 
     <article class="item">
       <h3>2020年版スクラムガイドに、3つの質問は1文字も無い</h3>
-      <p class="lead">毎朝の「昨日やったこと／今日やること／困っていること」。これはスクラムの決まりだと思われています。</p>
+      <p class="lead">毎朝の「昨日やったこと／今日やること／困っていること」。これはスクラム（1〜4週間の区切りで開発を回す進め方）の決まりだと思われています。</p>
       <p class="lead"><mark>2020年版スクラムガイドには、この3つが1文字も存在しません。</mark>デイリースクラムの項に書いてあるのは、次の文です。</p>
 
       <div class="code wrap">
@@ -90,6 +90,8 @@ upcoming planned work.
 　バックログを適応させ、これからの計画された
 　作業を調整することである）</pre>
       </div>
+
+      <p class="lead">用語を先に開きます。<b>スプリント</b>＝1〜4週間の区切り。<b>スプリントゴール</b>＝その区切りで達成すると決めたこと。<b>スプリントバックログ</b>＝そのためにやる作業の一覧です。</p>
 
       <p class="lead">検査するのは「進捗」ではなく<mark>「スプリントゴールに向けた進捗」</mark>です。そして形式は決められていません。</p>
 
@@ -109,8 +111,46 @@ of work.
 
       <ul class="points">
         <li><b>求められているのは報告ではなく「翌日の実行可能な計画」。</b>近況を聞くだけで終わる会は、この条件を満たしていません。</li>
-        <li><b>3つの質問は「削除された」のではありません。</b>2017年版でさえ、義務としては書かれていませんでした。次の原文がその証拠です。</li>
+        <li><b>3つの質問は、2段階で消えました。</b>2016年版までは規定、2017年版で「一例」に格下げ、2020年版で削除。ここは正確に押さえます。</li>
       </ul>
+
+      <h3>2016年版では、断定形で規定されていた</h3>
+      <p class="lead">先に訂正します。<mark>3つの質問は、かつては本当に規定でした。</mark>2016年版の公式PDFにこう書いてあります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">The Scrum Guide（2016年7月, 公式PDF）— 原文</div>
+        <pre>During the meeting, the Development Team
+members explain:
+
+- What did I do yesterday that helped the
+  Development Team meet the Sprint Goal?
+- What will I do today to help the
+  Development Team meet the Sprint Goal?
+- Do I see any impediment that prevents me
+  or the Development Team from meeting the
+  Sprint Goal?
+
+（ミーティングの間、開発チームのメンバーは
+　次を説明する：…）</pre>
+      </div>
+
+      <p class="lead">「一例である」も「構造は開発チームが設定する」も、2016年版には<mark>1文字もありません</mark>。断定形です。しかも当時の副題は "The Definitive Guide to Scrum: The Rules of the Game"（ゲームのルール）でした。</p>
+
+      <p class="lead">「一例」という枠組みが入ったのは2017年版です。公式のリビジョン履歴が、追加した文をそのまま挙げています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">scrumguides.org Revision History — 2016→2017 の項</div>
+        <pre>Updated the Daily Scrum section to provide
+clarity on the goals of the Daily Scrum
+including this text: The structure of the
+meeting is set by the Development Team ...
+
+（デイリースクラムの節を更新し、次の文を
+　含めて目的を明確にした：ミーティングの
+　構造は開発チームが設定し…）</pre>
+      </div>
+
+      <p class="lead">その2017年版の原文がこれです。</p>
 
       <div class="code wrap">
         <div class="code-head">The Scrum Guide（2017年11月, PDF）— 原文</div>
@@ -128,12 +168,14 @@ Here is an example of what might be used:
 　以下は使われうるものの一例である：）</pre>
       </div>
 
+      <p class="lead">そして2020年版で何が起きたかも、同じリビジョン履歴に書かれています。<mark>"removed Daily Scrum questions"</mark>（デイリースクラムの質問を削除した）。<b>規定 → 一例 → 削除</b>の2段階です。</p>
+
       <div class="quiz">
         <p class="q">Q. 2017年版スクラムガイドで、あの3つの質問はどう位置づけられていた?</p>
         <button class="opt" type="button" data-correct="false">全チームが毎日答えるべき必須項目</button>
         <button class="opt" type="button" data-correct="true">「使われうるものの一例」として挙げられただけ</button>
         <button class="opt" type="button" data-correct="false">2017年版には存在せず、2020年版で追加された</button>
-        <p class="ans" hidden>正解。原文は "Here is an example of what might be used"。その直前には「構造は開発チームが設定する」と明記されています。つまり2020年版で消えたのは「例」であって「規定」ではありません。規定だったことは一度もない、が正確です。</p>
+        <p class="ans" hidden>正解。原文は "Here is an example of what might be used"。直前に「構造は開発チームが設定する」と明記されています。ただし1年前は違いました。2016年版は "the Development Team members explain:" と断定形で3項目を並べています。<b>規定（〜2016）→ 一例（2017）→ 削除（2020）</b>。「一度も規定ではなかった」は誤りです。</p>
       </div>
 
       <p class="lead">もう1つ、進行管理で効く一文があります。</p>
@@ -172,12 +214,12 @@ to project failure.
 　として認識されてきた）</pre>
       </div>
 
-      <p class="lead">同じ論文は、先行研究の結果をこうまとめています。<mark>差し迫った失敗の証拠は、近くにいる人には明白</mark>なのに、それが階層を上がらない。上がっても歪む。</p>
+      <p class="lead">同じ論文は、先行研究の結果をこうまとめています。<mark>差し迫った失敗の証拠は、近くにいる人には明白でありうる</mark>（原文は "may be apparent"）。なのに、それが階層を上がらない。上がっても歪む。</p>
 
       <p class="lead">いちばん効くのは、監視役として職務を与えられている人の言葉です。以下はPark らの本文が引用している Keil and Robey (2001) の被験者の発言で、<mark>原典そのものは今回読めていません（孫引き）</mark>。</p>
 
       <div class="code wrap">
-        <div class="code-head">Park らの本文が引用する内部IS監査人の発言</div>
+        <div class="code-head">Park らが引用する社内の情報システム監査人の発言</div>
         <pre>Me as a little staff auditor? ... I sure wouldn't
 want to march into this guy's office and tell him
 the project that he had been championing for all
@@ -194,7 +236,7 @@ these years should be put to death
         <li><b>心理的安全性を高める、では今日は動きません。</b>明日の朝までに結果が出る打ち手が要ります。</li>
       </ul>
 
-      <p class="lead">さらに、燃え尽きの定義そのものが「言い出せなさ」を含んでいます。WHOのICD-11の定義は3つの次元からなります。</p>
+      <p class="lead">さらに、燃え尽きの定義そのものが「言い出せなさ」を含んでいます。WHOのICD-11（世界保健機関が作る国際疾病分類の第11版）の定義は3つの次元からなります。</p>
 
       <div class="code wrap">
         <div class="code-head">WHO「Burn-out an "occupational phenomenon"」— ICD-11の定義</div>
@@ -223,7 +265,7 @@ reduced professional efficacy.
             <dt>職業文脈に限定されている</dt>
             <dd>"Burn-out refers specifically to phenomena in the occupational context and should not be applied to describe experiences in other areas of life."（職業上の文脈における現象を特指し、人生の他の領域には適用すべきでない）</dd>
             <dt>この論文の限界</dt>
-            <dd>Park らの研究は統制された実験室実験です。被験者の約60%が実務経験1年以上、モデルの説明力は従属変数の分散の32%。現場の観察データではありません。</dd>
+            <dd>Park らの研究は統制された実験室実験で、<b>被験者は学生</b>（平均22.8歳・平均実務経験2.6年）です。論文自身が "While the use of student subjects can limit the generalizability of results"（学生被験者の使用は結果の一般化可能性を制限しうる）と限界を明記しています。約60%が実務経験1年以上、モデルの説明力は従属変数の分散の32%。現場の観察データではありません。</dd>
           </dl>
         </div>
       </details>
@@ -238,7 +280,7 @@ reduced professional efficacy.
 
     <article class="item">
       <h3>Kanban Guideは、追跡が必須のメトリクスを4つ名指ししている</h3>
-      <p class="lead">「何を見ればいいか」は、すでに一次資料で決まっています。Kanban Guide v2025.5 の原文です。</p>
+      <p class="lead">「何を見ればいいか」は、すでに一次資料で決まっています。Kanban Guide v2025.5（カンバン＝作業を見える化して流れを管理するやり方の、公式ガイド）の原文です。</p>
 
       <div class="code wrap">
         <div class="code-head">Kanban Guide v2025.5 — Flow Metrics 原文</div>
@@ -249,7 +291,8 @@ WIP: The number of work items started but not
 finished.
 
 Throughput: The number of work items finished
-per unit of time.
+per unit of time. Note the measurement of
+throughput is the exact count of work items.
 
 Work Item Age: The elapsed time between when a
 work item started and the current date.
@@ -272,15 +315,15 @@ item started and when a work item finished.</pre>
         </table>
       </div>
 
-      <p class="lead">この中で<mark>まだ終わっていない仕事に使えるのは Work Item Age だけ</mark>です。Throughput も Cycle Time も、終わったものしか数えられません。</p>
+      <p class="lead">この中で<mark>「この1本が何時間詰まっているか」を測れるのは Work Item Age だけ</mark>です。Throughput も Cycle Time も、終わったものしか数えられません。WIPは未完了を扱いますが「何本あるか」の本数なので、誰が詰まっているかは分かりません。</p>
 
       <p class="lead">つまり「詰まっている人を、本人が言い出す前に見つける」に対応する信号は、仕様上ほぼ一択です。<b>着手からの経過時間。</b></p>
 
       <h3>いつ動くかは、過去の自分たちの実績から出す</h3>
-      <p class="lead">では何時間で声をかけるのか。ここも決められています。SLE（サービスレベル期待値）です。</p>
+      <p class="lead">では何時間で声をかけるのか。ここも決められています。SLE（サービスレベル期待値）——<mark>過去の実績から出す「たいていこれくらいで終わる」の線</mark>です。段落を途中で切らず、全文を貼ります。</p>
 
       <div class="code wrap">
-        <div class="code-head">Kanban Guide v2025.5 — Definition of Workflow 原文</div>
+        <div class="code-head">Kanban Guide v2025.5 — Definition of Workflow 原文（全文）</div>
         <pre>A service level expectation (SLE), which is a
 forecast of how long it should take a work item
 to flow from started to finished. The SLE itself
@@ -288,12 +331,17 @@ has two parts: a period of elapsed time and a
 probability associated with that period (e.g.,
 "85% of work items will be finished in eight days
 or less"). The SLE should be based on historical
-cycle time.</pre>
+cycle time and, once calculated, should be
+visualized on the DoW. If historical cycle time
+data does not exist, a best guess will do until
+there is enough historical data for a proper SLE
+calculation.</pre>
       </div>
 
       <ul class="points">
         <li><b>SLEは「期間＋確率」の2部構成。</b>「8日」ではなく「85%が8日以内」。ここを削ると目標に化けます。</li>
-        <li><b>過去のサイクルタイムに基づけ、と明記されています。</b>他社のブログから借りた数字はSLEではありません。</li>
+        <li><b>85%点＝並べるだけで出る値。</b>過去の数字を小さい順に並べ、下から85%の位置にある値を取ります。8件なら ceil(0.85×8)=7 で7番目。人が決める余地はありません。</li>
+        <li><b>過去のサイクルタイムに基づけ、と書かれています。</b>ただし文はここで終わりません。<mark>履歴が無ければ "a best guess will do"（当て推量で構わない）</mark>とガイド自身が続けています。「履歴が無いから出せない」はガイドの立場ではありません。</li>
         <li><b>使い道も書かれています。</b>"Ensuring work items do not age unnecessarily, using the SLE as a reference."（SLEを基準に、アイテムが不必要に滞留しないようにする）</li>
       </ul>
 
@@ -310,7 +358,7 @@ cycle time.</pre>
         <button class="opt" type="button" data-correct="false">特に壊れない。分かりやすくなっただけ</button>
         <button class="opt" type="button" data-correct="true">予測が目標に変わり、残り15%を「例外」ではなく「違反」にしてしまう</button>
         <button class="opt" type="button" data-correct="false">8日という数字が短すぎるので、10日にすべきだった</button>
-        <p class="ans" hidden>正解。SLEは過去の実績から出た「予測」です。確率を落とすと予測が目標になります。DORAの公式ガイドは、まさにこれを落とし穴として名指ししています（"Setting metrics as a goal" / グッドハートの法則）。詳しくは第6章で。</p>
+        <p class="ans" hidden>正解。SLEは過去の実績から出た「予測」です。確率を落とすと予測が目標になります。DORAの公式ガイドは、まさにこれを落とし穴として名指ししています（"Setting metrics as a goal" / グッドハートの法則＝<b>測るものを目標にすると、人はその数字を作りにいく</b>）。詳しくは第6章で。</p>
       </div>
     </article>
   </section>
@@ -323,6 +371,8 @@ cycle time.</pre>
       <h3>まず、止まっている枝が本当にあるか確かめる</h3>
       <p class="lead">対象はこのサイトのリポジトリです。gitの標準コマンドだけで見ます。</p>
 
+      <p class="lead">ここから用語が増えるので、先に4つだけ開きます。gitでは作業を<b>枝</b>（ブランチ）に分けて進め、終わったら本体の<b>幹</b>に合流させます。合流させる操作が<b>マージ</b>、保存1回ぶんの記録が<b>コミット</b>です。<mark>「未統合の枝」＝まだ幹に合流していない作業</mark>のこと。以降の出力はこれで全部読めます。</p>
+
       <div class="code term">
         <div class="code-head">実行結果（2026年8月14日 15:18 UTC 実測）</div>
         <pre>$ git branch -r --no-merged origin/main
@@ -334,13 +384,23 @@ $ git rev-list --left-right --count \
 8	1</pre>
       </div>
 
-      <p class="lead">未統合の枝が1本あります。<mark>自前1コミットのまま、幹に8コミット置いていかれている</mark>状態です。</p>
+      <p class="lead">出力の <code>8	1</code> は左が幹（origin/main）側、右が枝側の数です。つまり未統合の枝が1本あり、<mark>自前1コミットのまま、幹に8コミット置いていかれている</mark>状態です。</p>
 
-      <h3>世間のスクリプトが決め打ちする「7日」を、この実データに当てる</h3>
-      <p class="lead">停滞検出のスクリプトは、たいてい「N日以上動いていない枝」を探します。よくある値は7日です。同じ瞬間に走らせました。</p>
+      <h3>「N日以上動いていない」という決め打ちを、この実データに当てる</h3>
+      <p class="lead">停滞検出のスクリプトは、たいてい「N日以上動いていない枝」を探します。<b>Nは日数の決め打ちです。</b>実例として、GitHub公式の <code>actions/stale</code> は無活動と見なすまでが60日、そこから閉じるまでが7日と宣言しています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">actions/stale の action.yml — 原文（既定値）</div>
+        <pre>days-before-stale:
+  default: '60'
+days-before-close:
+  default: '7'</pre>
+      </div>
+
+      <p class="lead">60でも7でも、<mark>そのリポジトリの速度とは無関係な固定値</mark>である点は同じです。本記事の「7日」は、この決め打ちを再現するために筆者が置いた値（<code>stale_v1.sh</code> の <code>DAYS=7</code>）で、actions/stale 由来ではありません。同じ枝に当てます。</p>
 
       <div class="code term">
-        <div class="code-head">実行結果 — 7日決め打ち版</div>
+        <div class="code-head">実行結果 — 7日決め打ち版（15:18 UTC）</div>
         <pre>$ ./stale_v1.sh /home/user/ai-news \
     origin/main
 == 7日以上 動いていない枝 ==
@@ -348,23 +408,23 @@ $ git rev-list --left-right --count \
 しきい値 7日 (決め打ち)</pre>
       </div>
 
-      <p class="lead">未統合の枝が1本あるのに、検出0件。<mark>このチームのコミット間隔は中央値13分</mark>です。7日はその約770倍。</p>
+      <p class="lead">未統合の枝が1本あるのに、検出0件。<mark>このリポジトリのコミット間隔は838秒（約14分）が真ん中</mark>です（後の出力は秒を切り捨てて <code>0h13m</code> と表示します）。7日はその約720倍。実際に止まっていた2時間47分は、7日を基準にすると0.02倍にしかなりません。</p>
 
       <ul class="points">
         <li><b>「アラートが鳴らない＝健全」ではありません。</b>しきい値が自分たちの速度と無関係なだけです。</li>
-        <li><b>7日はどこから来たのか。</b>他所のスクリプトです。Kanban Guideは「過去のサイクルタイムに基づけ」と書いています。</li>
+        <li><b>7日はこのリポジトリの履歴から出ていません。</b>Kanban Guideは「過去のサイクルタイムに基づけ」と書いています。値が7でも60でも、決め打ちである限り同じことが起きます。</li>
       </ul>
 
       <figure>
         <picture>
           <source srcset="images/threshold-dark.png" media="(prefers-color-scheme: dark)">
-          <img src="images/threshold.png" alt="同じ枝を同じ瞬間に見ても、7日のしきい値では検出0件、履歴から出したSLE43分では要確認1件になる。" loading="lazy">
+          <img src="images/threshold.png" alt="同じ枝の同じ静止時間でも、7日のしきい値では検出0件、履歴から出したSLE43分では要確認1件になる。" loading="lazy">
         </picture>
-        <figcaption>同じ2h47mの静止が、7日基準では0.02倍、SLE基準では3.8倍。違いはしきい値の出どころだけ</figcaption>
+        <figcaption>同じ枝の同じ2h47mの静止が、7日基準では0.02倍、SLE基準では3.8倍。違いはしきい値の出どころだけ</figcaption>
       </figure>
 
       <h3>しきい値を捨てて、履歴からSLEを出す</h3>
-      <p class="lead">同じデータ、同じ瞬間に、リポジトリ自身の履歴からSLEを計算して判定させました。</p>
+      <p class="lead">同じ枝に対して、リポジトリ自身の履歴からSLEを計算して判定させました。実行は6分後の15:24 UTC（同時刻ではありません）。この間にコミットは無く、枝の状態は変わっていません。「標本」は計算の材料にした件数のことです。</p>
 
       <div class="code term">
         <div class="code-head">実行結果 — SLE版（python3 flow_signals.py）</div>
@@ -391,11 +451,12 @@ now  : 08-14 15:24 UTC
 要確認 1件 / 検査 1件</pre>
       </div>
 
-      <p class="lead">決め打ち0件に対して、<mark>同じ実データで1件</mark>。SLEの43分は27件の履歴から出た数字で、人が決めていません。</p>
+      <p class="lead">決め打ち0件に対して、<mark>同じ枝で1件</mark>。SLEの43分は27件の履歴を並べた85%点で、人が決めていません。</p>
 
       <ul class="points">
         <li><b>倍率が出るのが効きます。</b>「SLEの3.8倍」は「2時間47分止まっています」より判断が速い。誰に先に声をかけるかの順番になります。</li>
         <li><b>スクリプトが自分で「使えない」と言っています。</b>Kanban Guideが求める historical cycle time は標本2件しか取れず、コミット間隔へ降格した経緯が出力に残ります。黙って代用させないための設計です。</li>
+        <li><b>ただし「5件未満なら出さない」はガイドではなく筆者のルールです。</b><code>flow_signals.py</code> の <code>MIN_N = 5</code> という定数で、Kanban Guideに5件という数字はありません。ガイドはむしろ「履歴が無ければ当て推量でよい」と書いています。厳しめに倒したのは筆者の判断です。</li>
         <li><b>正直に書くと、この43分はKanban Guide準拠のSLEではありません。</b>代替指標です。理由は下のとおりです。</li>
       </ul>
 
@@ -404,7 +465,7 @@ now  : 08-14 15:24 UTC
         <div class="body">
           <dl>
             <dt>PRデータでは測れなかった</dt>
-            <dd>「レビュー待ちが長いもの」をGitHubのPRから測ろうとして失敗しました。<code>reishisu/ai-news</code> にはopen/closed合わせてPRが1件も存在せず、GitHub APIはHTTP 200で空配列 <code>[]</code> を返します。そのためgitのマージから復元する代理指標（topic branchの最終コミット→マージコミットまでの時間）に置き換えました。</dd>
+            <dd>「レビュー待ちが長いもの」をGitHubのPR（プルリクエスト＝「この枝を幹に入れてください」という申請）から測ろうとして失敗しました。<code>reishisu/ai-news</code> にはopen/closed合わせてPRが1件も存在せず、GitHub APIはHTTP 200で空配列 <code>[]</code> を返します。そのためgitのマージから復元する代理指標（topic branchの最終コミット→マージコミットまでの時間）に置き換えました。</dd>
             <dt>SLEの前提を満たせなかった</dt>
             <dd>マージコミットは2件ありますが、いずれも <code>Merge remote-tracking branch origin/main</code>、つまり <code>git pull</code> による統合です。復元したレビュー待ちは0.03時間と0.16時間で、topic branchの待ち時間ではありません。だから標本5件未満と判定され、コミット間隔にフォールバックしています。</dd>
             <dt>リポジトリが若すぎた</dt>
@@ -428,7 +489,9 @@ now  : 08-14 15:24 UTC
 しきい値 7日 (決め打ち)</pre>
       </div>
 
-      <p class="lead">5日間まるごと止まっている枝を取りこぼしました。<mark>レビュー待ちが中央値3時間の現場で、5日の沈黙は異常値そのもの</mark>です。それでも7日には届きません。</p>
+      <p class="lead">5日間まるごと止まっている枝を取りこぼしました。<mark>レビュー待ちの真ん中が3時間の現場で、5日の沈黙は異常値そのもの</mark>です。それでも7日には届きません。</p>
+
+      <p class="lead">なお出力の「中央値」は、スクリプトが nearest-rank の50%点をそう表示しているものです。標本が偶数だと真の中央値とはずれます（この8件なら真の中央値は3.5時間）。判定に使う85%点は nearest-rank で正しく、表示の呼び名だけが不正確です。</p>
 
       <div class="code term">
         <div class="code-head">実行結果 — 同じデータにSLE版</div>
@@ -503,25 +566,27 @@ git log --first-parent --merges \
 
       <div class="code">
         <div class="code-head">flow_signals.py の merge_samples() — 修正箇所</div>
-        <pre># 修正前: if len(f) &lt; 5: continue
-#   -&gt; %H %ct %P は
-#      2親マージで4フィールド
-# 修正後: if len(f) &lt; 4: continue</pre>
+        <pre>for line in git(
+        repo, "log", "--first-parent",
+        "--merges", "--format=%ct %P",
+        trunk).splitlines():
+    f = line.split()
+    # 修正前: if len(f) &lt; 4:  &lt;- 全滅
+    if len(f) &lt; 3:   # ct p1 p2 で3個
+        continue</pre>
       </div>
+
+      <p class="lead"><code>--format=%ct %P</code> の1行は、親が2つのマージコミットで <code>ct p1 p2</code> の<mark>3フィールド</mark>です。<code>&lt; 4</code> で弾いていたので、全部落ちていました。再現用に切り出したスクリプトを、記事執筆時のコミット(9c00246)に当てた結果です。</p>
 
       <div class="code term">
-        <div class="code-head">実行結果 — 修正前後</div>
-        <pre>修正前の出力:
-<span class="ng-line">  マージから復元できた標本 0件</span>
-
-修正後の出力:
-<span class="ok-line">  マージから復元できた標本 2件</span>
-
-実際のマージコミット数:
-2</pre>
+        <div class="code-head">実行結果 — バグ再現（bug_repro.py）</div>
+        <pre>$ python3 bug_repro.py \
+    /home/user/ai-news 9c00246
+マージコミット数 2
+1行のフィールド数 [3]
+<span class="ng-line">ガード &lt;4 : 標本 0件</span>
+<span class="ok-line">ガード &lt;3 : 標本 2件</span></pre>
       </div>
-
-      <p class="lead"><code>%H %ct %P</code> は、親が2つのマージコミットでは4フィールドになります。<code>&lt; 5</code> で弾いていたので、全部落ちていました。</p>
 
       <p class="lead">怖いのはここです。<mark>「標本0件」を最初、リポジトリにマージが無いせいだと解釈しかけました。</mark></p>
 
@@ -557,7 +622,7 @@ git log --first-parent --merges \
 
     <article class="item">
       <h3>DORAの指標は4つではなく5つ。MTTRは2023年に廃止されている</h3>
-      <p class="lead">指標の話をする前に、前提を直します。「DORAの4つの指標」は<mark>現在の一次資料と食い違います</mark>。</p>
+      <p class="lead">DORA＝Googleが続けている開発チームの大規模調査とその研究チーム。MTTR＝Mean Time To Restore（平均復旧時間）。この2つを開いた上で、前提を直します。「DORAの4つの指標」は<mark>現在の一次資料と食い違います</mark>。</p>
 
       <div class="code wrap">
         <div class="code-head">dora.dev 公式ガイド — 原文</div>
@@ -573,33 +638,33 @@ delivery process.
       <div class="table">
         <table>
           <thead>
-            <tr><th>指標</th><th>グループ</th><th>二次情報でよくある誤り</th></tr>
+            <tr><th>指標</th><th>グループ</th><th>取り違えやすい点</th></tr>
           </thead>
           <tbody>
             <tr>
               <td>Change lead time</td>
-              <td data-label="グループ">Throughput</td>
-              <td data-label="よくある誤り">—</td>
+              <td data-label="グループ">Throughput（処理量）</td>
+              <td data-label="取り違えやすい点">—</td>
             </tr>
             <tr>
               <td>Deployment frequency</td>
-              <td data-label="グループ">Throughput</td>
-              <td data-label="よくある誤り">—</td>
+              <td data-label="グループ">Throughput（処理量）</td>
+              <td data-label="取り違えやすい点">—</td>
             </tr>
             <tr>
               <td>Failed deployment recovery time</td>
-              <td data-label="グループ">Throughput</td>
-              <td data-label="よくある誤り">「MTTR」と表記／「安定性」に分類</td>
+              <td data-label="グループ">Throughput（処理量）</td>
+              <td data-label="取り違えやすい点">「MTTR」と表記／「安定性」に分類</td>
             </tr>
             <tr>
               <td>Change fail rate</td>
-              <td data-label="グループ">Instability</td>
-              <td data-label="よくある誤り">—</td>
+              <td data-label="グループ">Instability（不安定さ）</td>
+              <td data-label="取り違えやすい点">—</td>
             </tr>
             <tr>
               <td>Deployment rework rate</td>
-              <td data-label="グループ">Instability</td>
-              <td data-label="よくある誤り">存在ごと省略される（5つ目を「信頼性」と書く）</td>
+              <td data-label="グループ">Instability（不安定さ）</td>
+              <td data-label="取り違えやすい点">存在ごと省略される（5つ目を「信頼性」と書く）</td>
             </tr>
           </tbody>
         </table>
@@ -607,12 +672,12 @@ delivery process.
 
       <ul class="points">
         <li><b>MTTRという名前は2023年に廃止されました。</b>理由も書かれています。従来の定義が「ソフトウェア変更が起点の障害」と「データセンター障害のような外部要因」を区別していなかったためです。</li>
-        <li><b>復旧時間はThroughput側です。</b>Instability側にあるのは change fail rate と deployment rework rate の2つだけ。ほぼすべての解説記事と分類が逆になっています。</li>
+        <li><b>復旧時間はThroughput側です。</b>Instability側にあるのは change fail rate と deployment rework rate の2つだけ。復旧の速さを「安定性」に入れたくなりますが、公式の分類は逆です。</li>
         <li><b>5つ目は「信頼性」ではありません。</b>DORA自身が履歴ページで "The 2021 report inaccurately called the 'reliability' metric the 'fifth metric'" と自社レポートを訂正しています。</li>
         <li><b>2014年時点では3つでした。</b>初回研究で change fail rate が他変数と有意に相関せず、単一の潜在構成概念を形成しなかったためです。「最初から4つ」も誤りです。</li>
       </ul>
 
-      <p class="lead">ちなみに公式ガイドのURLは今も <code>/guides/dora-metrics-four-keys/</code> のままです。<mark>本文が5つだと書いているページのURLが four-keys</mark>。これが二次情報の震源地だと思います（この因果は筆者の推測です）。</p>
+      <p class="lead">このガイドの正式なURLは <code>/guides/dora-metrics/</code> です。ただし<mark>旧URLの <code>/guides/dora-metrics-four-keys/</code> は今も生きていて、301でそこへ転送されます</mark>（2026年8月15日に <code>curl -I</code> で実測）。本文が5つだと書いているページに four-keys の名残が残っているわけです。これが「4つ」という呼び名の定着に効いた、というのは筆者の推測で、裏は取れていません。</p>
 
       <figure>
         <picture>
@@ -646,7 +711,7 @@ amount of tension between them.</pre>
         <li><b>チーム間で比較しない。</b>"The goal is to improve your team's performance over time, not to compete against other teams or organizations."</li>
       </ul>
 
-      <p class="lead">SPACEフレームワークの論文も、同じことを著者所属機関の公式アブストラクトで書いています（<mark>本文はACM側が403で読めていません</mark>）。</p>
+      <p class="lead">SPACE（開発生産性を1つの数字で測らず、5つの次元で見ようという枠組み）の論文も、同じことを著者所属機関の公式アブストラクトで書いています。ただし<mark>本文はACM側が403で読めておらず、引用できるのはこの1文だけ</mark>です。</p>
 
       <div class="code wrap">
         <div class="code-head">SPACE 論文アブストラクト（Microsoft Research 公開ページ）</div>
@@ -700,7 +765,7 @@ excellent recipe for burnout.</pre>
         <button class="opt" type="button" data-correct="false">生産性・燃え尽き・デリバリのすべてが改善した</button>
         <button class="opt" type="button" data-correct="true">燃え尽きは改善する一方、デリバリ性能は低下し、遅く不安定になった</button>
         <button class="opt" type="button" data-correct="false">何も変わらなかった</button>
-        <p class="ans" hidden>正解。原文は "We find that when priorities are stabilized, software delivery performance declines. It becomes slow and less stable in its delivery." DORA自身が "we find this to be an unexpected finding"（予想外の発見である）と書いています。トレードオフとして提示するのが正確で、「安定させれば全部良くなる」は一次資料と食い違います。</p>
+        <p class="ans" hidden>正解。デリバリ性能＝出荷の速さと安定さのことです。原文は "We find that when priorities are stabilized, software delivery performance declines. It becomes slow and less stable in its delivery." DORA自身が "we find this to be an unexpected finding"（予想外の発見である）と書いています。トレードオフとして提示するのが正確で、「安定させれば全部良くなる」は一次資料と食い違います。</p>
       </div>
 
       <details>
@@ -741,19 +806,19 @@ v. 2025.2.</pre>
       <p class="lead">この記事で一次資料から取れたことを、順番に並べます。</p>
 
       <ul class="points">
-        <li><b>「進捗どうですか」を、翌日の実行可能な計画を作る場に変える。</b>スクラムガイド2020が求めているのはそれです。3つの質問は規定ではありません。</li>
+        <li><b>「進捗どうですか」を、翌日の実行可能な計画を作る場に変える。</b>スクラムガイド2020が求めているのはそれです。3つの質問は2016年版までの規定で、2017年版では一例、2020年版には残っていません。</li>
         <li><b>本人の申告を待たない。</b>報告を職務にしている監査人ですら黙ります。申告経路とは別に、時間の信号を持ちます。</li>
         <li><b>見る信号は「着手からの経過時間」。</b>まだ終わっていない仕事に使えるフローメトリクスは、これだけです。</li>
-        <li><b>しきい値は自分たちの履歴から出す。</b>7日は他所の数字です。実データで検出0件でした。</li>
+        <li><b>しきい値は自分たちの履歴から出す。</b>日数の決め打ちは、実データで検出0件でした。値が7でも60でも同じです。</li>
         <li><b>指標は複数、互いに緊張関係のあるものを混ぜる。</b>単一指標はDORAとSPACEの両方が否定しています。</li>
         <li><b>指標より先に、優先順位の変更頻度を見る。</b>良いリーダーシップでは相殺できない、と検証されています。</li>
       </ul>
 
-      <p class="lead">手を動かす順番です。<span class="cl-count">0 / 5</span></p>
+      <p class="lead">手を動かす順番です（1〜4は自分のリポジトリがある人向け。ターミナルでリポジトリのフォルダに入って打ちます）。<span class="cl-count">0 / 5</span></p>
       <ul class="checklist" data-key="progress-signals-2026-08-14">
         <li><label><input type="checkbox"><span><code>git branch -r --no-merged origin/main</code> を今すぐ実行して、未統合の枝の本数を数えた</span></label></li>
         <li><label><input type="checkbox"><span><code>git log --first-parent --merges</code> で、レビュー待ち時間の標本が何件取れるか確かめた</span></label></li>
-        <li><label><input type="checkbox"><span>標本が5件以上あるなら85%点を出した。無いなら「まだSLEは出せない」と明示した</span></label></li>
+        <li><label><input type="checkbox"><span>標本が集まったら85%点を出した。少ないなら暫定値だと明示した（Kanban Guideは履歴が無ければ当て推量でよいと書いています。「5件未満は出さない」は筆者のルールです）</span></label></li>
         <li><label><input type="checkbox"><span>検出結果を「検出N件 / 検査M件」の形で、分母つきで出すようにした</span></label></li>
         <li><label><input type="checkbox"><span>直近3か月で優先順位が何回変わったか数えた（指標より先に効く可能性がある）</span></label></li>
       </ul>
@@ -791,15 +856,33 @@ v. 2025.2.</pre>
         </li>
         <li>
           <span class="flag primary">一次資料</span>
+          Ken Schwaber, Jeff Sutherland「The Scrum Guide — The Definitive Guide to Scrum: The Rules of the Game」<i>scrumguides.org 公式アーカイブPDF（2016年7月版, 17ページ）</i>, 2016年7月.
+          <span class="note">参照箇所: Daily Scrum の節。"During the meeting, the Development Team members explain:" に続けて3つの質問が断定形で列挙されている箇所。「一例である」「構造は開発チームが設定する」に相当する記述がPDF全文に存在しないことも、テキスト抽出して検索し確認した。副題の "The Rules of the Game" も同PDFから。</span>
+          <a href="https://scrumguides.org/docs/scrumguide/v2016/2016-Scrum-Guide-US.pdf">https://scrumguides.org/docs/scrumguide/v2016/2016-Scrum-Guide-US.pdf</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          scrumguides.org「Scrum Guide Revision History」<i>scrumguides.org</i>.
+          <span class="note">参照箇所: 2016→2017 の項「Updated the Daily Scrum section to provide clarity on the goals of the Daily Scrum including this text: The structure of the meeting is set by the Development Team...」（「例」の枠組みが2017年に追加されたこと）、および 2017→2020 の項「removing or softening prescriptive language. e.g. removed Daily Scrum questions」。HTML全文を取得して該当2箇所を読了。</span>
+          <a href="https://scrumguides.org/revisions.html">https://scrumguides.org/revisions.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          GitHub「actions/stale — action.yml」<i>github.com/actions/stale（main ブランチ）</i>.
+          <span class="note">参照箇所: <code>days-before-stale</code> の <code>default: '60'</code> と <code>days-before-close</code> の <code>default: '7'</code>。「日数の決め打ち」が実在する公式ツールの既定値であることの裏付けとしてのみ使用。本記事の7日はこのツール由来ではない（下記「自分の意見」参照）。</span>
+          <a href="https://raw.githubusercontent.com/actions/stale/main/action.yml">https://raw.githubusercontent.com/actions/stale/main/action.yml</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
           Orderly Disruption Limited / Daniel S. Vacanti, Inc.「Kanban Guide」<i>kanbanguides.org, v2025.5</i>, 2025年5月.
-          <span class="note">参照箇所: Flow Metrics（必須4指標の定義）、Definition of Workflow（SLEの2部構成と "85% of work items will be finished in eight days or less" の例）、Actively Managing Items in a Workflow（SLEを基準に滞留させない）。HTML全文（13,401文字）を取得して読了。なお同ページ末尾に第三者名義のサイトデザイン表記があり、公式サイトか有志ミラーかは断定していない。</span>
-          <a href="https://kanbanguides.org/english/">https://kanbanguides.org/english/</a>（2026年8月14日参照）
+          <span class="note">参照箇所: Flow Metrics（必須4指標の定義。Throughput の "Note the measurement of throughput is the exact count of work items." を含む全文）、Definition of Workflow（SLEの2部構成、"85% of work items will be finished in eight days or less" の例、および "The SLE should be based on historical cycle time and, once calculated, ... If historical cycle time data does not exist, a best guess will do until there is enough historical data for a proper SLE calculation." の全文）、Actively Managing Items in a Workflow（SLEを基準に滞留させない）。HTML全文を取得して読了し、2026年8月15日に再取得して引用全文の一致を確認した。<code>/english/</code> は <code>/the-kanban-guide/2025.5/</code> へ301で転送される（内容同一）。なお同ページ末尾に第三者名義のサイトデザイン表記があり、公式サイトか有志ミラーかは断定していない。</span>
+          <a href="https://kanbanguides.org/english/">https://kanbanguides.org/english/</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
           Nathen Harvey / DORA「DORA's software delivery performance metrics」<i>dora.dev</i>, 最終更新 2026年1月5日.
-          <span class="note">参照箇所: 5指標であるという記述、Throughput / Instability の分類、先行指標・遅行指標の位置づけ、Common pitfalls（指標を目標にする／単一指標／チーム間比較）。表の分類はこのページと下の履歴ページの両方で一致を確認した。</span>
-          <a href="https://dora.dev/guides/dora-metrics-four-keys/">https://dora.dev/guides/dora-metrics-four-keys/</a>（2026年8月14日参照）
+          <span class="note">参照箇所: 5指標であるという記述、Throughput / Instability の分類、先行指標・遅行指標の位置づけ、Common pitfalls（指標を目標にする／単一指標／チーム間比較）。表の分類はこのページと下の履歴ページの両方で一致を確認した。旧URL <code>/guides/dora-metrics-four-keys/</code> は2026年8月15日時点でこのURLへ301（<code>curl -I</code> で実測）。</span>
+          <a href="https://dora.dev/guides/dora-metrics/">https://dora.dev/guides/dora-metrics/</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
@@ -822,7 +905,7 @@ v. 2025.2.</pre>
         <li>
           <span class="flag primary">一次資料</span>
           ChongWoo Park, Ghiyoung Im, Mark Keil「Overcoming the Mum Effect in IT Project Reporting: Impacts of Fault Responsibility and Time Urgency」<i>Journal of the Association for Information Systems, 9(7), pp. 409-431</i>, 2008年7月. DOI: 10.17705/1jais.00163
-          <span class="note">参照箇所: マム効果の定義、悪い知らせが階層を上がらない／歪むという先行研究のまとめ、時間切迫性の強調が報告意欲を高めるという結果、および研究の限界（実験室実験、被験者の約60%が実務経験1年以上、モデルの説明力32%）。オープンアクセスPDF全文（96,013文字）を取得して読了。Crossrefで書誌照合済み。</span>
+          <span class="note">参照箇所: マム効果の定義、悪い知らせが階層を上がらない／歪むという先行研究のまとめ、時間切迫性の強調が報告意欲を高めるという結果、および研究の限界（実験室実験、被験者は学生で平均22.8歳・平均実務経験2.6年、約60%が実務経験1年以上、モデルの説明力32%、"While the use of student subjects can limit the generalizability of results" という著者自身の但し書き）。オープンアクセスPDF全文（96,013文字）を取得して読了。Crossrefで書誌照合済み。</span>
           <a href="https://aisel.aisnet.org/cgi/viewcontent.cgi?article=1447&amp;context=jais">https://aisel.aisnet.org/cgi/viewcontent.cgi?article=1447&amp;context=jais</a>（2026年8月14日参照）
         </li>
         <li>
@@ -880,7 +963,7 @@ v. 2025.2.</pre>
         <li>
           <span class="flag self">自分の実測</span>
           gitログからの停滞検出。対象リポジトリ <code>/home/user/ai-news</code>（origin = github.com/reishisu/ai-news, HEAD 9c00246, 全30コミット）、2026年8月14日 15:18〜15:25 UTC 実施。環境: Python 3.11.15 / git 2.43.0 / jq 1.7。
-          <span class="note">記事中のターミナル出力は、加工せずそのまま貼っています。実行中に <code>git status --porcelain</code> は空のままで、リポジトリの内容は一切変更していません。gh CLI は未インストールのため GitHub API は curl で叩きました。</span>
+          <span class="note">記事中のターミナル出力は、<code>run_all.sh</code> が吐いた <code>out.txt</code> をそのまま貼っています（加工なし）。第5章のバグ再現だけは <code>bug_repro.py</code> を2026年8月15日に同じコミット(9c00246)へ当て直した出力で、これも加工していません。実行中に <code>git status --porcelain</code> は空のままで、リポジトリの内容は一切変更していません。gh CLI は未インストールのため GitHub API は curl で叩きました。スクリプトと出力は <code>_labs/2026-08-14_progress-signals/</code> に置いています。</span>
         </li>
         <li>
           <span class="flag self">自分の実測</span>
@@ -900,7 +983,22 @@ v. 2025.2.</pre>
         <li>
           <span class="flag self">自分の意見</span>
           「静止時間（最終コミットから現在まで）」でソートし、SLEに対する倍率で声をかける順番を決める運用は、筆者の運用上の目安です。
-          <span class="note">Kanban Guide の Work Item Age は「着手から現在まで」であり、静止時間は規格に無い指標です。スクリプトは両方を並べて印字します。また公式ガイドのURLが <code>four-keys</code> のままであることが二次情報の誤りの震源地だ、という記述も筆者の推測です。</span>
+          <span class="note">Kanban Guide の Work Item Age は「着手から現在まで」であり、静止時間は規格に無い指標です。スクリプトは両方を並べて印字します。また旧URLに <code>four-keys</code> が残っていることが「4つ」という呼び名の定着に効いた、という因果も筆者の推測で、裏は取れていません。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          比較対象に置いた「7日」は、筆者が <code>stale_v1.sh</code> の既定値（<code>DAYS="${DAYS:-7}"</code>）として自分で決めた値です。
+          <span class="note">「7日が一般的」と主張できる資料は見つけられませんでした。日数の決め打ちが実在することの裏付けとして actions/stale の既定値（60日／7日）を挙げていますが、本記事の7日はそこから取ったものではありません。決め打ちであることが論点なので、値そのものに意味はありません。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「標本が5件未満ならSLEを出さない」という判定は、<code>flow_signals.py</code> の <code>MIN_N = 5</code> という筆者の定数です。
+          <span class="note">Kanban Guide に5件という数字はありません。むしろ "If historical cycle time data does not exist, a best guess will do" と書かれており、ガイドの立場とは逆方向に厳しくしています。第7章のチェックリストにもその旨を書き添えました。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          出力の「中央値」表示は、<code>pct_nearest_rank(vals, 50)</code> による nearest-rank の50%点です。
+          <span class="note">標本数が偶数のときは真の中央値と一致しません（検証用データ [1,1,2,3,4,6,10,18] では真の中央値3.5時間に対し表示は3h00m）。実リポジトリ側は標本27件の奇数なので一致します。判定に使う85%点は nearest-rank で正しく、表示の呼び名だけが不正確です。本文でも同じ注意書きを入れました。</span>
         </li>
       </ol>
     </article>

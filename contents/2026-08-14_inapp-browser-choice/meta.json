@@ -8,7 +8,7 @@
     "実測"
   ],
   "featured": true,
-  "title": "アプリ内ブラウザの3択は、Cookieがどこに貯まるかの3択",
+  "title": "アプリ内ブラウザの選び方 — WebView / Custom Tabs / SFSafariViewController",
   "summary": "アプリの中でWebページを開く3つの部品は、見た目ではなくCookieの置き場で分かれています。同じ端末で片方だけログインが消える様子を実測し、RFC 8252の禁止条項とGoogleのブロック開始日、Apple公式の原文で裏を取りました。「SFSafariViewController = iOS版Custom Tabs」が一次資料では成り立たない理由と、審査で落ちる2条項まで。",
   "thumbnail": "images/thumb.png"
 }

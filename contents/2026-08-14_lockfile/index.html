@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>lockがあるのに揃わない。npmが固定していない4つ</title>
+<title>npmのロックファイルが固定しないもの — install と ci の違い</title>
 <meta name="description" content="package-lock.json は何を固定して、何を固定していないのか。lockに registry.npmjs.org と書いてあるのに別のサーバーから取ってきた実測、npm ci が package.json を読んでいる証拠、npm 12 で壊れた前提まで。">
 <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="apple-touch-icon" href="../../favicon.svg">
 <meta property="og:type" content="article">
-<meta property="og:title" content="lockがあるのに揃わない。npmが固定していない4つ">
+<meta property="og:title" content="npmのロックファイルが固定しないもの — install と ci の違い">
 <meta property="og:description" content="lockに書いてあるURLからは取ってこない。実測で確かめた「固定したつもり」の穴。">
 <meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_lockfile/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="../../css/article.css?v=19bddda4">
+<link rel="stylesheet" href="../../css/article.css?v=8aef8429">
 
 <link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
 </head>
@@ -27,7 +27,7 @@
 
   <div class="masthead">
     <div class="eyebrow">Web開発・インフラ ｜ 2026年8月14日(金)</div>
-    <h1>lockがあるのに揃わない。npmが固定していない4つ</h1>
+    <h1>npmのロックファイルが固定しないもの — install と ci の違い</h1>
     <div class="range">package-lock.json を14通りの方法でいじめて、何が固定されて何が固定されていないかを測りました。ログは加工していません。</div>
     <div class="meta-row">
       <span class="time-chip">⏱ 約11分</span>

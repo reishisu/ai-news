@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>カバレッジ100%のテストが、バグ4個中1個しか見つけなかった</title>
+<title>テスト設計の優先順位 — カバレッジより「壊れて困る順」</title>
 <meta name="description" content="同じアプリに4つのバグを1行ずつ入れて、粒度の違うテストで検出できるか実測しました。行カバレッジ100%のテストは1個しか見つけず、59.1%のテストが4個全部見つけた。壊れて困る順に書くための、担当分けとAIの線引きまで。">
 <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="apple-touch-icon" href="../../favicon.svg">
 <meta property="og:type" content="article">
-<meta property="og:title" content="カバレッジ100%のテストが、バグ4個中1個しか見つけなかった">
+<meta property="og:title" content="テスト設計の優先順位 — カバレッジより「壊れて困る順」">
 <meta property="og:description" content="カバレッジ100%は1/4、59.1%は4/4。実測マトリクスから、粒度の配分と担当分けを決め直します。">
 <meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_test-design/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="../../css/article.css?v=19bddda4">
+<link rel="stylesheet" href="../../css/article.css?v=8aef8429">
 
 <link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
 </head>
@@ -27,7 +27,7 @@
 
   <div class="masthead">
     <div class="eyebrow">チームで作る技術 ｜ 2026年8月14日(金)</div>
-    <h1>カバレッジ100%のテストが、バグ4個中1個しか見つけなかった</h1>
+    <h1>テスト設計の優先順位 — カバレッジより「壊れて困る順」</h1>
     <div class="range">同じアプリに、同じ4つのバグを1行ずつ入れて、どのテストが落ちるかを全部測りました。実行できるコードと生の出力を全部載せます。</div>
     <div class="meta-row">
       <span class="time-chip">⏱ 約12分</span>
@@ -49,10 +49,34 @@
       </li>
       <li>
         <b>Googleが出している粒度の配分は2つあって、食い違っている</b>
-        <span>2015年のブログは70/20/10、2020年の書籍は80/15/5。比率を目標にするのは、カバレッジ100%と同じ罠です。</span>
+        <span>テストを3つの粒度に分けたときの件数比です。2015年のブログは70/20/10、2020年の書籍は80/15/5。比率を目標にするのは、カバレッジ100%と同じ罠です。</span>
       </li>
     </ol>
   </section>
+
+  <p class="lead"><b>先に言葉を1つだけ。</b><mark>カバレッジ</mark>とは、テストを走らせたときに<b>プログラムの何行が実際に通ったか</b>の割合です。100%は「全行を通した」という意味であって、<mark>通っただけで、中身が正しいかを確かめたとは言っていません。</mark>この記事はその差を実測します。</p>
+
+  <details>
+    <summary>この記事に出てくる言葉（知っている人は飛ばしてください）</summary>
+    <div class="body">
+      <dl>
+        <dt>粒度 — ユニット / 結合 / E2E</dt>
+        <dd>テストの「どこまで動かすか」の段階です。<b>ユニット</b>＝関数1つを単体で呼ぶ。<b>結合</b>＝複数のファイルを繋いで呼ぶ。<b>E2E</b>（End-to-End）＝アプリを端から端まで、利用者と同じ入口から動かす。この3つの違いが、この記事の主題です。</dd>
+        <dt>ステートメント / 未到達</dt>
+        <dd>カバレッジは物理的な行数ではなく<b>実行される文（ステートメント）</b>の数で数えます。<b>未到達</b>＝テスト中に一度も実行されなかった文のことです。</dd>
+        <dt>PR / CI</dt>
+        <dd><b>PR</b>（プルリクエスト）＝「この変更を取り込んでください」とチームに出す申請。ここでレビューされます。<b>CI</b>＝コードを送るたびに自動でテストを走らせる仕組み（サーバー）。</dd>
+        <dt>flaky / 偽陽性</dt>
+        <dd><b>flaky</b>なテスト＝コードを1文字も変えていないのに、通ったり落ちたりするテスト。落ちても本当のバグではないので、その失敗は<b>偽陽性</b>（誤検知）です。</dd>
+        <dt>モック</dt>
+        <dd>本物の部品の代わりに、決まった値を返す偽物を差し込むこと。速く書けますが、差し替えた部分の仕様が変わっても気づけません。</dd>
+        <dt>アサート / オラクル</dt>
+        <dd><b>アサート</b>＝「結果はこうなるはずだ」とテストに書き込む行。その「正解はこれ」の部分をまとめて<b>オラクル</b>と呼びます。第6章のキーワードです。</dd>
+        <dt>スタックトレース</dt>
+        <dd>エラーが出たとき、<b>どのファイルの何行目を通ってそこに来たか</b>の経路が上から順に出力されたもの。第3章で読み方が効いてきます。</dd>
+      </dl>
+    </div>
+  </details>
 
   <nav class="toc">
     <h2>目次</h2>
@@ -75,12 +99,12 @@
     <article class="item">
       <h3>同じアプリ、同じ4つのバグ。数字が高いほうが1個しか見つけなかった</h3>
 
-      <p class="lead">席数割引つきの請求計算という、小さなアプリを書きました。44行です。そこに<mark>1行だけ書き換えるバグを4通り</mark>用意します。</p>
+      <p class="lead">席数割引つきの請求計算という、小さなアプリを書きました。<code>app/</code> は物理90行、カバレッジが数える単位（ステートメント）では44です。そこに<mark>1行だけ書き換えるバグを4通り</mark>用意します。</p>
 
       <p class="lead">テストセットは2つ。片方は行カバレッジ100%、もう片方は59.1%。どちらが多く見つけるかを測りました。</p>
 
       <div class="code term">
-        <div class="code-head">実行結果（python3 run_cov.py）</div>
+        <div class="code-head">実行結果（python3 run_cov.py）未到達＝一度も実行されなかった文</div>
         <pre>テストセット  cov%  未到達 検出
 ----------------------------------
 cov_only      100.0     0行 1/4
@@ -95,7 +119,7 @@ cov_only      100.0     0行 1/4
         <li><b>これはカバレッジ計測のバグではありません。</b>100%のほうは本当に全行を通しています。通しているだけです。</li>
       </ul>
 
-      <p class="lead">なぜこうなるのか。100%側のテストが何をアサートしているかを見れば一瞬でわかります。</p>
+      <p class="lead">なぜこうなるのか。100%側のテストが何をアサート（「結果はこうなるはずだ」と書き込むこと）しているかを見れば一瞬でわかります。<b>次のコードは読み飛ばして、その下の1文だけ読んでも通じます。</b></p>
 
       <div class="code">
         <div class="code-head">t_cov_only.py — カバレッジを稼ぐためだけのテスト（抜粋）</div>
@@ -168,7 +192,9 @@ indicator of test suite effectiveness.
     <article class="item">
       <h3>ユニットだけが落ちる壊し方と、E2Eだけが落ちる壊し方がある</h3>
 
-      <p class="lead">同じアプリに、粒度の違うテストを3つ書きました。ユニット12件、結合4件、E2E3件です。そこへ4通りの壊し方を1つずつ入れて、どれが落ちるかを全部測ります。</p>
+      <p class="lead">同じアプリに、粒度の違うテストを3組書きました。<b>ユニット</b>（関数1つを単体で呼ぶ）12件、<b>結合</b>（複数のファイルを繋いで呼ぶ）4件、<b>E2E</b>（アプリを端から端まで、利用者と同じ入口から動かす）3件です。</p>
+
+      <p class="lead">そこへ4通りの壊し方を1つずつ入れて、どれが落ちるかを全部測ります。壊し方は「元の1行を、右の1行に差し替える」という形で定義しました。</p>
 
       <div class="code">
         <div class="code-head">bugs.py — 壊し方の定義（1行だけ置換する）</div>
@@ -189,7 +215,7 @@ indicator of test suite effectiveness.
       </div>
 
       <div class="code term">
-        <div class="code-head">実行結果（python3 run_matrix.py）P=全通過 F=失敗</div>
+        <div class="code-head">実行結果（python3 run_matrix.py）P=全通過 2F/12＝12件中2件が失敗</div>
         <pre>壊し方         unit  intg   e2e
 -------------------------------
 (なし)          12P    4P    3P
@@ -225,8 +251,9 @@ indicator of test suite effectiveness.
         <pre>2. Exhaustive testing is impossible. Testing everything
 is not feasible except in trivial cases (Manna 1978).
 Rather than attempting to test exhaustively, test
-techniques, test case prioritization, and risk-based
-testing, should be used to focus test efforts.
+techniques [...], test case prioritization [...], and
+risk-based testing [...], should be used to focus test
+efforts.
 
 （網羅的テストは不可能である。すべてをテストすること
 　は、些末な場合を除いて実行可能ではない。網羅的に
@@ -298,6 +325,8 @@ don't want to break.
 
       <p class="lead">上の表では、b4はユニットもE2Eも落ちています。同点に見えます。<mark>落ちたあとに何がわかるか</mark>を比べると、同点ではありません。</p>
 
+      <p class="lead">読み方だけ先に。<b>エラーが出ると、どのファイルの何行目を通ってそこに来たかの経路が上から順に出ます（スタックトレース）。</b>知りたいのは<mark>一番下の、原因の場所</mark>です。そこに何が書いてあるかを比べてください。</p>
+
       <div class="code term">
         <div class="code-head">実行結果（python3 run_isolate.py）b4を注入して比較</div>
         <pre>=== t_unit.py ===
@@ -344,7 +373,7 @@ FAILED t_e2e.py::test_e2e_monthly_3
       <ul class="points">
         <li><b>ユニットは <code>app/price.py:20</code> と、壊した行そのものを指しました。</b>原因も <code>NameError: name 'PRICE' is not defined</code> と出ています。読めば終わりです。</li>
         <li><b>E2Eのスタックには <code>price.py</code> が1度も出てきません。</b>指しているのはPython標準ライブラリの <code>json/decoder.py:355</code>。「JSONが空だった」としか言っていません。</li>
-        <li><b>直す人の作業量が違います。</b>片方は1行読めば終わり。もう片方は、サブプロセスのstdoutが空だった理由を自分で調べに行くところから始まります。</li>
+        <li><b>直す人の作業量が違います。</b>片方は1行読めば終わり。もう片方は、別プロセスとして起動したアプリの出力（stdout）が空だった理由を、自分で調べに行くところから始まります。</li>
       </ul>
 
       <p class="lead">この性質は、Googleがフィードバックループの必須条件として名指ししているものです。</p>
@@ -359,7 +388,7 @@ find the specific lines of code causing the bug.
 　必要がある）</pre>
       </div>
 
-      <h3>1件あたり1.7ms 対 28.6ms。同じ検証で約17倍</h3>
+      <h3>同じ検証をE2Eで書くと、1件あたり約17倍かかる</h3>
 
       <p class="lead">次はコストです。同じ内容の検証を200件ずつ、粒度[小]と粒度[大]で書いて実行時間を測りました。</p>
 
@@ -371,14 +400,21 @@ find the specific lines of code causing the bug.
 大 e2e    200   5.71   28.6</pre>
       </div>
 
-      <p class="lead">ここで測ったE2Eは<mark>DBもネットワークもブラウザも入っていません</mark>。Pythonのサブプロセスを起動してJSONを1往復させるだけです。それでも17倍つきました。現実のE2Eはこれより確実に遅いので、この17倍は<b>下限</b>です。</p>
+      <ul class="points">
+        <li><b>再現するのは倍率のほうです。</b>後日に測り直すと 1.5ms / 24.6ms（16.4倍）でした。絶対値は実行ごとに15〜20%動きますが、<mark>16〜17倍という比はどの回でも変わりません</mark>。引くなら倍率だけにしてください。</li>
+        <li><b>「1件ms」の定義。</b>pytestプロセス全体の実時間 ÷ 200件です。ユニット側の合計0.3秒はほとんどがpytestの起動費（約0.25秒）なので、<b>1.7msは起動費の按分</b>であって、ユニット1件の限界コストではありません。実際の差はもっと開きます。</li>
+      </ul>
 
-      <h3>コードを1文字も変えていないのに、CIが混むと41%が落ちる</h3>
+      <p class="lead">そしてここで測ったE2Eは<mark>DBもネットワークもブラウザも入っていません</mark>。Pythonのサブプロセスを起動してJSONを1往復させるだけです。現実のE2Eはこれより確実に遅いので、この17倍は<b>下限</b>です。</p>
 
-      <p class="lead">遅いだけなら待てばいい。問題は、遅いテストが<mark>時計に触れた瞬間にflakyの種になる</mark>ことです。同じE2Eを200回、空いている状態とCPUを埋めた状態で計りました。</p>
+      <h3>コードを1文字も変えていないのに、CIが混むと1〜4割が落ちる</h3>
+
+      <p class="lead">遅いだけなら待てばいい。問題は、遅いテストが時計に触れた瞬間に<mark>flaky</mark>——コードを1文字も変えていないのに通ったり落ちたりするテスト——の種になることです。</p>
+
+      <p class="lead">同じE2Eを200回、空いている状態とCPUを埋めた状態（CI＝コードを送るたびに自動でテストを走らせるサーバーが混んでいる状況の再現）で計りました。</p>
 
       <div class="code term">
-        <div class="code-head">実行結果（python3 run_flaky.py）単位はマイクロ秒</div>
+        <div class="code-head">実行結果（python3 run_flaky.py）単位はマイクロ秒・1回分</div>
         <pre>マイクロ秒 (1000us = 1ms)
               最小    中央    最大
 ----------------------------------
@@ -392,9 +428,10 @@ find the specific lines of code causing the bug.
       </div>
 
       <ul class="points">
-        <li><b>「空いているときの中央値の2倍」という素直なタイムアウトを置いただけ。</b>空いていれば0/200回しか超えないのに、CPUを埋めると82/200回超えました。</li>
+        <li><b>「空いているときの中央値の2倍」という素直なタイムアウトを置いただけ。</b>空いていれば0/200回しか超えないのに、CPUを埋めるとこの回は82/200回超えました。</li>
         <li><b>テストのコードも対象のコードも1文字も変わっていません。</b>変わったのはCIが混んでいるかどうかだけです。</li>
-        <li><b>この数字自体がぶれます。</b>同じスクリプトを単独で実行したときは 46/200 (23.0%) でした。負荷の掛かり方に依存するので、<mark>「混雑させると2〜4割が超過する」以上の精度では言えません</mark>。0/200のほうは両方の実行で再現しました。</li>
+        <li><b>この数字自体が大きくぶれます。</b>同じスクリプトを条件を変えずに4回走らせた混雑時の超過率は <b>41.0% / 23.0% / 16.5% / 14.5%</b>。負荷の掛かり方に依存するので、<mark>「混雑させると1〜4割が超過する」以上の精度では言えません</mark>。上の 41.0% は4回のうちの最大値です。</li>
+        <li><b>逆に、空いているときの 0/200 は4回とも再現しました。</b>ぶれているのは「混雑させたときにどれだけ壊れるか」であって、「混雑させると壊れる」こと自体はぶれていません。</li>
       </ul>
 
       <p class="lead">flakyが増えると何が壊れるか。Googleが自社の数字で書いています。</p>
@@ -415,7 +452,7 @@ false-positives.
 
       <p class="lead">同じ記事は「全テスト実行の約1.5%がflakyな結果を報告する」とも書いています。平均的なプロジェクトが1000テストを持つなら、毎回15件が理由なく赤くなる計算です。</p>
 
-      <p class="lead"><b>ただしこの数字は引用に注意が必要です。</b>2020年の書籍 Software Engineering at Google は「Googleのflaky率は0.15%前後で推移している」と書いていて、10倍違います。前者は明示的に「テスト実行(test runs)」が分母、後者は分母が書かれていません。どちらの資料も相手に言及していないので、<mark>この差は本記事では説明できません</mark>。引くなら年と分母をセットにするしかありません。</p>
+      <p class="lead"><b>ただしこの数字は引用に注意が必要です。</b>2020年の書籍 Software Engineering at Google は「Googleのflaky率は0.15%前後で推移している」と書いていて、10倍違います。前者は明示的に「テスト実行(test runs)」が分母、後者は分母が書かれていません。<b>「何を分母にした何%か」が違えば、同じ現象でも数字は簡単に10倍変わります。</b>どちらの資料も相手に言及していないので、<mark>この差は本記事では説明できません</mark>。引くなら年と分母をセットにするしかありません。</p>
 
       <div class="quiz">
         <p class="q">Q. E2Eで見つけたバグを直すとき、Fowlerが勧めている手順は?</p>
@@ -472,7 +509,7 @@ and 5% end-to-end tests that validate the entire system.
               <td data-label="ユニット">70%</td>
               <td data-label="結合">20%</td>
               <td data-label="E2E">10%</td>
-              <td data-label="数え方">記載なし</td>
+              <td data-label="数え方">「テストの数」とあるが明示の注記なし</td>
             </tr>
             <tr>
               <td>SWE at Google 2020</td>
@@ -487,8 +524,8 @@ and 5% end-to-end tests that validate the entire system.
 
       <ul class="points">
         <li><b>E2Eが10%→5%に半減、ユニットが70%→80%に増えています。</b>どちらも「Googleの推奨」として流通していますが、年も数字も違います。</li>
-        <li><b>数え方を書いているのは書籍だけ。</b>図11-3のキャプションに「percentages are by test case count」（パーセンテージはテストケース数による）とあります。2015年のブログは何で数えるのかを一切書いていません。</li>
-        <li><b>ブログのコメント欄で読者に測り方を聞かれ、Google側は「直接測るのは難しい」と答えています。</b>測れない量を比率で目標にする、という時点で<mark>カバレッジ100%とまったく同じ罠</mark>です。</li>
+        <li><b>数え方を明示しているのは書籍だけ。</b>図11-3のキャプションに「percentages are by test case count」（パーセンテージはテストケース数による）とあります。2015年のブログは、直前の文で「the number of tests (the width of your pyramid)」と書いてはいるものの、書籍のような明示的な注記は付けていません。</li>
+        <li><b>ブログのコメント欄で読者に測り方を聞かれ、回答は「直接測るのは難しい」でした。</b>（投稿者名は "Anonymous" 表示で、Google所属とも著者本人とも明示されていません。）測れない量を比率で目標にする、という時点で<mark>カバレッジ100%とまったく同じ罠</mark>です。</li>
       </ul>
 
       <p class="lead">そもそもピラミッドという形自体が、条件付きのモデルです。提唱を広めた本人が書いています。</p>
@@ -553,7 +590,7 @@ coverage thresholds.
       <ul class="points">
         <li><b>60/75/90は全社基準ではありません。</b>論文の表2では、レベル3がプロジェクト60%以上・変更リスト70%以上、レベル4が75%/80%、レベル5が90%/90%。しかも「多くのプロジェクトが<mark>任意に</mark>これらを目標として設定している」と明記されています。</li>
         <li><b>だから「Googleが60%と言っているからCIに60%ゲートを入れる」は、出典の誤読です。</b>強制されているのは閾値ではなく、閾値を自分で決める自由のほうです。</li>
-        <li><b>そして「100%はダメだから80%にしよう」という折衷案は、一次資料の誰も支持していません。</b>今回読んだ範囲で80%を推奨している一次資料は1つもありませんでした。</li>
+        <li><b>そして「100%はダメだから80%にしよう」という折衷案を、一次資料は誰も支持していません。</b>今回読んだ範囲で、<mark>全体カバレッジの目標として80%を薦めている一次資料は1つもありませんでした</mark>。数値に触れているものはあります。Fowlerは「注意深くテストしていれば80台後半か90台<b>になると期待する</b>」と書いていますが、これは結果の予想であって目標値ではありません。</li>
       </ul>
 
       <p class="lead">むしろ80%は、失敗例として名指しされています。</p>
@@ -596,10 +633,10 @@ do more work than the metric requires?
     <article class="item">
       <h3>テストゼロで14行足したのに、全体カバレッジは7.1ポイントしか下がらない</h3>
 
-      <p class="lead">複数人プロジェクトで一番よくある事故を再現します。<mark>テストを1行も書かずに機能を1つ足すPR</mark>です。クーポン機能を14行で追加しました。</p>
+      <p class="lead">複数人プロジェクトで一番よくある事故を再現します。<mark>テストを1行も書かずに機能を1つ足すPR</mark>（プルリクエスト＝「この変更を取り込んでください」とチームに出す申請。ここでレビューされます）です。クーポン機能を14行で追加しました。</p>
 
       <div class="code term">
-        <div class="code-head">実行結果（python3 run_diffcov.py）</div>
+        <div class="code-head">実行結果（python3 run_diffcov.py）差分cov＝追加行だけを分母にしたカバレッジ</div>
         <pre>全体cov  変更前: 100.0%
 全体cov  変更後: 92.9%
 追加行: 14行 / 通った: 10行
@@ -625,7 +662,7 @@ do more work than the metric requires?
         <li><b>レビューに出すべきは全体の数字ではなく、この4行のリストです。</b>「カバレッジが下がりました」では誰も動きませんが、「この4行を誰も通していません」は動けます。</li>
       </ul>
 
-      <p class="lead"><b>予想は外れました。</b>「テストゼロのPRなら差分カバレッジは0%になるはずだ」と思って測りましたが、71.4%でした。14行のうち10行（<code>def</code> 行、定数の辞書、<code>if code is None: return 0.0</code> の経路）が、import時や既存テスト経由で実行済みと数えられます。<mark>行カバレッジは何もしなくても7割は勝手に埋まります。</mark></p>
+      <p class="lead"><b>予想は外れました。</b>「テストゼロのPRなら差分カバレッジは0%になるはずだ」と思って測りましたが、71.4%でした。14行のうち10行（<code>def</code> 行、定数の辞書、<code>if code is None: return 0.0</code> の経路）が、ファイルを読み込んだ時点（import時）や既存テスト経由で実行済みと数えられます。<mark>行カバレッジは何もしなくても7割は勝手に埋まります。</mark></p>
 
       <p class="lead">「変更単位で見る」という発想は、思いつきではありません。査読付き論文が、それを鍵として名指ししています。</p>
 
@@ -639,6 +676,26 @@ review.
 　変更セットとコードレビューのレベルで適用することで
 　ある）</pre>
       </div>
+
+      <p class="lead">同じ方向の記述は、第4章で引いたGoogleのブログにもあります。<b>ただしこちらは差分に対して具体的な数値を出しています。</b></p>
+
+      <div class="code wrap">
+        <div class="code-head">「Code Coverage Best Practices」(2020年8月7日) — 原文</div>
+        <pre>Make sure that frequently changing code is covered.
+While project wide goals above 90% are most likely not
+worth it, per-commit coverage goals of 99% are
+reasonable, and 90% is a good lower threshold.
+
+（頻繁に変わるコードが覆われていることを確かめよ。
+　プロジェクト全体で90%超という目標はおそらく割に
+　合わないが、コミット単位のカバレッジ目標として99%は
+　妥当で、90%は良い下限の閾値である）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>全体には「90%超は割に合わない」、差分には「99%が妥当」。</b>同じ記事の中で、分母を変えると推奨の向きが逆になっています。第4章の60/75/90と合わせて読まないと誤読します。</li>
+        <li><b>それでもこの記事は、差分に閾値を置くことは薦めません。</b>閾値は「何%か」しか伝えませんが、上の実測が示すとおり<mark>本当に必要なのは未到達4行のリスト</mark>だからです。ここは一次資料と違う判断で、筆者の運用上の意見です。</li>
+      </ul>
 
       <h3>その前に。E2Eのカバレッジは、たぶん0%と表示されています</h3>
 
@@ -661,7 +718,7 @@ cli.py           0%    0%    0%  100%</pre>
         <li><b><code>api.py</code> と <code>cli.py</code> は「誰もテストしていないファイル」として表示され続けます。</b>実際にはE2Eが通しているのに。</li>
       </ul>
 
-      <p class="lead">これは性質ではなく設定の問題です。<mark>テストを1行も変えずに</mark>直せます。</p>
+      <p class="lead">これは性質ではなく設定の問題です。<mark>テストを1行も変えずに</mark>直せます。<b>管理側の人が見るのは上の表まででかまいません</b>——「E2Eの列が全部0%になっていないか」を聞くだけで足ります。次の2ファイルは、設定する人向けです。</p>
 
       <div class="code">
         <div class="code-head">subproc_cov/coveragerc と sitecustomize.py</div>
@@ -718,7 +775,7 @@ def test_invoice(seats, plan, sub, ttl, why):
     assert inv["total"] == ttl, why</pre>
       </div>
 
-      <p class="lead">もう片方（<code>t_spec_bad.py</code>）は、モックで中身を差し替えて、期待値は裸の数字。名前は <code>test_1</code>、<code>test_2</code>、<code>test_3</code>。ビジネス側から<b>「割引を5席から10%、30席から25%に改定します」</b>と言われた日に、両者はこう鳴きました。</p>
+      <p class="lead">もう片方（<code>t_spec_bad.py</code>）は、<b>モック</b>——本物の部品の代わりに、決まった値を返す偽物を差し込むこと——で中身を差し替えて、期待値は裸の数字。名前は <code>test_1</code>、<code>test_2</code>、<code>test_3</code>。ビジネス側から<b>「割引を5席から10%、30席から25%に改定します」</b>と言われた日に、両者はこう鳴きました。</p>
 
       <div class="code term">
         <div class="code-head">実行結果（python3 run_spec.py）割引ルール改定を注入</div>
@@ -781,7 +838,7 @@ price.py           9       3</pre>
 
       <p class="lead"><b>予想が完全に外れました。</b>「モックだらけの bad はスコアが明確に低いはずだ」と思って測ったのに、bad 39殺し 対 good 38殺し。<mark>総スコアでは優劣がつきません。</mark></p>
 
-      <p class="lead">差は「どこを守れていないか」に出ました。生き残った変異の実物を見ると、何が起きているか一発でわかります。</p>
+      <p class="lead">差は「どこを守れていないか」に出ました。生き残った変異の実物を見ると、何が起きているか一発でわかります。<b>読み方は <code>-</code> が元のコード、<code>+</code> が機械が書き換えた後です。</b>この2行だけ見比べてください。</p>
 
       <div class="code term">
         <div class="code-head">実行結果（mutmut show）bad が殺せなかった変異</div>
@@ -811,13 +868,12 @@ price.py           9       3</pre>
 +        "XXseatsXX": seats,
          "plan": plan,
          "months": months,
-         "subtotal": subtotal,
-     "subtotal": subtotal,</pre>
+         "subtotal": subtotal,</pre>
       </div>
 
       <ul class="points">
         <li><b>bad が見逃したのは、第2章で手で入れた b1 と完全に同じバグでした。</b><code>if seats &gt;= 10</code> を <code>if seats &gt; 10</code> に。手動のバグ注入と、機械のミューテーションテストが独立に同じ結論に到達しています。</li>
-        <li><b>good が見逃したのは、レスポンスのキー名 <code>"seats"</code> の改名です。</b>値の表は金額を守りますが、キー名には何も言っていません。逆に bad の <code>assert set(r) == {...}</code> はこれを殺します。</li>
+        <li><b>good が見逃したのは、レスポンスのキー名 <code>"seats"</code> の改名です。</b>（<code>XXseatsXX</code> は mutmut が文字列を壊すときに使う目印です。）値の表は金額を守りますが、キー名には何も言っていません。逆に bad の <code>assert set(r) == {...}</code> はこれを殺します。</li>
         <li><b>つまり両者は守っている対象が違うだけ。</b>good は<mark>振る舞い（値）</mark>を、bad は<mark>配線（どの関数にどの引数を渡すか、どのキーがあるか）</mark>を固定しています。両方いないと穴が残ります。</li>
       </ul>
 
@@ -890,16 +946,16 @@ contain weak or no explicit oracle signals.
 　明示的なオラクルシグナルを持たなかった）</pre>
       </div>
 
-      <p class="lead">同じabstractに、こうも書かれています。<b>「明示的なアサーションを欠くテストファイルは、振る舞いを検証せずにコードを実行するだけである。したがってテストファイルの存在に基づく品質ゲートは、検証の強度を過大評価する」</b></p>
+      <p class="lead">「オラクルシグナル」は、テストの中の<b>「正解はこれだ」と書いてある部分</b>のことです。同じabstractに、こうも書かれています。<b>「明示的なアサーションを欠くテストファイルは、振る舞いを検証せずにコードを実行するだけである。したがってテストファイルの存在に基づく品質ゲートは、検証の強度を過大評価する」</b></p>
 
       <p class="lead">第1章の <code>t_cov_only.py</code> と同じ形です。<mark>「テストが増えた」「カバレッジが上がった」をゲートにすると、AI時代には特に嘘をつきます。</mark></p>
 
       <ul class="points">
         <li><b>この論文は本文PDFを読んでいません。</b>abstractページのみ取得して読んでいます。80.2%という数値はabstract記載のもので、方法論の詳細は検証していません。</li>
-        <li><b>査読状況も未確認です。</b>arXivのcomments欄とjournal-ref欄が空で、査読済みか判断できません。</li>
+        <li><b>査読は通っています。</b>arXivのcomments欄に「Accepted at the 8th IEEE International Conference on Artificial Intelligence Testing, 2026」と記載があります。ただし本文を読んでいない以上、本記事はこの数値を<mark>「abstractにそう書いてある」以上には扱いません</mark>。</li>
       </ul>
 
-      <h3>Metaの線引きは精神論ではなく、4段のフィルタ列</h3>
+      <h3>Metaの線引きは精神論ではなく、3段のフィルタ列</h3>
 
       <p class="lead">では「AIに書かせてよい範囲」はどこか。Metaが本番投入している TestGen-LLM の論文に、実装された機械的な条件として書かれています。</p>
 
@@ -915,17 +971,12 @@ contain weak or no explicit oracle signals.
               <td data-label="論文の記述">即座に破棄し、以降の検討から外す</td>
             </tr>
             <tr>
-              <td>2. 初回実行</td>
-              <td data-label="落とす条件">初回実行でパスしない</td>
-              <td data-label="論文の記述">バグを見つけたのか誤ったアサーションかを自動判別できないため破棄</td>
+              <td>2. パス（'passes'）</td>
+              <td data-label="落とす条件">初回実行でパスしない／5回の実行すべてではパスしない</td>
+              <td data-label="論文の記述">前半はバグか誤ったアサーションかを自動判別できないため破棄。後半は同じフィルタの中で flaky とみなして破棄</td>
             </tr>
             <tr>
-              <td>3. 5回連続</td>
-              <td data-label="落とす条件">5回の実行すべてでパスしない</td>
-              <td data-label="論文の記述">flakyとみなして破棄</td>
-            </tr>
-            <tr>
-              <td>4. カバレッジ増</td>
+              <td>3. カバレッジ増</td>
               <td data-label="落とす条件">カバレッジが実際に増えない</td>
               <td data-label="論文の記述">改善と非退行の検証可能な保証を満たせないものは破棄</td>
             </tr>
@@ -936,9 +987,10 @@ contain weak or no explicit oracle signals.
       <p class="lead">Instagram の Reels / Stories での評価は、<b>75%が正しくビルド、57%が安定してパス、25%がカバレッジを増加</b>。そして最後は必ず人間のレビューを通します。</p>
 
       <ul class="points">
-        <li><b>推奨の73%が本番投入のために受け入れられました。</b>裏を返せば、4段のフィルタを全部通ったものでも<mark>27%は人間が却下している</mark>ということです。</li>
+        <li><b>数え方に注意。</b>論文自身は「all three filters」（3つのフィルタすべて）と書いています。初回パスと5回連続は<mark>同じ 'passes' フィルタの中身</mark>であって、別段ではありません。「4段」と紹介している二次情報を見たら、そこは再分割です。</li>
+        <li><b>推奨の73%が本番投入のために受け入れられました。</b>裏を返せば、3段のフィルタを全部通ったものでも<mark>27%は人間が却下している</mark>ということです。</li>
         <li><b>「適用した全クラスのうち11.5%を改善」という数字には注意が必要です。</b>同じ論文のIntroductionの貢献リストでは「10%」と書かれていて、食い違っています。論文はこの差を明示的に説明していません。前者はtest-a-thon期間、後者は「より一般的に」の運用を指すようにも読めます。</li>
-        <li><b>フィルタ2と3は、この記事の第3章の実測とそのまま対応します。</b>flakyを持ち込まないという条件を、5回繰り返し実行という単純な方法で機械化しているだけです。</li>
+        <li><b>フィルタ2の後半は、この記事の第3章の実測とそのまま対応します。</b>flakyを持ち込まないという条件を、5回繰り返し実行という単純な方法で機械化しているだけです。</li>
       </ul>
 
       <h3>線引きは「リグレッション防止」か「バグ探し」かで反転する</h3>
@@ -965,12 +1017,12 @@ they no longer serve as reliable indicators.
       </div>
 
       <ul class="points">
-        <li><b>いま動いている振る舞いを固定したい（リグレッション防止）なら、AIに書かせてよい。</b>コードが正しい前提なので、生成テストがパスすることに意味があります。TestGen-LLMのフィルタ列も、まさにこの前提の上に立っています。</li>
+        <li><b>いま動いている振る舞いを、あとで壊さないよう固定したい（リグレッション防止）なら、AIに書かせてよい。</b>コードが正しい前提なので、生成テストがパスすることに意味があります。TestGen-LLMのフィルタ列も、まさにこの前提の上に立っています。</li>
         <li><b>「この実装、たぶんバグってる」を暴きたいなら、AIに任せてはいけません。</b>AIは目の前のコードの振る舞いをそのまま写し取るので、バグごと仕様として固定します。第2章のb1〜b4のような「壊れて困る壊れ方」を先に列挙するのは、人間の仕事です。</li>
-        <li><b>この論文も本文PDFは未読です。</b>abstractページのみ読んでいます。arXiv上に DOI 10.1145/3832093 の記載がありますが、Crossref API も doi.org も現時点では404を返し、解決しません。</li>
+        <li><b>この論文も本文PDFは未読です。</b>abstractページのみ読んでいます。査読は通っていて、comments欄に「Accepted at ISSTA 2026; to appear in Proceedings of the ACM on Software Engineering (PACMSE), Vol. 3」と記載があります。ただし併記されている DOI 10.1145/3832093 は、Crossref API も doi.org も現時点では404で解決しません（ACM側の登録待ちと思われます）。</li>
       </ul>
 
-      <p class="lead">ついでに、この再現研究は2014年のICSE論文（第1章で引いたもの）と<mark>真逆の結果も出しています</mark>。「LLM生成テストについては、テストスイートのサイズが支配的な交絡因子である証拠はほとんど見つからなかった」。<b>「カバレッジは相関しないと研究で示されている」という言い切りは、2026年時点ではもう安全ではありません。</b></p>
+      <p class="lead">ついでに、この再現研究は2014年のICSE論文（第1章で引いたもの）と<mark>真逆の結果も出しています</mark>。2014年の論文は「テストスイートのサイズを揃えるとカバレッジと有効性の相関は落ちる」＝<b>サイズこそが本当の原因（交絡因子）だ</b>という結論でした。再現研究は「LLM生成テストについては、テストスイートのサイズが支配的な交絡因子である証拠はほとんど見つからなかった」としています。<b>「カバレッジは相関しないと研究で示されている」という言い切りは、2026年時点ではもう安全ではありません。</b></p>
 
       <div class="quiz">
         <p class="q">Q. AIに「このモジュールのテストを書いて」と頼むとき、いちばん危ないのはどれ?</p>
@@ -1000,27 +1052,27 @@ they no longer serve as reliable indicators.
             <tr>
               <td>全体カバレッジに閾値ゲート</td>
               <td data-label="代わりにやること">差分の未到達行をPRに名指しで出す</td>
-              <td data-label="根拠">実測: 全体は7.1pt しか動かない／FSE 2019</td>
+              <td data-label="根拠">実測: 全体は7.1pt しか動かない／FSE 2019（<a href="#s5">第5章</a>）</td>
             </tr>
             <tr>
               <td>「まず80%」を目標にする</td>
               <td data-label="代わりにやること">壊れて困る壊れ方を先に5つ書く</td>
-              <td data-label="根拠">80%を推奨する一次資料は見つからなかった</td>
+              <td data-label="根拠">全体の目標として80%を薦める一次資料は見つからず（<a href="#s4">第4章</a>）</td>
             </tr>
             <tr>
               <td>層の比率を会議で決める</td>
               <td data-label="代わりにやること">壊れ方ごとに検出できる層を確かめる</td>
-              <td data-label="根拠">実測: b1はunitのみ、b3はe2eのみ</td>
+              <td data-label="根拠">実測: b1はunitのみ、b3はe2eのみ（<a href="#s2">第2章</a>）</td>
             </tr>
             <tr>
               <td>E2Eで見つけたバグをE2Eで塞ぐ</td>
               <td data-label="代わりにやること">直す前にユニットで再現してから直す</td>
-              <td data-label="根拠">Fowler「Test Pyramid」第二の防衛線</td>
+              <td data-label="根拠">Fowler「Test Pyramid」第二の防衛線（<a href="#s3">第3章</a>）</td>
             </tr>
             <tr>
               <td>担当を口約束の表で決める</td>
               <td data-label="代わりにやること">CODEOWNERS にパスとして書く</td>
-              <td data-label="根拠">GitHub Docs（テスト固有の機能ではない）</td>
+              <td data-label="根拠">GitHub Docs（テスト固有の機能ではない・<a href="#s5">第5章</a>）</td>
             </tr>
           </tbody>
         </table>
@@ -1048,7 +1100,7 @@ code for fear it will cause production bugs.
         <li><label><input type="checkbox"><span>いま怖い壊れ方を5つ、名前を付けて書き出した</span></label></li>
         <li><label><input type="checkbox"><span>その5つが、いまのテストで落ちるか実際に壊して確かめた</span></label></li>
         <li><label><input type="checkbox"><span>E2Eがカバレッジ計測に乗っているか確認した（0%になっていないか）</span></label></li>
-        <li><label><input type="checkbox"><span>CIのゲートを、全体カバレッジから差分の未到達行の表示に変えた</span></label></li>
+        <li><label><input type="checkbox"><span>CIのゲートを、全体カバレッジから差分の未到達行の表示に変えるよう依頼した（設定担当者の作業）</span></label></li>
         <li><label><input type="checkbox"><span>テストの担当を CODEOWNERS のパスとして書いた</span></label></li>
         <li><label><input type="checkbox"><span>AIに書かせるのは「動作確認済みコードのリグレッション防止」に限定した</span></label></li>
       </ul>
@@ -1059,7 +1111,7 @@ code for fear it will cause production bugs.
         <div class="body">
           <dl>
             <dt>本物のE2Eは一度も測っていません</dt>
-            <dd>Dockerデーモンが動かないため、実DB・実ネットワーク・ブラウザを含むE2Eは測定していません。「1件28.6ms」「ユニットの17倍」は、Pythonのサブプロセスを1回起動してJSONを1往復させるだけの値で、現実のE2Eの<b>下限</b>です。この数字を現実のE2Eのコストとして引用しないでください。</dd>
+            <dd>Dockerデーモンが動かないため、実DB・実ネットワーク・ブラウザを含むE2Eは測定していません。「1件28.6ms」「ユニットの約17倍」は、Pythonのサブプロセスを1回起動してJSONを1往復させるだけの値で、現実のE2Eの<b>下限</b>です。この数字を現実のE2Eのコストとして引用しないでください。</dd>
             <dt>70/20/10 と 80/15/5 のどちらが正しいかは検証していません</dt>
             <dd>この環境では検証しようがありません。測ったのは「粒度ごとに何が検出できて何ができないか」「1件あたりいくらかかるか」だけです。</dd>
             <dt>ミューテーションの実行手順は3回失敗しました</dt>
@@ -1087,13 +1139,13 @@ code for fear it will cause production bugs.
         <li>
           <span class="flag primary">一次資料</span>
           Carlos Arguelles, Marko Ivanković, Adam Bender「Code Coverage Best Practices」<i>Google Testing Blog</i>, 2020年8月7日.
-          <span class="note">参照箇所: 「理想的なカバレッジ数値は存在しない」、60%/75%/90%の目安とトップダウン強制を避ける記述、目標のチェックボックス化への警告。同記事内でゲート化を推奨しつつ打ち消してもいる点は本文の details に明記した。</span>
+          <span class="note">参照箇所: 「理想的なカバレッジ数値は存在しない」、60%/75%/90%の目安とトップダウン強制を避ける記述、目標のチェックボックス化への警告、および「プロジェクト全体で90%超は割に合わないが、コミット単位では99%が妥当で90%が良い下限」という差分側の数値（第5章で引用）。同記事内でゲート化を推奨しつつ打ち消してもいる点は本文の details に明記した。</span>
           <a href="https://testing.googleblog.com/2020/08/code-coverage-best-practices.html">https://testing.googleblog.com/2020/08/code-coverage-best-practices.html</a>（2026年8月14日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
           Mike Wacker「Just Say No to More End-to-End Tests」<i>Google Testing Blog</i>, 2015年4月22日.
-          <span class="note">参照箇所: 70/20/10の配分、アンチパターン（逆ピラミッド／砂時計）、理想のフィードバックループの3条件（速い・信頼できる・失敗を切り分ける）。コメント欄で比率の測定が難しいと回答している点も含む。</span>
+          <span class="note">参照箇所: 70/20/10の配分、アンチパターン（逆ピラミッド／砂時計）、理想のフィードバックループの3条件（速い・信頼できる・失敗を切り分ける）。コメント欄で比率の測定が難しいと回答している点も含む（投稿者名は "Anonymous" 表示で、Google所属・著者本人とは明示されていない）。70/20/10の直前に「the number of tests (the width of your pyramid)」とあることも確認した。</span>
           <a href="https://testing.googleblog.com/2015/04/just-say-no-to-more-end-to-end-tests.html">https://testing.googleblog.com/2015/04/just-say-no-to-more-end-to-end-tests.html</a>（2026年8月14日参照）
         </li>
         <li>
@@ -1105,7 +1157,7 @@ code for fear it will cause production bugs.
         <li>
           <span class="flag primary">一次資料</span>
           Martin Fowler「Test Coverage」<i>martinfowler.com (bliki)</i>, 2012年4月17日.
-          <span class="note">参照箇所: 目標にすると低品質テストで簡単に届く、100%への疑い、「十分にテストしたか」の2条件、テストしすぎのサイン。</span>
+          <span class="note">参照箇所: 目標にすると低品質テストで簡単に届く、100%への疑い、「十分にテストしたか」の2条件、テストしすぎのサイン。あわせて「注意深くテストしていれば80台後半か90台になると期待する」という記述も確認した（目標値ではなく結果の予想として第4章に書いた）。</span>
           <a href="https://martinfowler.com/bliki/TestCoverage.html">https://martinfowler.com/bliki/TestCoverage.html</a>（2026年8月14日参照）
         </li>
         <li>
@@ -1141,7 +1193,7 @@ code for fear it will cause production bugs.
         <li>
           <span class="flag primary">一次資料</span>
           Nadia Alshahwan ほか（Meta Platforms）「Automated Unit Test Improvement using Large Language Models at Meta」<i>arXiv:2402.09171 / FSE 2024 Industry Track</i>, 2024年2月14日投稿.
-          <span class="note">参照箇所: 4段のフィルタ（ビルド可否／初回実行でパス／5回連続でパス＝flaky排除／カバレッジ増）、Reels・Storiesでの75%・57%・25%、推奨の73%が受け入れ。本文は ar5iv のHTML変換版で読了。Abstractの「11.5%」とIntroductionの「10%」の食い違いは本文に明記した。</span>
+          <span class="note">参照箇所: 3段のフィルタ（ビルド可否／'passes'＝初回実行でパスし、かつ5回連続でパス＝flaky排除／カバレッジ増）。論文本文は「all three filters」「the first two filters」と数えており、本記事もそれに合わせた。Reels・Storiesでの75%・57%・25%、推奨の73%が受け入れ。本文は ar5iv のHTML変換版で読了。Abstractの「11.5%」とIntroductionの「10%」の食い違いは本文に明記した。</span>
           <a href="https://arxiv.org/abs/2402.09171">https://arxiv.org/abs/2402.09171</a>（2026年8月14日参照）
         </li>
         <li>
@@ -1153,13 +1205,13 @@ code for fear it will cause production bugs.
         <li>
           <span class="flag unverified">未確認</span>
           Dipayan Banik, Kowshik Chowdhury, Shazibul Islam Shamim「All Smoke, No Alarm: Oracle Signals in Agent-Authored Test Code」<i>arXiv:2606.18168 [cs.SE]</i>, 2026年6月16日投稿.
-          <span class="note">なぜ未確認か: <b>abstractページのみ取得して読了し、本文PDFは未読</b>。記事中の 80.2% と 86,156件・33,596PR・2,807リポジトリはabstract記載の数値で、方法論は検証していない。arXivのcomments欄・journal-ref欄が空で査読状況も判断できない。</span>
+          <span class="note">なぜ未確認か: <b>abstractページのみ取得して読了し、本文PDFは未読</b>。記事中の 80.2% と 86,156件・33,596PR・2,807リポジトリはabstract記載の数値で、方法論は検証していない。査読自体は通っており、comments欄に「Accepted at the 8th IEEE International Conference on Artificial Intelligence Testing, 2026」と記載がある（journal-ref欄は空）。それでも本文を読んでいないため「未確認」とする。</span>
           <a href="https://arxiv.org/abs/2606.18168">https://arxiv.org/abs/2606.18168</a>（2026年8月14日参照）
         </li>
         <li>
           <span class="flag unverified">未確認</span>
           Junda Zhao, Shurui Zhou, Eldan Cohen「Do Coverage and Mutation Scores of LLM-Generated Test Suites Correlate with Their Effectiveness? (Replicability Study)」<i>arXiv:2607.22880 [cs.SE]</i>, 2026年7月24日投稿.
-          <span class="note">なぜ未確認か: <b>abstractページのみ取得して読了し、本文PDFは未読</b>。arXiv上に DOI 10.1145/3832093 の記載があるが api.crossref.org も doi.org も404を返し、現時点で解決しない（登録前と思われる）。査読状況は判断できない。</span>
+          <span class="note">なぜ未確認か: <b>abstractページのみ取得して読了し、本文PDFは未読</b>。査読は通っており、comments欄に「24 pages, 4 figures, 14 tables. Accepted at ISSTA 2026; to appear in Proceedings of the ACM on Software Engineering (PACMSE), Vol. 3, No. ISSTA, Article ISSTA002」と記載がある。併記の DOI 10.1145/3832093 は api.crossref.org も doi.org も404で、現時点では解決しない（ACM側の登録前と思われる）。本文未読のため「未確認」とする。</span>
           <a href="https://arxiv.org/abs/2607.22880">https://arxiv.org/abs/2607.22880</a>（2026年8月14日参照）
         </li>
         <li>
@@ -1176,12 +1228,12 @@ code for fear it will cause production bugs.
         <li>
           <span class="flag self">自分の実測</span>
           粒度別の検出マトリクス・カバレッジ・実行時間・ミューテーションの各実験。Python 3.11.15 / pytest 9.1.1 / pytest-cov 7.1.0 / coverage 7.15.4 / mutmut 3.7.0 / git 2.43.0 / Linux 6.18.5（4コア）、2026年8月14日実施。
-          <span class="note">記事中のターミナル出力は、色分けの <code>span</code> を被せた以外は加工せずそのまま貼っています（<code>mutmut show</code> の末尾に出た重複行も、出たまま残しています）。すべて隔離した作業ディレクトリで実行し、このリポジトリのコードは変更していません。</span>
+          <span class="note">記事中のターミナル出力は、色分けの <code>span</code> を被せた以外は加工せずそのまま貼っています。すべて隔離した作業ディレクトリで実行し、このリポジトリのコードは変更していません。<b>公開前の検証で、<code>mutmut show</code>（good側）のブロックに、実際には出ていない重複行が1行混入しているのが見つかったため削除しました。</b>同じコマンドを再実行して12行であることを確認済みです。</span>
         </li>
         <li>
           <span class="flag self">自分の実測</span>
-          実行ごとにぶれた数値。<code>run_flaky.py</code> の混雑時の超過率は、単独実行で 46/200 (23.0%)、通し実行で 82/200 (41.0%)。
-          <span class="note">同じスクリプト・同じ負荷の掛け方でこれだけ動くため、本文では「2〜4割」以上の精度では書いていません。「空いているときは 0/200 (0.0%)」は両方の実行で再現しました。</span>
+          実行ごとにぶれた数値。<code>run_flaky.py</code> の混雑時の超過率は、条件を変えない4回の実行で 82/200 (41.0%) / 46/200 (23.0%) / 33/200 (16.5%) / 29/200 (14.5%)。<code>run_time.py</code> の1件あたりは 1.7ms・28.6ms（16.8倍）の回と 1.5ms・24.6ms（16.4倍）の回があり、絶対値は15〜20%動きました。
+          <span class="note">同じスクリプト・同じ負荷の掛け方でこれだけ動くため、本文では超過率を「1〜4割」以上の精度では書いていません。本文の見出しも、最大値の41%ではなく範囲で書いています。一方「空いているときは 0/200 (0.0%)」は4回とも再現し、実行時間の「約17倍」もどの回でも変わりませんでした。<b>ぶれる数字と、ぶれない数字を分けて書いています。</b></span>
         </li>
         <li>
           <span class="flag self">自分の実測</span>

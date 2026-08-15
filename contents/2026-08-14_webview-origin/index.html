@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WebViewだけ動かない。犯人は Origin: null</title>
+<title>WebViewのfetchが失敗する理由 — Origin: null とCORSの関係</title>
 <meta name="description" content="ブラウザでは動くのにアプリの中のWebViewだけAPIが落ちる。原因のOrigin: nullを実測で確認し、CORS設定4通りの結果表と、よくある回避策が穴になる理由まで。">
 <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="apple-touch-icon" href="../../favicon.svg">
 <meta property="og:type" content="article">
-<meta property="og:title" content="WebViewだけ動かない。犯人は Origin: null">
+<meta property="og:title" content="WebViewのfetchが失敗する理由 — Origin: null とCORSの関係">
 <meta property="og:description" content="CORS設定4通りを実測。よくある回避策がCookieごと穴を開ける話まで。">
 <meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_webview-origin/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="../../css/article.css?v=19bddda4">
+<link rel="stylesheet" href="../../css/article.css?v=8aef8429">
 
 <link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
 </head>
@@ -27,7 +27,7 @@
 
   <div class="masthead">
     <div class="eyebrow">クライアント技術 ｜ 2026年8月14日(金)</div>
-    <h1>WebViewだけ動かない。犯人は Origin: null</h1>
+    <h1>WebViewのfetchが失敗する理由 — Origin: null とCORSの関係</h1>
     <div class="range">スマホアプリの中に埋め込んだWebページ表示部品（WebView）。ブラウザでは動く。アプリの中に入れた瞬間だけAPIが落ちる。その理由を実測で突き止めます。</div>
     <div class="meta-row">
       <span class="time-chip">⏱ 約7分</span>
