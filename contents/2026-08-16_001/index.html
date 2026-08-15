@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI-news：2026/08/16 — DeepSeekの値上げとClaude Code権限修正の差し戻し</title>
-<meta name="description" content="DeepSeek APIが8月17日01:00 JSTから値上げ。ピーク帯はJSTの10-13時と15-19時で、日本の業務時間と重なる。Claude Code 2.1.233は前日の Bash 権限修正を明示的に差し戻し。GitHub OAuth Appは複数リダイレクトURIに対応し、既存アプリのワイルドカード照合が可視化された。8月16日朝までの主要ニュース。">
+<title>AI-news：2026/08/16 — Claude Codeの権限修正差し戻しとDeepSeek新料金の発効</title>
+<meta name="description" content="Claude Code 2.1.233が前日2.1.232のBash権限修正を明示的に差し戻し、TodoWriteも新しいモデルから外れた。DeepSeekの新料金は8月17日01:00 JST発効で、オフピーク価格も現行より高い。GitHub OAuth Appは複数リダイレクトURIに対応し、既存アプリのワイルドカード照合が可視化された。Laravelのqueue:pauseは実機で検証。8月16日朝までの主要ニュース。">
 <meta property="og:type" content="website">
-<meta property="og:title" content="AI-news：2026/08/16 — DeepSeekの値上げとClaude Code権限修正の差し戻し">
-<meta property="og:description" content="DeepSeek APIの値上げとピーク帯の日本時間との一致、Claude Code 2.1.233による前日修正のRevert、GitHub OAuthのワイルドカード照合、Laravelのqueue:pauseを実機で検証。">
+<meta property="og:title" content="AI-news：2026/08/16 — Claude Codeの権限修正差し戻しとDeepSeek新料金の発効">
+<meta property="og:description" content="Claude Code 2.1.233による前日修正のRevert、明日発効するDeepSeek新料金(オフピークも現行より高い)、GitHub OAuthのワイルドカード照合、Laravelのqueue:pauseを実機で検証。">
 <meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-16_001/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-16_001/images/thumb.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="../../css/article.css">
+<link rel="stylesheet" href="../../css/article.css?v=87fa5662">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
 </head>
 <body>
 
@@ -23,7 +25,7 @@
 
   <div class="masthead">
     <div class="eyebrow">2026年8月16日(日)</div>
-    <h1>AI-news：2026/08/16 — DeepSeekの値上げとClaude Code権限修正の差し戻し</h1>
+    <h1>AI-news：2026/08/16 — Claude Codeの権限修正差し戻しとDeepSeek新料金の発効</h1>
     <div class="range">対象期間: 8月15日(土) 6:00 〜 8月16日(日) 6:00 JST(クライアント技術は直近1週間)</div>
   </div>
 
@@ -31,12 +33,12 @@
     <h2>⭐ 今日の3行まとめ</h2>
     <ol>
       <li>
-        <b>DeepSeekが明日8月17日01:00 JSTからAPIを値上げ。しかも「ピーク帯」が日本の業務時間とほぼ一致する</b>
-        <span>公式が定義したピークは01:00-04:00と06:00-10:00 UTC(協定世界時)。日本時間(JST)はUTCより9時間進んでいるので、直すと10-13時と15-19時です。オフピーク価格ですら現行より高く、出力は現行比2.28〜2.36倍(本サイトの計算)。</span>
-      </li>
-      <li>
         <b>Claude Code 2.1.233が、前日2.1.232の「直った」Bash権限修正を明示的にRevertした</b>
         <span>理由は<b>Windowsで</b><code>cd &lt;dir&gt; &amp;&amp; &lt;command&gt; &gt; file</code>というごく普通のコマンドを打つと、auto modeが毎回手動承認を求めるようになった回帰。あわせてTodoWrite等のタスク管理ツールが新しいモデルから消えました。<b>前回記事の訂正を兼ねます。</b></span>
+      </li>
+      <li>
+        <b>DeepSeekの新料金が明日8月17日01:00 JSTに発効。オフピークに逃がしても、現行より高い</b>
+        <span>値上げ自体は<a href="../2026-08-14_001/">8月14日のダイジェスト</a>で扱いました。発効直前の今日足すのは、<b>オフピーク価格そのものが現行を上回る</b>という点です。出力は現行比でオフピーク2.28〜2.36倍、ピーク4.55〜4.71倍(本サイトの計算)。</span>
       </li>
       <li>
         <b>GitHubのOAuth Appが複数リダイレクトURIと更新トークンに対応。同時に「既存アプリはずっとワイルドカード照合が効いていた」ことが公開された</b>
@@ -48,7 +50,7 @@
   <nav class="toc">
     <h2>目次</h2>
     <ol>
-      <li><a href="#work">実務者向け(AI開発ツール)(4件)</a></li>
+      <li><a href="#work">実務者向けのAI開発ツール(4件)</a></li>
       <li><a href="#dev">Web開発・インフラ(3件)</a></li>
       <li><a href="#client">クライアント技術(2件)</a></li>
       <li><a href="#research">技術・研究(2件)</a></li>
@@ -59,7 +61,7 @@
 
   <!-- ============ 実務者向け ============ -->
   <section class="section section-b" id="work">
-    <h2>🧰 実務者向け(AI開発ツール)<span class="n">4件</span></h2>
+    <h2>🧰 実務者向けのAI開発ツール<span class="n">4件</span></h2>
 
     <article class="item">
       <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
@@ -134,14 +136,16 @@
 
     <article class="item">
       <div class="source"><img src="https://www.google.com/s2/favicons?domain=ai.google.dev&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Google</div>
-      <h3>Gemini 3.7 FlashがGA(正式版、Generally Availableの略)。ただし表示価格は「2026年12月31日まで」で、2027年1月1日から入出力とも2倍と価格表に書いてある</h3>
+      <h3>Gemini 3.7 Flashの表示価格は「2026年12月31日まで」— 2027年1月1日から4項目すべて2倍と価格表に書いてある</h3>
       <div class="tags">
         <span class="tag">8/13</span>
         <span class="tag ok">✓ 公式確認済</span>
         <span class="tag">Gemini</span>
         <span class="tag">価格</span>
       </div>
-      <p class="lead">changelogの原文は「available at an <b>introductory price through December 31, 2026</b>」。<mark>値下げではなく、期限付きの導入価格</mark>です。しかも切り替え後の価格が、今の時点で価格表に併記されています。</p>
+      <p class="lead">Gemini 3.7 FlashがGA(Generally Available＝正式提供)になりました。プレビューが外れ、本番で使ってよい状態になったという意味です。ただしchangelogの原文は「available at an <b>introductory price through December 31, 2026</b>」。<mark>値下げではなく、期限付きの導入価格</mark>です。しかも切り替え後の価格が、今の時点で価格表に併記されています。</p>
+
+      <p class="lead">入出力の単価と2027年の倍額は<a href="../2026-08-14_001/">8月14日のダイジェスト</a>でも触れました。ここで足すのは、<mark>キャッシュとその保管料、検索グラウンディングの無料枠まで含めた4項目</mark>です。</p>
 
       <div class="table">
         <table>
@@ -636,16 +640,16 @@ the old nor the new record.</pre>
 
     <article class="item">
       <div class="source"><img src="https://www.google.com/s2/favicons?domain=deepseek.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">DeepSeek</div>
-      <h3>DeepSeekが明日01:00 JSTから値上げ。「ピーク帯」を日本時間に直すと、10-13時と15-19時だった</h3>
+      <h3>DeepSeekの新料金は明日01:00 JST発効 — オフピークに逃がしても、現行より高い</h3>
       <div class="tags">
         <span class="tag">8/13発表 / 8/17 01:00 JST発効</span>
         <span class="tag ok">✓ 公式確認済</span>
         <span class="tag">API価格</span>
         <span class="tag warn">⚠ 全時間帯で値上げ</span>
       </div>
-      <p class="lead">DeepSeekがV4ファミリーの正式リリースに合わせて価格を改定します。発効はChange Logの原文で「16:00 (UTC Time) on August 16, 2026」、<mark>日本時間では2026年8月17日(月) 01:00</mark>です。ピーク・オフピークの2段階になり、オフピークはピークの半額と説明されています。</p>
+      <p class="lead">値上げそのものは<a href="../2026-08-14_001/">8月14日のダイジェスト</a>で扱いました。ピーク帯が日本の業務時間(10-13時と15-19時 JST)に重なることも、そこで書いています。<mark>今日足すのはオフピーク側の数字です。安い時間に逃がしても、現行より高い。</mark></p>
 
-      <p class="lead">ただし、<b>オフピーク価格ですら現行より高い。</b>「安い時間に投げれば今より安い」ではありません。</p>
+      <p class="lead">発効はChange Logの原文で「16:00 (UTC Time) on August 16, 2026」、<mark>日本時間では2026年8月17日(月) 01:00</mark>です。ピーク・オフピークの2段階になり、オフピークはピークの半額と説明されています。「半額」を現行との比較だと読むと外します。</p>
 
       <figure>
         <picture>
@@ -694,7 +698,7 @@ the old nor the new record.</pre>
             <dt>集約サイトの数字が公式と合わない</dt>
             <dd>検索で見つかる集約系サイトには「DeepSeek raised V4 Flash 93% ($0.14→$0.27/M, Aug 14)」という記述がありました。<mark>公式の価格表と一致しません。</mark>正しくはv4-flashのcache miss入力が$0.14 → オフピーク$0.22 / ピーク$0.44で、発効は8月16日16:00 UTCです。この種の集約サイトは根拠にしないでください。</dd>
             <dt>価格以外の変更</dt>
-            <dd>Responses API(OpenAIの形式)にネイティブ対応し、Codex向けに調整されたと書かれています。Anthropic形式のベースURL(<code>https://api.deepseek.com/anthropic</code>)も提供。V4-ProとV4-Flashの思考モードは low / high / max の3段階になりました。コンテキスト長は1M、最大出力は384K、同時実行数の上限はflashが2500、proが500です。</dd>
+            <dd>Responses API(OpenAIの形式)にネイティブ対応し、Codex向けに調整されたと書かれています(思考モードの3段階とあわせて、8月14日のダイジェストで既報)。Anthropic形式のベースURL(<code>https://api.deepseek.com/anthropic</code>)も提供。V4-ProとV4-Flashの思考モードは low / high / max の3段階になりました。コンテキスト長は1M、最大出力は384K、同時実行数の上限はflashが2500、proが500です。</dd>
             <dt>出典</dt>
             <dd><a href="https://api-docs.deepseek.com/updates">DeepSeek API Change Log</a> / <a href="https://api-docs.deepseek.com/quick_start/pricing">DeepSeek Models &amp; Pricing</a></dd>
           </dl>
@@ -792,7 +796,7 @@ the old nor the new record.</pre>
         <li>
           <span class="flag primary">一次資料</span>
           Google「Gemini Developer API Pricing」<i>Google AI for Developers</i>.
-          <span class="note">参照箇所: Gemini 3.7 Flash の有料ティア欄。「Input price … <b>$0.75 through December 31, 2026. $1.50 starting January 1, 2027.</b>」「Output price (including thinking tokens) … <b>$3.75 through December 31, 2026. $7.50 starting January 1, 2027.</b>」「Context caching price … <b>$0.075 through December 31, 2026. $0.15 starting January 1, 2027.</b> $0.50 / 1,000,000 tokens per hour (storage price) through December 31, 2026. $1.00 / 1,000,000 tokens per hour (storage price) starting January 1, 2027.」「Grounding with Google Search … 5,000 free search requests per month (shared across all Gemini 3.x models), then $14 per 1,000 requests.」記事の表はこの4行の転記です。単位はUSD / 100万トークン。</span>
+          <span class="note">参照箇所: Gemini 3.7 Flash の有料ティア欄。「Input price … <b>$0.75 through December 31, 2026. $1.50 starting January 1, 2027.</b>」「Output price (including thinking tokens) … <b>$3.75 through December 31, 2026. $7.50 starting January 1, 2027.</b>」「Context caching price … <b>$0.075 through December 31, 2026. $0.15 starting January 1, 2027.</b> $0.50 / 1,000,000 tokens per hour (storage price) through December 31, 2026. $1.00 / 1,000,000 tokens per hour (storage price) starting January 1, 2027.」「Grounding with Google Search … 5,000 free search requests per month (shared across all Gemini 3.x models), then $14 per 1,000 requests.」記事の表はこの4行の転記です。単位はUSD / 100万トークン。同じページの Batch / Flex / Priority の各ティアも、2027年1月1日にそれぞれ2倍（例: Batch の入力が「$0.375 through December 31, 2026. $0.75 starting January 1, 2027.」、Priority の出力が「$6.75 … $13.50 …」）になることを確認しました。</span>
           <a href="https://ai.google.dev/gemini-api/docs/pricing">https://ai.google.dev/gemini-api/docs/pricing</a>（2026年8月16日参照）
         </li>
 
@@ -826,7 +830,7 @@ the old nor the new record.</pre>
         <li>
           <span class="flag primary">一次資料</span>
           Laravel「laravel/framework CHANGELOG」<i>GitHub (raw.githubusercontent.com, 13.xブランチ)</i>.
-          <span class="note">参照箇所: 見出し「## [v13.25.0](...) - 2026-08-11」と、その配下の「* [13.x] Add a global pause switch for queues by @jackbayliss in https://github.com/laravel/framework/pull/61126」。リリース日は Packagist の <code>https://repo.packagist.org/p2/laravel/framework.json</code> にある <code>v13.25.0</code> の <code>time = 2026-08-11T13:56:22+00:00</code> で照合しました。<b>あわせて、同梱のCHANGELOG（v13.0.0 〜 v13.24.0）に <code>queue:continue</code> への言及が1件も無い</b>ことも確認しています（記事中で「別名がいつ追加されたかは特定できない」と書いた根拠）。</span>
+          <span class="note">参照箇所: 見出し「## [v13.25.0](...) - 2026-08-11」と、その配下の「* [13.x] Add a global pause switch for queues by @jackbayliss」（同じ行から laravel/framework の PR #61126 にリンクされています）。リリース日は Packagist の <code>repo.packagist.org/p2/laravel/framework.json</code> にある <code>v13.25.0</code> の <code>time = 2026-08-11T13:56:22+00:00</code> で照合しました。<b>あわせて、同梱のCHANGELOG（v13.0.0 〜 v13.24.0）に <code>queue:continue</code> への言及が1件も無い</b>ことも確認しています（記事中で「別名がいつ追加されたかは特定できない」と書いた根拠）。</span>
           <a href="https://raw.githubusercontent.com/laravel/framework/13.x/CHANGELOG.md">https://raw.githubusercontent.com/laravel/framework/13.x/CHANGELOG.md</a>（2026年8月16日参照）
         </li>
 
@@ -847,7 +851,7 @@ the old nor the new record.</pre>
         <li>
           <span class="flag primary">一次資料</span>
           HashiCorp「terraform-provider-aws CHANGELOG」<i>GitHub (raw.githubusercontent.com, mainブランチ)</i>.
-          <span class="note">参照箇所: 見出し「## 6.60.0 (August 13, 2026)」「## 6.59.0 (August 12, 2026)」と、6.60.0 の BUG FIXES にある「* resource/aws_network_acl_rule: Fix <code>Missing Resource Identity After Read</code> errors. This fixes a regression introduced in v6.59.0」。「6.61.0 (Unreleased)」の ENHANCEMENTS より「* data-source/aws_lb_listener_rule: Add <code>condition.source_ip.ip_address_type</code> attribute」「* resource/aws_lb_listener_rule: Add <code>condition.source_ip.ip_address_type</code> argument」「* resource/aws_pinpointsmsvoicev2_phone_number: Add <code>wait_for_active</code> argument … Number types gated on carrier or registration approval (for example <code>TEN_DLC</code>, <code>TOLL_FREE</code>, or any number submitted with <code>registration_id</code>) can remain <code>PENDING</code> for days to weeks, which previously caused <code>terraform apply</code> to time out」。6.60.0の公開日時は Terraform Registry API（<code>https://registry.terraform.io/v1/providers/hashicorp/aws</code>）の <code>published_at = 2026-08-13T18:12:29Z</code> で照合しました。</span>
+          <span class="note">参照箇所: 見出し「## 6.60.0 (August 13, 2026)」「## 6.59.0 (August 12, 2026)」と、6.60.0 の BUG FIXES にある「* resource/aws_network_acl_rule: Fix <code>Missing Resource Identity After Read</code> errors. This fixes a regression introduced in v6.59.0」。「6.61.0 (Unreleased)」の ENHANCEMENTS より「* data-source/aws_lb_listener_rule: Add <code>condition.source_ip.ip_address_type</code> attribute」「* resource/aws_lb_listener_rule: Add <code>condition.source_ip.ip_address_type</code> argument」「* <code>resource/aws_pinpointsmsvoicev2_phone_number</code>: Add <code>wait_for_active</code> argument … Number types gated on carrier or registration approval (for example <code>TEN_DLC</code>, <code>TOLL_FREE</code>, or any number submitted with <code>registration_id</code>) can remain <code>PENDING</code> for days to weeks, which previously caused <code>terraform apply</code> to time out」。6.60.0の公開日時は Terraform Registry API（<code>https://registry.terraform.io/v1/providers/hashicorp/aws</code>）の <code>published_at = 2026-08-13T18:12:29Z</code> で照合しました。</span>
           <a href="https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/CHANGELOG.md">https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/CHANGELOG.md</a>（2026年8月16日参照）
         </li>
 
@@ -933,10 +937,53 @@ the old nor the new record.</pre>
     </article>
   </section>
 
+  
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+
   <footer class="article-foot">
     <div>生成: 2026年8月16日 JST</div>
     <div><a href="../../">← ホームに戻る</a></div>
   </footer>
 </main>
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
