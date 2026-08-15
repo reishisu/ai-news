@@ -4,7 +4,7 @@
 // NODE_PATH=/opt/node22/lib/node_modules/playwright/node_modules node probe.js
 const { chromium } = require('playwright-core');
 
-const W = 40;          // 1行の上限(半角換算)
+const W = 37;          // 1行の上限(半角換算)
 const IND = '     ';   // 折り返し時の字下げ
 
 const width = s =>

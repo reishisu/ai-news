@@ -42,8 +42,8 @@
     <p class="lead">コンテナとは、アプリと、それが動くのに必要なライブラリや設定を1つにまとめた「持ち運べる実行環境」です。<mark>これをAWSで動かすには、少なくとも4人の登場人物が要ります。</mark>その4人が何を担当しているかだけの記事です。</p>
     <ol>
       <li>
-        <b>「起動タイプは Fargate か EC2 の2択」は、いまの公式ドキュメントと合っていません</b>
-        <span>公式は3種類を並べ、しかも推奨をFargateではなく別の選択肢だと明記しています。原文を貼りました。</span>
+        <b>公式がいま推奨しているのは Fargate ではありません</b>
+        <span>クラスタのインフラ種別は3つあり、公式は ECS Managed Instances を推奨と明記。ただし起動タイプは今も Fargate か EC2 の2択で、第3の選択肢はそこには出てきません。原文を貼りました。</span>
       </li>
       <li>
         <b>クラスタはサーバーの集まりではありません。名前だけで作れる「区切り」です</b>
@@ -77,21 +77,23 @@
     <h2><span class="step">1</span>用語。なぜ登場人物が4人も要るのか</h2>
 
     <article class="item">
-      <h3>「コンテナを1個動かしたい」だけなのに、画面には4つの作成ボタンがある</h3>
-      <p class="lead">ECSのコンソールを開くと、クラスタ・タスク定義・サービス・タスクという言葉が並びます。<mark>どれを最初に作るのかが分かりません。</mark>ここが最初の壁です。</p>
+      <h3>「コンテナを1個動かしたい」だけなのに、覚える言葉が4つ出てくる</h3>
+      <p class="lead">ECSを調べ始めると、クラスタ・タスク定義・サービス・タスクという言葉が同時に出てきます。<mark>どれを最初に作るのかが分かりません。</mark>ここが最初の壁です。</p>
       <p class="lead">先に用語だけ片付けます。知っている行は飛ばしてください。</p>
 
       <ul class="points">
-        <li><b>コンテナ。</b>アプリと、それが動くのに必要なライブラリ・設定を1つにまとめて、どこでも同じように動かせるようにしたもの。</li>
-        <li><b>コンテナイメージ。</b>コンテナの元になる読み取り専用のファイル一式。レシピと料理の関係です。イメージがレシピ、コンテナが料理。</li>
+        <li><b>AWS。</b>Amazon Web Services。サーバーやネットワークやデータベースを、自分で機械を買わずにインターネット越しに借りられるサービス群のこと。</li>
+        <li><b>Amazon EC2。</b>そのAWSで「仮想サーバーを1台借りる」サービス。OSの更新やディスクの管理は借りた側の仕事です。この記事では7章で比較相手として出てきます。</li>
+        <li><b>コンテナ。</b>アプリと、それが動くのに必要なライブラリ（アプリが借りて使う部品の集まり）・設定を1つにまとめて、どこでも同じように動かせるようにしたもの。</li>
+        <li><b>コンテナイメージ。</b>コンテナの元になる読み取り専用のファイル一式。レシピと料理の関係です。イメージがレシピ、コンテナが料理。イメージを作って動かす代表的なツールが Docker です。</li>
         <li><b>Amazon ECS。</b>そのコンテナを「何個、どこで動かすか」をAWSが代わりに管理してくれるサービス。この管理のことをオーケストレーションと呼びます。</li>
         <li><b>AWS Fargate。</b>サーバーを1台も用意せずにコンテナを動かせる仕組み。公式の言い方は <code>run containers without having to manage servers or clusters of Amazon EC2 instances</code> です。</li>
       </ul>
 
-      <p class="lead">では登場人物です。AWS公式ドキュメントの「What is Amazon ECS?」に、4つの言葉の定義がそのまま並んでいます。<mark>ここが記事の骨格です。</mark></p>
+      <p class="lead">では登場人物です。AWS公式ドキュメントの「What is Amazon Elastic Container Service?」に、4つの言葉の定義がそのまま並んでいます。<mark>ここが記事の骨格です。</mark></p>
 
       <div class="code wrap">
-        <div class="code-head">Amazon ECS Developer Guide「What is Amazon ECS?」— 原文</div>
+        <div class="code-head">Amazon ECS Developer Guide「What is Amazon Elastic Container Service?」— 原文</div>
         <pre>Task definition — The blueprint for the
 application.
 Cluster — The infrastructure your
@@ -140,7 +142,7 @@ application.
             <li><b>ECSへのデプロイ操作。</b><code>create-cluster</code> / <code>register-task-definition</code> / <code>create-service</code> のいずれも実行していません。</li>
             <li><b>タスクの起動、ALB経由のHTTPアクセス、ヘルスチェックの通過確認。</b>していません。</li>
             <li><b><code>terraform apply</code>。</b>していません。<code>plan</code> までです。</li>
-            <li><b><code>docker build</code>。</b>この環境はDockerのデーモンが動いていないので、失敗します。</li>
+            <li><b><code>docker build</code>。</b>この環境はDockerのデーモン（バックグラウンドで常駐して指示を受け付けるプログラム）が動いていないので、失敗します。</li>
           </ul>
           <div class="code term">
             <div class="code-head">実行結果（docker build。デーモンが無い）</div>
@@ -163,9 +165,21 @@ application.
     <h2><span class="step">2</span>クラスタは「サーバーの集まり」ではない</h2>
 
     <article class="item">
-      <h3>作成の雛形を出したら、中身は名前とオプション3つだけだった</h3>
+      <h3>作成の雛形を出したら、必須なのは名前だけだった</h3>
       <p class="lead">「クラスタ」という言葉は、普通は「複数台のサーバーの集まり」を指します。ECSでは違います。<mark>中身が空の区切りです。</mark></p>
-      <p class="lead">確かめます。AWS CLIには <code>--generate-cli-skeleton</code> という、そのAPIに渡せる項目の雛形を出す機能があります。ターミナルにそのまま打てます。</p>
+      <p class="lead">確かめます。AWS CLIには <code>--generate-cli-skeleton</code> という、そのAPIに渡せる項目の雛形を出す機能があります。</p>
+
+      <details>
+        <summary>「ターミナル」「AWS CLI」「API」だけ先に説明します</summary>
+        <div class="body">
+          <ul class="points">
+            <li><b>ターミナル。</b>マウスではなく文字でパソコンに命令する画面のこと。1行打って Enter を押すと、その結果が下に出ます。この記事の「実行結果」は、その下に出た文字をそのまま貼ったものです。</li>
+            <li><b>API。</b>プログラム同士の窓口。AWSは「クラスタを作る」「タスク定義を登録する」といった操作を、全部この窓口として持っています。</li>
+            <li><b>AWS CLI。</b>その窓口をターミナルから叩くための公式コマンド。<code>aws ecs create-cluster</code> のように打ちます。この記事では<mark>窓口に何を渡せるかを見るためだけ</mark>に使い、実際に作る操作はしていません。</li>
+            <li><b>jq。</b>JSON（項目名と値を並べた書式）から一部だけ抜き出して整形するコマンド。長い出力を画面幅に収めるために使っています。</li>
+          </ul>
+        </div>
+      </details>
 
       <div class="code term">
         <div class="code-head">実行結果（aws ecs create-cluster --generate-cli-skeleton を jq で抜粋）</div>
@@ -187,8 +201,9 @@ application.
       </div>
 
       <ul class="points">
-        <li><b>名前しか要りません。</b>台数もインスタンスの種類も出てきません。Fargateなら本当に名前だけで足ります。</li>
-        <li><b><code>containerInsights</code> は監視のオン・オフ。</b><code>serviceConnectDefaults</code> はサービス同士の名前解決の既定値です。どちらも任意です。</li>
+        <li><b>台数もインスタンスの種類も出てきません。</b>雛形のトップレベルの項目は全部で7個（上は <code>jq</code> で4個だけ抜いたもの）ですが、<mark>そのどれにもサーバーの指定はありません</mark>。</li>
+        <li><b>残りの3個も任意項目です。</b><code>configuration</code>（実行コマンドとストレージの設定）、<code>defaultCapacityProviderStrategy</code>、<code>tags</code>。</li>
+        <li><b><code>containerInsights</code> は監視のオン・オフ。</b><code>serviceConnectDefaults</code> はサービス同士の名前解決（名前からIPアドレスを引く仕組み）の既定値です。</li>
       </ul>
 
       <p class="lead">公式ドキュメントも同じことを言っています。<mark>logical grouping ＝ 論理的なまとまり</mark>という語が決定的です。</p>
@@ -211,7 +226,7 @@ Clusters are AWS Region specific.
       <p class="lead">同じページには、クラスタが<b>ネットワーク（VPCとサブネット）</b>も含むと書かれています。ここは後でALBと繋がる話なので覚えておいてください。</p>
 
       <h3>ここで意外な事実。公式の推奨は Fargate ではありません</h3>
-      <p class="lead">日本語の解説の多くは「ECSの起動タイプは Fargate と EC2 の2つ」と書いています。<mark>いまの公式ドキュメントは3つ並べています。</mark></p>
+      <p class="lead">クラスタを作るときは<b>インフラ種別</b>を選びます。<mark>いまの公式ドキュメントは、そこに3つ並べています。</mark>推奨と書いてあるのはFargateではありません。</p>
 
       <div class="code wrap">
         <div class="code-head">Amazon ECS Developer Guide「Amazon ECS clusters」— 原文</div>
@@ -223,19 +238,22 @@ Amazon EC2 instances
 
 Note: Amazon ECS Managed Instances is
 the recommended choice for most new
-workloads
+workloads ...
 
-（3種類ある。新しいワークロードの
-　多くには Managed Instances を推奨）</pre>
+（クラスタのインフラ種別は3種類。
+　新しいワークロードの多くには
+　Managed Instances を推奨）</pre>
       </div>
 
       <ul class="points">
         <li><b>ECS Managed Instances は第3の選択肢です。</b>EC2を使うけれど、用意・パッチ適用・スケールをAWSがやる、という位置づけです。</li>
-        <li><b>登場日は2025年9月30日。</b>AWS公式ブログ（AWS News Blog、Micah Walter）に <code>on 30 SEP 2025</code> と載っています。<mark>それより前に書かれた「2択」の解説は、この日に古くなりました。</mark></li>
+        <li><b>登場日は2025年9月30日。</b>AWS公式ブログ（AWS News Blog、Micah Walter）に <code>on 30 SEP 2025</code> と載っています。</li>
+        <li><b>「起動タイプ」の話とは別です。</b>この3つは<mark>クラスタのインフラ種別</mark>であって、公式は起動タイプが3つになったとは書いていません。次の項で原文を並べます。</li>
         <li><b>ただしこの記事はFargateを軸に書きます。</b>Managed Instances を筆者は動かしていないためです。動かしていないものの使用感は書きません。</li>
       </ul>
 
-      <p class="lead">AWS CLIに同梱されているAPI定義ファイルを読むと、選択肢の一覧が機械可読な形で入っています。<code>MANAGED_INSTANCES</code> が確かに居ます。</p>
+      <h3>では「起動タイプ」は何択なのか。公式は2つと書いている</h3>
+      <p class="lead">AWS CLIに同梱されているAPI定義ファイル（どの項目にどの値を渡せるかが機械可読で書かれたファイル）を読むと、選択肢の一覧が入っています。<code>MANAGED_INSTANCES</code> が確かに居ます。</p>
 
       <div class="code term">
         <div class="code-head">実行結果（AWS CLI 1.46.0 同梱のECS APIモデルから列挙値を抽出）</div>
@@ -258,21 +276,31 @@ LaunchType:
 
       <div class="code wrap">
         <div class="code-head">Amazon ECS Developer Guide「Amazon ECS services」— 原文（原文のtypoを含む）</div>
-        <pre>A capacity provider strategy causes
+        <pre>There are two compute options that
+distribute your tasks.
+A capacity provider strategy causes
 Amazon ECS to distribute your tasks in
 one or across multiple capacity
 providers. If you want to run your
 workloads on Amazon ECS Managed
 Instances, you must use the Capacity
 provider strategy option.
+...
 A launch type causes Amazon ECS to
 launch our tasks directly on either
-Fargate or on the EC2 instances</pre>
+Fargate or on the EC2 instances
+registered to your clusters.</pre>
       </div>
 
       <p class="lead">最後の <code>launch our tasks</code> は公式側の誤記（<code>your</code> のはず）です。<mark>原文を書き換えないため、そのまま引用しています。</mark></p>
 
-      <p class="lead">ここで筆者は矛盾に見えるものを見つけました。公式ドキュメントは「Managed Instances は起動タイプでは選べない」と書いていますが、<b>API定義の <code>LaunchType</code> には <code>MANAGED_INSTANCES</code> が載っています</b>。実際にどちらの挙動になるかは、<mark>実行できていないので未確認</mark>です。断定しません。</p>
+      <ul class="points">
+        <li><b>起動タイプは <code>either Fargate or ... EC2</code>。</b>いまも2択です。「2択は古い」ではありません。</li>
+        <li><b>Managed Instances は起動タイプでは選べません。</b>公式は <code>you must use the Capacity provider strategy option</code> と明記しています。指定する場所が別です。</li>
+        <li><b>それでも <code>LaunchType</code> の列挙には <code>MANAGED_INSTANCES</code> が載っています。</b>さらに <code>EXTERNAL</code> も並んでいます。<mark>API定義の列挙値と、ドキュメントの説明が食い違って見えます。</mark></li>
+      </ul>
+
+      <p class="lead">実際にどちらの挙動になるかは、<mark>AWSで実行できていないので未確認</mark>です。断定しません。ここで言えるのは「公式が推奨するのはFargateではない」「ただし起動タイプが3つになったとは公式は書いていない」の2つだけです。</p>
     </article>
   </section>
 
@@ -281,7 +309,7 @@ Fargate or on the EC2 instances</pre>
     <h2><span class="step">3</span>タスク定義は設計図、タスクはその実体</h2>
 
     <article class="item">
-      <h3>クラスとインスタンスの関係。公式は instantiation と書いている</h3>
+      <h3>設計図は動かない。動くのは、そこから起こした実物のほう</h3>
       <p class="lead">タスク定義は<mark>JSONで書かれたテキストファイル</mark>です。それ以上でも以下でもありません。動きません。</p>
 
       <div class="code wrap">
@@ -303,6 +331,16 @@ definition within a cluster.
       <div class="code">
         <div class="code-head">td-1.json — 名前だけ書いてみる</div>
         <pre>{ "family": "web" }</pre>
+      </div>
+
+      <div class="code">
+        <div class="code-head">td-2.json — コンテナの中身を name 抜きで足した版</div>
+        <pre>{
+  "family": "web",
+  "containerDefinitions": [
+    { "image": "nginx:1.27" }
+  ]
+}</pre>
       </div>
 
       <div class="code">
@@ -357,17 +395,23 @@ definition within a cluster.
             <tr><th>CPU</th><th>選べるメモリ</th><th>OS</th></tr>
           </thead>
           <tbody>
-            <tr><td>256（0.25 vCPU）</td><td data-label="選べるメモリ">512 MiB / 1 GB / 2 GB</td><td data-label="OS">Linux</td></tr>
-            <tr><td>1024（1 vCPU）</td><td data-label="選べるメモリ">2〜8 GB（1GB刻み）</td><td data-label="OS">Linux, Windows</td></tr>
+            <tr><td>256（.25 vCPU）</td><td data-label="選べるメモリ">512 MiB, 1 GB, 2 GB</td><td data-label="OS">Linux</td></tr>
+            <tr><td>512（.5 vCPU）</td><td data-label="選べるメモリ">1 GB, 2 GB, 3 GB, 4 GB</td><td data-label="OS">Linux</td></tr>
+            <tr><td>1024（1 vCPU）</td><td data-label="選べるメモリ">2 GB, 3 GB, 4 GB, 5 GB, 6 GB, 7 GB, 8 GB</td><td data-label="OS">Linux, Windows</td></tr>
+            <tr><td>2048（2 vCPU）</td><td data-label="選べるメモリ">4〜16 GB（1 GB刻み）</td><td data-label="OS">Linux, Windows</td></tr>
+            <tr><td>4096（4 vCPU）</td><td data-label="選べるメモリ">8〜30 GB（1 GB刻み）</td><td data-label="OS">Linux, Windows</td></tr>
+            <tr><td>8192（8 vCPU）</td><td data-label="選べるメモリ">16〜60 GB（4 GB刻み）</td><td data-label="OS">Linux（PF 1.4.0以降）</td></tr>
+            <tr><td>16384（16 vCPU）</td><td data-label="選べるメモリ">32〜120 GB（8 GB刻み）</td><td data-label="OS">Linux（PF 1.4.0以降）</td></tr>
+            <tr><td>32768（32 vCPU）</td><td data-label="選べるメモリ">60 GB, 120 GB, 244 GB</td><td data-label="OS">Linux（PF 1.4.0以降）</td></tr>
           </tbody>
         </table>
       </div>
 
-      <p class="lead">この表は公式ドキュメントの一覧から、<mark>筆者が原文で確認できた2行だけ</mark>を抜いたものです。全部で7段階ありますが、読んで確認した行以外は載せません。</p>
+      <p class="lead">この表は公式ドキュメントの一覧を写したものです（2026年8月15日参照）。<mark>全部で8段階</mark>。「PF」はプラットフォームバージョンの略で、原文の <code>Note</code> にある条件です。2048以降の「◯GB刻み」は原文の <code>Between 4 GB and 16 GB in 1 GB increments</code> のような書き方を訳しています。</p>
 
       <ul class="points">
         <li><b>CPUの単位は「CPUユニット」。</b>1024ユニット＝1 vCPU です。最小は256（0.25 vCPU）。</li>
-        <li><b>256を選んだら、メモリは512MiB・1GB・2GBの3択。</b>「1.5GB」は書けません。ここで最初のエラーに出会う人が多いはずです。</li>
+        <li><b>256を選んだら、メモリは512MiB・1GB・2GBの3択。</b>「1.5GB」は書けません。<mark>この表に無い数字は、手元のTerraformでは止まりません</mark>（6章で実測しています）。</li>
         <li><b>ネットワークモードは <code>awsvpc</code> 固定。</b>公式に <code>Fargate tasks always use the awsvpc network mode</code> と書いてあります。選択の余地がありません。</li>
       </ul>
 
@@ -424,7 +468,7 @@ fails.</pre>
         <button class="opt" type="button" data-correct="false">ALBが利用者に503を返すだけで、タスク自体は動き続ける</button>
         <button class="opt" type="button" data-correct="true">タスクが起動と停止を延々と繰り返す</button>
         <button class="opt" type="button" data-correct="false">ヘルスチェックは警告扱いなので、何も起きない</button>
-        <p class="ans" hidden>正解。ALBの既定では、成功とみなすステータスは200（Matcher の既定値）で、2回連続で失敗すると切り離されます。そしてECSのサービススケジューラは「ロードバランサーのターゲットグループのヘルスチェックに落ちたタスクを置き換える」と公式に書かれています。つまり<b>切り離す側（ALB）と作り直す側（ECS）が噛み合って、無限ループになります</b>。アプリのログにはエラーが出ないので、原因が分かりにくい事故の代表です。</p>
+        <p class="ans" hidden>正解。ALBの既定では、成功とみなすステータスは200（Matcher の既定値）で、2回連続で失敗すると切り離されます。そしてECSのサービススケジューラは「ロードバランサーのターゲットグループのヘルスチェックに落ちたタスクを置き換える」と公式に書かれています。つまり<b>切り離す側（ALB）と作り直す側（ECS）が噛み合って、置き換えが繰り返されます</b>。アプリのログにはエラーが出ないので、原因が分かりにくい事故の代表です。なお同じ公式ページには <code>The service scheduler includes logic that throttles how often tasks are restarted if tasks repeatedly fail to start</code>（起動に失敗し続けるタスクは再起動の間隔を空ける）とも書かれています。ただしこれは <code>RUNNING</code> に到達せず停止した場合の話で、ヘルスチェック落ちに効くかは<mark>実行して確かめていません</mark>。「永久に等間隔で回り続ける」とまでは言えません。</p>
       </div>
 
       <ul class="points">
@@ -443,7 +487,7 @@ fails.</pre>
       <p class="lead">ALB（Application Load Balancer）は、HTTP/HTTPSを受け取って複数のタスクに振り分けるAWSの窓口です。<mark>ただし「ALBを作る」で終わりません。</mark>入れ子の部品を順に作ります。</p>
 
       <div class="code wrap">
-        <div class="code-head">User Guide for Application Load Balancers「What is an ALB?」— 原文</div>
+        <div class="code-head">User Guide for ALB「What is an Application Load Balancer?」— 原文</div>
         <pre>A load balancer serves as the single
 point of contact for clients.
 You add one or more listeners to your
@@ -477,7 +521,7 @@ round robin;</pre>
       <p class="lead">ターゲットグループには「名簿の書き方」の指定があります。<code>instance</code>（EC2のインスタンスIDで書く）か、<code>ip</code>（IPアドレスで書く）か。</p>
 
       <div class="code wrap">
-        <div class="code-head">Amazon ECS Developer Guide「Architect for AWS Fargate」— 原文</div>
+        <div class="code-head">Amazon ECS Developer Guide「Architect for AWS Fargate for Amazon ECS」— 原文</div>
         <pre>When you create a target group for
 these services, you must choose `ip`
 as the target type, not `instance`.
@@ -487,7 +531,7 @@ with an elastic network interface,
 not an Amazon EC2 instance.</pre>
       </div>
 
-      <p class="lead">理由がそのまま書いてあります。<mark>Fargateのタスクには、そもそもEC2インスタンスIDが無い</mark>のです。あるのはENI（仮想的なLANポート）と、そこに付いたプライベートIPだけ。だからIPで名簿を書きます。</p>
+      <p class="lead">理由がそのまま書いてあります。<mark>Fargateのタスクには、そもそもEC2インスタンスIDが無い</mark>のです。あるのはENI（Elastic Network Interface。タスク1個に1本生える、仮想的なネットワークの差込口）と、そこに付いたIPアドレスだけ。だからIPで名簿を書きます。</p>
 
       <div class="code wrap">
         <div class="code-head">User Guide for ALB「Target groups — Target type」— 原文</div>
@@ -500,7 +544,7 @@ can't change its target type.
 
       <div class="quiz">
         <p class="q">Q. うっかり <code>instance</code> でターゲットグループを作ってしまった。どう直す?</p>
-        <button class="opt" type="button" data-correct="false">ターゲットグループの設定画面で <code>ip</code> に変更する</button>
+        <button class="opt" type="button" data-correct="false">ターゲットグループの設定を <code>ip</code> に変更する</button>
         <button class="opt" type="button" data-correct="true">ターゲットグループを作り直し、リスナーの向き先も差し替える</button>
         <button class="opt" type="button" data-correct="false">タスク定義の <code>networkMode</code> を <code>bridge</code> にして合わせる</button>
         <p class="ans" hidden>正解は作り直しです。公式に <code>you can't change its target type</code> と書かれています。3番目を選びたくなりますが、Fargateは <code>awsvpc</code> 固定で <code>bridge</code> を選べません（公式: <code>Fargate tasks always use the awsvpc network mode</code>）。つまり<b>タスク側を曲げて合わせることはできず、ALB側を作り直すしかありません</b>。リスナーがそのターゲットグループを指しているので、そこも同時に差し替えることになります。</p>
@@ -529,9 +573,9 @@ can't change its target type.
         <div class="body">
           <dl>
             <dt>VPCとサブネット</dt>
-            <dd>VPCはAWS内に作る自分専用のネットワーク領域。サブネットはそれをさらに区切った小部屋です。Fargateのタスクは、この小部屋の中に置かれます。公式に <code>you must specify one or more subnets to attach the network interface and one or more security groups</code> とあり、<b>サブネットとセキュリティグループの指定は必須</b>です。</dd>
+            <dd>VPCはAWS内に作る自分専用のネットワーク領域。サブネットはそれをさらに区切った小部屋です。Fargateのタスクは、この小部屋の中に置かれます。公式に <code>you must specify one or more subnets to attach the network interface and one or more security groups</code> とあり、<b>サブネットとセキュリティグループの指定は必須</b>です。セキュリティグループは「どこからどのポートの通信を通すか」を書いたルールの集まりで、これに書いていない通信は届きません。</dd>
             <dt>アベイラビリティーゾーンは2つ以上</dt>
-            <dd>ALBの制約です。原文は <code>You must select at least two Availability Zone subnets.</code> かつ <code>Each subnet must be from a different Availability Zone.</code>。さらに各サブネットに <code>/27</code> 以上のCIDRブロックと、空きIPが8個以上あることを確認せよ、とも書かれています。「サブネットを1つしか作っていなくてALBが作れない」は、最初の30分で必ず踏みます。</dd>
+            <dd>ALBの制約です。原文は <code>You must select at least two Availability Zone subnets.</code> かつ <code>Each subnet must be from a different Availability Zone.</code>。さらに各サブネットに <code>/27</code> 以上のCIDRブロックと、空きIPが8個以上あることを確認せよ、とも書かれています。<code>/27</code> はサブネットの大きさの書き方で、IPアドレスを32個分まとめて持つ区画という意味です。「サブネットを1つしか作っていなくてALBが作れない」は、最初の30分で必ず踏みます。</dd>
             <dt>HTTPSの証明書はどこに置くのか</dt>
             <dd>コンテナの中ではなく<b>ALBのリスナー</b>です。原文は <code>You can use an HTTPS listener to offload the work of encryption and decryption to your load balancer</code>、そして <code>If the listener protocol is HTTPS, you must deploy at least one SSL server certificate on the listener.</code>。アプリ側はHTTPのままで構いません。</dd>
             <dt>そもそもALBは必須なのか</dt>
@@ -588,10 +632,10 @@ can't change its target type.
         <li><b><code>subnets</code> と <code>securityGroups</code> はここで指定する。</b>タスクのENIがどの小部屋に生えるかを決めています。</li>
       </ul>
 
-      <p class="lead">問題は <code>containerName</code> です。<mark>これはARNでもIDでもなく、ただの文字列</mark>。タスク定義に書いた名前と一字一句合っている必要があります。</p>
+      <p class="lead">問題は <code>containerName</code> です。ARN（Amazon Resource Name。AWSの資源1つ1つに付く長い識別子）なら、存在しないものを指せば分かります。<mark>ですがこれはARNでもIDでもなく、ただの文字列</mark>。タスク定義に書いた名前と一字一句合っている必要があります。</p>
 
       <h3>1文字ずらして terraform plan を通してみた</h3>
-      <p class="lead">Terraformでクラスタ・タスク定義・サービス・ALBを一式書いて、<code>plan</code>（実際には作らず、何が作られるかだけ出す）を実行します。<code>apply</code> は<b>していません</b>。</p>
+      <p class="lead">Terraform は、作りたいAWSの構成をテキストファイルに書いておくと、その通りになるまで作成・変更してくれる外部ツールです。ここでは <code>plan</code>（実際には作らず、何が作られるかだけ出す）までを使います。<code>apply</code>（実際に作る）は<b>していません</b>。</p>
 
       <div class="code">
         <div class="code-head">main.tf — 結び目の部分（実験用の変数を展開して抜粋）</div>
@@ -709,6 +753,12 @@ vpc  main
 
       <p class="lead">対策は単純です。<mark>コンテナ名を変数にして、2か所から同じ変数を参照する。</mark>手で2回書かないこと。実際の <code>main.tf</code> では、上の2か所の <code>"web"</code> は変数になっています（片方だけずらす実験のために、変数を2つに分けてあります）。全文は <code>_labs/</code> に置いています。</p>
 
+      <a class="next-up" href="../2026-08-15_terraform-first/">
+        <div class="label">この章のツールが初めてなら →</div>
+        <div class="t">Terraform を最初に動かす — init / validate / plan の役割と、plan の読み方</div>
+        <div class="d"><code>plan</code> が何を出していて、記号 <code>+</code> <code>~</code> <code>-/+</code> をどう読むかは、そちらに分けてあります。</div>
+      </a>
+
       <details>
         <summary>タスク実行ロールとタスクロールは別物です（100%混同するところ）</summary>
         <div class="body">
@@ -764,9 +814,9 @@ instance management and maintenance.
       <figure>
         <picture>
           <source srcset="images/ec2-vs-fargate-dark.png" media="(prefers-color-scheme: dark)">
-          <img src="images/ec2-vs-fargate.png" alt="EC2版はEC2インスタンスの中にエージェントとコンテナが同居してポートを取り合うが、Fargateはタスクごとに専用のENIとIPを持つため被らない" loading="lazy">
+          <img src="images/ec2-vs-fargate.png" alt="EC2版はEC2インスタンスの中にエージェントとコンテナが同居してEC2のIPを共有するが、Fargateはタスクごとに専用のENIとIPを持つ" loading="lazy">
         </picture>
-        <figcaption>差はサーバーを持つかどうかだけではありません。タスクがIPを持つか、EC2のポートを借りるかが変わります</figcaption>
+        <figcaption>差はサーバーを持つかどうかだけではありません。タスクが自分のIPを持つか、EC2のIPを借りるかが変わります</figcaption>
       </figure>
 
       <div class="table">
@@ -785,6 +835,8 @@ instance management and maintenance.
         </table>
       </div>
 
+      <p class="lead">カーネルとは<b>OSの中核部分</b>で、CPUやメモリの割り当てを実際に行っている層です。ここを共有しているかどうかが、隣のタスクの影響を受けるかどうかの分かれ目になります。</p>
+
       <p class="lead">「タスクごとに独立」は公式の <code>Each Fargate task has its own isolation boundary and does not share the underlying kernel, CPU resources, memory resources, or elastic network interface with another task.</code> によります。</p>
 
       <details>
@@ -794,9 +846,10 @@ instance management and maintenance.
           <ul class="points">
             <li><b><code>awsvpc</code>。</b>原文は <code>The task is allocated its own elastic network interface (ENI) and a primary private IPv4 or IPv6 address.</code> タスクごとにIPが別なので、同じ80番を何個並べても衝突しません。</li>
             <li><b><code>bridge</code>。</b>原文は <code>The task uses Docker's built-in virtual network on Linux, which runs inside each Amazon EC2 instance that hosts the task.</code> Linuxで何も指定しなければこれになります。</li>
-            <li><b><code>host</code>。</b>原文に <code>Dynamic port mappings can't be used in this network mode.</code> とあります。1台のEC2に同じポートのタスクを2つ置けません。</li>
+            <li><b><code>host</code>。</b>原文に <code>Dynamic port mappings can’t be used in this network mode.</code> とあります。動的ポートマッピング（EC2側の空きポートを自動で割り当てて中継する仕組み）が使えないので、1台のEC2に同じポートのタスクを2つ置けません。</li>
           </ul>
-          <p class="lead">つまり<mark>Fargateを選んだ時点で、ポートの取り合いという悩みが消えます</mark>。これはFargateの地味だが大きい利点です。</p>
+          <p class="lead">つまり<mark>ポートを取り合うのは <code>host</code> のときです</mark>。<code>bridge</code> で動的ポートマッピングを使えば衝突しません。「EC2版はポートが被る」と一般化はできません。</p>
+          <p class="lead">Fargateの側は、そもそも<b>タスクごとにIPが別</b>なので、この悩み自体が発生しません。ポート番号を決め打ちで書けます。</p>
         </div>
       </details>
 
@@ -809,7 +862,7 @@ instance management and maintenance.
             <dt>何に対して課金されるのか</dt>
             <dd>公式の価格ページには <code>You pay for the amount of vCPU, memory, and storage resources consumed</code> とあります。インスタンスの台数ではなく、使った量です。</dd>
             <dt>いくらか（筆者の計算。参考値）</dt>
-            <dd>同ページのサンプル計算の中に、<b>US East（バージニア北部）/ Linux / X86</b> の単価が書かれています。vCPUが1秒あたり $0.000011244、メモリが1GBあたり1秒 $0.000001235（2026年8月15日参照）。ここから最小構成（0.25 vCPU / 0.5 GB）を1時間動かすと <b>$0.0123</b> になります。<mark>この掛け算は筆者が自分でやったもの</mark>で、公式が提示している金額ではありません。東京リージョンの価格でもありません。ストレージ分は、無料枠の扱いを確認できなかったため含めていません。<b>価格表そのものはページ内のJavaScriptで描画されるため取得できませんでした。</b>実際の見積もりは公式の料金ページで確認してください。</dd>
+            <dd>同ページのサンプル計算の中に、<b>US East（バージニア北部）/ Linux / X86</b> の単価が書かれています。vCPUが1秒あたり $0.000011244、メモリが1GBあたり1秒 $0.000001235（2026年8月15日参照）。ここから最小構成（0.25 vCPU / メモリ 512 MiB）を1時間動かすと <b>$0.0123</b> になります（メモリは 0.5 GB として掛けました。512 MiB は厳密には約 0.537 GB です）。<mark>この掛け算は筆者が自分でやったもの</mark>で、公式が提示している金額ではありません。東京リージョンの価格でもありません。ストレージ分は、無料枠の扱いを確認できなかったため含めていません。<b>価格表そのものはページ内のJavaScriptで描画されるため取得できませんでした。</b>実際の見積もりは公式の料金ページで確認してください。</dd>
           </dl>
         </div>
       </details>
@@ -891,9 +944,9 @@ accessible on the public internet.</pre>
       <p class="lead">サービスはタスク定義とターゲットグループを指します。ターゲットグループはVPCを指します。<mark>指される側から先に作ります。</mark></p>
 
       <ul class="points">
-        <li><b>① VPCとサブネットを2つ以上（別AZ）。</b>ALBの制約です。ここを1つで始めると、ALBの作成画面で止まります。</li>
+        <li><b>① VPCとサブネットを2つ以上（別AZ）。</b>ALBの制約です。公式に <code>You must select at least two Availability Zone subnets.</code> とあるので、1つしか無いとALBを作る段階で足りません。</li>
         <li><b>② コンテナイメージを置く場所を決める。</b>ECR（AWS版のイメージ置き場）など。タスク定義はイメージのURLを書くだけなので、先に要ります。</li>
-        <li><b>③ クラスタを作る。</b>名前だけです。1分で終わります。</li>
+        <li><b>③ クラスタを作る。</b>名前だけです。2章で見たとおり、雛形にサーバーの指定はありません。</li>
         <li><b>④ タスク定義を登録する。</b>Fargateなら <code>awsvpc</code>、CPUとメモリは決まった組み合わせから選ぶ。実行ロールも指定します。</li>
         <li><b>⑤ ターゲットグループを <code>ip</code> で作る。</b>ここを間違えると作り直しです。作成後は変更できません。</li>
         <li><b>⑥ ALBとリスナーを作り、⑤へ向ける。</b>HTTPSにするなら証明書はリスナーに置きます。</li>
@@ -911,7 +964,7 @@ accessible on the public internet.</pre>
         <li><label><input type="checkbox"><span>Fargateではターゲットタイプが <code>ip</code> で、後から変えられないと知っている</span></label></li>
         <li><label><input type="checkbox"><span>タスク実行ロールとタスクロールを取り違えない</span></label></li>
       </ul>
-      <div class="cl-done" hidden>🎉 これで、ECSの画面に出てくる言葉が全部つながりました</div>
+      <div class="cl-done" hidden>🎉 これで、ECSで出てくる言葉が全部つながりました</div>
 
       <a class="next-up" href="../2026-08-15_aws-iam-first/">
         <div class="label">NEXT →</div>
@@ -938,7 +991,7 @@ accessible on the public internet.</pre>
         <li>
           <span class="flag primary">一次資料</span>
           Amazon Web Services「Amazon ECS clusters」<i>Amazon ECS Developer Guide</i>.
-          <span class="note">参照箇所: クラスタが logical grouping であること、VPC・サブネットを含むこと、リージョン単位であること。および「3種類のインフラ種別」と Managed Instances 推奨の Note。2章の引用2件。</span>
+          <span class="note">参照箇所: クラスタが logical grouping であること、VPC・サブネットを含むこと、リージョン単位であること。および <code>Amazon ECS offers three infrastructure types for your clusters</code>（＝<b>クラスタのインフラ種別</b>が3つ。起動タイプの話ではありません）と Managed Instances 推奨の Note。2章の引用2件。</span>
           <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/clusters.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/clusters.html</a>（2026年8月15日参照）
         </li>
         <li>
@@ -950,7 +1003,7 @@ accessible on the public internet.</pre>
         <li>
           <span class="flag primary">一次資料</span>
           Amazon Web Services「Amazon ECS services」<i>Amazon ECS Developer Guide</i>.
-          <span class="note">参照箇所: サービスが指定台数を維持すること、サービススケジューラが失敗タスクを置き換えること、ロードバランサーのターゲットグループのヘルスチェック失敗でも置き換えること。および「起動タイプ」と「キャパシティプロバイダ戦略」の使い分け。4章と2章の引用。原文の <code>launch our tasks</code> は公式側の誤記だが、書き換えずそのまま引用した。</span>
+          <span class="note">参照箇所: サービスが指定台数を維持すること、サービススケジューラが失敗タスクを置き換えること、ロードバランサーのターゲットグループのヘルスチェック失敗でも置き換えること、再起動を繰り返すタスクへの throttle。および <code>There are two compute options</code> と、起動タイプが <code>either Fargate or ... EC2</code> の2択であること。4章と2章の引用。原文の <code>launch our tasks</code> は公式側の誤記だが、書き換えずそのまま引用した。</span>
           <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html</a>（2026年8月15日参照）
         </li>
         <li>
@@ -961,13 +1014,13 @@ accessible on the public internet.</pre>
         </li>
         <li>
           <span class="flag primary">一次資料</span>
-          Amazon Web Services「Amazon ECS task definition differences for AWS Fargate」<i>Amazon ECS Developer Guide</i>.
-          <span class="note">参照箇所: Fargate は常に <code>awsvpc</code> であること、CPU とメモリをタスクレベルで指定すること、組み合わせ表（本文には原文で確認できた 256 と 1024 の2行のみ掲載）、サブネットとセキュリティグループの指定が必須であること。</span>
+          Amazon Web Services「Amazon ECS task definition differences for Fargate」<i>Amazon ECS Developer Guide</i>.
+          <span class="note">参照箇所: Fargate は常に <code>awsvpc</code> であること、CPU とメモリをタスクレベルで指定すること、「Task CPU and memory」の組み合わせ表（<b>8行すべて</b>を本文に写しました）、サブネットとセキュリティグループの指定が必須であること。</span>
           <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-tasks-services.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-tasks-services.html</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
-          Amazon Web Services「Amazon ECS task networking options for the EC2 launch type」<i>Amazon ECS Developer Guide</i>.
+          Amazon Web Services「Amazon ECS task networking options for EC2」<i>Amazon ECS Developer Guide</i>.
           <span class="note">参照箇所: <code>awsvpc</code> / <code>bridge</code> / <code>host</code> の説明。<code>bridge</code> が Linux の既定であること、<code>host</code> では動的ポートマッピングが使えないこと。7章の折りたたみ。</span>
           <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking.html</a>（2026年8月15日参照）
         </li>
@@ -997,7 +1050,7 @@ accessible on the public internet.</pre>
         </li>
         <li>
           <span class="flag primary">一次資料</span>
-          Amazon Web Services「Health checks for your target groups」<i>User Guide for Application Load Balancers</i>.
+          Amazon Web Services「Health checks for Application Load Balancer target groups」<i>User Guide for Application Load Balancers</i>.
           <span class="note">参照箇所: 既定値の表（HealthCheckIntervalSeconds 30秒、HealthyThresholdCount 5、UnhealthyThresholdCount 2、Matcher 200）と、閾値超過で切り離す動作。5章の表と4章のクイズ。</span>
           <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html">https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html</a>（2026年8月15日参照）
         </li>
@@ -1015,8 +1068,8 @@ accessible on the public internet.</pre>
         </li>
         <li>
           <span class="flag primary">一次資料</span>
-          Amazon Web Services「What is Amazon CloudFront?」および「How CloudFront delivers content to your users」<i>Amazon CloudFront Developer Guide</i>.
-          <span class="note">参照箇所: エッジロケーションとオリジンの定義、および 1〜3 の番号付きの配信手順。8章の「CloudFrontはALBの前」の根拠。</span>
+          Amazon Web Services「How CloudFront delivers content」<i>Amazon CloudFront Developer Guide</i>.
+          <span class="note">参照箇所: エッジロケーション（POP）とオリジンの位置づけ、および 1〜3 の番号付きの配信手順。8章の「CloudFrontはALBの前」の根拠。</span>
           <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/HowCloudFrontWorks.html">https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/HowCloudFrontWorks.html</a>（2026年8月15日参照）
         </li>
         <li>
@@ -1027,9 +1080,15 @@ accessible on the public internet.</pre>
         </li>
         <li>
           <span class="flag primary">一次資料</span>
-          Amazon Web Services「Amazon ECS task execution IAM role」「Amazon ECS task IAM role」<i>Amazon ECS Developer Guide</i>.
-          <span class="note">参照箇所: 実行ロールがエージェント側の権限であり、コンテナから直接アクセスできないこと。タスクロールがコンテナ内のアプリのための権限であること。6章の折りたたみ。</span>
+          Amazon Web Services「Amazon ECS task execution IAM role」<i>Amazon ECS Developer Guide</i>.
+          <span class="note">参照箇所: 実行ロールがエージェント側の権限であり、コンテナから直接アクセスできないこと（<code>they aren't directly accessible by the containers in the task</code>）。6章の折りたたみ。</span>
           <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Amazon ECS task IAM role」<i>Amazon ECS Developer Guide</i>.
+          <span class="note">参照箇所: タスクロールがコンテナ内のアプリのための権限であること（<code>This role allows your application code (running in the container) to use other AWS services.</code>）。6章の折りたたみ。</span>
+          <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
@@ -1061,8 +1120,8 @@ accessible on the public internet.</pre>
           <span class="note">本文のターミナル出力は、この日に実行した結果を<b>加工せずそのまま</b>貼っています（幅を40桁に収めるため、スクリプト側で <code>jq</code> による抜粋と <code>fold</code> による折り返しを行っています。出力を手で書き換えてはいません）。使ったのは <code>--generate-cli-skeleton</code>、AWS CLIのローカルなパラメータ検証、CLI同梱のECS APIモデルの読み出し、<code>terraform init</code> / <code>validate</code> / <code>plan</code> の4種です。検証コードと全実出力は <code>_labs/2026-08-15_ecs-fargate-first/</code> に置いてあります。</span>
         </li>
         <li>
-          <span class="flag self">実行していないこと</span>
-          <b>AWS上での実行は行っていません。</b>筆者の環境にはAWSアカウントも認証情報もなく、Dockerのデーモンも動いていません。
+          <span class="flag self">自分の実測</span>
+          <b>実測の範囲。AWS上での実行は行っていません。</b>筆者の環境にはAWSアカウントも認証情報もなく、Dockerのデーモンも動いていません。
           <span class="note">未実行: <code>aws ecs create-cluster</code> / <code>register-task-definition</code> / <code>create-service</code>、タスクの起動、ALB経由のHTTP疎通、ヘルスチェックの通過確認、<code>terraform apply</code>、<code>docker build</code>。なお <code>register-task-definition</code>（td-2.json）は実際にAWSのエンドポイントへ到達しましたが、トークンが無効なため <code>UnrecognizedClientException</code> で失敗しています。<mark>リソースの作成・変更は一切発生していません。</mark>したがって本文にも、起動後の挙動を見たかのような記述はありません。</span>
         </li>
         <li>

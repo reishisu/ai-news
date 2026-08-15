@@ -89,3 +89,43 @@ AWSアカウントも認証情報も無い。Dockerデーモンも動いてい�
 `output.txt` の先頭を参照。
 aws 1.46.0 / botocore 1.43.62 / terraform 1.14.3 /
 hashicorp/aws 6.60.0 / python 3.11.15 / docker CLI 29.3.1(デーモン無し)。
+
+## 編集時の再検証（2026年8月15日・公開前）
+
+事実検証の担当が同じ環境で `run-all.sh` を再実行し、記事に貼った12ブロックの
+実行結果がすべて再現することを確認した（捏造なし）。
+編集担当はそのうえで、`aws ecs create-cluster --generate-cli-skeleton` と
+公式ドキュメント3ページを自分で取り直し、次の3点を訂正した。
+
+1. **Fargate の CPU/メモリ組み合わせは8段階**（記事初稿は「7段階」）。
+   `fargate-tasks-services.html` の「Task CPU and memory」表の CPU 値は
+   256 / 512 / 1024 / 2048 / 4096 / 8192 / 16384 / 32768 の8行。
+   本文の表は8行すべてを写した。
+
+2. **「起動タイプが3つになった」は誤り。**
+   `clusters.html` が3つと言っているのは **infrastructure type**
+   （`Amazon ECS offers three infrastructure types for your clusters`）。
+   `ecs_services.html` は `There are two compute options that distribute your tasks.`
+   とし、launch type は `either Fargate or on the EC2 instances` の2択のままで、
+   Managed Instances は `you must use the Capacity provider strategy option` と書いている。
+   なお `LaunchType` の列挙には以前から `EXTERNAL` もあるため、
+   「2択」は Managed Instances 以前から厳密ではない。
+
+3. **`create-cluster` の雛形のトップレベルキーは7個。**
+   `capacityProviders` / `clusterName` / `configuration` /
+   `defaultCapacityProviderStrategy` / `serviceConnectDefaults` / `settings` / `tags`。
+   記事に貼っているのは `jq` で4個抜いたもの。見出しは
+   「必須なのは名前だけだった」に直した（API モデル上 `CreateCluster` の
+   required は `None`）。
+
+再確認コマンド:
+
+```bash
+aws ecs create-cluster --generate-cli-skeleton | jq -r 'keys[]'
+curl -sS https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-tasks-services.html
+curl -sS https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html
+curl -sS https://docs.aws.amazon.com/AmazonECS/latest/developerguide/clusters.html
+```
+
+`tf/.terraform` と `tf-bad/.terraform`（プロバイダ 6.60.0）は
+リポジトリ直下の `.gitignore` で除外済み。再実行時は `terraform init` から。

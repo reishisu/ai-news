@@ -1,6 +1,6 @@
 -- date
-2026-08-15 09:07Z
+2026-08-15 09:14Z
 -- df -h /tmp
-size=252G used=35G avail=2.6G
+size=252G used=34G avail=3.2G
 -- tidb_ddl_disk_quota
 107374182400 bytes

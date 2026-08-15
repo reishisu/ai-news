@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AIニュース デイリーダイジェスト 2026年8月15日(土)</title>
+<title>AI-news：2026/08/15 — Claude Codeのサブエージェント背景実行とGLM-5.3の重み非公開</title>
 <meta name="description" content="Claude Codeでサブエージェントのforkが既定化、ChatGPTがGoogle Driveを直接編集可能に。PostgreSQLは28件の脆弱性を一括修正。Z.aiのGLM-5.3は「オープンウェイト最強」を名乗りつつ重みを2週間隠す。8月15日朝までの主要ニュース。">
 <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="apple-touch-icon" href="../../favicon.svg">
 <meta property="og:type" content="website">
-<meta property="og:title" content="AIニュース デイリーダイジェスト 2026年8月15日(土)">
+<meta property="og:title" content="AI-news：2026/08/15 — Claude Codeのサブエージェント背景実行とGLM-5.3の重み非公開">
 <meta property="og:description" content="Claude Codeのサブエージェントfork既定化、ChatGPTのGoogle Drive直接編集、PostgreSQLの脆弱性28件一括修正、GLM-5.3の重み非公開など。">
 <meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-15_001/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
@@ -57,6 +57,7 @@
       <li><a href="#client">クライアント技術(3件)</a></li>
       <li><a href="#research">技術・研究(2件)</a></li>
       <li><a href="#industry">モデル・業界(2件)</a></li>
+      <li><a href="#refs">参考文献</a></li>
     </ol>
   </nav>
 
@@ -270,7 +271,7 @@
       <p class="lead">TLSハンドシェイクの接続先ホスト名(SNI)を暗号化する<mark>ECH</mark>が、Vercel DNSで管理しているドメイン向けに自動で有効になりました。設定は不要です。</p>
 
       <ul class="points">
-        <li><b>対象はVercel DNS管理ドメインのみ。</b>プラットフォーム側で自動有効化され、対応ブラウザ(最新のChrome・Edge・Firefox)から見ると接続先は共有ホスト名`vercel-ech.com`に見えます。</li>
+        <li><b>対象はVercel DNS管理ドメインのみ。</b>プラットフォーム側で自動有効化されます。隠れるのは<mark>経路上の観測者から見たホスト名</mark>で、公式は「network observers see a connection to Vercel's shared ECH hostname, <code>vercel-ech.com</code>」と書いています。ブラウザ自身は本来の接続先を知っており、見え方は変わりません。対応するのは最新のChrome・Edge・Firefoxです。</li>
         <li><b>SNIベースの監視・フィルタリングに影響しうる。</b>社内でSNIを見てホスト名を振り分けるファイアウォールやログ基盤がある場合、挙動が変わる可能性があります(公式告知には明記なし)。</li>
       </ul>
 
@@ -303,7 +304,7 @@
 
       <ul class="points">
         <li><b>lintルールが新規追加。</b>カスタム`WebViewClient`を使っていて`onRenderProcessGone`未実装だと、既存プロジェクトのビルドで新しく警告が出るようになります。</li>
-        <li><b>HTTPキャッシュの容量制御や、favicon自動取得の無効化も追加。</b>静的コンテンツが多いアプリのキャッシュ肥大やメモリ消費を抑えられます。`navigate()`はWebView M151以上が必要です。</li>
+        <li><b>HTTPキャッシュの容量制御や、favicon自動取得の無効化も追加。</b>静的コンテンツが多いアプリのキャッシュ肥大やメモリ消費を抑えられます。<mark>M151以上を要求するのはこのキャッシュAPI(<code>Profile#getHttpCache</code>)のほう</mark>で、<code>navigate()</code>の項にバージョン要件の記載はありません。</li>
         <li><b>Android System WebViewはv152が8月12日配信。</b>同日時点でChrome for AndroidのChrome 152は「一部ユーザー向けearly stable」段階で、<mark>WebViewのバージョン進行はChrome本体と同期していません</mark>。「Chromeがまだ151だからWebViewも151のはず」という前提でのテストは外れます。</li>
       </ul>
 
@@ -404,7 +405,7 @@
         <span class="tag">研究</span>
         <span class="tag">プロンプト設計</span>
       </div>
-      <p class="lead">15モデル・36種類の制約・36万9753件のチェックを使った検証で、<mark>同時に満たすべき条件が7個を超えると最強のモデルでも成功率が50%を割る</mark>ことが分かりました。個々の条件の通過率はゆるやかにしか落ちないのに、全部同時に満たす確率は掛け算で崩れます。</p>
+      <p class="lead">15モデル・36種類の制約・36万9753件のチェックを使った検証で、<mark>同時に満たすべき条件が7個で、最強のモデルでも成功率が50%を割る</mark>ことが分かりました。原文は「falls below 50% <b>at</b> 7 constraints for the strongest model」で、<mark>15モデル中12モデルは3個以下で50%を割ります</mark>。個々の条件の通過率はゆるやかにしか落ちないのに、全部同時に満たす確率は掛け算で崩れます。</p>
 
       <figure>
         <picture>
@@ -539,6 +540,217 @@
   </section>
 
   
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+  
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の確認作業だけに基づいています。<mark>読んでいない資料は引用しません。</mark>取得できなかった資料は「未確認」として、なぜ読めなかったかも書いています。</p>
+  
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Claude Code Changelog」<i>Claude Code Docs</i>（GitHub の CHANGELOG.md から生成）.
+          <span class="note">参照箇所: 「2.1.232 August 13, 2026」節の先頭行「Subagent forking is now on by default: a <code>subagent_type: "fork"</code> subagent inherits the full conversation and prompt cache, and non-teammate agent spawns in interactive sessions now run in the background by default」（fork既定化・会話とプロンプトキャッシュの継承・背景実行）、「Type @ in the prompt to mention another Claude session by name; Claude then uses SendMessage to reach that session directly」（@によるセッション指名）、GitLabトークンのredaction行（<code>glrt-</code> <code>gloas-</code> ほかと <code>glpat-</code> / <code>gldt-</code> の全体マスク）、PowerShellの権限バイパス修正行、「Fixed a Windows permission bypass where Git Bash followed Cygwin-style symlinks that path validation saw as regular files」（Windowsのシンボリックリンク経由の書き込み）、「Fixed nested git repositories inheriting trust from a parent directory」（ネストgitリポジトリの信頼継承）、「Bash input redirections (<code>&lt; file</code>) are now permission-checked like their argument spellings on all platforms」。および「2.1.229 August 12, 2026」節の「Changed /commit-push-pr so git/gh commands with dangerous flags (<code>--force</code>, <code>--amend</code>, <code>--no-verify</code>, etc.) are no longer auto-approved」。</span>
+          <a href="https://code.claude.com/docs/en/changelog">https://code.claude.com/docs/en/changelog</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag unverified">報道(二次資料)</span>
+          Marcus Mendes「ChatGPT subscribers can now open and edit Google Drive files from inside the chat」<i>9to5Mac</i>, 2026年8月14日 1:31 pm PT.
+          <span class="note">参照箇所: 有料プラン利用者がDriveのファイルをChatGPT Libraryに追加できること、および Adam Fry（ChatGPT Consumer Product Lead）の説明として「ChatGPT edits the actual file in Google Drive, rather than copying a static file based on the existing document」（コピーではなく元ファイルを直接編集）。本文に埋め込まれた Adam Fry のX投稿「This week's ChatGPT feature drop – Aug 14」に Quizzes と Reservation search が列挙されていることの確認にも使用。<b>この記事に書かれていないこと</b>: composer・@メンション・フォルダ・共有ファイルからの呼び出し、Google Slides、会話の隣に開いたままの編集、対象プランの内訳（Plus / Pro / Enterprise / Edu / Healthcare / Business）、Web先行とモバイル後日提供。これらの根拠は下記のミラーのみで、本文検証者は到達できていません。</span>
+          <a href="https://9to5mac.com/2026/08/14/chatgpt-subscribers-can-now-open-and-edit-google-drive-files-from-inside-the-chat/">https://9to5mac.com/2026/08/14/chatgpt-subscribers-can-now-open-and-edit-google-drive-files-from-inside-the-chat/</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag unverified">未確認</span>
+          OpenAI「ChatGPT Release Notes」（公式リリースノートのミラー転載）.
+          <span class="note">なぜ未確認か: OpenAI公式のリリースノートページはCloudflareの検証画面で遮断され、直接取得できませんでした。執筆時に参照したミラーのURLが記録に残っていないため、検証時に同じ本文へ到達できていません。したがって「Plus / Pro / Enterprise / Edu / Healthcare / Business」「Web先行・モバイルは後日」「composerや@メンションからの呼び出し」「Google Docs・Sheets・Slides」といった細目は、本記事では裏が取れていない記述として扱ってください。</span>
+          <a href="https://help.openai.com/en/articles/6825453-chatgpt-release-notes">https://help.openai.com/en/articles/6825453-chatgpt-release-notes</a>（2026年8月15日参照・到達できず）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          GitHub「GitHub Copilot weekly releases — August 10」<i>GitHub Changelog</i>, 2026年8月13日.
+          <span class="note">参照箇所: 「GitHub Copilot, general」節の「Build a plugin once and use it across compatible agent tools with Agent Plugins 1.0, now generally available in VS Code, Copilot CLI, the GitHub Copilot SDK, and the GitHub Copilot app」、Kimi K3 の Pro / Pro+ / Max / Business / Enterprise への展開、MAI-Code-1.1-Flash のネイティブ画像理解。「GitHub Copilot CLI」節の「Manage all your subagents and their tasks in <code>/tasks</code>」「Queue prompts, shell commands, and supported slash commands while an agent turn is running」「Use <code>/rewind</code> to restore Copilot changes without requiring git or discarding user edits」。「VS Code 1.133 Release updates」節の「Switch models without leaving your Claude session by choosing between Claude BYOK and built-in Copilot models for each new turn」。</span>
+          <a href="https://github.blog/changelog/2026-08-13-github-copilot-weekly-releases-august-10">https://github.blog/changelog/2026-08-13-github-copilot-weekly-releases-august-10</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          GitHub「Grok 4.6 is now available in GitHub Copilot」<i>GitHub Changelog</i>, 2026年8月14日.
+          <span class="note">参照箇所: 「This model is billed at provider list pricing under usage-based billing」（プロバイダー定価に基づく従量課金）と、「Enabling access」節の「Copilot Enterprise and Copilot Business plan administrators must enable the Grok 4.6 policy in Copilot settings. The policy is off by default.」（管理者がポリシーを有効化するまで既定でOFF）。</span>
+          <a href="https://github.blog/changelog/2026-08-14-grok-4-6-is-now-available-in-github-copilot">https://github.blog/changelog/2026-08-14-grok-4-6-is-now-available-in-github-copilot</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          Cursor「Cloud Agents Start 3x Faster with Builds」<i>Cursor Changelog</i>, 2026年8月13日.
+          <span class="note">参照箇所: 「Builds are included with Cloud Agents at no additional cost」（追加費用なし）、「Faster starts」節の「Internally, our environments now boot 10x faster, with 3x faster time to first token」（起動10倍・最初のトークンまで3倍）、「More resilient agent runs」節の「agents keep using the last successful build. The broken build never becomes active … your agents keep working while you debug in the background」、「Getting started」節の「New environments use Builds automatically. For an existing environment, open it in the Cloud Agents dashboard, go to the Builds tab, and click Enable Builds」。なお掲載先は日付順に積み上がるローリングページで、上部の記事は今後入れ替わります。</span>
+          <a href="https://cursor.com/changelog">https://cursor.com/changelog</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          PostgreSQL Global Development Group「PostgreSQL 18.6, 17.11, 16.15, 15.19, 14.24 and 19 Beta 3 Released!」<i>PostgreSQL News</i>, 2026年8月13日.
+          <span class="note">参照箇所: 冒頭の「This release fixes 28 security vulnerabilities and over 110 bugs」（28件・110件超）、「PostgreSQL 14 EOL Notice」節の「PostgreSQL 14 will stop receiving fixes on November 12, 2026」（EOL日）、「Security Issues」節のCVE一覧（CVSS 8.8 は CVE-2026-14662 / 14664 / 14669 / 14670 / 14671 / 14676 / 14677 / 14680 / 15741 / 15742 / 16238 / 16239 / 18408 / 19385 の14件、うち説明文に「executes arbitrary code」と明記されるのは9件。正規表現・<code>to_char</code>・<code>pg_stat_statements</code>・<code>pg_dump</code>のheap buffer overflow、EXTRACT引数経由のSQLインジェクション、CVE-2026-6464 の <code>psql</code> COPY FROM STDIN は CVSS 8.1）、「Bug Fixes and Improvements」節冒頭の「This specific issue only affects PostgreSQL 14, 15, and 16 … Fix a self-deadlock that could occur while replaying WAL generated by an older minor version … could cause a standby server following a primary running an older minor version to become stuck」、および parallel GIN index builds が <code>reltuples</code> に Infinity / NaN を残し「can cause autovacuum and autoanalyze to not process the table, and this situation will not self-correct」とする記述。「Updating」節の <code>relam = 2742</code> を使う確認クエリ（GINインデックスを持つテーブルの棚卸し）。</span>
+          <a href="https://www.postgresql.org/about/news/postgresql-186-1711-1615-1519-1424-and-19-beta-3-released-3365/">https://www.postgresql.org/about/news/postgresql-186-1711-1615-1519-1424-and-19-beta-3-released-3365/</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          Chythra Malapati, Matt Rothenberg, Matt Provost「Secure all your internal vibe-coded applications — in one click」<i>The Cloudflare Blog</i>, 2026年8月14日.
+          <span class="note">参照箇所: 「Access on Workers: how it works」節の「Previously, you had to configure this at the hostname level … If you wanted to add a new custom domain to your Worker, you needed to update the Access policy first or that hostname would be reachable without authentication」（ホスト名単位ゆえの穴）と「Now the policy is attached to the Worker itself, so any domain or URL associated with that Worker is automatically protected」。「Protect a specific Worker」節の「If you have multiple, the most specific one takes priority: hostname policies first, then Worker policies, then account policies」（優先順位）。</span>
+          <a href="https://blog.cloudflare.com/workers-protected-by-access/">https://blog.cloudflare.com/workers-protected-by-access/</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          AJ Gerstenhaber, Kenny Johnson「How Cloudflare detects MCP traffic and helps secure it」<i>The Cloudflare Blog</i>, 2026年8月14日.
+          <span class="note">参照箇所: 導入部の「The Model Context Protocol does not use a guaranteed hostname or require <code>/mcp</code> in the path, so a direct connection can look like any other HTTPS API call」（通常のHTTPS APIと見分けが付かない理由）、および「we'll show how Cloudflare Gateway uses protocol signals to find shadow MCP traffic and enforce MCP Portal-only access to trusted MCP servers」（許可経路以外の制御）。</span>
+          <a href="https://blog.cloudflare.com/mcp-security-updates/">https://blog.cloudflare.com/mcp-security-updates/</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          Faryal Siddiqui「Encrypted Client Hello (ECH) is now supported on Vercel CDN」<i>Vercel Changelog</i>, 2026年8月14日.
+          <span class="note">参照箇所: 本文全体（1 min read）。「Vercel CDN now supports Encrypted Client Hello (ECH) for domains managed by Vercel DNS」（対象はVercel DNS管理ドメイン）、「ECH encrypts the Server Name Indication (SNI) in the TLS handshake」、「With ECH, <b>network observers</b> see a connection to Vercel's shared ECH hostname, <code>vercel-ech.com</code>」（<code>vercel-ech.com</code> に見えるのは経路上の観測者であって、ブラウザではありません）、「ECH is managed at the platform level and enables automatically where supported. Recent versions of Chrome, Edge, and Firefox support Encrypted Client Hello」。ページ上の発行日表記は「14 Aug 2026」です。SNIベースの監視・フィルタリングへの影響については、この告知に記載はありません。</span>
+          <a href="https://vercel.com/changelog/encrypted-client-hello-now-supported-on-vercel-cdn">https://vercel.com/changelog/encrypted-client-hello-now-supported-on-vercel-cdn</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Webkit（androidx.webkit）リリースノート」<i>Android Developers</i>, Version 1.17.0（2026年8月12日）.
+          <span class="note">参照箇所: 「Version 1.17.0」節の「Important Changes Since 1.16.0」全項目。「Enhanced Navigation Capabilities (<code>WebViewCompat#navigate</code>): Introduces a modern replacement for <code>WebView#loadUrl</code>. Key capabilities include replacing history entries, returning a trackable <code>Navigation</code> object, and consistent header persistence during state save/restore」、「HTTP Cache Quota Control (<code>Profile#getHttpCache</code>)」、「Favicon Download Optimization (<code>WebSettingsCompat#setDownloadFaviconsEnabled</code>)」、「Proactive Crash Prevention Lint Rule: Adds an AndroidX lint check that flags missing <code>onRenderProcessGone</code> implementations when a custom <code>WebViewClient</code> is attached」。<b>WebView M151以上という要件</b>は、下の「Version 1.17.0-alpha03」節にある <code>Profile#getHttpCache</code>（HTTPキャッシュAPI）の説明文「This feature requires WebView version M151 or higher」に付いており、<code>navigate()</code> の項（1.17.0-alpha01）にはバージョン要件の記載がありません。</span>
+          <a href="https://developer.android.com/jetpack/androidx/releases/webkit">https://developer.android.com/jetpack/androidx/releases/webkit</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Google System Services Release Notes」<i>Google サポート</i>.
+          <span class="note">参照箇所: 「August 2026」節の見出し「Android WebView v152 (2026-08-12)」（WebView v152の配信日）。比較のため「July 2026」節の「Android WebView v151 (2026-07-15)」と、その1行目「The HTTP Cache Quota API allows app developers to optimize and manually manage the WebView HTTP cache size」も確認しています。</span>
+          <a href="https://support.google.com/product-documentation/answer/14343500?hl=en">https://support.google.com/product-documentation/answer/14343500?hl=en</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google Chrome「Chrome Releases（2026年8月）」<i>Chrome Releases Blog</i>.
+          <span class="note">参照箇所: 「Stable Channel Update for Desktop」（2026年8月11日）本文の「This update includes 5 security fixes」と、その5件すべて（CVE-2026-19556 Use after free in V8 / 19557 TabStrip / 19558 Extensions / 19559 HTML / 19560 Blink、いずれも重大度 High）。および「Chrome for Android Update」（2026年8月12日）本文の「We've just released Chrome 152 (152.0.7977.42) for Android to a small percentage of users … more details about early Stable releases」（Chrome 152 Androidが一部ユーザー向けearly stable段階であること）。月別インデックスページは各記事の本文を含まないため、同ブログのAtomフィード（<code>/feeds/posts/default</code>）から各記事本文を取得して読みました。</span>
+          <a href="https://chromereleases.googleblog.com/2026/08/">https://chromereleases.googleblog.com/2026/08/</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          Unity Technologies「Unity Manual: WebGPU」<i>Unity Manual 6000.6 (Unity 6.6 Beta)</i> および同 <i>6000.5</i>.
+          <span class="note">参照箇所: 6000.5版はページ見出しが「WebGPU (Experimental)」で、本文に「Note: WebGPU is experimental and not supported by all browsers and devices.」という注意書きがあります。6000.6版は見出しが「WebGPU」のみで、この注意書きの段落が存在しません。「6.5版にあった注意書きが6.6版では丸ごと削除されている」の根拠は、この2ページの差分です。</span>
+          <a href="https://docs.unity3d.com/6000.6/Documentation/Manual/WebGPU.html">https://docs.unity3d.com/6000.6/Documentation/Manual/WebGPU.html</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          Unity Technologies「Unity 6000.6.0b8 Release Notes」<i>unity.com/releases</i>（リリース日 2026年8月12日）.
+          <span class="note">参照箇所: Changes欄の「Web: Added support for building Player that uses up to 16 GB of WebAssembly memory (Wasm64).」「Web: Enabled Burst for builds using WebAssembly64.」「Web: Updated Emscripten SDK compiler toolchain used by Unity's Web platform from earlier Emscripten 3.1.38 to version 4.0.19.」「Web: Added support for progressive asset loading on the Web, which enables improved load times by downloading assets on a per-scene basis.」「Web: Add plugin settings for Web Platform: Allow to configure compatibility of plugins with certain Web build settings(Exception Support, WebAssembly 2023, Native C/C++ Multithreading, WebAssembly 64-bit).」、Changes欄の「WebGL: Removed the experimental tag from WebGPU.」、Fixes欄の「WebGL: WebGPU: Fixed error on some mobile devices due to the lack of the <code>float32-blendable</code> WebGPU extension.」。リリース日は Unity Editor Release API（<code>services.api.unity.com/unity/editor/release/v1/releases?version=6000.6.0b8</code>）の <code>releaseDate: 2026-08-12</code> で照合しました。</span>
+          <a href="https://unity.com/releases/editor/beta/6000.6.0b8">https://unity.com/releases/editor/beta/6000.6.0b8</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          Unity Technologies「Unity 6000.5.8f1 / 6000.3.22f1 Release Notes」<i>unity.com/releases</i>.
+          <span class="note">参照箇所: 両ページのリリース日表記（「Released on Aug 12, 2026」「Released on Aug 13, 2026」）と、Changes / Fixes 全行。<code>Web:</code> または <code>WebGL:</code> で始まる項目が1件も無いことを行単位で確認しました（「安定版・LTSのマイナー更新にはWeb関連の変更が無い」という記述と図版キャプションの根拠）。</span>
+          <a href="https://unity.com/releases/editor/whats-new/6000.5.8f1">https://unity.com/releases/editor/whats-new/6000.5.8f1</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          VRChat「VRChat 2026.3.1」<i>VRChat Documentation</i>（August 12 - Build 1885 - Live）.
+          <span class="note">参照箇所: 「Introducing Signed Distance Fields (SDF)!」以下の3行（ステッカー・絵文字のcutout判定とSDF化、「SDFs increase both legibility and performance!」）、「Android devices will now replace <code>rtspt://</code> URLs during video player loading with <code>rtsp://</code> to work around a limitation of ExoPlayer.」、「Greatly improved the reliability of <code>VRCObjectSync</code>, specifically around ensuring that the final state after motion is the same between all players in an instance.」、「Users with slower connections should no longer appear at world origin before moving to their correct spawn location.」（この2行は同じ一覧の中の<b>別々の項目</b>です）、および「The SDK that will allow them to fix that is not shipping with this patch, however. Next release will have it!」（SDKは今回のパッチに含まれない旨。文脈は <code>VRC_Pickup</code> の SkinnedMeshRenderer 対応で、輪郭表示対象メッシュを指定するフィールドの話）。</span>
+          <a href="https://docs.vrchat.com/docs/vrchat-202631">https://docs.vrchat.com/docs/vrchat-202631</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          VRChat「VRChat 2026.3.1p1」<i>VRChat Documentation</i>（August 13 - Build 1886 - Live）.
+          <span class="note">参照箇所: 見出し行「August 13 - Build 1886 - Live」（8月13日にBuild 1886が出たこと）と、Nameplates / User Profiles / Other Menus / iOS の全項目（p1がUI寄りの小規模パッチであることの確認）。</span>
+          <a href="https://docs.vrchat.com/docs/vrchat-202631p1">https://docs.vrchat.com/docs/vrchat-202631p1</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          VRChat「VRChat SDK Releases」<i>VRChat Creation</i>.
+          <span class="note">参照箇所: 履歴一覧の先頭「Release 3.10.4 / June 17, 2026 / Momo the Monster」と、その次が「Release 3.10.3 / April 16, 2026」であること。8月15日時点で3.10.4より新しいSDKリリースが存在しないこと（「SDKは6月17日の3.10.4から動きがない」の根拠）。</span>
+          <a href="https://creators.vrchat.com/releases/">https://creators.vrchat.com/releases/</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          VRChat「Developer Update - 13 August 2026」<i>VRChat Ask Forum</i>.
+          <span class="note">参照箇所: 「SDK Updates!」節の「Billboarding… But Make it Performant」（<code>VRCBillboard.Register(Transform target)</code> ほか3メソッドと、直前の注記「(Note: always subject to change until release!)」）、および「Easier Avatar Bone Tracking」節の <code>Networking.LocalPlayer.AttachTransformToBone(transform, HumanBodyBones.Head);</code> と、毎フレームの <code>Update()</code> ループが不要になる旨。「リリースまで仕様は変わりうる」の原文は上記の注記です。</span>
+          <a href="https://ask.vrchat.com/t/developer-update-13-august-2026/48800">https://ask.vrchat.com/t/developer-update-13-august-2026/48800</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          Mariya I. Vasileva「Large Language Models Can Follow Instructions, But Not Many at Once: Phase Transitions in Compositional Constraint Satisfaction」<i>arXiv:2608.12426</i>, 2026年8月12日投稿.
+          <span class="note">参照箇所: Abstract の「15 models, 36 constraint types, 369,753 checks at k=1-12」（規模）、「a model passing individual constraints at ~41% at k=8 succeeds on all eight just 5.7% of the time」（図版の41%と5.7%）、「Reliable instruction following breaks down beyond 5-6 simultaneous constraints: probe-level success falls below 50% <b>at 7 constraints</b> for the strongest model, and at 3 or fewer for 12 of 15」（崩壊点。原文は「7個で」であり「7個を超えると」ではありません）、「every constraint scored by a deterministic, rule-based verifier and zero LLM-judge involvement」（ルールベース採点）。HTML版本文 Section 5 の「Three targeted ablations find little room at inference time: pre-generation planning does not move the threshold at all, while post-hoc self-correction and best-of-5 retries delay it by only one to two constraints」（計画は効果ゼロ、自己修正とbest-of-5は1〜2個の先送り）、「confirming that constraint selection cannot mitigate the transition—the only lever is per-constraint reliability」（効くのは1条件あたりの精度）、および Section 3 の「We evaluate 15 models across 8 families: GPT (5.2, 5.4 Pro, 5.5), Claude (4.5 Sonnet, 4.6 Opus, 4.7 Opus), Gemini (3.1 Flash-Lite, 3.1 Pro Preview), Llama (3.1 70B, 3.1 405B, 4 Maverick), Qwen 3 235B Instruct, DeepSeek V4 Pro, Kimi K2.6, and Grok 4.1」（対象モデル）。なお同節には「Each intervention was run on three models rather than all 15」（3つの介入実験は15モデル全部ではなく3モデルで実施）という限定も明記されています。</span>
+          <a href="https://arxiv.org/abs/2608.12426">https://arxiv.org/abs/2608.12426</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          Yifei Li ほか8名「Beyond Retrieval: Query-Conditioned Reuse of Long-Horizon Agent Trajectories」<i>arXiv:2608.12847</i>, 2026年8月13日投稿.
+          <span class="note">参照箇所: Abstract の「Across 2,391 target instances in WebArena, WorkArena, and AppWorld, QCR reaches 62.3% average Success, 10.7 points above Full Trajectory, while using 48.9% fewer online tokens」（2391件・3ベンチマーク・10.7ポイント・トークン48.9%減）、「holds candidate retrieval, target state, model, decoding, and tool budget fixed while varying the support delivered to the agent」（検索側を固定して渡し方だけ変えた設計）、「direct trajectory injection loses much of its utility as traces grow longer or source-specific values change」（ログが長いほど生ログ方式が不利）。HTML版本文の QCR の定義「a deliberately simple target-bound note with a workflow invariant, bindings to re-obtain, applicability conditions, and a <b>verification guardrail</b>」（メモの構成要素は4つ）、Section 4 の「Generic Summary gains 9.5 success points over No Memory, while Full Trajectory gains a further 3.7 points」（汎用要約で9.5ポイント）、および「We use DeepSeek-V4-Pro for both historical and target …」「All conditions use DeepSeek-V4-Pro for generation and ranking」（使用モデル）。</span>
+          <a href="https://arxiv.org/abs/2608.12847">https://arxiv.org/abs/2608.12847</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          Z.ai「GLM-5.3: Frontier Coding with Emergent Cyber Capabilities」<i>Z.ai Blog</i>, 2026年8月14日.
+          <span class="note">参照箇所: 導入部の箇条書き3項目。「<b>Stronger Coding:</b> GLM-5.3 is the most capable open-weights model for coding, with a 50% improvement over GLM-5.2 on our in-house Z.ai Code Bench.」（「コーディング向けオープンウェイト最高性能」の主張本体）、「<b>Open Source:</b> We will release the weights in two weeks after launch, once safety evaluation and hardening are complete.」（2週間後の重み公開）、および本文末尾「The model weights of GLM-5.3 will be publicly available soon in two weeks.」。「Today we are releasing GLM-5.3. It uses the same base model as GLM-5.2 — every gain comes from post-training.」（ベースは同じでポスト学習のみ）。比較表「Performance across comparison models」（列は GLM-5.3 / GLM-5.2 / Kimi K3 / DeepSeek-V4 Pro-0813 / Qwen3.8-Max / Opus 4.8 / Fable 5 (w/ fallback) / GPT-5.6 Sol）から、Terminal Bench 3.0 = 28.3 / 4.6 …33.7 / 34.6、DeepSWE (v1.1) = 66.9 / 46.2、CyberGym = 84.5（全列中の最高値）、ExploitBench = 54.4 …78 / 76.5。同表で Kimi K3 が GLM-5.3 を上回るのは Terminal Bench 2.1（88.3 対 88.2）、DeepSWE v1.1（67.5 対 66.9）、SWE-Marathon v1.1（48.1 対 42.5）、Toolathlon Verified（76.5 対 73）の<b>4項目</b>で、全16項目を1つずつ突き合わせて数えました。「Emergent Cyber Capability」節の地の文では、同じ 83.8% / 78.0% のスコアが<b>Mythos 5</b>という名前で書かれており（「ahead of Mythos 5 (83.8%) and GPT-5.6 Sol (83.6%)」「while Mythos 5 and GPT-5.6 Sol score 78.0% and 76.5%, respectively」）、比較表の<b>Fable 5</b>と表記が食い違っています。「It delivers markedly stronger agentic coding results than GLM-5.2 at every effort level while consuming fewer output tokens」（トークン減で精度向上）。なおこのページはJavaScriptで描画されるためHTMLだけでは本文が取れず、同ページが読み込む <code>/blog/assets/glm-5.3-BCnx8T5_.js</code> を取得して本文とベンチマーク表の数値を読みました。同スクリプト内でページ属性の <code>huggingface</code> は <code>#</code>（リンク先未設定）です。</span>
+          <a href="https://z.ai/blog/glm-5.3">https://z.ai/blog/glm-5.3</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          Z.ai「GLM-5.3 - Overview」<i>Z.AI Developer Document</i>.
+          <span class="note">参照箇所: ページ冒頭のバナー「The GLM-5.3 API is coming soon. GLM-5.3 is now available to all GLM Coding Plan users, with 50% better coding performance!」。左メニューに Pricing の項目はあるものの、GLM-5.3 のAPI提供自体が「coming soon」であり、API価格が未公開であることの根拠。</span>
+          <a href="https://docs.z.ai/guides/llm/glm-5.3">https://docs.z.ai/guides/llm/glm-5.3</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          Z.ai「zai-org/GLM-5.2」<i>Hugging Face モデルリポジトリ（Hub API メタデータ）</i>.
+          <span class="note">参照箇所: <code>https://huggingface.co/api/models/zai-org/GLM-5.2</code> の返す <code>safetensors.total = 753329940480</code>（約753.3B。二次報道の「743B」との照合に使用）、タグ <code>license:mit</code>（MITライセンス）、<code>createdAt = 2026-06-16</code>（6月公開）。あわせて <code>https://huggingface.co/api/models?search=GLM-5.3</code> を実行し、8月15日時点で <code>zai-org</code> 名義のGLM-5.3リポジトリが存在しないことを確認しています（ヒットするのは第三者アカウントのリポジトリのみ）。</span>
+          <a href="https://huggingface.co/zai-org/GLM-5.2">https://huggingface.co/zai-org/GLM-5.2</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag primary">一次資料</span>
+          Joyce Er「Accelerating GPT-5.6 Sol Ultrafast」<i>Cerebras Blog</i>, 2026年8月13日.
+          <span class="note">参照箇所: 冒頭の「Ultrafast Mode, a new service tier launching first in the OpenAI API and powered by Cerebras … delivering up to 750 output tokens per second」（毎秒最大750トークン）、「Compared with output speeds reported by Artificial Analysis GPT-5.6 Sol on Ultrafast mode runs 11x faster than Fable 5, and 5x faster than Opus 4.8 on Fast mode」（記事が「Cerebras側の計測」と断った11倍・5倍の出どころ）、「Breakneck Speed is Enabled by Breakthrough Innovation」節の Wafer-Scale Engine と 44 GB SRAM の説明（ウェハスケールチップ）、「Ultrafast: Now in Limited Preview」節の「available in a limited preview today to a select group of customers」。</span>
+          <a href="https://www.cerebras.ai/blog/accelerating-gpt-5-6-sol-ultrafast-with-openai">https://www.cerebras.ai/blog/accelerating-gpt-5-6-sol-ultrafast-with-openai</a>（2026年8月15日参照）
+        </li>
+  
+        <li>
+          <span class="flag unverified">未確認(ミラー経由で本文のみ確認)</span>
+          OpenAI「Previewing Ultrafast mode: GPT-5.6 Sol at up to 14X the speed」<i>OpenAI</i>, 2026年8月13日.
+          <span class="note">なぜ未確認か: 公式URLへの直接リクエストは <b>HTTP 403</b>（Cloudflareの検証画面）で本文が返りません。テキスト取得プロキシ（<code>r.jina.ai</code>）経由で全文を読み、以下を確認しました。「a new service tier that runs GPT-5.6 Sol up to 14× faster than <b>Standard processing</b>」（最大14倍の比較対象は標準処理）、「Powered by Cerebras, Ultrafast generates up to 750 output tokens per second」、「Incident response and reliability」「Financial research and security」を含む用途一覧、「How OpenAI is using Ultrafast」節の「Incident response is one example where our team is using Ultrafast」「For research, our team uses Ultrafast to rapidly search knowledge sources…」（社内での用途）、「Availability」節の「available in a limited preview today to a select group of customers」。<b>本文中に価格の記載はなく、「Claude比11倍」「Opus Fast比5倍」といった倍率も出てきません</b>（それらはCerebras側の記述）。公式ドメインから直接取得できていないため、一次資料としては扱っていません。</span>
+          <a href="https://openai.com/index/previewing-ultrafast/">https://openai.com/index/previewing-ultrafast/</a>（2026年8月15日参照・直接取得は403）
+        </li>
+  
+        <li>
+          <span class="flag self">自分の確認作業</span>
+          本記事に出てくる全22本の外部リンクに、2026年8月15日にHTTPリクエストを送って到達性を確認しました（<code>curl -sSL -o /dev/null -w '%{http_code} %{url_effective}'</code>、タイムアウト25秒）。
+          <span class="note">結果: <code>https://openai.com/index/previewing-ultrafast/</code> のみ <b>403</b>。他はすべて <b>200</b>（github.blog の2本は末尾スラッシュ付きURLへリダイレクトされたうえで200）。上記の各資料は、検索結果の要約ではなく本文を取得して該当箇所を読んでいます。JavaScriptで描画されるページ（Z.aiブログ）はスクリプトから、本文を持たないインデックスページ（Chrome Releases月別）はAtomフィードから、それぞれ原文を取り出しました。</span>
+        </li>
+  
+        <li>
+          <span class="flag self">自分の意見</span>
+          「PG14を使っているなら11月12日までに移行計画が必要」「Cloudflare Workers + Access を使っているなら棚卸しする価値がある」「Chromeのバージョンを前提にWebViewをテストすると外れる」といった<mark>対応の優先度づけは、公式が言っていることではなく筆者の運用上の判断</mark>です。
+          <span class="note">公式が示しているのは、サポート終了日・仕様・変更内容そのものまでです。何を先に手当てするかは各環境の事情で変わります。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
   <!-- ai-news-comments -->
   <section class="section section-d" id="comments">
     <h2>コメント</h2>

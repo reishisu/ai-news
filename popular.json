@@ -1,29 +1,41 @@
 {
-  "updated": "2026-08-14",
+  "updated": "2026-08-15",
   "days": 30,
   "items": [
     {
-      "path": "/ai-news/contents/2026-08-14_unity-web-threads",
+      "path": "contents/2026-08-14_cache-busting",
+      "count": 3
+    },
+    {
+      "path": "contents/2026-08-15_001",
+      "count": 2
+    },
+    {
+      "path": "contents/2026-08-14_ai-basics",
       "count": 1
     },
     {
-      "path": "/ai-news/contents/2026-08-14_vrchat-discovery",
+      "path": "contents/2026-08-14_lockfile",
       "count": 1
     },
     {
-      "path": "/ai-news/contents/2026-08-14_webview-origin",
+      "path": "contents/2026-08-14_loop-graph",
       "count": 1
     },
     {
-      "path": "/ai-news/contents/2026-08-14_cache-busting",
+      "path": "contents/2026-08-14_task-breakdown",
       "count": 1
     },
     {
-      "path": "/ai-news/contents/2026-08-14_ai-basics",
+      "path": "contents/2026-08-14_unity-web-threads",
       "count": 1
     },
     {
-      "path": "/ai-news/contents/2026-08-14_loop-graph",
+      "path": "contents/2026-08-14_vrchat-discovery",
+      "count": 1
+    },
+    {
+      "path": "contents/2026-08-14_webview-origin",
       "count": 1
     }
   ]

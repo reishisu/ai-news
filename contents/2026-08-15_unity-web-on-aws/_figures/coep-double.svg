@@ -11,8 +11,8 @@
 
   <!-- row 1 : OK -->
   <rect x="14" y="38" width="176" height="70" rx="10" fill="var(--track)" stroke="var(--a)" stroke-width="2"/>
-  <text x="102" y="66" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle">CloudFront だけ</text>
-  <text x="102" y="88" fill="var(--sub)" font-size="11" text-anchor="middle">オリジン側は付けない</text>
+  <text x="102" y="66" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle">1箇所だけで付ける</text>
+  <text x="102" y="88" fill="var(--sub)" font-size="11" text-anchor="middle">CloudFront に寄せる</text>
 
   <path d="M194 73 L218 73" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#rgt)"/>
 
@@ -28,9 +28,9 @@
 
   <!-- row 2 : NG -->
   <rect x="14" y="130" width="176" height="86" rx="10" fill="var(--track)" stroke="var(--c)" stroke-width="2"/>
-  <text x="102" y="158" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle">nginx と CloudFront</text>
-  <text x="102" y="178" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle">の両方</text>
-  <text x="102" y="199" fill="var(--sub)" font-size="11" text-anchor="middle">念のため入れておいた</text>
+  <text x="102" y="158" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle">配信元の設定が</text>
+  <text x="102" y="178" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle">2箇所で効く</text>
+  <text x="102" y="199" fill="var(--sub)" font-size="11" text-anchor="middle">Header add は上書きしない</text>
 
   <path d="M194 173 L218 173" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#rgt)"/>
 

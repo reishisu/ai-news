@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Unity WebのビルドをAWSで配ってもらう — COOP/COEP/CORPの依頼先</title>
-<meta name="description" content="クライアント側(自社)がUnity Webを作り、インフラ側(別会社)がAWSで配る構成。マルチスレッドに要るCOOP/COEP/CORPは、ALBでは原理的に付けられません。CloudFrontのどこに何を書いてもらうか、両社で付けたときに起きる無言の事故まで。">
+<meta name="description" content="クライアント側(自社)がUnity Webを作り、インフラ側(別会社)がAWSで配る構成。マルチスレッドに要るCOOP/COEP/CORPは、ALBでは原理的に付けられません。CloudFrontのどこに何を書いてもらうか、同じヘッダーが2本返ったときに起きる無言の事故まで。">
 <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="apple-touch-icon" href="../../favicon.svg">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Unity WebのビルドをAWSで配ってもらう — COOP/COEP/CORPの依頼先">
-<meta property="og:description" content="ALBでは付けられません。CloudFrontのレスポンスヘッダーポリシーです。両社で付けると仕様どおり無言で解除されます。">
+<meta property="og:description" content="ALBでは付けられません。CloudFrontのレスポンスヘッダーポリシーです。同じヘッダーが2本返ると、仕様どおり無言で解除されます。">
 <meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-15_unity-web-on-aws/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -39,18 +39,19 @@
   <section class="summary">
     <h2>⭐ 3行で言うと</h2>
     <p class="lead">Unity Webのマルチスレッドには、<mark>配信サーバーが返す3本のHTTPヘッダー</mark>が要ります。ヘッダーはビルド成果物の中には入りません。<mark>自社ではどうやっても付けられない</mark>ので、インフラ会社に頼むしかありません。</p>
+    <p class="lead">以下、<b>AWS</b>（Amazon Web Services。サーバーやネットワークを借りて使うクラウドサービス）の話です。登場する <b>ALB</b>・<b>CloudFront</b>・<b>S3</b> はいずれもAWSの機能で、本文の各章で1行ずつ説明します。</p>
     <ol>
       <li>
-        <b>ALBには、その3本を足す機能がありません</b>
+        <b>ALB（AWSの負荷分散装置）には、その3本を足す機能がありません</b>
         <span>ALBが追加できるレスポンスヘッダーは、属性名で決められた10種だけ。公式ドキュメントを取得して数えました。COOP/COEP/CORPは0件です。</span>
       </li>
       <li>
-        <b>正解はCloudFrontの「レスポンスヘッダーポリシー」のカスタムヘッダー</b>
-        <span>AWS既製のマネージドポリシー5種には入っていません。新規に作ってもらう必要があります。</span>
+        <b>正解はCloudFront（AWSのCDN）の「レスポンスヘッダーポリシー」のカスタムヘッダー</b>
+        <span>AWS既製のポリシー5種には入っていません。新規に作ってもらう必要があります。</span>
       </li>
       <li>
-        <b>一番怖いのは、両社が親切心で付けたとき</b>
-        <span>COEPが2つ並ぶと、HTML仕様の処理モデルは <code>unsafe-none</code> に落ちます。エラーは1件も出ず、ただ動かなくなります。</span>
+        <b>一番怖いのは、同じヘッダーが2本返ったとき</b>
+        <span>COEPが2本返ると、HTML仕様の処理モデルは <code>unsafe-none</code> に落ちます。エラーは1件も出ず、ただ動かなくなります。Unity公式のApache設定例は <code>Header add</code> なので、二重に書くとそのまま2本になります。</span>
       </li>
     </ol>
   </section>
@@ -61,7 +62,7 @@
       <li><a href="#s1">依頼を出す前に — 公式は「無効推奨」と書いています</a></li>
       <li><a href="#s2">ALBには「そのヘッダーを足す」機能が無い</a></li>
       <li><a href="#s3">正解はCloudFrontのレスポンスヘッダーポリシー</a></li>
-      <li><a href="#s4">両社で付けると、無言で解除される</a></li>
+      <li><a href="#s4">同じヘッダーが2本返ると、無言で解除される</a></li>
       <li><a href="#s5">同じ依頼票に書く、圧縮とContent-Type</a></li>
       <li><a href="#s6">検証環境で必ず踏む2つの罠</a></li>
       <li><a href="#s7">そのまま送れる依頼票と、責任分界点</a></li>
@@ -84,7 +85,11 @@
         <li><b>WebAssembly（Wasm）。</b>ブラウザが高速に実行できる、機械語に近い形式のプログラム。C/C++やC#で書いたコードをこの形に変換して動かします。</li>
         <li><b>スレッド。</b>プログラムの処理の流れのこと。複数同時に走らせて速くするのがマルチスレッドです。</li>
         <li><b>HTTPレスポンスヘッダー。</b>サーバーがファイル本体と一緒に返す短い指示書き。「これはWasmです」「この方針で扱ってください」などを伝えます。<mark>ファイルの中身ではないので、Unity側からは付けられません。</mark></li>
+        <li><b>オリジン。</b><code>https://example.com:443</code> のような「スキーム＋ホスト＋ポート」の組。ブラウザはこの単位でサイトを別物として扱います。ページと素材でオリジンが違えば<b>クロスオリジン</b>です。<mark>この記事のヘッダー3本は名前が全部 Cross-Origin で始まります</mark>。どれも「オリジンをまたぐときの扱い」を決めるヘッダーだからです。</li>
+        <li><b>クロスオリジン分離（cross-origin isolated）。</b>ページが「他のオリジンと同じ入れ物に同居していない」とブラウザに認めてもらえた状態。マルチスレッドはこの状態でしか使えません。COOPとCOEPは、その状態に入るための宣言です。</li>
       </ul>
+
+      <p class="lead">この記事には<mark>「オリジン」という言葉が2つの意味で出てきます</mark>。上のブラウザ用語のオリジンと、AWSが言う「CDNから見た配信元」のオリジンです。3章で改めて断ります。</p>
 
       <p class="lead">この記事のヘッダー3本が必要になるのは、<mark>Unityの Player 設定で「Enable Native C/C++ Multithreading」をONにしたビルド</mark>だけです。Player 設定は Unity の <b>Edit → Project Settings → Player</b> にあります。</p>
 
@@ -152,7 +157,7 @@ only for evaluating future web features.
 
       <p class="lead">ALBは<mark>レスポンスヘッダーを足す機能を持っています</mark>。持っているのですが、足せる種類が<mark>あらかじめ決まっています</mark>。任意の名前のヘッダーは指定できません。</p>
 
-      <p class="lead">ALBの設定は「リスナー属性」という名前と値の組で行い、<mark>属性名そのものがヘッダー名に対応しています</mark>。つまり属性名が用意されていないヘッダーは、存在しないのと同じです。</p>
+      <p class="lead"><b>リスナー</b>とは、ALBが「このポート・このプロトコルで待ち受けます」と決める受付窓口の設定のことです。ALBの挙動はこの窓口ごとの<b>リスナー属性</b>（名前と値の組）で決めます。そして<mark>属性名そのものがヘッダー名に対応しています</mark>。つまり属性名が用意されていないヘッダーは、存在しないのと同じです。</p>
 
       <p class="lead">推測はやめて、AWS公式ドキュメントから属性名を全部抜き出します。AWSのドキュメントは末尾を <code>.md</code> にすると、装飾なしのテキストで取得できます。</p>
 
@@ -166,7 +171,7 @@ curl -sS "$U/load-balancer-listeners.md" \
   | grep -o 'routing\.http\.response\.[a-z_]*' \
   | sed 's/routing.http.response.//'
 
-echo "--- COOP/COEP/CORP の出現回数 ---"
+echo "--- cross-origin- を含む行数 ---"
 curl -sS "$U/load-balancer-listeners.md" \
   | grep -ci 'cross-origin-'</pre>
       </div>
@@ -175,8 +180,7 @@ curl -sS "$U/load-balancer-listeners.md" \
 
       <div class="code term">
         <div class="code-head">実行結果（2026年8月15日 実測）</div>
-        <pre>$ ./alb_attrs.sh
-server
+        <pre>server
 strict_transport_security
 access_control_allow_origin
 access_control_allow_methods
@@ -187,13 +191,13 @@ access_control_max_age
 content_security_policy
 x_content_type_options
 x_frame_options
---- COOP/COEP/CORP の出現回数 ---
+--- cross-origin- を含む行数 ---
 <span class="ng-line">0</span></pre>
       </div>
 
       <ul class="points">
         <li><b>11個のうち10個が <code>.header_value</code>、つまり値を指定して足せるヘッダーです。</b>残る <code>server</code> はALB自身が名乗る <code>server</code> ヘッダーを消すかどうかのスイッチで、値は足せません。</li>
-        <li><b>COOP / COEP / CORP はこの一覧にありません。</b><code>cross-origin-</code> という文字列の出現回数は0でした。</li>
+        <li><b>COOP / COEP / CORP はこの一覧にありません。</b><code>cross-origin-</code> という文字列を含む行は0行でした（<code>grep -c</code> が数えるのは一致した行数です。0なので「1件も無い」と言い切れます）。</li>
         <li><b>紛らわしいのは <code>access_control_*</code> の6個です。</b>これはCORS（JavaScriptから別オリジンのAPIを呼ぶための仕組み）用のヘッダーで、名前は似ていますが<mark>まったくの別物</mark>。ここを「CORS対応があるからCOOPも行けるはず」と読むと詰まります。</li>
       </ul>
 
@@ -211,7 +215,7 @@ HSTS, CORS, and CSP.
 　HSTS・CORS・CSPを含むヘッダーを挿入できる）</pre>
       </div>
 
-      <p class="lead">HSTS・CORS・CSP。<mark>そこにクロスオリジン分離の3本は含まれていません。</mark></p>
+      <p class="lead">HSTS（HTTPSでの接続を強制するヘッダー）、CORS（別オリジンからのAPI呼び出しを許可する仕組み）、CSP（読み込んでよいスクリプトや画像の出どころを制限するヘッダー）。<mark>そこにクロスオリジン分離の3本は含まれていません。</mark></p>
 
       <figure>
         <picture>
@@ -224,7 +228,7 @@ HSTS, CORS, and CSP.
       <details>
         <summary>ALBの後ろがnginxやApacheなら、そこで付けられます</summary>
         <div class="body">
-          <p class="lead">ALB自体は無理でも、ALBが振り分けた先（EC2やECS上のnginx / Apache）でなら付けられます。Unity公式が設定例を出しています。</p>
+          <p class="lead">ALB自体は無理でも、ALBが振り分けた先のサーバーでなら付けられます。振り分け先はふつう <b>EC2</b>（AWSで借りる仮想サーバー）か <b>ECS</b>（AWSでコンテナを動かす仕組み）で、その上でnginxやApacheといったWebサーバーソフトが動いています。Unity公式が設定例を出しています。</p>
           <div class="code">
             <div class="code-head">Unity Manual「Set up your Nginx server configuration for Web builds」— 原文</div>
             <pre>location ~ .+\.(htm|html|js|js\.gz|js\.br)$ {
@@ -234,7 +238,8 @@ HSTS, CORS, and CSP.
 }</pre>
           </div>
           <p class="lead">Apache版も同じ3本を <code>&lt;FilesMatch "\.(htm|html|js|js.gz|js.br)$"&gt;</code> の中で <code>Header add</code> しています。<mark>どちらも <code>.wasm</code> や <code>.data</code> には付けていない</mark>点に注意してください。COOPとCOEPは「読み込む側のドキュメント」に効くヘッダーなので、HTMLとJSに付けば足ります。</p>
-          <p class="lead">ただし前段にCloudFrontを置くなら、<b>ここで付けてはいけません。</b>理由は4章です。</p>
+          <p class="lead">なおApache版の <code>Header add</code> は、<mark>同じ名前のヘッダーがすでにあっても上書きせずに増やす</mark>指定です。4章の事故はここから始まります。どうしても配信元で付けるなら、<code>add</code> ではなく <code>set</code>（上書き）を頼んでください。</p>
+          <p class="lead">前段にCloudFrontを置くなら、<b>付ける場所はどちらか一方に決めてください。</b>理由は4章です。</p>
         </div>
       </details>
     </article>
@@ -249,7 +254,7 @@ HSTS, CORS, and CSP.
 
       <p class="lead"><b>CloudFront</b>はAWSのCDNです。CDN（コンテンツ配信ネットワーク）は、世界中の拠点に配信サーバーを置いて、利用者に近い場所からファイルを返す仕組みのこと。Unity Webの成果物を <b>S3</b>（AWSのファイル置き場）に置き、CloudFrontから配るのが定番の構成です。</p>
 
-      <p class="lead"><b>ここで言葉が1つ衝突します。</b>AWSは「CDNから見た配信元（S3やALBなど）」のことを<b>オリジン</b>と呼びます。6章で出てくるブラウザ用語の「オリジン」（<code>https://example.com:443</code> のような組）とは<mark>まったく別の意味</mark>です。以下、この章と4章の「オリジン」はAWS側の意味、つまり<b>配信元</b>のことだと思って読んでください。</p>
+      <p class="lead"><b>ここで言葉が1つ衝突します。</b>AWSは「CDNから見た配信元（S3やALBなど）」のことを<b>オリジン</b>と呼びます。1章で説明したブラウザ用語の「オリジン」（<code>https://example.com:443</code> のような組）とは<mark>まったく別の意味</mark>です。混ざると事故のもとなので、<mark>この章と4章では、AWS側の意味のときは「配信元」と書きます</mark>。AWSの画面やドキュメントでは、そこが Origin と表示されます。</p>
 
       <p class="lead">CloudFrontには<mark>返すときにヘッダーを足す・消すをまとめた設定</mark>があります。これが<b>レスポンスヘッダーポリシー</b>です。AWSの説明文が、そのまま責任分界点の説明になっています。</p>
 
@@ -271,7 +276,7 @@ require writing code or changing the origin.
 
       <p class="lead">CloudFrontには<b>マネージドポリシー</b>（AWSがあらかじめ用意した既製の設定）があります。「セキュリティヘッダーのポリシーを当てておけば入るのでは」と考えたくなりますが、<mark>入っていません。</mark></p>
 
-      <p class="lead">AWS CLI（AWSをコマンドで操作する道具）には、<code>--generate-cli-skeleton</code> という「入力JSONの雛形だけ出す」オプションがあります。<mark>AWSに接続しないので、認証情報が無くても実行できます。</mark>これでポリシーの枠組みを見ます。</p>
+      <p class="lead">AWS CLI（AWSをコマンドで操作する道具）には、<code>--generate-cli-skeleton</code> という「入力JSONの雛形だけ出す」オプションがあります。<mark>AWSに接続しないので、認証情報（AWSにログインするための鍵）が無くても実行できます。</mark>これでポリシーの枠組みを見ます。</p>
 
       <div class="code term">
         <div class="code-head">実行結果（2026年8月15日 実測 / aws-cli 1.46.0）</div>
@@ -294,7 +299,7 @@ XSSProtection
 
       <ul class="points">
         <li><b>セキュリティヘッダーの枠は6種類だけ。</b>CSP・X-Content-Type-Options・X-Frame-Options・Referrer-Policy・HSTS・X-XSS-Protection。ここに COOP/COEP/CORP の席はありません。</li>
-        <li><b>マネージドポリシーは5種類あります。</b>AWS公式ドキュメントを取得して確認したところ、<code>CORS-and-SecurityHeadersPolicy</code> / <code>CORS-With-Preflight</code> / <code>CORS-with-preflight-and-SecurityHeadersPolicy</code> / <code>SecurityHeadersPolicy</code> / <code>SimpleCORS</code> の5つで、<mark>COOP・COEP・CORPの記述は1件もありません</mark>（<code>grep -ci</code> で0件）。</li>
+        <li><b>マネージドポリシーは5種類あります。</b>AWS公式ドキュメントを取得して確認したところ、<code>CORS-and-SecurityHeadersPolicy</code> / <code>CORS-With-Preflight</code> / <code>CORS-with-preflight-and-SecurityHeadersPolicy</code> / <code>SecurityHeadersPolicy</code> / <code>SimpleCORS</code> の5つで、<mark>COOP・COEP・CORPの記述は1件もありません</mark>（<code>cross-origin-(opener|embedder|resource)</code> という正規表現で検索して0件。<code>cross-origin</code> だけで検索すると <code>Referrer-Policy: strict-origin-when-cross-origin</code> が3件ヒットするので、そこは区別しています）。</li>
         <li><b>だから <code>Header</code> / <code>Value</code> / <code>Override</code> の3項目からなる「カスタムヘッダー」の枠に、自分で書いてもらいます。</b>依頼の要点は、まさにこの3項目です。</li>
       </ul>
 
@@ -391,51 +396,131 @@ aws_cloudfront_response_headers_policy
 
   <!-- ============ 4 ============ -->
   <section class="section section-b" id="s4">
-    <h2><span class="step">4</span>両社で付けると、無言で解除される</h2>
+    <h2><span class="step">4</span>同じヘッダーが2本返ると、無言で解除される</h2>
 
     <article class="item">
-      <h3>会社をまたぐ構成で一番起きやすい事故。しかもエラーが出ません</h3>
+      <h3>正しい値を2回付けると、1回も付けなかったのと同じになります</h3>
 
-      <p class="lead">こういう流れです。</p>
-
-      <ul class="points">
-        <li><b>① こちらが「COOP/COEP/CORPを付けてください」と依頼する。</b></li>
-        <li><b>② インフラ会社が、オリジン（ECS上のnginxなど）に3本を追加する。</b>Unity公式のnginx設定例を見つけて、素直にその通りにやってくれた。</li>
-        <li><b>③ 動かない。もう一度依頼する。</b></li>
-        <li><b>④ 別の担当者が、今度はCloudFrontのポリシーにも3本を追加する。</b>「念のため両方に入れておきました」</li>
-        <li><b>⑤ さらに動かなくなる。</b></li>
-      </ul>
-
-      <p class="lead">両方から返るので、レスポンスには <code>Cross-Origin-Embedder-Policy</code> が2つ並びます。ブラウザはこれを <code>require-corp, require-corp</code> という<mark>1つのリスト値</mark>として読み、そして<mark>効力を捨てます</mark>。</p>
+      <p class="lead">先に結論から。<mark>レスポンスに <code>Cross-Origin-Embedder-Policy</code> が2本入ると、ブラウザは効力を捨てます。</mark>値が両方とも正しくてもです。</p>
 
       <p class="lead">推測ではありません。HTML仕様が、まさにこの事故を表にして載せています。</p>
 
       <div class="code wrap">
-        <div class="code-head">WHATWG HTML Living Standard §7.1.4.1 — 原文</div>
-        <pre>The processing model fails open (by defaulting to
-"unsafe-none") in the presence of a header that cannot
-be parsed as a token. This includes inadvertent lists
-created by combining multiple instances of the
-`Cross-Origin-Embedder-Policy` header present in a
-given response:
+        <div class="code-head">WHATWG HTML Living Standard §7.1.4.1 — 原文（表は見出し行＋7行を全部）</div>
+        <pre>The processing model fails open (by defaulting
+to "unsafe-none") in the presence of a header
+that cannot be parsed as a token. This includes
+inadvertent lists created by combining multiple
+instances of the `Cross-Origin-Embedder-Policy`
+header present in a given response:
 
-  No header delivered        → "unsafe-none"
-  require-corp               → "require-corp"
-  unknown-value              → "unsafe-none"
-  require-corp, unknown-value→ "unsafe-none"
-  unknown-value, require-corp→ "unsafe-none"
-  require-corp, require-corp → "unsafe-none"
+`Cross-Origin-Embedder-Policy`
+    → Final embedder policy value
+No header delivered
+    → "unsafe-none"
+require-corp
+    → "require-corp"
+unknown-value
+    → "unsafe-none"
+require-corp, unknown-value
+    → "unsafe-none"
+unknown-value, unknown-value
+    → "unsafe-none"
+unknown-value, require-corp
+    → "unsafe-none"
+require-corp, require-corp
+    → "unsafe-none"
+
+(The same applies to
+`Cross-Origin-Embedder-Policy-Report-Only`.)
 
 （トークンとして解釈できないヘッダーがある場合、
 　処理モデルは "unsafe-none" にフォールバックして
 　「開く」方向に倒れる。これには、同一レスポンスに
 　COEPヘッダーが複数存在して意図せずリストに
-　なった場合も含む）</pre>
+　なった場合も含む。同じことが
+　COEP-Report-Only にも当てはまる）</pre>
       </div>
 
-      <p class="lead">表の最終行を見てください。<mark><code>require-corp, require-corp</code> → <code>unsafe-none</code></mark>。正しい値を2回付けると、1回も付けなかったのと同じになります。</p>
+      <p class="lead"><b>引用のしかたについて。</b>原文はHTMLの表組みなので、<mark>左列を1行目、右列を <code>→</code> 付きの2行目</mark>という形に直しました。行の省略はしていません（7行あります）。最初の組は表の見出しです。</p>
 
-      <p class="lead">これは<b>fail open（フェイルオープン）</b>と呼ばれる挙動です。設定が壊れていたときに、安全側ではなく「制限なし」の側に倒れます。MDNも独立に同じことを1文で書いています。</p>
+      <p class="lead">最終行を見てください。<mark><code>require-corp, require-corp</code> → <code>unsafe-none</code></mark>。ブラウザは2本のヘッダーを <code>require-corp, require-corp</code> という<mark>1つのリスト値</mark>として読み、リストは正しいトークンではないので捨てる、という筋道です。</p>
+
+      <h3>では、どこで2本になるのか。犯人はサーバー設定ファイルの中です</h3>
+
+      <p class="lead">会社をまたぐと、たとえばこういう流れになります（<b>筆者が組み立てた想定の流れ</b>で、特定の事例ではありません）。</p>
+
+      <ul class="points">
+        <li><b>① こちらが「COOP/COEP/CORPを付けてください」と依頼する。</b></li>
+        <li><b>② インフラ会社が、配信元のApacheにUnity公式の設定例を貼る。</b>素直に、その通りにやってくれた。</li>
+        <li><b>③ それでも動かない。</b>理由は別のところ（検証環境が平文HTTPだった、など）。もう一度依頼する。</li>
+        <li><b>④ 別の担当者が、同じ3本を別の設定ファイルにも書く。</b>「念のため入れておきました」</li>
+        <li><b>⑤ さらに動かなくなる。</b>ヘッダーが2本返るようになったため。</li>
+      </ul>
+
+      <p class="lead">ここは<mark>裏を取らずに書くと危ないところ</mark>なので、以下は確認できたことだけ書きます。</p>
+
+      <p class="lead">2章で貼ったUnity公式のApache設定例は、<code>Header add</code> を使っています。Apache公式のmod_headersドキュメントは、この <code>add</code> の意味をこう定義しています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Apache HTTP Server 2.4「mod_headers」add — 原文</div>
+        <pre>The response header is added to the existing set of
+headers, even if this header already exists. This can
+result in two (or more) headers having the same name.
+This can lead to unforeseen consequences, and in
+general set, append or merge should be used instead.
+
+（応答ヘッダーは既存のヘッダー群に追加される。
+　同名のヘッダーが既にあってもだ。その結果、
+　同じ名前のヘッダーが2つ以上できることがある。
+　これは予期せぬ結果を招きうるので、一般には
+　set / append / merge を使うべきである）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>Unity公式のApache例をそのまま貼ると、上書きではなく「追加」になります。</b>別の設定ファイルにすでに同じ3本が入っていれば、そこへ重ねて足されて<mark>1本ずつが2本ずつになります</mark>。<code>Header set</code> なら上書きなので、こうはなりません。</li>
+        <li><b>nginxも同じ形になり得ます。</b>nginx公式ドキュメントは <code>add_header</code> について <code>There could be several add_header directives.</code> と書いています。同じ階層に2回書けば、2本返ります。</li>
+        <li><b>WebアプリのフレームワークやCDNの関数でも起こります。</b>Laravelのミドルウェアが付けている、Lambda@Edge / CloudFront Functions で足している、といった経路です。<mark>これらの経路は、この記事では実際に動かして確認していません。</mark>疑う順番の候補として挙げているだけです。</li>
+      </ul>
+
+      <h3>CloudFrontのカスタムヘッダーでは、2本にはなりません</h3>
+
+      <p class="lead">「CloudFrontと配信元の両方に書いたら2本になるのでは」と考えたくなります。<mark>AWS公式ドキュメントを読む限り、そうはなりません。</mark>Origin override の3つの場合分けが、網羅的に定義されているからです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">AWS「Understand response headers policies」Custom headers — 原文（3項目すべて）</div>
+        <pre>+ When this setting is set to `true` and the origin
+  response contains the custom header that's in the
+  policy, CloudFront adds the custom header in the
+  policy to the response that it sends to the viewer.
+  It ignores the header that it received from the
+  origin.
++ When this setting is `false` and the origin response
+  contains the custom header that's in the policy,
+  CloudFront includes the custom header that it
+  received from the origin in the response that it
+  sends to the viewer.
++ When the origin response doesn't contain the custom
+  header that's in the policy, CloudFront adds the
+  custom header in the policy to the response that it
+  sends to the viewer. CloudFront does this when this
+  setting is set to `true` or `false`.
+
+（true で配信元にも同じヘッダーがある場合、
+　CloudFrontはポリシー側を足し、配信元のものは無視する。
+　false で配信元にも同じヘッダーがある場合、
+　CloudFrontは配信元から受け取ったほうを載せる。
+　配信元にそのヘッダーが無い場合は、true でも false でも
+　ポリシー側のヘッダーを足す）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>3つの場合分けのどれでも、出ていくヘッダーは1本です。</b>「無視する」「配信元のほうを載せる」「ポリシー側を足す」。<mark>「並べる」という選択肢が出てきません。</mark></li>
+        <li><b>だから、この記事は「CloudFrontと配信元の両方に書くと2本になる」とは書きません。</b>公式がそう言っていないからです。<mark>実際のCloudFrontで確かめてもいません</mark>（この環境にAWS認証情報が無いため。参考文献14）。</li>
+        <li><b>危ないのは配信元の中の重複です。</b><code>Header add</code> が2回効く、<code>add_header</code> を2回書く、フレームワークとWebサーバーの両方が付ける。この3つを疑ってください。</li>
+      </ul>
+
+      <p class="lead">この倒れ方を<b>fail open（フェイルオープン）</b>と呼びます。設定が壊れていたときに、安全側ではなく「制限なし」の側に倒れる、という意味です。MDNも、HTML仕様とは独立に同じことを1文で書いています。</p>
 
       <div class="code wrap">
         <div class="code-head">MDN Web Docs「Cross-Origin-Embedder-Policy」— 原文</div>
@@ -452,42 +537,28 @@ unsafe-none.
       <figure>
         <picture>
           <source srcset="images/coep-double-dark.png" media="(prefers-color-scheme: dark)">
-          <img src="images/coep-double.png" alt="COEPを1箇所だけで付ければ分離できるが、両社が付けると値が2本になりunsafe-noneに落ちてエラーも出ない" loading="lazy">
+          <img src="images/coep-double.png" alt="COEPを1箇所だけで付ければ分離できるが、配信元の設定が重なって2本返るとunsafe-noneに落ちてエラーも出ない" loading="lazy">
         </picture>
-        <figcaption>親切心で二重に付けた瞬間に、1回も付けなかったのと同じ状態になる。</figcaption>
+        <figcaption>同じヘッダーが2本返った瞬間に、1回も付けなかったのと同じ状態になる。</figcaption>
       </figure>
 
       <div class="quiz">
-        <p class="q">Q. 両社が正しい値を付けた結果、ゲームが起動しなくなった。ブラウザのコンソールには何が出る?</p>
+        <p class="q">Q. COEPが2本返った結果、ゲームが起動しなくなった。ブラウザのコンソールには何が出る?</p>
         <button class="opt" type="button" data-correct="false">COEPヘッダーが重複しているという警告</button>
         <button class="opt" type="button" data-correct="false">CORSエラー</button>
         <button class="opt" type="button" data-correct="true">ヘッダーについては何も出ない。SharedArrayBufferが未定義だという別のエラーだけ</button>
-        <p class="ans" hidden>正解。仕様は「unsafe-none にフォールバックする」としか定めておらず、重複を咎める仕組みがありません。<mark>ヘッダーは確かに返っているのに、効いていない</mark>状態です。だから両社とも「うちは正しく設定した」と主張でき、原因究明が長引きます。切り分けの第一手は、ヘッダーが「付いているか」ではなく<mark>「何個付いているか」</mark>を見ることです。</p>
+        <p class="ans" hidden>正解。仕様は「unsafe-none にフォールバックする」としか定めておらず、重複を咎める仕組みがありません。<mark>ヘッダーは確かに返っているのに、効いていない</mark>状態です。だから設定した側は「うちは正しく設定した」と主張でき、原因究明が長引きます。切り分けの第一手は、ヘッダーが「付いているか」ではなく<mark>「何個付いているか」</mark>を見ることです。</p>
       </div>
 
       <h3>だから、付ける場所は1箇所に決めて文書に残す</h3>
 
-      <p class="lead">CloudFrontを挟む構成なら、<mark>CloudFrontのカスタムヘッダーだけで付ける</mark>。オリジン側では付けない。これを決めて、依頼票に明記します。</p>
+      <p class="lead">CloudFrontを挟む構成なら、<mark>CloudFrontのカスタムヘッダーだけで付ける</mark>。配信元では付けない。これを決めて、依頼票に明記します。</p>
 
-      <p class="lead">それでもオリジン側で付いてしまう可能性がある場合（既存の設定が残っている、Laravelのミドルウェアが付けている等）に備えて、<b>Origin override</b> を <code>true</code> にしてもらいます。AWSの説明はこうです。</p>
-
-      <div class="code wrap">
-        <div class="code-head">AWS「Understand response headers policies」Custom headers — 原文</div>
-        <pre>When this setting is set to `true` and the origin response
-contains the custom header that's in the policy, CloudFront
-adds the custom header in the policy to the response that
-it sends to the viewer. It ignores the header that it
-received from the origin.
-
-（この設定が true で、配信元の応答にポリシー内の
-　カスタムヘッダーが含まれている場合、CloudFrontは
-　ポリシー側のヘッダーを応答に足し、配信元から
-　受け取ったヘッダーは無視する）</pre>
-      </div>
+      <p class="lead">そのうえで、配信元で付いてしまう可能性がある場合（既存の設定が残っている、Laravel＝PHPのWebフレームワークのミドルウェアが付けている等）に備えて、<b>Origin override</b> を <code>true</code> にしてもらいます。</p>
 
       <ul class="points">
-        <li><b>「無視する」であって「並べる」ではありません。</b>だから <code>override = true</code> にしておけば、オリジン側の付け忘れ・付けすぎの両方から守れます。</li>
-        <li><b><code>false</code> だと、オリジン側の値が優先されます。</b>オリジンが付けていない場合はポリシー側が使われるので、一見どちらでも動きます。<mark>あとからオリジン側に設定が増えた瞬間に壊れる</mark>のが <code>false</code> の怖いところです。</li>
+        <li><b><code>true</code> なら、配信元が何を返していても関係ありません。</b>上のAWS原文どおり「配信元から受け取ったヘッダーは無視する」です。配信元の付け忘れ・付けすぎの両方から守れます。</li>
+        <li><b><code>false</code> だと、配信元の値がそのまま通ります。</b>配信元が正しい値を1本だけ返している限りは壊れません。危ないのは、<mark>あとから配信元が別の値（<code>unsafe-none</code> など）を返すようになったとき</mark>で、CloudFront側のポリシーは何も守ってくれません。</li>
         <li><b>3章のTerraformで <code>override = true</code> を3本とも書いているのは、この理由です。</b></li>
       </ul>
 
@@ -551,32 +622,34 @@ MIME type.
      Content-Type: application/wasm
      add(2,3) = 5
 <span class="ng-line">  NG 型が違う</span>
-     Content-Type: application/octet-str
-     eam
-     TypeError: Failed to execute 'compi
-     le' on 'WebAssembly': Incorrect res
-     ponse MIME type. Expected 'applicat
-     ion/wasm'.
+     Content-Type: application/octet-
+     stream
+     TypeError: Failed to execute &#x27;co
+     mpile&#x27; on &#x27;WebAssembly&#x27;: Incorre
+     ct response MIME type. Expected
+     &#x27;application/wasm&#x27;.
 <span class="ng-line">  NG br 素のまま</span>
      Content-Encoding なし
-     CompileError: WebAssembly.instantia
-     teStreaming(): expected magic word
-     00 61 73 6d, found 1b 28 00 f8 @+0
+     CompileError: WebAssembly.instan
+     tiateStreaming(): expected magic
+      word 00 61 73 6d, found 1b 28 0
+     0 f8 @+0
 <span class="ok-line">  OK br 申告あり</span>
      Content-Encoding: br
      add(2,3) = 5
 <span class="ng-line">  NG br 申告だけ</span>
      中身は無圧縮なのに br と申告
-     TypeError: WebAssembly compilation
-     aborted: Network error: Response bo
-     dy loading was aborted
-     Failed to load resource: net::ERR_C
-     ONTENT_DECODING_FAILED
+     TypeError: WebAssembly compilati
+     on aborted: Network error: Respo
+     nse body loading was aborted
+     Failed to load resource: net::ER
+     R_CONTENT_DECODING_FAILED
 <span class="ng-line">  NG gz 素のまま</span>
      Content-Encoding なし
-     CompileError: WebAssembly.instantia
-     teStreaming(): expected magic word
-     00 61 73 6d, found 1f 8b 08 00 @+0
+     CompileError: WebAssembly.instan
+     tiateStreaming(): expected magic
+      word 00 61 73 6d, found 1f 8b 0
+     8 00 @+0
 <span class="ok-line">  OK gz 申告あり</span>
      Content-Encoding: gzip
      add(2,3) = 5</pre>
@@ -588,9 +661,9 @@ MIME type.
         <li><b><code>Incorrect response MIME type</code> は、Content-Typeの付け忘れです。</b>Unityマニュアルは、この型が無いとストリーミングコンパイル（ダウンロードしながら同時にコンパイルする高速化）が使えないと書いています。<mark>圧縮の申告と違って、起動そのものは通ってしまう場合があります</mark>。「動くけれど遅い」を疑うときは、まずここを見てください。</li>
       </ul>
 
-      <h3><code>aws s3 cp</code> は Content-Encoding を絶対に付けません</h3>
+      <h3><code>aws s3 cp</code> は Content-Encoding を自動では付けません</h3>
 
-      <p class="lead">「S3に上げるだけならヘッダーは勝手に付くのでは」と思うところですが、<mark>片方しか付きません。</mark>AWS CLI（1.46.0）のソースコード <code>awscli/customizations/s3/utils.py</code> の338〜344行を開いて確認しました。</p>
+      <p class="lead">「S3に上げるだけならヘッダーは勝手に付くのでは」と思うところですが、<mark>自動で付くのは片方だけです。</mark>AWS CLI（1.46.0）のソースコード <code>awscli/customizations/s3/utils.py</code> の338〜344行を開いて確認しました。</p>
 
       <div class="code">
         <div class="code-head">utils.py:338-344</div>
@@ -603,13 +676,25 @@ MIME type.
         return mimetypes.guess_type(filename)[0]</pre>
       </div>
 
-      <p class="lead">Pythonの <code>mimetypes.guess_type()</code> は <mark>(種別, 符号化) の2つ組</mark>を返します。<code>app.wasm.br</code> なら <code>('application/wasm', 'br')</code> のように、圧縮方式まで分かっています。<mark>ところがAWS CLIは <code>[0]</code> しか使わず、<code>[1]</code> を捨てています。</mark></p>
+      <p class="lead">Pythonの <code>mimetypes.guess_type()</code> は <mark>(種別, 符号化) の2つ組</mark>を返します。<code>app.wasm.br</code> なら <code>('application/wasm', 'br')</code> のように、圧縮方式まで分かっています。<mark>ところがAWS CLIは <code>[0]</code> しか使わず、<code>[1]</code> を捨てています。</mark>（Pythonでは <code>[0]</code> が1つ目、<code>[1]</code> が2つ目です。つまり種別だけ拾って、符号化は見ていません）</p>
 
       <p class="lead"><code>ContentEncoding</code> が設定されるのは、同ファイル579行目の変換表に沿って <code>--content-encoding</code> を明示したときだけです。同じ関数をローカルで呼んで確かめました。</p>
 
       <div class="code term">
         <div class="code-head">実行結果（S3には上げていません。CLIの関数をローカルで呼んだだけ）</div>
         <pre>■ aws s3 cp が載せる値(推定)
+app.loader.js
+<span class="ok-line">  type text/javascript</span>
+<span class="ng-line">  enc  (付かない)</span>
+  ※mimetypesの符号化推測: なし
+app.framework.js.br
+<span class="ok-line">  type text/javascript</span>
+<span class="ng-line">  enc  (付かない)</span>
+  ※mimetypesの符号化推測: br
+app.wasm
+<span class="ok-line">  type application/wasm</span>
+<span class="ng-line">  enc  (付かない)</span>
+  ※mimetypesの符号化推測: なし
 app.wasm.br
 <span class="ok-line">  type application/wasm</span>
 <span class="ng-line">  enc  (付かない)</span>
@@ -629,8 +714,8 @@ app.wasm.gz
 
       <ul class="points">
         <li><b>Content-Type は付きます。</b><code>.wasm.br</code> でも <code>application/wasm</code> になりました。ここは助かります。</li>
-        <li><b>Content-Encoding は付きません。</b>「符号化推測: br」と分かっているのに、捨てられています。<mark>そのままS3に上げると、5章の <code>expected magic word</code> エラーになります。</mark></li>
-        <li><b><code>.data.br</code> は Content-Type すら付きません。</b>Pythonが <code>.data</code> を知らないため、S3の既定値（<code>binary/octet-stream</code>）になります。</li>
+        <li><b>Content-Encoding は付きません。</b>「符号化推測: br」と分かっているのに、捨てられています。<mark>そのままS3に上げると、この章の最初に並べた <code>expected magic word</code> エラーになります。</mark></li>
+        <li><b><code>.data.br</code> は Content-Type すら付きません。</b>Pythonが <code>.data</code> を知らないためです（<code>mimetypes.guess_type('app.data.br')</code> の戻り値が <code>(None, 'br')</code> であることは実測しました）。<mark>この場合にS3が何を既定値として記録するかは、実機で確認していません。</mark>依頼票では <code>.data</code> の型も明示してもらう前提で書いています。</li>
         <li><b>これは「アップロード手順の話」なので、依頼票に書く価値があります。</b>相手会社が <code>aws s3 sync</code> でデプロイしているなら、<code>--content-encoding</code> を指定するか、拡張子ごとに分けて上げてもらう必要があります。</li>
       </ul>
 
@@ -647,7 +732,7 @@ object, regardless of the header's value.
 　オブジェクトを圧縮しない）</pre>
       </div>
 
-      <p class="lead">つまり<mark>オリジン（S3のメタデータ）で正しく申告できていれば、CloudFrontは手を出しません</mark>。逆に言えば、申告漏れのファイルはCloudFrontが勝手に圧縮しようとして、話がさらにややこしくなります。</p>
+      <p class="lead">つまり<mark>配信元（S3のメタデータ）で正しく申告できていれば、CloudFrontは手を出しません</mark>。逆に言えば、申告漏れのファイルはCloudFrontが勝手に圧縮しようとして、話がさらにややこしくなります。</p>
     </article>
   </section>
 
@@ -658,9 +743,11 @@ object, regardless of the header's value.
     <article class="item">
       <h3>罠1: <code>http://</code> のIP直打ちだと、ヘッダーが完璧でも <code>false</code></h3>
 
-      <p class="lead">インフラ会社が「まず検証環境で試しましょう」と、証明書なしの <code>http://203.0.113.10/</code> のようなURLを用意してくれることがあります。<mark>ここでは絶対に再現しません。</mark></p>
+      <p class="lead">インフラ会社が「まず検証環境で試しましょう」と、<code>http://203.0.113.10/</code> のようなURLを用意してくれることがあります。<mark>ここでは絶対に再現しません。</mark></p>
 
-      <p class="lead">同じHTML・同じ3本のヘッダーで、<b>localhost</b> と <b>IP直打ちのhttp</b> を比べた実測です。</p>
+      <p class="lead"><code>https://</code> にするには<b>サーバー証明書</b>（このドメインの正体を第三者が保証する電子的な証明書）が要ります。<mark>証明書を用意する手間を惜しんで <code>http://</code> のIP直打ちで検証すると、ヘッダーが完璧でも失敗します。</mark></p>
+
+      <p class="lead">同じHTML・同じ3本のヘッダーで、<b>localhost</b> と <b>IP直打ちのhttp</b> を比べた実測です。<mark>ヘッダーの有無だけを変えた比較は<a href="../2026-08-14_unity-web-threads/">前回の記事</a>でやっている</mark>ので、ここではURLの違いだけを見ます。</p>
 
       <div class="code term">
         <div class="code-head">実行結果（Chromium 141.0.7390.37 / 2026年8月15日 実測・そのまま）</div>
@@ -698,11 +785,11 @@ an environment reservedEnvironment:
 
       <ul class="points">
         <li><b>「セキュアコンテキスト」はHTTPS、または <code>localhost</code>。</b>平文HTTPのIPアドレスやドメインは該当しません。<mark>だから検証環境にも証明書を用意してもらう必要があります。</mark></li>
-        <li><b><code>SharedArrayBuffer</code> という名前自体が消えます。</b>上の実測で「なし」と出ているのは、グローバルにコンストラクタが現れないためです。MDNも <code>the constructor on the global object is hidden, unless the two headers mentioned above are set</code> と書いています。</li>
+        <li><b><code>SharedArrayBuffer</code> という名前自体が消えます。</b>上の実測で「なし」と出ているのは、JavaScriptから常に見えるはずの入れ物（グローバルオブジェクト）に、その型を作る関数（コンストラクタ）が置かれないためです。MDNも <code>the constructor on the global object is hidden, unless the two headers mentioned above are set</code> と書いています。<mark>「使えない」ではなく「存在しない」</mark>ので、エラーの見え方が <code>SharedArrayBuffer is not defined</code> になります。</li>
         <li><b>「共有メモリ: 作れる」と出ているのに <code>Workerへ渡す: 渡せない</code> なのは、実測どおりの挙動です。</b>この環境のChromiumでは <code>new WebAssembly.Memory({shared:true})</code> 経由でオブジェクト自体は得られますが、<mark>Web Worker（ブラウザで裏側の別スレッドとしてJavaScriptを動かす仕組み）へ <code>postMessage</code> しようとすると <code>DataCloneError</code> になります</mark>。HTML仕様 §2.7 が <code>If the current settings object's cross-origin isolated capability is false, then throw a "DataCloneError" DOMException.</code> と定めているとおりです。<b>「メモリは作れる」で安心してはいけません。</b>他のスレッドと共有できなければ、共有メモリとしての意味がありません。</li>
       </ul>
 
-      <p class="lead">ついでに、平文HTTPではBrotliすら要求されないことも実測できました。</p>
+      <p class="lead">ついでに、<mark>IP直打ちの平文HTTPではBrotliすら要求されない</mark>ことも実測できました。<b>Accept-Encoding</b> は、ブラウザが<b>リクエスト側</b>で送るヘッダーです。「うちはこの圧縮方式なら解けます」という申告で、5章のContent-Encoding（サーバーが返す側）と対になっています。</p>
 
       <div class="code term">
         <div class="code-head">実行結果（ブラウザが送る Accept-Encoding）</div>
@@ -715,33 +802,50 @@ an environment reservedEnvironment:
 <span class="ng-line">  NG br 申告あり</span>
      Content-Encoding: br
      TypeError: Failed to fetch
-     Failed to load resource: net::ERR_C
-     ONTENT_DECODING_FAILED
+     Failed to load resource: net::ER
+     R_CONTENT_DECODING_FAILED
 <span class="ok-line">  OK 無圧縮</span>
      Content-Encoding なし
      add(2,3) = 5</pre>
       </div>
 
-      <p class="lead">Unityのドキュメントの記述と一致します。<code>Chrome and Firefox only natively support Brotli compression over HTTPS.</code>（ChromeとFirefoxはHTTPS上でのみBrotli圧縮をネイティブに扱う）。<mark>平文HTTPの検証環境では、Brotliビルドもマルチスレッドも、両方とも試せません。</mark></p>
+      <p class="lead"><b>ここは正確に書きます。</b>上の表のとおり、<mark><code>localhost</code> の平文HTTPでは <code>br</code> が要求されています</mark>。落ちるのはIP直打ちのほうだけです。「HTTPかHTTPSか」ではなく「セキュアコンテキストかどうか」で分かれている、と読むのが実測に合います。</p>
+
+      <p class="lead">Unityのドキュメントは <code>Chrome and Firefox only natively support Brotli compression over HTTPS.</code>（ChromeとFirefoxはHTTPS上でのみBrotli圧縮をネイティブに扱う）と書いており、<code>localhost</code> の扱いには触れていません。<mark>結論として、IP直打ちの平文HTTPの検証環境では、Brotliビルドもマルチスレッドも、両方とも試せません。</mark></p>
 
       <h3>罠2: 資産を別ドメインのCDNに置くと、<code>fetch</code> だけ落ちます</h3>
 
       <p class="lead">COEPを有効にしたページは、<mark>許可を明示していない別オリジンの素材を読み込めなくなります</mark>。ここでの許可の出し方が、取得方法によって違いました。</p>
 
-      <p class="lead">用語の整理です。<b>オリジン</b>とは <code>https://example.com:443</code> のようなスキーム＋ホスト＋ポートの組。ブラウザはこの単位でサイトを別物として扱います。ページと素材でオリジンが違えば<b>クロスオリジン</b>です。</p>
+      <p class="lead">1章の用語をもう一度。<b>オリジン</b>は <code>https://example.com:443</code> のようなスキーム＋ホスト＋ポートの組で、ページと素材でこれが違えば<b>クロスオリジン</b>です。<mark>ここからの「オリジン」は、3章・4章のAWS用語ではなくブラウザ用語のほうです。</mark></p>
 
       <div class="code term">
         <div class="code-head">実行結果（COEP有効ページから、別オリジンの素材を読む）</div>
         <pre>■ COEPページ→別オリジンをfetch
+<span class="ng-line">  NG ヘッダーなし</span>
+     配信元が何も付けていない
+     TypeError: Failed to fetch
+     Access to fetch at &#x27;http://127.0
+     .0.1:8822/bare/app.wasm&#x27; from or
+     igin &#x27;http://127.0.0.1:8821&#x27; has
+      been blocked by CORS policy: No
+      &#x27;Access-Control-Allow-Origin&#x27; h
+     eader is present on the requeste
+     d resource.
+     Failed to load resource: net::ER
+     R_FAILED
 <span class="ng-line">  NG CORPのみ</span>
      CORP: cross-origin
      TypeError: Failed to fetch
-     Access to fetch at 'http://127.0.0.
-     1:8822/corp/app.wasm' from origin '
-     http://127.0.0.1:8821' has been blo
-     cked by CORS policy: No 'Access-Con
-     trol-Allow-Origin' header is presen
-     t on the requested resource.
+     Access to fetch at &#x27;http://127.0
+     .0.1:8822/corp/app.wasm&#x27; from or
+     igin &#x27;http://127.0.0.1:8821&#x27; has
+      been blocked by CORS policy: No
+      &#x27;Access-Control-Allow-Origin&#x27; h
+     eader is present on the requeste
+     d resource.
+     Failed to load resource: net::ER
+     R_FAILED
 <span class="ok-line">  OK CORSあり</span>
      ACAO: *
      add(2,3) = 5
@@ -749,9 +853,11 @@ an environment reservedEnvironment:
 ■ COEPページ→別オリジンのscript
 <span class="ng-line">  NG ヘッダーなし</span>
      配信元が何も付けていない
-     Failed to load resource: net::ERR_B
-     LOCKED_BY_RESPONSE.NotSameOriginAft
-     erDefaultedToSameOriginByCoep
+     onerror (詳細は下の行)
+     Failed to load resource: net::ER
+     R_BLOCKED_BY_RESPONSE.NotSameOri
+     ginAfterDefaultedToSameOriginByC
+     oep
 <span class="ok-line">  OK CORPのみ</span>
      CORP: cross-origin
      読み込めた</pre>
@@ -760,6 +866,7 @@ an environment reservedEnvironment:
       <ul class="points">
         <li><b><code>&lt;script src&gt;</code> は CORP だけで通ります。</b>CORP（Cross-Origin-Resource-Policy）は、読み込まれる側のファイルに付けて「別オリジンから読み込まれてもよい」と表明するヘッダー。値は <code>cross-origin</code>。</li>
         <li><b><code>fetch()</code> は CORP だけでは通りません。</b>CORSの <code>Access-Control-Allow-Origin</code> が別途要ります。<mark>CORPとCORSは名前が似ているだけで別物</mark>です。</li>
+        <li><b><code>fetch()</code> では、CORPを足してもエラー文が1文字も変わりません。</b>上の実測の「ヘッダーなし」と「CORPのみ」を見比べてください。パスが違うだけで同じCORSエラーです。<mark>「CORPを付けたのに変わらない」は、CORPが効いていないのではなく、そもそも足りないものが別</mark>だというサインです。</li>
         <li><b><code>NotSameOriginAfterDefaultedToSameOriginByCoep</code> というエラー名を覚えてください。</b>これが出たら「COEPを付けたせいで別オリジンの素材が落ちた」というサインです。</li>
       </ul>
 
@@ -836,11 +943,16 @@ Cross-Origin-Embedder-Policy-Report-Only: require-corp</pre>
    ※AWS既製の SecurityHeadersPolicy には
      この3本は含まれていません(確認済み)。
 
-2) オリジン(S3 / nginx / Laravel)側では
+2) 配信元(S3 / nginx / Apache / Laravel)側では
    この3本を付けないでください。
-   両方から返ると COEP が2つ並び、ブラウザは
-   unsafe-none として扱います(HTML仕様 7.1.4.1)。
-   エラーは出ず、ただ機能が無効になります。
+   設定が重なって同じヘッダーが2本返ると、
+   ブラウザは unsafe-none として扱います
+   (HTML仕様 7.1.4.1)。エラーは出ず、
+   ただ機能が無効になります。
+   ※Unity公式のApache例は Header add なので、
+     既存設定があると上書きされず2本になります。
+     やむを得ず配信元で付ける場合は、
+     Header add ではなく Header set でお願いします。
 
 3) 同じビヘイビアで、次のヘッダーも揃えてください。
    .wasm / .wasm.br / .wasm.gz
@@ -880,7 +992,7 @@ Cross-Origin-Embedder-Policy-Report-Only: require-corp</pre>
       <ul class="checklist" data-key="unity-web-on-aws-2026-08-15">
         <li><label><input type="checkbox"><span>Player設定のマルチスレッドを本番でONにする合意を社内で取った（公式は無効推奨）</span></label></li>
         <li><label><input type="checkbox"><span>ゲームページが読み込む<b>別ドメインの素材</b>を全部書き出した（広告・解析・フォント）</span></label></li>
-        <li><label><input type="checkbox"><span>依頼票に「オリジン側では付けないでください」を書いた</span></label></li>
+        <li><label><input type="checkbox"><span>依頼票に「配信元では付けないでください」を書いた</span></label></li>
         <li><label><input type="checkbox"><span>対象のキャッシュビヘイビア（パス）を specific に指定した</span></label></li>
         <li><label><input type="checkbox"><span>検証環境がHTTPSであることを確認した（<code>http://</code> のIP直打ちではない）</span></label></li>
         <li><label><input type="checkbox"><span>反映後に <code>curl -sSI ... | grep -ci</code> で「1個であること」を見ると決めた</span></label></li>
@@ -903,9 +1015,9 @@ Cross-Origin-Embedder-Policy-Report-Only: require-corp</pre>
       <ul class="reads">
         <li>
           <span class="kind">記事</span>
-          <a href="https://web.dev/articles/coop-coep">Making your website "cross-origin isolated" using COOP and COEP</a>
+          <a href="https://web.dev/articles/coop-coep">Make your website "cross-origin isolated" using COOP and COEP</a>
           <span class="by">Eiji Kitamura（Google / Chrome DevRel）・2020年4月13日公開、2022年6月21日更新</span>
-          <span class="why">COOP / COEP / CORP / CORS / CORB という<b>紛らわしい5つの略語を1画面で区別</b>してくれます。この記事の2章で「CORSがあるからCOOPも行けるはず」と誤読しやすい、と書いた部分の解毒剤になります。日本語版（URL末尾に <code>?hl=ja</code>）もあります。ただし本文には「Chrome 92から」といった2021年時点の将来形の記述が残っているので、時制はそのつもりで読んでください。</span>
+          <span class="why">COOP / COEP / CORP / CORS / CORB という<b>紛らわしい5つの略語を1画面で区別</b>してくれます（CORBは、ブラウザが「読み込んでも意味のない別オリジンの応答」を先回りで遮断する仕組みのこと。この記事の本文には出てきません）。2章で「CORSがあるからCOOPも行けるはず」と誤読しやすい、と書いた部分の解毒剤になります。日本語版（URL末尾に <code>?hl=ja</code>）もあります。ただし本文には「Chrome 92から」といった2021年時点の将来形の記述が残っているので、時制はそのつもりで読んでください。</span>
         </li>
         <li>
           <span class="kind">記事</span>
@@ -940,8 +1052,10 @@ Cross-Origin-Embedder-Policy-Report-Only: require-corp</pre>
         <li>
           <span class="flag primary">一次資料</span>
           Unity Technologies「Set up your Nginx server configuration for Web builds」「Set up your Apache server configuration for Web builds」<i>Unity Manual 6.3 LTS (6000.3)</i>.
-          <span class="note">参照箇所: Add C/C++ multithreading support の設定例。2章の折りたたみに貼った <code>location ~ .+\.(htm|html|js|js\.gz|js\.br)$</code> ブロックは原文のまま。Apache版も同じ拡張子集合に <code>Header add</code> しており、<code>.wasm</code> / <code>.data</code> は対象外である点を確認しました。</span>
-          <a href="https://docs.unity3d.com/6000.3/Documentation/Manual/web-server-config-nginx.html">https://docs.unity3d.com/6000.3/Documentation/Manual/web-server-config-nginx.html</a>（2026年8月15日参照）
+          <span class="note">参照箇所: Add C/C++ multithreading support の設定例。2章の折りたたみに貼った <code>location ~ .+\.(htm|html|js|js\.gz|js\.br)$</code> ブロックは原文のまま。Apache版は同じ拡張子集合に <code>Header add</code> しており（4章の根拠）、<code>.wasm</code> / <code>.data</code> は対象外である点を確認しました。</span>
+          <a href="https://docs.unity3d.com/6000.3/Documentation/Manual/web-server-config-nginx.html">https://docs.unity3d.com/6000.3/Documentation/Manual/web-server-config-nginx.html</a>
+          ／
+          <a href="https://docs.unity3d.com/6000.3/Documentation/Manual/web-server-config-apache.html">https://docs.unity3d.com/6000.3/Documentation/Manual/web-server-config-apache.html</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
@@ -951,33 +1065,59 @@ Cross-Origin-Embedder-Policy-Report-Only: require-corp</pre>
         </li>
         <li>
           <span class="flag primary">一次資料</span>
-          WHATWG「HTML Living Standard」§7.1.3.1 / §7.1.4.1 The headers、§2.7 Safe passing of structured data.
-          <span class="note">参照箇所: (1) §7.1.4.1 の <code>The processing model fails open (by defaulting to "unsafe-none")…</code> と、その直後の embedder policy 値の表（4章に貼った表はこの原文の抜粋。<code>require-corp, require-corp</code> → <code>"unsafe-none"</code> の行を含む）。(2) §7.1.3.1 の <code>If reservedEnvironment is a non-secure context, then return policy.</code>（6章）。(3) §2.7 の <code>If the current settings object's cross-origin isolated capability is false, then throw a "DataCloneError" DOMException.</code>（6章のDataCloneErrorの説明）。Living Standard のため常時更新されます。</span>
-          <a href="https://html.spec.whatwg.org/multipage/browsers.html">https://html.spec.whatwg.org/multipage/browsers.html</a>（2026年8月15日参照）
+          WHATWG「HTML Living Standard」§7.1.3.1 / §7.1.4.1 The headers（<code>browsers.html</code>）、§2.7 Safe passing of structured data（<code>structured-data.html</code>）.
+          <span class="note">参照箇所: (1) §7.1.4.1 の <code>The processing model fails open (by defaulting to "unsafe-none")…</code> と、その直後の embedder policy 値の表。<mark>4章にはこの表を7行すべて貼っています</mark>（原文はHTMLの表組みなので、左列 → 右列 の形に直しました。見出し行 <code>`Cross-Origin-Embedder-Policy`</code> / <code>Final embedder policy value</code> と、表の直後の <code>(The same applies to `Cross-Origin-Embedder-Policy-Report-Only`.)</code> も含めています）。(2) §7.1.3.1 の <code>If reservedEnvironment is a non-secure context, then return policy.</code>（6章）。(3) §2.7 の <code>If the current settings object's cross-origin isolated capability is false, then throw a "DataCloneError" DOMException.</code>（6章のDataCloneErrorの説明）。<b>§2.7 は <code>browsers.html</code> ではなく <code>structured-data.html</code> にあります</b>ので、URLを2本挙げます。Living Standard のため常時更新されます。</span>
+          <a href="https://html.spec.whatwg.org/multipage/browsers.html">https://html.spec.whatwg.org/multipage/browsers.html</a>
+          ／
+          <a href="https://html.spec.whatwg.org/multipage/structured-data.html">https://html.spec.whatwg.org/multipage/structured-data.html</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
           MDN Web Docs「Cross-Origin-Embedder-Policy」「SharedArrayBuffer」<i>Mozilla</i>.
           <span class="note">参照箇所: COEPページの <code>Setting the header more than once or with multiple tokens is equivalent to setting unsafe-none.</code>（4章。HTML仕様のfail-open表と独立した二重確認として使用）。SharedArrayBufferページの Security requirements 節（Spectreによる2018年の無効化、2020年の再有効化、<code>the constructor on the global object is hidden</code>）。</span>
-          <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Embedder-Policy">https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Embedder-Policy</a>（2026年8月15日参照）
+          <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Embedder-Policy">https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Embedder-Policy</a>
+          ／
+          <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer">https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
           Amazon Web Services「Load balancer listeners」「HTTP header modification」「Enable HTTP header modification for your Application Load Balancer」<i>Application Load Balancers User Guide</i>.
           <span class="note">参照箇所: Listener attributes のレスポンス側属性一覧（2章の実行結果は、このページのMarkdown版から抜き出したものです）、および <code>With these attributes, you can insert headers including HSTS, CORS, and CSP.</code>。追加できるレスポンスヘッダーが表で閉じており、COOP/COEP/CORPが含まれないことを確認しました。</span>
-          <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html">https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html</a>（2026年8月15日参照）
+          <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html">https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html</a>
+          ／
+          <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/header-modification.html">https://docs.aws.amazon.com/elasticloadbalancing/latest/application/header-modification.html</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
           Amazon Web Services「Add or remove HTTP headers in CloudFront responses with a policy」「Understand response headers policies」「Create response headers policies」<i>Amazon CloudFront Developer Guide</i>.
-          <span class="note">参照箇所: <code>Making these changes doesn't require writing code or changing the origin.</code> とポリシーがキャッシュビヘイビアに紐づくという記述（3章）、Custom headers 節の Origin override の3つの挙動（4章の引用は原文のまま）、Console 手順（Policies → Response headers タブ → Create response headers policy、および Distributions → Behaviors → Edit → Response headers policy）。</span>
-          <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/modifying-response-headers.html">https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/modifying-response-headers.html</a>（2026年8月15日参照）
+          <span class="note">参照箇所: <code>Making these changes doesn't require writing code or changing the origin.</code> とポリシーがキャッシュビヘイビアに紐づくという記述（3章）、Custom headers 節の Origin override（4章には<mark>3項目すべてを原文のまま貼っています</mark>）、Console 手順（Policies → Response headers タブ → Create response headers policy、および Distributions → Behaviors → Edit → Response headers policy）。<b>この3項目は「どの場合も出ていくヘッダーは1本」と読める書き方になっており、「CloudFrontと配信元の両方に書くと2本並ぶ」という記述は公式のどこにもありません。</b>4章はその通りに書いています。</span>
+          <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/modifying-response-headers.html">https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/modifying-response-headers.html</a>
+          ／
+          <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/understanding-response-headers-policies.html">https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/understanding-response-headers-policies.html</a>
+          ／
+          <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/creating-response-headers-policies.html">https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/creating-response-headers-policies.html</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
           Amazon Web Services「Use managed response headers policies」「Quotas」「Serving compressed files」<i>Amazon CloudFront Developer Guide</i>.
           <span class="note">参照箇所: マネージドポリシー5種（CORS-and-SecurityHeadersPolicy / CORS-With-Preflight / CORS-with-preflight-and-SecurityHeadersPolicy / SecurityHeadersPolicy / SimpleCORS）の全文。Quotas の「Custom response headers policies per AWS account: 20」「Custom headers per response headers policy: 10」「Distributions associated with the same response headers policy: 100」。Serving compressed files の <code>When a response from an origin includes the Content-Encoding header, CloudFront doesn't compress the object, regardless of the header's value.</code>（5章の引用は原文のまま）。</span>
-          <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-response-headers-policies.html">https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-response-headers-policies.html</a>（2026年8月15日参照）
+          <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-response-headers-policies.html">https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-response-headers-policies.html</a>
+          ／
+          <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html">https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html</a>
+          ／
+          <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/ServingCompressedFiles.html">https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/ServingCompressedFiles.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          The Apache Software Foundation「mod_headers — Header ディレクティブ」<i>Apache HTTP Server 2.4 Documentation</i>.
+          <span class="note">参照箇所: action の一覧の <code>add</code> の定義（<code>The response header is added to the existing set of headers, even if this header already exists. This can result in two (or more) headers having the same name.</code>）。4章の引用は原文のまま。<mark>Unity公式のApache設定例がこの <code>add</code> を使っている</mark>ことと合わせて、COEPが2本返る具体的な経路の根拠にしています。同じ一覧の <code>set</code> は <code>The response header is set, replacing any previous header with this name.</code> と定義されており、4章で「<code>Header set</code> なら上書きなのでこうはならない」と書いた根拠です。<mark>Apacheをこの環境で動かして再現したわけではありません</mark>（ドキュメントの定義に基づく説明です）。</span>
+          <a href="https://httpd.apache.org/docs/2.4/mod/mod_headers.html">https://httpd.apache.org/docs/2.4/mod/mod_headers.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          nginx「Module ngx_http_headers_module — add_header」<i>nginx documentation</i>.
+          <span class="note">参照箇所: <code>There could be several add_header directives.</code> と、継承規則（同じレベルに <code>add_header</code> があるときだけ上位から継承しない）。4章で「同じ階層に2回書けば2本返る」と書いた根拠です。<mark>nginxでの二重付与は実際には動かしていません</mark>（この環境にnginxを入れていないため）。ドキュメントの記述に基づく説明です。</span>
+          <a href="https://nginx.org/en/docs/http/ngx_http_headers_module.html">https://nginx.org/en/docs/http/ngx_http_headers_module.html</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
@@ -1004,22 +1144,22 @@ Cross-Origin-Embedder-Policy-Report-Only: require-corp</pre>
         <li>
           <span class="flag self">自分の実測</span>
           ブラウザ側の挙動。Chromium 141.0.7390.37 / Python 3.11.15 / Node.js v22.22.2、2026年8月15日実施。
-          <span class="note">配信側のヘッダーだけを変えて、同じHTMLとWasmを読ませました。5章・6章のターミナル出力は、この実行結果を<mark>行の削除・並べ替え・合成をせずにそのまま貼った</mark>ものです（章ごとに該当ブロックを抜き出しています）。使用したWasmは手書きの41バイト（<code>add(i32, i32)</code> のみ）で、<b>本物のUnityビルド出力ではありません</b>。したがって圧縮率・転送量・起動時間の数値は一切測っておらず、記事にも書いていません。HTTPSでの実測は証明書を用意していないため行っておらず、「セキュアコンテキスト」の比較は localhost（true）と <code>http://</code> のIP直打ち（false）で代用しています。</span>
+          <span class="note">配信側のヘッダーだけを変えて、同じHTMLとWasmを読ませました。5章・6章のターミナル出力は、この実行結果を<mark>行の削除・並べ替え・書き換えをせずにそのまま貼った</mark>ものです。<b>実行結果の全文は <code>_labs/2026-08-15_unity-web-on-aws/output.txt</code> にあり、記事に貼ったブロックは1行ずつ機械照合しています</b>（見出し <code>■</code> の単位で章に振り分けているだけで、ブロックの内側は無加工です）。使用したWasmは手書きの41バイト（<code>add(i32, i32)</code> のみ）で、<b>本物のUnityビルド出力ではありません</b>。したがって圧縮率・転送量・起動時間の数値は一切測っておらず、記事にも書いていません。HTTPSでの実測は証明書を用意していないため行っておらず、「セキュアコンテキスト」の比較は localhost（true）と <code>http://</code> のIP直打ち（false）で代用しています。</span>
         </li>
         <li>
           <span class="flag self">自分の実測</span>
           公式ドキュメントの機械的な検索。2026年8月15日、<code>curl</code> でAWS公式ドキュメントのMarkdown版（URL末尾を <code>.md</code> にしたもの）を取得して集計。
-          <span class="note">2章の実行結果は <code>alb_attrs.sh</code>（本文に全文を掲載）の出力そのままです。マネージドポリシーのページに対する <code>grep -ci 'cross-origin-opener|embedder|resource'</code> 相当の検索は0件でした。<mark>「無いことの確認」なので、AWSがドキュメントを更新すれば結果は変わります。</mark></span>
+          <span class="note">2章の実行結果は <code>alb_attrs.sh</code>（本文に全文を掲載）の出力そのままです。マネージドポリシーのページに対する <code>grep -ciE 'cross-origin-(opener|embedder|resource)'</code> は0行でした。<b>同じページを <code>cross-origin</code> だけで検索すると3行ヒットします</b>が、いずれも <code>Referrer-Policy: strict-origin-when-cross-origin</code> の一部で、COOP/COEP/CORPではありません。なお <code>grep -c</code> が数えるのは一致した回数ではなく<mark>一致した行数</mark>です。<mark>「無いことの確認」なので、AWSがドキュメントを更新すれば結果は変わります。</mark></span>
         </li>
         <li>
           <span class="flag self">自分の実測</span>
           AWS CLI のソースコード読解と、雛形・plan の実行。aws-cli 1.46.0 (botocore 1.43.62) / Terraform v1.14.3、2026年8月15日実施。
-          <span class="note">5章の <code>guess_content_type()</code> は、この環境にインストールされた <code>awscli/customizations/s3/utils.py</code> の338〜344行を開いて読んだものです。<code>ContentEncoding</code> が同ファイル579行の変換表経由（<code>--content-encoding</code> 指定時のみ）で設定されることも確認しました。3章の <code>--generate-cli-skeleton</code> と <code>terraform plan</code> は、いずれもAWSへの接続を伴わない操作です。<mark>S3へのアップロードは行っていないため、5章の「aws s3 cp が載せる値」は関数の戻り値から導いた推定です</mark>（出力にもそう明記しています）。</span>
+          <span class="note">5章の <code>guess_content_type()</code> は、この環境にインストールされた <code>awscli/customizations/s3/utils.py</code> の338〜344行を開いて読んだものです。<code>ContentEncoding</code> が同ファイル579行の変換表経由（<code>--content-encoding</code> 指定時のみ）で設定されることも確認しました。3章の <code>--generate-cli-skeleton</code> と <code>terraform plan</code> は、いずれもAWSへの接続を伴わない操作です。<mark>S3へのアップロードは行っていないため、5章の「aws s3 cp が載せる値」は関数の戻り値から導いた推定です</mark>（出力にもそう明記しています）。<b><code>.data.br</code> のときにS3が記録する既定のContent-Typeが何になるかは、確認できませんでした</b>ので記事には書いていません。分かっているのは <code>mimetypes.guess_type('app.data.br')</code> が <code>(None, 'br')</code> を返すところまでです。</span>
         </li>
         <li>
           <span class="flag self">自分の意見</span>
           「付ける場所を1箇所に決めて依頼票に明記する」「対象をキャッシュビヘイビア単位に限定して依頼する」「Report-Onlyを1段目の依頼にする」は、標準や規格ではなく<b>筆者の運用上の目安</b>です。
-          <span class="note">4章のfail-openは仕様で確定していますが、それを避けるための組織的な手順は仕様の範囲外です。7章の依頼票と責任分界点の表も、同様に筆者が組み立てたものです。</span>
+          <span class="note">4章のfail-openは仕様で確定していますが、それを避けるための組織的な手順は仕様の範囲外です。7章の依頼票と責任分界点の表も、同様に筆者が組み立てたものです。<b>4章の①〜⑤の流れも、実在の事例ではなく筆者が組み立てた想定です</b>（本文にもそう書いています）。<code>Header add</code> が2本を生むこと自体はApache公式の定義どおりですが、その順番で事故が起きたところを見たわけではありません。</span>
         </li>
       </ol>
     </article>

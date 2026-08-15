@@ -47,8 +47,8 @@ app.wasm.br      42 bytes
   NG br 申告あり
      Content-Encoding: br
      TypeError: Failed to fetch
-     Failed to load resource: net::ERR_C
-     ONTENT_DECODING_FAILED
+     Failed to load resource: net::ER
+     R_CONTENT_DECODING_FAILED
   OK 無圧縮
      Content-Encoding なし
      add(2,3) = 5
@@ -58,32 +58,34 @@ app.wasm.br      42 bytes
      Content-Type: application/wasm
      add(2,3) = 5
   NG 型が違う
-     Content-Type: application/octet-str
-     eam
-     TypeError: Failed to execute 'compi
-     le' on 'WebAssembly': Incorrect res
-     ponse MIME type. Expected 'applicat
-     ion/wasm'.
+     Content-Type: application/octet-
+     stream
+     TypeError: Failed to execute 'co
+     mpile' on 'WebAssembly': Incorre
+     ct response MIME type. Expected 
+     'application/wasm'.
   NG br 素のまま
      Content-Encoding なし
-     CompileError: WebAssembly.instantia
-     teStreaming(): expected magic word 
-     00 61 73 6d, found 1b 28 00 f8 @+0
+     CompileError: WebAssembly.instan
+     tiateStreaming(): expected magic
+      word 00 61 73 6d, found 1b 28 0
+     0 f8 @+0
   OK br 申告あり
      Content-Encoding: br
      add(2,3) = 5
   NG br 申告だけ
      中身は無圧縮なのに br と申告
-     TypeError: WebAssembly compilation 
-     aborted: Network error: Response bo
-     dy loading was aborted
-     Failed to load resource: net::ERR_C
-     ONTENT_DECODING_FAILED
+     TypeError: WebAssembly compilati
+     on aborted: Network error: Respo
+     nse body loading was aborted
+     Failed to load resource: net::ER
+     R_CONTENT_DECODING_FAILED
   NG gz 素のまま
      Content-Encoding なし
-     CompileError: WebAssembly.instantia
-     teStreaming(): expected magic word 
-     00 61 73 6d, found 1f 8b 08 00 @+0
+     CompileError: WebAssembly.instan
+     tiateStreaming(): expected magic
+      word 00 61 73 6d, found 1f 8b 0
+     8 00 @+0
   OK gz 申告あり
      Content-Encoding: gzip
      add(2,3) = 5
@@ -92,25 +94,27 @@ app.wasm.br      42 bytes
   NG ヘッダーなし
      配信元が何も付けていない
      TypeError: Failed to fetch
-     Access to fetch at 'http://127.0.0.
-     1:8822/bare/app.wasm' from origin '
-     http://127.0.0.1:8821' has been blo
-     cked by CORS policy: No 'Access-Con
-     trol-Allow-Origin' header is presen
-     t on the requested resource.
-     Failed to load resource: net::ERR_F
-     AILED
+     Access to fetch at 'http://127.0
+     .0.1:8822/bare/app.wasm' from or
+     igin 'http://127.0.0.1:8821' has
+      been blocked by CORS policy: No
+      'Access-Control-Allow-Origin' h
+     eader is present on the requeste
+     d resource.
+     Failed to load resource: net::ER
+     R_FAILED
   NG CORPのみ
      CORP: cross-origin
      TypeError: Failed to fetch
-     Access to fetch at 'http://127.0.0.
-     1:8822/corp/app.wasm' from origin '
-     http://127.0.0.1:8821' has been blo
-     cked by CORS policy: No 'Access-Con
-     trol-Allow-Origin' header is presen
-     t on the requested resource.
-     Failed to load resource: net::ERR_F
-     AILED
+     Access to fetch at 'http://127.0
+     .0.1:8822/corp/app.wasm' from or
+     igin 'http://127.0.0.1:8821' has
+      been blocked by CORS policy: No
+      'Access-Control-Allow-Origin' h
+     eader is present on the requeste
+     d resource.
+     Failed to load resource: net::ER
+     R_FAILED
   OK CORSあり
      ACAO: *
      add(2,3) = 5
@@ -119,9 +123,10 @@ app.wasm.br      42 bytes
   NG ヘッダーなし
      配信元が何も付けていない
      onerror (詳細は下の行)
-     Failed to load resource: net::ERR_B
-     LOCKED_BY_RESPONSE.NotSameOriginAft
-     erDefaultedToSameOriginByCoep
+     Failed to load resource: net::ER
+     R_BLOCKED_BY_RESPONSE.NotSameOri
+     ginAfterDefaultedToSameOriginByC
+     oep
   OK CORPのみ
      CORP: cross-origin
      読み込めた

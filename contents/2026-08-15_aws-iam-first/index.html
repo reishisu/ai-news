@@ -28,7 +28,7 @@
   <div class="masthead">
     <div class="eyebrow">Web開発・インフラ ｜ 2026年8月15日(土)</div>
     <h1>AWSのアクセス制御の地図 — IAMのユーザー・ロール・ポリシーは何が違うのか</h1>
-    <div class="range">「IAMというものがあるらしい」から読み始められるように書きました。根拠はAWS公式ドキュメントの原文と、認証情報の要らないローカル検証だけです。AWSアカウントに対しては1回も実行していません。</div>
+    <div class="range">「IAMというものがあるらしい」から読み始められるように書きました。根拠はAWS公式ドキュメントの原文と、認証情報の要らないローカル検証だけです。AWSアカウントには何も作っていません（有効な認証情報が無く、実行できないため）。</div>
     <div class="meta-row">
       <span class="time-chip">⏱ 約14分</span>
       <span class="tag">IAMを触ったことがない人向け</span>
@@ -166,6 +166,8 @@ consists of a name and credentials.
 　人やワークロードを表し、名前と認証情報から成る）</pre>
       </div>
 
+      <p class="lead"><b>エンティティ</b>とは、IAMで「操作する主体になれるもの」（ユーザーやロール）のこと。<b>ワークロード</b>とは、人ではない利用者 ―― アプリやバッチ処理のことです。</p>
+
       <p class="lead">ここまでは普通です。<mark>同じページの冒頭に、こう書いてあります。</mark></p>
 
       <div class="code wrap">
@@ -221,7 +223,7 @@ credentials for your role session.
         <li><b>差その2: 長期の認証情報が無い。</b>ロールにはパスワードもアクセスキーも存在しません。<mark>漏れる鍵がそもそも無い</mark>のが最大の利点です。</li>
       </ul>
 
-      <p class="lead">「引き受ける（assume）」の実体は、<b>AWS STS</b>（Security Token Service。一時的な認証情報を発行する係）への <code>AssumeRole</code> というAPI呼び出しです。返ってくるものも公式に書かれています。</p>
+      <p class="lead">「引き受ける（assume）」の実体は、<b>AWS STS</b>（Security Token Service。一時的な認証情報を発行する係）への <code>AssumeRole</code> という<b>API</b>呼び出しです。APIとは、プログラムから機能を呼び出すための窓口のこと。<mark>AWSの操作は、画面から押したボタンも含めて全部この窓口を通ります。</mark>返ってくるものも公式に書かれています。</p>
 
       <div class="code wrap">
         <div class="code-head">AWS STS API Reference「AssumeRole」— 原文</div>
@@ -335,12 +337,20 @@ principals are authenticated IAM entities.
       <h3>いちばん短いポリシーは4行。ここから積み上げれば全部読める</h3>
 
       <p class="lead"><b>ポリシー</b>とは、「どの操作を、どのリソースに、許可するか／拒否するか」を書いたJSONの文書です。これを人やロールやリソースに貼り付けて、初めて権限が生まれます。</p>
+
+      <p class="lead">この先ずっとJSONが出てくるので、先に2つだけ言葉を置きます。</p>
+
+      <ul class="points">
+        <li><b>JSONとは。</b>データを書き表す形式の1つです。記号の意味は5つだけ ―― <code>{ }</code> は1つのまとまり、<code>[ ]</code> は並び（複数入れられる）、<code>:</code> は「名前とその値」の区切り、<code>,</code> は項目どうしの区切り、<code>" "</code> は文字列。<mark>この5つが分かれば、以降のJSONは全部読めます。</mark></li>
+        <li><b>Amazon S3とは。</b>ファイルを置いておくAWSのサービスです。入れ物を<b>バケット</b>、その中の1ファイルを<b>オブジェクト</b>と呼びます。この記事の例はほとんどS3です（<code>s3:</code> で始まる操作名がそれです）。</li>
+      </ul>
+
       <p class="lead">公式ドキュメントに載っている最小の例がこれです。</p>
 
       <div class="code">
-        <div class="code-head">AWS「IAM JSON policy elements: Version」掲載のサンプル</div>
+        <div class="code-head">AWS「IAM JSON policy elements: Version」掲載のサンプル（原文のまま・行末の空白のみ除去）</div>
         <pre>{
-  "Version": "2012-10-17",
+  "Version":"2012-10-17",
   "Statement": [
     {
       "Effect": "Allow",
@@ -432,7 +442,7 @@ expected statement.1.effect to be one
   of ["Allow" "Deny"], got allow</pre>
       </div>
 
-      <p class="lead"><code>fold_diag.py</code> は <code>terraform validate -json</code> のJSONを読んで38桁で折り返すだけの15行のスクリプトです。<mark>文言は一字も変えていません。AWSに1バイトも送らずに、手元でここまで検出できます。</mark></p>
+      <p class="lead"><code>fold_diag.py</code> は <code>terraform validate -json</code> のJSONを読んで38桁で折り返すだけの13行のスクリプトです。<mark>文言は一字も変えていません。AWSに1バイトも送らずに、手元でここまで検出できます。</mark></p>
     </article>
   </section>
 
@@ -441,7 +451,7 @@ expected statement.1.effect to be one
     <h2><span class="step">4</span>許可ポリシーと信頼ポリシーは見た目で分かる</h2>
 
     <article class="item">
-      <h3>ロールには必ずポリシーが2枚付く。「何ができるか」と「誰が借りてよいか」</h3>
+      <h3>ロールに関わるポリシーは2種類。「何ができるか」と「誰が借りてよいか」</h3>
 
       <p class="lead">ここがIAMで最初に詰まる場所です。公式ドキュメントの委任（delegation）の説明が、そのまま答えです。</p>
 
@@ -465,6 +475,7 @@ are allowed to assume the role.
       <ul class="points">
         <li><b>許可ポリシー（アイデンティティベースポリシー）。</b>そのロールで<b>何ができるか</b>を書きます。</li>
         <li><b>信頼ポリシー（trust policy）。</b>そのロールを<b>誰が借りてよいか</b>だけを書きます。ロールに必ず1枚付きます。</li>
+        <li><b>必須なのは信頼ポリシーだけ。</b>上の原文は「委任するときは2枚付けたロールを作る」という話です。<mark>許可ポリシーが0枚のロールも作れます</mark>（何もできないロールになるだけ）。「必ず2枚」ではありません。</li>
       </ul>
 
       <p class="lead">信頼ポリシーの正体も公式に書かれています。<mark>これは「ロールというモノに貼られたリソースベースポリシー」です。</mark>S3バケットポリシーと同じ仲間です。</p>
@@ -566,20 +577,44 @@ as that user or role.
 
       <p class="lead"><b>サービスプリンシパル</b>とは、人ではなくAWSサービス自身を表すプリンシパルです。<code>ecs-tasks.amazonaws.com</code> のようにドメイン風の名前で書きます。上の信頼ポリシーは「ECSのタスクなら、このロールを借りてよい」と言っています。</p>
 
+      <p class="lead">先に危険なほうを言っておきます。<mark>信頼ポリシーに <code>"Principal": {"AWS": "*"}</code> と書くと、そのロールは全世界の誰でも借りられます。</mark>IAMは止めてくれません。根拠は次の折りたたみに入れました。</p>
+
       <details>
-        <summary>信頼ポリシーの <code>Condition</code> は飾りではない（混乱した代理問題）</summary>
+        <summary>信頼ポリシーの <code>Condition</code> は飾りではない／<code>Principal</code> に <code>*</code> は書けてしまう</summary>
         <div class="body">
           <p class="lead">上の例に付いていた <code>aws:SourceArn</code> と <code>aws:SourceAccount</code> の意味です。公式ドキュメントの Important 枠がこう書いています。</p>
           <div class="code wrap">
             <div class="code-head">AWS「Amazon ECS task IAM role」— 原文</div>
-            <pre>we recommend that you use the aws:SourceAccount
-or aws:SourceArn condition keys in the trust
-relationship policy associated with the role to
-scope the permissions further to prevent the
+            <pre>When creating your task IAM role, we
+recommend that you use the
+aws:SourceAccount or aws:SourceArn
+condition keys in the trust relationship
+policy associated with the role to scope
+the permissions further to prevent the
 confused deputy security issue.</pre>
           </div>
           <p class="lead"><b>混乱した代理問題（confused deputy）</b>とは、権限を持つサービスが第三者にだまされて、代わりに悪い操作をしてしまう問題です。<mark>「ECSなら誰でも」ではなく「私のアカウントのECSだけ」に絞る</mark>のがこのConditionの役目です。</p>
-          <p class="lead">なお信頼ポリシーの <code>Principal</code> のARNには、ワイルドカードが使えません（同ドキュメント: <code>you cannot specify a wildcard (*) as part of an ARN in the principal element</code>）。「誰でもいい」と書けないようにIAM側が防いでいます。</p>
+          <p class="lead">ここで<mark>絶対に誤解してはいけないこと</mark>を1つ足します。信頼ポリシーの <code>Principal</code> に書くARNは、<b>その一部を</b>ワイルドカードにできません（AWS「IAM roles」: <code>When you create a trust policy, you cannot specify a wildcard (*) as part of an ARN in the principal element.</code>）。</p>
+          <p class="lead"><mark>しかし <code>"Principal": {"AWS": "*"}</code> は書けてしまいます。</mark>これは「ARNの一部」ではなく丸ごとワイルドカードなので、上の制限に当たりません。書いた瞬間に、そのロールは全世界の誰でも借りられる状態になります。AWSの警告がこれです。</p>
+          <div class="code wrap">
+            <div class="code-head">AWS「AWS JSON policy elements: Principal」— 原文</div>
+            <pre>We strongly recommend that you do not use a
+wildcard (*) in the Principal element of a
+resource-based policy with an Allow effect
+unless you intend to grant public or anonymous
+access. ... This is especially true for IAM
+role trust policies, because they allow other
+principals to become a principal in your
+account.
+
+（Allow効果のリソースベースポリシーの
+　Principal に * を使うことは、公開／匿名
+　アクセスを与える意図が無い限り、強く
+　非推奨。とくにIAMロールの信頼ポリシーで
+　そうである。他のプリンシパルを自アカウント
+　のプリンシパルにしてしまうからである）</pre>
+          </div>
+          <p class="lead">同じページには <code>Do not leave your role accessible to everyone!</code> という一文もあります。<mark>「IAMが防いでくれる」ではありません。防ぐのは書く人です。</mark></p>
         </div>
       </details>
 
@@ -626,7 +661,7 @@ An explicit deny overrides an explicit allow.
         <li><b>だから <code>Deny</code> は慎重に。</b>あとから正当な許可を足しても、その <code>Deny</code> がある限り通りません。</li>
       </ul>
 
-      <p class="lead">この順序を目で見るために、<mark>公式の記述をそのまま書き写した70行ほどのPythonのおもちゃ</mark>を作って動かしました。AWSの本物のエンジンではありません（そこは後述します）。</p>
+      <p class="lead">この順序を目で見るために、<mark>公式の記述をそのまま書き写した114行のPythonのおもちゃ</mark>を作って動かしました。AWSの本物のエンジンではありません（そこは後述します）。出力に出てくる <b>MFA</b> は多要素認証のことで、パスワードに加えてスマホのコードなど2つ目の確認を求める仕組みです（8章で戻ってきます）。</p>
 
       <div class="code term">
         <div class="code-head">実行結果（eval_sim.py・ローカルのみ）</div>
@@ -711,35 +746,44 @@ MFA必須/MFAあり
         <li><b>タスク。</b>タスク定義をもとに実際に起動した、動いているコンテナのひとかたまり。</li>
       </ul>
 
+      <p class="lead">クラスタ・サービス・ALBといったECS側の登場人物は、<a href="../2026-08-15_ecs-fargate-first/">別記事</a>にまとめました。ここではロールの話だけをします。</p>
+
       <p class="lead">ここでロールが2つ出てきます。名前が似ていて、<mark>初見では絶対に区別できません。</mark>公式ドキュメントは、お互いのページで名指しして区別しています。</p>
 
       <div class="code wrap">
         <div class="code-head">AWS「Amazon ECS task IAM role」— 原文</div>
         <pre>This role allows your application code
 (running in the container) to use other AWS
-services.
+services. The task role is required when
+your application accesses other AWS
+services, such as Amazon S3.
 Note
 These permissions aren't accessed by the
 Amazon ECS container and Fargate agents.
 
 （このロールは、コンテナ内で動くアプリケーション
 　コードが他のAWSサービスを使うことを許す。
+　アプリが他のAWSサービスにアクセスするとき、
+　タスクロールは必須である。
 　注: これらの権限は ECSコンテナエージェントや
 　Fargateエージェントからはアクセスされない）</pre>
       </div>
 
       <div class="code wrap">
         <div class="code-head">AWS「Amazon ECS task execution IAM role」— 原文</div>
-        <pre>The task execution role grants the Amazon ECS
-container and Fargate agents permission to
-make AWS API calls on your behalf.
+        <pre>The task execution role grants the Amazon
+ECS container and Fargate agents permission
+to make AWS API calls on your behalf. The
+task execution IAM role is required
+depending on the requirements of your task.
 Note
 ... they aren't directly accessible by the
 containers in the task.
 
 （タスク実行ロールは、ECSコンテナエージェントと
 　Fargateエージェントが、あなたに代わってAWS API
-　を呼ぶ権限を与える。注: これらはタスク内の
+　を呼ぶ権限を与える。実行ロールが必要かどうかは
+　タスクの要件による。注: これらはタスク内の
 　コンテナから直接アクセスできるものではない）</pre>
       </div>
 
@@ -848,9 +892,9 @@ for use by all AWS customers.
         <div class="body">
           <p class="lead">実行ロールの作成手順に載っている信頼ポリシーがこれです。</p>
           <div class="code">
-            <div class="code-head">AWS公式・実行ロールの信頼ポリシー</div>
+            <div class="code-head">AWS公式・実行ロールの信頼ポリシー（原文のまま・行末の空白のみ除去）</div>
             <pre>{
-  "Version": "2012-10-17",
+  "Version":"2012-10-17",
   "Statement": [
     {
       "Sid": "",
@@ -893,7 +937,7 @@ use to obtain credentials.
       <ul class="points">
         <li><b>ECSが環境変数を勝手にセットする。</b>あなたは何も書きません。</li>
         <li><b>SDKがそのURLへHTTPでGETして認証情報を取ってくる。</b>同ページに <code>SDKs attempt to load credentials from the specified HTTP endpoint through a GET request.</code> とあります。</li>
-        <li><b>アプリ側で <code>sts:AssumeRole</code> を呼ぶ必要はありません。</b>公式が明記しています（<code>These credentials allow your task to make AWS API requests without calling sts:AssumeRole</code>）。信頼ポリシーに <code>sts:AssumeRole</code> と書くのに自分では呼ばない ―― <mark>ここが最も混乱する箇所</mark>ですが、引き受けるのはECSです。</li>
+        <li><b>アプリ側で <code>sts:AssumeRole</code> を呼ぶ必要はありません。</b>公式が明記しています（<code>These credentials allow your task to make AWS API requests without calling sts:AssumeRole to assume the same role that is already associated with the task.</code>）。信頼ポリシーに <code>sts:AssumeRole</code> と書くのに自分では呼ばない ―― <mark>ここが最も混乱する箇所</mark>ですが、引き受けるのはECSです。</li>
       </ul>
 
       <p class="lead">Fargateを選ぶ理由も、ここに繋がります。公式ドキュメントの警告が具体的です。</p>
@@ -958,16 +1002,19 @@ least-privilege permissions.</pre>
 s3:ListBucket
   対象 bucket
 arn:aws:s3:::${BucketName}
+  他 1 種は省略: accesspoint
 
 s3:GetObject
   対象 object
-arn:aws:s3:::${BucketName}/${ObjectName}</pre>
+arn:aws:s3:::${BucketName}/${ObjectName}
+  他 1 種は省略: accesspointobject</pre>
       </div>
 
       <ul class="points">
         <li><b>「一覧を出す」はバケットが対象。</b><code>arn:aws:s3:::logs</code>（末尾に <code>/*</code> は付けない）</li>
         <li><b>「ファイルを読む」はオブジェクトが対象。</b><code>arn:aws:s3:::logs/*</code></li>
         <li><b>だから読み取り専用ロールには2つのStatementが要ります。</b>片方だけ書いて「一覧は見えるのに中身が読めない」で止まるのが定番です。</li>
+        <li><b>「省略」と出ているのはアクセスポイント経由のARN。</b>公式データにはもう1種ずつ載っていますが、話が逸れるのでスクリプト側で落としています。<mark>出力を手で消したのではなく、絞ったことを出力自身に言わせています。</mark></li>
       </ul>
 
       <p class="lead">Terraformに組み立てさせたJSONがこれです（<code>terraform plan</code> の出力から取り出したもので、手では書いていません）。</p>
@@ -1047,7 +1094,9 @@ community あり: 指摘 24 件
   PERMISSIONS_MANAGEMENT_ACTIONS x1</pre>
       </div>
 
-      <p class="lead"><code>include_community_auditors=True</code> にして初めて出ます。<mark>既定のまま「lintに通ったから安全」と判断すると、全許可ポリシーが素通りします。</mark></p>
+      <p class="lead">ラベルは parliament が付ける指摘の種類です。<code>PRIVILEGE_ESCALATION</code> は「この権限だけで自分をもっと強くできてしまう」、<code>CREDENTIALS_EXPOSURE</code> は「認証情報を取り出せてしまう」、<code>PERMISSIONS_MANAGEMENT_ACTIONS</code> は「権限そのものを書き換えられる」。</p>
+
+      <p class="lead">これらは <code>include_community_auditors=True</code> にして初めて出ます。<mark>既定のまま「lintに通ったから安全」と判断すると、全許可ポリシーが素通りします。</mark></p>
 
       <p class="lead">では手で書くときに何を確かめるか。<b>アクション名が実在するか</b>は機械的に照合できます。AWSが公開しているデータを引いて、10個を確認しました。</p>
 
@@ -1070,7 +1119,26 @@ iam:CreateAccessKey    OK    書込
 見つからなかった: 1 件</pre>
       </div>
 
-      <p class="lead">わざと <code>t</code> を1つ多くした <code>s3:GetObjectt</code> だけが落ちました。<mark>存在しないアクション名を書いてもIAMはエラーにならず、ただ何も許可されないだけ</mark>なので、この照合には価値があります。</p>
+      <p class="lead">わざと <code>t</code> を1つ多くした <code>s3:GetObjectt</code> だけが落ちました。つまり<mark>綴りの誤りは、手元のデータ照合だけで見つかります。</mark></p>
+
+      <p class="lead">なお「存在しないアクション名を書いたらどうなるか」は、この環境では確かめられませんでした（IAM APIを呼べないため）。<mark>公式に書いてあるのはここまでです。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">AWS「IAM policy validation check reference」— 原文</div>
+        <pre>Issue code: INVALID_ACTION
+Finding type: ERROR
+Invalid action: The action {{action}} does
+not exist. Did you mean {{valid_action}}?
+
+（IAM Access Analyzer のポリシー検証は、
+　存在しないアクション名を ERROR として
+　報告する）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>検証機能は ERROR を返す。</b>IAM Access Analyzer のポリシー検証は、綴り誤りを <code>ERROR</code> の重大度で報告します。ここは公式の記述です。</li>
+        <li><b>ポリシーを保存できるかどうかは未確認。</b>「保存自体は通るのか、拒否されるのか」は<mark>この記事では確認していません。</mark>APIを呼べないためです。断定している解説を見かけたら、出典を確かめてください。</li>
+      </ul>
 
       <p class="lead">最後に、完璧主義で止まらないための一文を置きます。AWS自身がこう書いています。</p>
 
@@ -1097,7 +1165,7 @@ least privilege.
     <article class="item">
       <h3>まず自分のアカウントの入口を確認する</h3>
 
-      <p class="lead">この記事はAWS上で1回も実行していません。だから<mark>ここから先はあなたの画面でやってください。</mark>順番は、AWSのベストプラクティスの見出し順に沿えています。</p>
+      <p class="lead">この記事はAWS上で何も作っていません。だから<mark>ここから先はあなたの画面でやってください。</mark>4つとも公式「Security best practices in IAM」に見出しとして載っている項目ですが、<mark>並べ替えているのは筆者です</mark>（公式の見出し順ではフェデレーションが1番目、ルートユーザーは5番目）。この記事を読んだ直後に確認しやすい順にしました。</p>
 
       <ul class="points">
         <li><b>ルートユーザーで日常作業していないか。</b>公式は <code>don't use the root user for everyday tasks</code> と書いています。まずここです。</li>
@@ -1124,10 +1192,10 @@ least privilege.
       </ul>
       <div class="cl-done" hidden>🎉 これでIAMの画面を開いても、どこを見ればいいか分かります</div>
 
-      <a class="next-up" href="../2026-08-15_tidb-first/">
+      <a class="next-up" href="../2026-08-15_terraform-first/">
         <div class="label">NEXT →</div>
-        <div class="t">TiDBを最初に触る — MySQLと同じところ、違うところ</div>
-        <div class="d">同じ「超基礎から」のシリーズです。こちらは実際に起動して、同じSQLを流した差を測っています。</div>
+        <div class="t">Terraform を最初に動かす — init / validate / plan の役割と、plan の読み方</div>
+        <div class="d">3章と7章で使った <code>terraform validate</code> と <code>terraform plan</code> の話です。ポリシーを手書きからコードに移すときの入口になります。</div>
       </a>
     </article>
   </section>
@@ -1148,7 +1216,7 @@ least privilege.
           <span class="kind">記事</span>
           <a href="https://www.karakaram.com/difference-between-ecs-task-role-and-task-execution-role/">ECSのタスクロールとタスク実行ロールの違い</a>
           <span class="by">karakaram-blog・2020年10月公開 / 2021年8月更新</span>
-          <span class="why">日本語で6章の内容を短くまとめた記事です。多くの日本語記事が実行ロールを「必須」と言い切る中で、公式の Required: Conditional を「タスク定義でAWSサービスを利用する設定をしたときに設定が必要」と正しく訳しています。掲載されている <code>AmazonECSTaskExecutionRolePolicy</code> のJSONは、今回AWS公式リファレンスから取得したv1と6つのActionすべてが一致しました。</span>
+          <span class="why">日本語で6章の内容を短くまとめた記事です。実行ロールを「必須」と言い切らず、「タスク定義でAWSサービスを利用する設定をしたときに設定が必要」と条件付きで書いている点が、公式の <code>Required: Conditional</code> と整合します。掲載されている <code>AmazonECSTaskExecutionRolePolicy</code> のJSONは、今回AWS公式リファレンスから取得したv1と6つのActionすべてが一致しました。</span>
         </li>
       </ul>
     </article>
@@ -1165,20 +1233,26 @@ least privilege.
         <li>
           <span class="flag primary">一次資料</span>
           AWS「What is IAM?」<i>AWS Identity and Access Management User Guide</i>.
-          <span class="note">参照箇所: IAMの定義（認証と認可）、ルートユーザーの完全なアクセス権と日常作業への非推奨、結果整合性の記述、IAM / IAM Identity Center / STS が追加料金なしである記述。HTML本文を <code>curl</code> で取得して読みました（WebFetchはegress制限で失敗）。</span>
+          <span class="note">参照箇所: IAMの定義（認証と認可）、ルートユーザーの完全なアクセス権と日常作業への非推奨、結果整合性の記述、IAM / IAM Identity Center / STS が追加料金なしである記述。HTML本文とMarkdown版を <code>curl</code> で取得して読みました（WebFetchはegress制限で失敗）。Markdown版は <code>introduction.md</code> として保存しています。</span>
           <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html">https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
           AWS「IAM users」「IAM user groups」<i>AWS Identity and Access Management User Guide</i>.
-          <span class="note">参照箇所: IAMユーザーの定義（名前と認証情報から成る）、冒頭Important枠のフェデレーション推奨、グループを <code>Principal</code> に書けない理由、グループを入れ子にできない記述。両ページのMarkdown版（id_users.md / id_groups.md）を取得して全文を読みました。</span>
+          <span class="note">参照箇所: IAMユーザーの定義（名前と認証情報から成る）、冒頭Important枠のフェデレーション推奨、グループを <code>Principal</code> に書けない理由、グループを入れ子にできない記述。両ページのMarkdown版（<code>id_users.md</code> / <code>id_groups.md</code>）を保存しています。</span>
           <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users.html">https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users.html</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
           AWS「IAM roles」<i>AWS Identity and Access Management User Guide</i>.
-          <span class="note">参照箇所: ロールの定義（誰でも引き受けられる／長期の認証情報を持たない）、Delegation の節（ロールに付く2枚のポリシーの説明）、信頼ポリシーが必須のリソースベースポリシーであること、<code>Principal</code> のARNにワイルドカードを使えないこと、ロールを引き受けると元の権限を手放すこと。HTML版とMarkdown版の両方を取得して読みました。</span>
+          <span class="note">参照箇所: ロールの定義（誰でも引き受けられる／長期の認証情報を持たない）、Delegation の節（委任するときは2枚のポリシーを付けたロールを作るという説明）、信頼ポリシーが必須のリソースベースポリシーであること、<mark>ARNの一部</mark>をワイルドカードにできないこと（<code>you cannot specify a wildcard (*) as part of an ARN in the principal element</code>）、ロールを引き受けると元の権限を手放すこと。HTML版とMarkdown版の両方を取得し、Markdown版を <code>_labs/2026-08-15_aws-iam-first/id_roles.md</code> に保存しています。</span>
           <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html">https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          AWS「AWS JSON policy elements: Principal」<i>AWS Identity and Access Management User Guide</i>.
+          <span class="note">参照箇所: <mark>4章の「ワイルドカードは書けてしまう」の根拠</mark>。<code>You can use a wildcard (*) to specify all principals in the Principal element of a resource-based policy</code>、Important枠の <code>We strongly recommend that you do not use a wildcard (*) ... This is especially true for IAM role trust policies</code>、および <code>Do not leave your role accessible to everyone!</code>。Markdown版を保存しています（<code>reference_policies_elements_principal.md</code>）。</span>
+          <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html">https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
@@ -1189,7 +1263,7 @@ least privilege.
         <li>
           <span class="flag primary">一次資料</span>
           AWS「IAM JSON policy element reference」「IAM JSON policy elements: Version」「IAM JSON policy elements: Effect」<i>AWS Identity and Access Management User Guide</i>.
-          <span class="note">参照箇所: 要素の並び順に意味が無いこと、<code>Action</code>/<code>NotAction</code> などが排他であること、<code>Version</code> は日付ではなくポリシー言語の版であり値は <code>2012-10-17</code> と <code>2008-10-17</code> の2つだけであること、3章に貼った最小サンプル、<code>The Effect value is case sensitive.</code>。各ページのMarkdown版を取得して読みました。</span>
+          <span class="note">参照箇所: 要素の並び順に意味が無いこと、<code>Action</code>/<code>NotAction</code> などが排他であること、<code>Version</code> は日付ではなくポリシー言語の版であり値は <code>2012-10-17</code> と <code>2008-10-17</code> の2つだけであること、3章に貼った最小サンプル、<code>The Effect value is case sensitive.</code>。各ページのMarkdown版を保存しています。</span>
           <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_version.html">https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_version.html</a>（2026年8月15日参照）
         </li>
         <li>
@@ -1201,8 +1275,14 @@ least privilege.
         <li>
           <span class="flag primary">一次資料</span>
           AWS「Security best practices in IAM」<i>AWS Identity and Access Management User Guide</i>.
-          <span class="note">参照箇所: 最小権限の定義、「必要な権限を探る間は広い権限から始めてもよい」の記述、AWSマネージドポリシーが最小権限とは限らないという注意、AWS上のワークロードに長期の認証情報を配る必要が無いという記述、および推奨事項の見出し順。Markdown版（20209バイト）を取得して読みました。</span>
+          <span class="note">参照箇所: 最小権限の定義、「必要な権限を探る間は広い権限から始めてもよい」の記述、AWSマネージドポリシーが最小権限とは限らないという注意、AWS上のワークロードに長期の認証情報を配る必要が無いという記述、および <code>##</code> 見出し14項目の一覧。Markdown版（20209バイト）を保存しています（<code>best-practices.md</code>）。<mark>8章の並び順は公式の見出し順ではありません</mark>（公式は ①フェデレーション ②ワークロード ③MFA ④アクセスキー ⑤ルートユーザー の順で、記事は筆者が並べ替えています）。</span>
           <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html">https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          AWS「IAM policy validation check reference」<i>AWS Identity and Access Management User Guide</i>.
+          <span class="note">参照箇所: <code>INVALID_ACTION</code> の Issue code と Finding type が <code>ERROR</code> であること、および表示される文言 <code>Invalid action: The action {{action}} does not exist. Did you mean {{valid_action}}?</code>。Markdown版を保存しています（<code>access-analyzer-reference-policy-checks.md</code>）。<mark>IAM Access Analyzer 自体は実行していません。</mark></span>
+          <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/access-analyzer-reference-policy-checks.html">https://docs.aws.amazon.com/IAM/latest/UserGuide/access-analyzer-reference-policy-checks.html</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
@@ -1212,20 +1292,20 @@ least privilege.
         </li>
         <li>
           <span class="flag primary">一次資料</span>
-          AWS「Amazon ECS task IAM role」「Amazon ECS task execution IAM role」「Task definition parameters」「Architect for AWS Fargate for Amazon ECS」<i>Amazon Elastic Container Service Developer Guide</i>.
-          <span class="note">参照箇所: タスクロールがアプリケーションコード用でエージェントからは使われないこと、実行ロールがエージェント用でコンテナから直接アクセスできないこと、実行ロールが要る5つのケース、ECSコンテナエージェント 1.16.0 以降という下限、6章に貼った信頼ポリシーと許可ポリシーの実例（<code>{{...}}</code> のプレースホルダ表記も含め加工していません）、Fargateでインスタンスプロファイルが使えないこと、Fargateのタスク分離とEC2起動タイプでの注意、<code>taskRoleArn</code> が Required: No で <code>executionRoleArn</code> が Required: Conditional であること、Fargateの定義。各ページのMarkdown版を取得して読みました。</span>
+          AWS「Amazon ECS task IAM role」「Amazon ECS task execution IAM role」「Amazon ECS task definition parameters for Fargate」「Architect for AWS Fargate for Amazon ECS」<i>Amazon Elastic Container Service Developer Guide</i>.
+          <span class="note">参照箇所: タスクロールがアプリケーションコード用でエージェントからは使われないこと、実行ロールがエージェント用でコンテナから直接アクセスできないこと、実行ロールが要る5つのケース、ECSコンテナエージェント 1.16.0 以降という下限、6章に貼った信頼ポリシーと許可ポリシーの実例（<code>{{...}}</code> のプレースホルダ表記も含め加工していません）、Fargateでインスタンスプロファイルが使えないこと、Fargateのタスク分離とEC2起動タイプでの注意、<code>taskRoleArn</code> が Required: No で <code>executionRoleArn</code> が Required: Conditional であること、Fargateの定義。各ページのMarkdown版を <code>_labs/2026-08-15_aws-iam-first/</code> に保存しています。</span>
           <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
           AWS「AmazonECSTaskExecutionRolePolicy」<i>AWS Managed Policy Reference Guide</i>.
-          <span class="note">参照箇所: ポリシー本文のJSON（6つのActionと <code>"Resource": "*"</code>）、作成日 2017年11月16日、バージョン v1 が既定であること。6章に貼ったJSONはこのページの記載そのままです。</span>
+          <span class="note">参照箇所: ポリシー本文のJSON（6つのActionと <code>"Resource" : "*"</code>）、作成日 2017年11月16日 18:48 UTC、バージョン v1 が既定であること。6章に貼ったJSONはこのページの記載そのままです。Markdown版を保存しています（<code>AmazonECSTaskExecutionRolePolicy.md</code>）。</span>
           <a href="https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AmazonECSTaskExecutionRolePolicy.html">https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AmazonECSTaskExecutionRolePolicy.html</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
           AWS「Container credential provider」<i>AWS SDKs and Tools Reference Guide</i>.
-          <span class="note">参照箇所: ECSが <code>AWS_CONTAINER_CREDENTIALS_RELATIVE_URI</code> をセットすること、SDKがそのHTTPエンドポイントにGETして認証情報を取得すること。Markdown版を取得して読みました。<mark>この動作自体はコンテナを起動していないため未検証です</mark>（この環境ではDockerデーモンが動いていません）。</span>
+          <span class="note">参照箇所: ECSが <code>AWS_CONTAINER_CREDENTIALS_RELATIVE_URI</code> をセットすること、SDKがそのHTTPエンドポイントにGETして認証情報を取得すること。Markdown版を保存しています（<code>feature-container-credentials.md</code>）。<mark>この動作自体はコンテナを起動していないため未検証です</mark>（この環境ではDockerデーモンが動いていません）。</span>
           <a href="https://docs.aws.amazon.com/sdkref/latest/guide/feature-container-credentials.html">https://docs.aws.amazon.com/sdkref/latest/guide/feature-container-credentials.html</a>（2026年8月15日参照）
         </li>
         <li>
@@ -1247,18 +1327,18 @@ least privilege.
         </li>
         <li>
           <span class="flag self">自分の実測</span>
-          引用した原文52件の実在確認。2026年8月15日、各ページのMarkdown版を取得して部分一致で照合し、<mark>不一致0件</mark>でした。
-          <span class="note">Markdownの強調（<code>*</code>）・リンク記法・コード記法だけを落としてから比較しています。照合スクリプトと出力は <code>_labs/2026-08-15_aws-iam-first/verify_quotes.py</code> / <code>verify-output.txt</code> にあります。<b>要約ではなく原文そのものを貼る</b>方針にしたのは、この照合を機械でやれるようにするためです。</span>
+          引用の実在確認。2026年8月15日、各ページのMarkdown版を取得し、<mark>断片63件</mark>（原文の一部分と、<code>ecs-tasks.amazonaws.com</code> のような識別子を含む）を部分一致で照合して、不一致0件でした。
+          <span class="note">Markdownの強調（<code>*</code>）・リンク記法・コード記法だけを落としてから比較しています。照合スクリプトと出力は <code>_labs/2026-08-15_aws-iam-first/verify_quotes.py</code> / <code>verify-output.txt</code> にあります。<mark>これは「断片52件が原文に存在した」ことの確認であって、「引用ブロック全文が原文と一字一句同じ」ことの証明ではありません。</mark>途中の省略やJSONの整形は、この方法では原理的に検出できません。省略した箇所には <code>...</code> を入れ、整形した箇所は見出しに明記する方針にしています。<b>要約ではなく原文そのものを貼る</b>のは、この照合を機械でやれるようにするためです。</span>
         </li>
         <li>
           <span class="flag self">自分の実測</span>
-          <mark>AWSアカウントに対しては1回も実行していません。</mark>有効な認証情報が無いため、IAMユーザーの作成・ロールの作成・<code>sts assume-role</code>・<code>iam simulate-principal-policy</code>・ECSタスクの起動は、いずれも実行していません（実行できません）。
-          <span class="note">この記事に載せたターミナル出力は、(1) 認証情報が不要なAWS CLIの動作（<code>--generate-cli-skeleton</code>、引数不足によるクライアント側エラー）、(2) AWSが公開している機械可読データの取得と照合、(3) ローカルで完結する検証（Terraform / parliament / 自作の判定器）の3種類だけです。「AWS上でこう動いた」という記述は1つもありません。</span>
+          <mark>AWSアカウントに対しては1回も実行できていません。</mark>有効な認証情報が無いため、IAMユーザーの作成・ロールの作成・<code>sts assume-role</code>・<code>iam simulate-principal-policy</code>・ECSタスクの起動・IAM Access Analyzer の検証は、いずれも実行していません（実行できません）。
+          <span class="note">この記事に載せたターミナル出力は、(1) 認証情報が不要なAWS CLIの動作（<code>--generate-cli-skeleton</code>、引数不足によるクライアント側エラー）、(2) AWSが公開している機械可読データの取得と照合、(3) ローカルで完結する検証（Terraform / parliament / 自作の判定器）の3種類だけです。「AWS上でこう動いた」という記述は1つもありません。<mark>ただし1点だけ正確に書きます。</mark>環境確認のため <code>aws sts get-caller-identity</code> を1回だけ叩き、<code>InvalidClientTokenId</code> を受け取りました（＝AWSまで届いて拒否された）。この出力は記事には載せていません。</span>
         </li>
         <li>
           <span class="flag self">自分の実測</span>
           ローカル検証。2026年8月15日実施。AWS CLI 1.46.0（botocore 1.43.62 / Python 3.11.15）、Terraform v1.14.3（terraform-provider-aws 6.60.0）、parliament 1.6.4、pytest 9.1.1。
-          <span class="note">貼った出力は <code>bash run_all.sh</code> の結果そのままです。行の削除・並べ替え・複数コマンドの合成はしていません。長い行には <code>fold -s -w 38</code> による折り返しを掛けていますが、<mark>文言は1文字も変えていません</mark>。検証コード一式と全出力は <code>_labs/2026-08-15_aws-iam-first/</code> に置いてあります。なお最初に一度 <code>terraform apply -auto-approve</code> を実行しました。対象はデータソースと出力値だけで結果は <code>Apply complete! Resources: 0 added, 0 changed, 0 destroyed.</code>、AWS上には何も作られていません。以降は <code>plan</code> のみです。</span>
+          <span class="note">貼った出力は <code>bash run_all.sh</code> の結果（<code>output.txt</code>）と、幅380pxに収めるため取り直した2件（<code>extra-output.txt</code>）の実出力です。<mark>ここは正確に書きます。</mark>(1) 2章の端末ブロックは <code>create-access-key</code> と <code>assume-role</code> の2コマンドを1つの枠にまとめて表示しています。(2) 各行頭の <code>$ …</code> は、どのコマンドの出力かが分かるように表示用に付け足したもので、<code>output.txt</code> には含まれません。(3) 長い行には <code>fold -s -w 38</code> による折り返しを掛けています。<mark>出力の文言そのものは1文字も変えていません</mark>（行の削除・並べ替え・書き換えはしていません）。検証コード一式と全出力は <code>_labs/2026-08-15_aws-iam-first/</code> に置いてあります。なお最初に一度 <code>terraform apply -auto-approve</code> を実行しました。対象はデータソースと出力値だけで結果は <code>Apply complete! Resources: 0 added, 0 changed, 0 destroyed.</code>、AWS上には何も作られていません。以降は <code>plan</code> のみです。</span>
         </li>
         <li>
           <span class="flag self">自分の意見</span>

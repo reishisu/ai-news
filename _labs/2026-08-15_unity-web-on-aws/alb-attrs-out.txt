@@ -9,5 +9,5 @@ access_control_max_age
 content_security_policy
 x_content_type_options
 x_frame_options
---- COOP/COEP/CORP の出現回数 ---
+--- cross-origin- を含む行数 ---
 0

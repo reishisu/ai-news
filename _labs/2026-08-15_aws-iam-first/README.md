@@ -162,10 +162,67 @@ s3:GetObject  -> arn:aws:s3:::${BucketName}/${ObjectName}
 ## 追記（記事執筆時 2026-08-15）
 
 - `verify_quotes.py` / `verify-output.txt`
-  記事に貼った**原文52件**が公式ドキュメントに実在するかを機械照合する。
-  各ページのMarkdown版を取得し、Markdownの強調とリンク記法だけ落として
-  部分一致を見る。実行結果は「不一致 0 件」。
+  記事に貼った引用の**断片63件**が公式ドキュメントに実在するかを機械照合する。
+  各ページのMarkdown版を取得し、Markdownの強調・リンク記法・バックスラッシュ
+  だけ落として部分一致を見る。実行結果は「不一致 0 件」。
+  **これは「断片が存在した」ことの確認で、「引用ブロック全文が一字一句同じ」
+  ことの証明ではない。** 途中の省略やJSONの整形はこの方法では検出できない。
 - `extra-output.txt`
   `run_all.sh` の 6.（`head -8` で `DurationSeconds` が切れていた）と
   2.（ロール名が長く380px幅に収まらなかった）を、記事用に取り直したもの。
   文言は無加工。
+
+---
+
+## 追記2（編集時 2026-08-15・editor-in-chief）
+
+事実検証で挙がった指摘を反映した。
+
+### 直した誤り（重大）
+
+1. **「信頼ポリシーには『誰でもいい』と書けない」は誤りだった。**
+   ARNの**一部**をワイルドカードにできないだけで、`"Principal": {"AWS": "*"}`
+   は書ける。根拠は `reference_policies_elements_principal.md`:
+   - `You can use a wildcard (*) to specify all principals in the Principal
+     element of a resource-based policy`
+   - `We strongly recommend that you do not use a wildcard (*) ... This is
+     especially true for IAM role trust policies`
+   - `Do not leave your role accessible to everyone!`
+   記事は「IAMが防いでいる」→「書けてしまうので書かないこと」に反転させた。
+2. **「存在しないアクション名を書いてもIAMはエラーにならない」は無出典だった。**
+   公式には `INVALID_ACTION` / Finding type `ERROR` がある
+   （`access-analyzer-reference-policy-checks.md`）。断定を削り、
+   「検証機能は ERROR を返す（公式）／API受理時の挙動は未確認」に書き分けた。
+
+### 直した細かい点
+
+- 8章の並び順は公式 `best-practices.md` の `##` 見出し順ではない
+  （公式は federation → workloads → MFA → access keys → root user）。
+  記事側に「並べ替えているのは筆者」と明記した。
+- 引用の未表示の中略を解消（タスクロール／実行ロールの "required" の一文、
+  confused deputy の文頭 `When creating your task IAM role,`、
+  `without calling sts:AssumeRole` の後続節）。
+- 公式JSONの `"Version":"2012-10-17",`（コロン後スペースなし）を原文どおりに戻し、
+  見出しに「原文のまま・行末の空白のみ除去」と書いた。
+- `fold_diag.py` は 13 行、`eval_sim.py` は 114 行（`wc -l`）。記事の
+  「15行」「70行ほど」を実測値に直した。
+- `check_resources.py` が `accesspoint` / `accesspointobject` を黙って
+  落としていたので、**省略したことを出力自身に印字する**ように直して実行し直した。
+- 「ロールには必ずポリシーが2枚付く」は一般化しすぎ。必須なのは信頼ポリシーだけ
+  （`CreateRole` の `AssumeRolePolicyDocument: Required: Yes`）。
+
+### 保存した一次資料を増やした
+
+`fetch_refs.py` の取得対象に、以前メモリ上でしか読んでいなかった
+`introduction` / `id_groups` / `reference_policies_elements` / `best-practices` /
+`access-analyzer-reference-policy-checks` / ECS 3ページ /
+`feature-container-credentials` / `AmazonECSTaskExecutionRolePolicy` を追加した。
+26件すべて HTTP 200、失敗 0 件（`fetch-output.txt`）。
+
+### 今回も確認できなかったこと
+
+- **存在しないアクション名を含むポリシーをIAM APIが受理するかどうか。**
+  認証情報が無く `CreatePolicy` を呼べない。記事にも「未確認」と書いた。
+- **IAM Access Analyzer のポリシー検証の実行結果。** 同上。
+- **Terraform の再現。** `/` の空きが少なくプロバイダを取り直せない場合がある。
+  既存の `tf/` `tf-bad/` の `.terraform` を消さないこと。

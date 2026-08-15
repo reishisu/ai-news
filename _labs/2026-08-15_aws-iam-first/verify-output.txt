@@ -50,4 +50,15 @@ OK  denyallow An explicit deny overrides an explicit allow
 OK  sts       consist of an access key ID, a secret access
 OK  sts       up to the maximum session duration set for t
 OK  sts       By default, the value is set to 3600 seconds
+OK  principal You can use a wildcard (*) to specify all pr
+OK  principal We strongly recommend that you do not use a 
+OK  principal This is especially true for IAM role trust p
+OK  principal Do not leave your role accessible to everyon
+OK  checks    INVALID_ACTION
+OK  checks    Invalid action: The action {{action}} does n
+OK  roles     When you create a trust policy, you cannot s
+OK  taskrole  The task role is required when your applicat
+OK  taskrole  When creating your task IAM role, we recomme
+OK  taskrole  without calling `sts:AssumeRole` to assume t
+OK  execrole  The task execution IAM role is required depe
 --- 不一致 0 件

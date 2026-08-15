@@ -5,7 +5,8 @@
     "Laravel",
     "MySQL",
     "実測",
-    "入門"
+    "入門",
+    "公式ドキュメント"
   ],
   "featured": true,
   "title": "TiDBを最初に触る — MySQLと同じところ、違うところ",

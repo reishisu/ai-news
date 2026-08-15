@@ -13,6 +13,9 @@ SVCREF = "https://servicereference.us-east-1.amazonaws.com"
 IAM_UG = "https://docs.aws.amazon.com/IAM/latest/UserGuide"
 IAM_API = "https://docs.aws.amazon.com/IAM/latest/APIReference"
 STS_API = "https://docs.aws.amazon.com/STS/latest/APIReference"
+ECS_DG = "https://docs.aws.amazon.com/AmazonECS/latest/developerguide"
+SDKREF = "https://docs.aws.amazon.com/sdkref/latest/guide"
+MANAGED = "https://docs.aws.amazon.com/aws-managed-policy/latest/reference"
 
 JOBS = [
     (f"{SVCREF}/", "svcref-index.json"),
@@ -21,20 +24,35 @@ JOBS = [
     (f"{SVCREF}/v1/iam/iam.json", "svcref-iam.json"),
 ]
 for page in [
+    "introduction",
     "reference_policies_evaluation-logic",
     "reference_policies_evaluation-logic_policy-eval-denyallow",
+    "reference_policies_elements",
     "reference_policies_elements_effect",
     "reference_policies_elements_version",
     "reference_policies_elements_principal",
     "reference_policies_condition-keys",
+    "access-analyzer-reference-policy-checks",
     "access_policies",
+    "best-practices",
     "id_users",
+    "id_groups",
     "id_roles",
     "id_credentials_access-keys",
 ]:
     JOBS.append((f"{IAM_UG}/{page}.md", f"{page}.md"))
+for page in [
+    "task-iam-roles",
+    "task_execution_IAM_role",
+    "task_definition_parameters",
+]:
+    JOBS.append((f"{ECS_DG}/{page}.md", f"{page}.md"))
 JOBS.append((f"{IAM_API}/API_CreateRole.md", "API_CreateRole.md"))
 JOBS.append((f"{STS_API}/API_AssumeRole.md", "API_AssumeRole.md"))
+JOBS.append((f"{SDKREF}/feature-container-credentials.md",
+             "feature-container-credentials.md"))
+JOBS.append((f"{MANAGED}/AmazonECSTaskExecutionRolePolicy.md",
+             "AmazonECSTaskExecutionRolePolicy.md"))
 
 
 def main():

@@ -17,6 +17,7 @@
 
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -35,8 +36,23 @@ def site_code():
     return str((conf.get("analytics") or {}).get("code") or "").strip()
 
 
+def article_slug(path):
+    """閲覧パスから記事ディレクトリ名だけを取り出す。
+
+    GoatCounter は訪問者が開いたURLをそのまま記録するため、末尾スラッシュの
+    有無・index.html・クエリ文字列・フラグメントが混ざる。そのまま
+    popular.json に書くと、同じ記事が別ページとして分かれて数え落とすうえ、
+    **クエリ文字列に載った他人の秘密が公開リポジトリに入る**。
+    (実例: giscus はログイン後に ?giscus=<トークン> を付けてリダイレクトする)
+
+    そこで記事ディレクトリ名だけを残し、それ以外は捨てる。
+    """
+    m = re.search(r"/contents/([A-Za-z0-9._-]+)", path)
+    return m.group(1) if m else ""
+
+
 def fetch(code, token, days):
-    """記事ページのパスと閲覧数の一覧を返す。"""
+    """記事ディレクトリ名と閲覧数の一覧を返す。"""
     start = (date.today() - timedelta(days=days)).isoformat()
     url = (f"https://{code}.goatcounter.com/api/v0/stats/hits"
            f"?start={start}&limit=200")
@@ -47,13 +63,15 @@ def fetch(code, token, days):
     with urllib.request.urlopen(req, timeout=30) as res:
         data = json.loads(res.read().decode("utf-8"))
 
-    items = []
+    counts = {}
     for hit in data.get("hits", []):
-        path = str(hit.get("path", ""))
-        if "/contents/" not in path:
+        slug = article_slug(str(hit.get("path", "")))
+        if not slug:
             continue  # 記事ページだけを対象にする
-        items.append({"path": path, "count": int(hit.get("count", 0))})
-    items.sort(key=lambda x: -x["count"])
+        counts[slug] = counts.get(slug, 0) + int(hit.get("count", 0))
+
+    items = [{"path": f"contents/{slug}", "count": n} for slug, n in counts.items()]
+    items.sort(key=lambda x: (-x["count"], x["path"]))
     return items
 
 

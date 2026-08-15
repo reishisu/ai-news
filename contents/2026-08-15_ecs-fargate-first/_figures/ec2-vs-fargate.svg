@@ -12,14 +12,14 @@
 
   <rect x="28" y="124" width="130" height="42" rx="6" fill="var(--bg)"/>
   <text x="42" y="141" fill="var(--fg)" font-size="11.5" font-weight="700">コンテナ</text>
-  <text x="42" y="159" fill="var(--sub)" font-size="10.5">ホストのポート経由</text>
+  <text x="42" y="159" fill="var(--sub)" font-size="10.5">EC2のIPを共有</text>
 
   <rect x="170" y="124" width="130" height="42" rx="6" fill="var(--bg)"/>
   <text x="184" y="141" fill="var(--fg)" font-size="11.5" font-weight="700">コンテナ</text>
-  <text x="184" y="159" fill="var(--sub)" font-size="10.5">ホストのポート経由</text>
+  <text x="184" y="159" fill="var(--sub)" font-size="10.5">EC2のIPを共有</text>
 
   <text x="28" y="190" fill="var(--fg)" font-size="11.5">networkMode: Linuxの既定は bridge</text>
-  <text x="28" y="208" fill="var(--c)" font-size="11.5" font-weight="700">同じEC2を共有。ポートを取り合う</text>
+  <text x="28" y="208" fill="var(--c)" font-size="11.5" font-weight="700">同じEC2を共有。IPは1つ</text>
 
   <rect x="14" y="234" width="300" height="62" rx="10" fill="var(--track)"/>
   <text x="28" y="258" fill="var(--sub)" font-size="11.5">ALBのターゲットタイプ</text>
@@ -41,7 +41,7 @@
   <text x="496" y="157" fill="var(--fg)" font-size="11">10.0.2.41:80</text>
 
   <text x="340" y="190" fill="var(--fg)" font-size="11.5">networkMode: awsvpc 固定</text>
-  <text x="340" y="208" fill="var(--new)" font-size="11.5" font-weight="700">タスクごとに独立。ポートは被らない</text>
+  <text x="340" y="208" fill="var(--new)" font-size="11.5" font-weight="700">タスクごとに独立。IPが別</text>
 
   <rect x="326" y="234" width="300" height="62" rx="10" fill="var(--track)"/>
   <text x="340" y="258" fill="var(--sub)" font-size="11.5">ALBのターゲットタイプ</text>

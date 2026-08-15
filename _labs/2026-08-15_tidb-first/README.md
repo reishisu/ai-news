@@ -63,7 +63,27 @@ bash 16_ddl_fix.sh       # 8256 の直し方を4通り
 bash 17_laravel.sh       # Laravel を TiDB に通す
 php 18_quota.php
 php 19_laravel_coll.php
+bash 22_disk.sh          # 8256 の条件を記録
 ```
+
+両方起動した状態で（公開前の再検証で追加した分）:
+
+```
+php 20_check.php > out_20_check.txt      # CHECK 制約
+php 21_cost.php  > out_21_cost.txt       # estCost の比較
+```
+
+`21_cost.php` は `EXPLAIN FORMAT='verbose'` の `estCost` を使う。
+既定の計画（TableFullScan）と、`USE_INDEX` ヒントで索引を強制した計画の
+全体コストを並べて、オプティマイザが安いほうを選んでいることを確かめる。
+
+## 測っていないこと（記事にもそう書いてある）
+
+- `tidb_enable_check_constraint` を ON にしたあとの CHECK の挙動
+- ギャップロックの挙動差（公式ドキュメントの記述として紹介するに留めた）
+- AUTO_RANDOM への移行、複数 TiDB server での ID 採番、TiFlash の性能
+- エラー8256 が出た瞬間の `/tmp` の空き容量。記録し損ねたので、
+  同日に測り直した値を `out_22_disk.txt` に残した（追試不能）
 
 ## ファイル
 
@@ -89,6 +109,9 @@ php 19_laravel_coll.php
 | `17_laravel.sh` | Laravel のマイグレーション |
 | `18_quota.php` | disk_quota は下げられるか |
 | `19_laravel_coll.php` | Laravel の DDL は照合順序を明示する |
+| `20_check.php` | CHECK 制約は実際に効くか（TiDB は既定 OFF） |
+| `21_cost.php` | 1000行で全表スキャンを選ぶ理由を estCost で確認 |
+| `22_disk.sh` | エラー8256の条件（/tmp の空きと disk_quota）を記録 |
 
 `out_<名前>.txt` が各スクリプトの出力（記事に貼ったものと同一、無加工）。
 `out_13_laravel_fail.txt` `out_14_laravel_nodb.txt` `out_15_laravel_ok.txt`

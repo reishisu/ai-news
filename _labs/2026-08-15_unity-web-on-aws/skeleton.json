@@ -1,0 +1,86 @@
+{
+    "ResponseHeadersPolicyConfig": {
+        "Comment": "",
+        "Name": "",
+        "CorsConfig": {
+            "AccessControlAllowOrigins": {
+                "Quantity": 0,
+                "Items": [
+                    ""
+                ]
+            },
+            "AccessControlAllowHeaders": {
+                "Quantity": 0,
+                "Items": [
+                    ""
+                ]
+            },
+            "AccessControlAllowMethods": {
+                "Quantity": 0,
+                "Items": [
+                    "DELETE"
+                ]
+            },
+            "AccessControlAllowCredentials": true,
+            "AccessControlExposeHeaders": {
+                "Quantity": 0,
+                "Items": [
+                    ""
+                ]
+            },
+            "AccessControlMaxAgeSec": 0,
+            "OriginOverride": true
+        },
+        "SecurityHeadersConfig": {
+            "XSSProtection": {
+                "Override": true,
+                "Protection": true,
+                "ModeBlock": true,
+                "ReportUri": ""
+            },
+            "FrameOptions": {
+                "Override": true,
+                "FrameOption": "DENY"
+            },
+            "ReferrerPolicy": {
+                "Override": true,
+                "ReferrerPolicy": "strict-origin-when-cross-origin"
+            },
+            "ContentSecurityPolicy": {
+                "Override": true,
+                "ContentSecurityPolicy": ""
+            },
+            "ContentTypeOptions": {
+                "Override": true
+            },
+            "StrictTransportSecurity": {
+                "Override": true,
+                "IncludeSubdomains": true,
+                "Preload": true,
+                "AccessControlMaxAgeSec": 0
+            }
+        },
+        "ServerTimingHeadersConfig": {
+            "Enabled": true,
+            "SamplingRate": 0.0
+        },
+        "CustomHeadersConfig": {
+            "Quantity": 0,
+            "Items": [
+                {
+                    "Header": "",
+                    "Value": "",
+                    "Override": true
+                }
+            ]
+        },
+        "RemoveHeadersConfig": {
+            "Quantity": 0,
+            "Items": [
+                {
+                    "Header": ""
+                }
+            ]
+        }
+    }
+}

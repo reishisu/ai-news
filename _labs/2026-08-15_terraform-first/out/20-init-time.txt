@@ -1,0 +1,8 @@
+# init の所要時間（クリーンな作業ディレクトリ / プラグインキャッシュ無し）
+# date(UTC) : 2026-08-15T09:23:53Z
+# Terraform v1.14.3
+# on linux_amd64
+
+run1  exit=0  17.18 sec
+run2  exit=0  13.27 sec
+run3  exit=0  13.05 sec

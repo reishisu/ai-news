@@ -23,6 +23,8 @@ PAGES = {
  "evallogic": "/IAM/latest/UserGuide/reference_policies_evaluation-logic.html",
  "denyallow": "/IAM/latest/UserGuide/reference_policies_evaluation-logic_policy-eval-denyallow.html",
  "sts": "/STS/latest/APIReference/API_AssumeRole.html",
+ "principal": "/IAM/latest/UserGuide/reference_policies_elements_principal.html",
+ "checks": "/IAM/latest/UserGuide/access-analyzer-reference-policy-checks.html",
 }
 CHECKS = [
  ("intro", "one sign-in identity called the AWS account root user that has complete access"),
@@ -77,6 +79,18 @@ CHECKS = [
  ("sts", "consist of an access key ID, a secret access key, and a security token"),
  ("sts", "up to the maximum session duration set for the role"),
  ("sts", "By default, the value is set to 3600 seconds."),
+ # --- 編集時に追加（2026-08-15）: 信頼ポリシーのワイルドカードと INVALID_ACTION ---
+ ("principal", "You can use a wildcard (*) to specify all principals in the `Principal` element of a resource-based policy"),
+ ("principal", "We strongly recommend that you do not use a wildcard (*) in the `Principal` element of a resource-based policy with an `Allow` effect unless you intend to grant public or anonymous access."),
+ ("principal", "This is especially true for IAM role trust policies, because they allow other principals to become a principal in your account."),
+ ("principal", "Do not leave your role accessible to everyone"),
+ ("checks", "INVALID_ACTION"),
+ ("checks", "Invalid action: The action {{action}} does not exist. Did you mean {{valid_action}}?"),
+ ("roles", "When you create a trust policy, you cannot specify a wildcard (*) as part of an ARN in the principal element."),
+ ("taskrole", "The task role is required when your application accesses other AWS services, such as Amazon S3."),
+ ("taskrole", "When creating your task IAM role, we recommend that you use the `aws:SourceAccount` or `aws:SourceArn` condition keys in the trust relationship policy associated with the role to scope the permissions further to prevent the confused deputy security issue."),
+ ("taskrole", "without calling `sts:AssumeRole` to assume the same role that is already associated with the task."),
+ ("execrole", "The task execution IAM role is required depending on the requirements of your task."),
 ]
 
 cache = {}
@@ -93,7 +107,7 @@ def body(k):
 def norm(s):
     # HTML版で消える Markdown 記法（強調・リンク・コード）を落としてから比べる
     s = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", s)
-    s = s.replace("*", "").replace("`", "")
+    s = s.replace("*", "").replace("`", "").replace("\\", "")
     return re.sub(r"\s+", " ", s)
 
 ng = 0

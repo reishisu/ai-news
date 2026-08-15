@@ -12,10 +12,14 @@ print("(${Partition} は aws に置換して表示)")
 for act in ["ListBucket", "GetObject"]:
     a = next(x for x in d["Actions"] if x["Name"] == act)
     print(f"s3:{act}")
+    skipped = []
     for r in a["Resources"]:
         if r["Name"] not in KEEP:
+            skipped.append(r["Name"])
             continue
         s = arn[r["Name"]].replace("${Partition}", "aws")
         print(f"  対象 {r['Name']}")
         print(f"{s}")
+    if skipped:
+        print(f"  他 {len(skipped)} 種は省略: {','.join(skipped)}")
     print()

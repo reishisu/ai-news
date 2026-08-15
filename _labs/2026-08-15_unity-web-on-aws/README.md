@@ -78,8 +78,69 @@ Terraform v1.14.3 / aws-cli 1.46.0 (botocore 1.43.62)
 ## 追加（記事執筆時）
 
 `alb_attrs.sh` — ALB のレスポンス側リスナー属性を AWS 公式ドキュメントの
-Markdown 版から抜き出し、`cross-origin-` の出現回数を数える。
+Markdown 版から抜き出し、`cross-origin-` を含む行数を数える。
 出力は `alb-attrs-out.txt`（記事2章に貼ったものと同一）。
 
 記事本文で引用した一次資料は、いずれも本文を取得して該当箇所を読んでいる。
 AWS ドキュメントは URL 末尾を `.md` にすると装飾なしで取得できる。
+
+## 追加（編集時 / 2026-08-15）
+
+`verify_pasted.py` — 記事の `<div class="code term">` に貼ったターミナル出力が、
+`output.txt` などの実行結果と1行ずつ一致するかを機械照合する。
+
+```bash
+python3 verify_pasted.py
+```
+
+`<span class="ok-line">` などのタグを剥がし、末尾空白を無視して比較する。
+「実行結果に無い行」だけでなく、**実行結果の中で連続した並びになっているか**も見る。
+中間の行を落とすと後者で落ちる。
+
+### 折り返し幅の変更（W=40 → 37）
+
+幅380pxのブラウザで測ったところ、ターミナル出力のブロックが 13px（約2文字）だけ
+内側で横スクロールしていた。**出力を手で書き換えるのは禁止**なので、
+`probe.js` の `const W`（1行の上限・半角換算）を 40 → 37 にして
+`./run_all.sh` を実行し直した。
+
+再実行後の `output.txt` は、**空白を無視すると変更前と1文字も違わない**
+（値は同一で、折り返し位置だけが変わった）。terraform の節も差分なし。
+確認方法:
+
+```bash
+python3 -c "import re;f=lambda p:re.sub(r'\s+','',open(p).read());print(f('a.txt')==f('b.txt'))"
+```
+
+再実行後、`.code term` の内側の横スクロールは全ブロックで 0 になった。
+
+### 記事に貼った行の欠落（修正済み）
+
+初回の照合で、記事側の3ブロックが実行結果から行を落としていることが分かったので、
+落ちていた行（6章の `NG ヘッダーなし`(fetch)、`ERR_FAILED` の2行、
+`onerror (詳細は下の行)`、5章の `app.loader.js` / `app.framework.js.br` /
+`app.wasm` の3件）を戻した。**現在は8ブロックすべてが連続一致する。**
+
+### 記事の主張のうち、あえて落としたもの
+
+- 「CloudFront と配信元の両方にヘッダーを書くと COEP が2本並ぶ」
+  → AWS 公式（`understanding-response-headers-policies`）の Custom headers /
+    Origin override は3つの場合分けを網羅していて、**どの場合も1本**になる。
+    公式が言っていないうえ、この環境では実機で確かめられないので削除した。
+    代わりに、二重付与が実際に起きる経路として
+    **Apache の `Header add`**（`mod_headers` が「同名ヘッダーが2つ以上できることがある」と明記。
+    しかも Unity 公式の Apache 例がこれを使っている）と
+    **nginx の `add_header` を同じ階層に2回書く場合**（`There could be several add_header directives.`）
+    に限定した。nginx / Apache とも**この環境では動かしていない**（ドキュメントのみ）。
+- 「平文HTTPでは Brotli が要求されない」
+  → `output.txt` の `Accept-Encoding (localhost, http)` が `gzip, deflate, br, zstd` なので誤り。
+    条件はセキュアコンテキストかどうか。「IP直打ちの平文HTTP」に限定した。
+- 「`.data.br` は S3 既定の `binary/octet-stream` になる」
+  → S3 側の既定値の出典が取れなかった。`mimetypes.guess_type('app.data.br')` が
+    `(None, 'br')` を返すところまでが実測。既定値の具体名は記事から削除した。
+
+### 引用の直し
+
+- HTML 仕様 §7.1.4.1 の表は**7行**（記事は6行で `unknown-value, unknown-value` を落としていた）。
+  見出し行と直後の `(The same applies to ...-Report-Only.)` も含めて貼り直した。
+- HTML 仕様 §2.7 は `browsers.html` ではなく `structured-data.html` にある。参考文献に追記。
