@@ -228,10 +228,10 @@ def test_高額は送料無料():
 
       <div class="code term">
         <div class="code-head">実行結果(この環境で実際に出た出力)</div>
-        <pre>$ python3 -m pytest -q
-.F.                                                                      [100%]
-=================================== FAILURES ===================================
-_____________________________ test_ちょうど3000円は送料無料 ______________________________
+        <pre>$ COLUMNS=40 python3 -m pytest -q
+.F.                              [100%]
+=============== FAILURES ===============
+_________ test_ちょうど3000円は送料無料 __________
 
     def test_ちょうど3000円は送料無料():
 &gt;       assert shipping_fee(3000) == 0
@@ -239,8 +239,8 @@ E       assert 500 == 0
 E        +  where 500 = shipping_fee(3000)
 
 test_shipping.py:9: AssertionError
-=========================== short test summary info ============================
-FAILED test_shipping.py::test_ちょうど3000円は送料無料 - assert 500 == 0
+======= short test summary info ========
+FAILED test_shipping.py::test_ちょうど3000円は送料無料
 <span class="ng-line">1 failed, 2 passed in 0.02s</span></pre>
       </div>
 
@@ -248,7 +248,22 @@ FAILED test_shipping.py::test_ちょうど3000円は送料無料 - assert 500 ==
         <li><b>この出力をそのまま貼る。</b>どのテストがどの値で落ちたか全部入り。説明文を書くより速い。</li>
         <li><b>テスト名は日本語でいい。</b>Pythonは日本語の関数名が使えます。そのまま仕様書になります。</li>
         <li><b>まずは3件から。</b>境界(3000)・その手前(2999)・普通の値(5000)。off-by-oneはこれで捕まります。</li>
+        <li><b><code>COLUMNS=40</code> は幅を詰めるため。</b>付けないと <code>=== FAILURES ===</code> や <code>[100%]</code> の行が端末幅いっぱい(80桁)に伸びます。スマホで読むには長すぎるので、この記事では40桁で取り直しています。</li>
       </ul>
+
+      <details>
+        <summary>やってみて分かった、pytest の幅指定のクセ</summary>
+        <div class="body">
+          <dl>
+            <dt>40未満を指定しても効かない</dt>
+            <dd><code>COLUMNS</code> に 34 / 30 / 26 を入れて実測しましたが、いずれも80桁の出力に戻りました。pytest には下限があります。<b>40が実質の最小値</b>です。</dd>
+            <dt>日本語のテスト名だと、40を指定しても超える</dt>
+            <dd>pytest は幅を<mark>「文字数」で数えていて、全角文字が表示上2桁ぶん占めることを見ていません</mark>。<code>_________ test_ちょうど3000円は送料無料 __________</code> は40<b>文字</b>ちょうどですが、表示幅は<b>50桁</b>あります。日本語のテスト名を使うなら、ここは諦めどころです。</dd>
+            <dt>ループの中では <code>--tb=no</code> を足す</dt>
+            <dd>後で出てくる <code>loop.sh</code> は <code>pytest -q --tb=no</code> にしています。やり直すたびにトレースバックが全部出ると、肝心の「何回目で通ったか」が流れて読めなくなるためです。</dd>
+          </dl>
+        </div>
+      </details>
     </article>
 
     <article class="item">
@@ -304,17 +319,17 @@ python3 -m pytest -q --tb=no &gt;&amp;2 || exit 2</pre>
         <div class="code-head">フック単体の動作確認(実際の出力)</div>
         <pre>$ IN='{"tool_input":{"file_path":"shipping.py"}}'
 $ echo "$IN" | .claude/hooks/pytest.sh
-.F.                                                                      [100%]
-=========================== short test summary info ============================
-FAILED test_shipping.py::test_ちょうど3000円は送料無料 - assert 500 == 0
+.F.                              [100%]
+======= short test summary info ========
+FAILED test_shipping.py::test_ちょうど3000円は送料無料
 <span class="ng-line">1 failed, 2 passed in 0.01s</span>
 $ echo $?
 <span class="ng-line">2</span>
 
 # バグを直して、もう一度叩く
 $ echo "$IN" | .claude/hooks/pytest.sh
-...                                                                      [100%]
-<span class="ok-line">3 passed in 0.00s</span>
+...                              [100%]
+<span class="ok-line">3 passed in 0.01s</span>
 $ echo $?
 <span class="ok-line">0</span></pre>
       </div>
@@ -370,7 +385,7 @@ $ echo $?
 MAX=5
 for i in $(seq 1 $MAX); do
   echo "--- $i 回目 ---"
-  if python3 -m pytest -q; then
+  if python3 -m pytest -q --tb=no; then
     echo "✅ 全部通ったので終了"
     exit 0
   fi
@@ -388,17 +403,18 @@ exit 1</pre>
         <div class="code-head">実行結果(実際に走らせたログ)</div>
         <pre>$ ./loop.sh
 --- 1 回目 ---
-.F.                                                                      [100%]
-FAILED test_shipping.py::test_ちょうど3000円は送料無料 - assert 500 == 0
-<span class="ng-line">1 failed, 2 passed in 0.02s</span>
+.F.                              [100%]
+======= short test summary info ========
+FAILED test_shipping.py::test_ちょうど3000円は送料無料
+<span class="ng-line">1 failed, 2 passed in 0.01s</span>
 🔧 直します
 --- 2 回目 ---
-...                                                                      [100%]
+...                              [100%]
 <span class="ok-line">3 passed in 0.01s</span>
 <span class="ok-line">✅ 全部通ったので終了</span>
 
 $ echo $?
-0</pre>
+<span class="ok-line">0</span></pre>
       </div>
 
       <ul class="points">
@@ -434,10 +450,12 @@ $ echo $?
 
       <div class="code term">
         <div class="code-head">壊れていたときの実際の出力</div>
-        <pre>$ ./loop.sh          # if python3 -m pytest -q | tail -1; then
+        <pre>$ ./loop.sh
+# if python3 -m pytest -q --tb=no | tail -1
 --- 1 回目 ---
 <span class="ng-line">1 failed, 2 passed in 0.01s</span>
-<span class="ok-line">✅ 全部通ったので終了</span>     ← 落ちてるのに成功扱い</pre>
+<span class="ok-line">✅ 全部通ったので終了</span>
+       ↑ 落ちてるのに成功扱い</pre>
       </div>
 
       <div class="quiz">

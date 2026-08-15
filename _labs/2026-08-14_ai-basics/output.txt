@@ -1,0 +1,53 @@
+########## BLOCK 4: pytest 単体 ##########
+$ COLUMNS=40 python3 -m pytest -q
+.F.                              [100%]
+=============== FAILURES ===============
+_________ test_ちょうど3000円は送料無料 __________
+
+    def test_ちょうど3000円は送料無料():
+>       assert shipping_fee(3000) == 0
+E       assert 500 == 0
+E        +  where 500 = shipping_fee(3000)
+
+test_shipping.py:9: AssertionError
+======= short test summary info ========
+FAILED test_shipping.py::test_ちょうど3000円は送料無料
+1 failed, 2 passed in 0.02s
+
+########## BLOCK 7: フック単体 ##########
+$ IN='{"tool_input":{"file_path":"shipping.py"}}'
+$ echo "$IN" | .claude/hooks/pytest.sh
+.F.                              [100%]
+======= short test summary info ========
+FAILED test_shipping.py::test_ちょうど3000円は送料無料
+1 failed, 2 passed in 0.01s
+$ echo $?
+2
+
+# バグを直して、もう一度叩く
+$ echo "$IN" | .claude/hooks/pytest.sh
+...                              [100%]
+3 passed in 0.01s
+$ echo $?
+0
+
+########## BLOCK 9: loop.sh ##########
+$ ./loop.sh
+--- 1 回目 ---
+.F.                              [100%]
+======= short test summary info ========
+FAILED test_shipping.py::test_ちょうど3000円は送料無料
+1 failed, 2 passed in 0.01s
+🔧 直します
+--- 2 回目 ---
+...                              [100%]
+3 passed in 0.01s
+✅ 全部通ったので終了
+$ echo $?
+0
+
+########## BLOCK 10: 壊れていた版 ##########
+$ ./loop.sh   # if python3 -m pytest -q --tb=no | tail -1
+--- 1 回目 ---
+1 failed, 2 passed in 0.01s
+✅ 全部通ったので終了
