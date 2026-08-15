@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>一番大きいタスクを速くしても、納期は1日も縮まない</title>
-<meta name="description" content="ログイン機能を7個に分解し、依存関係から最短日数を計算しました。一番大きいタスクを半分にしても全体は変わりません。50行のスクリプトと、そのまま使えるテンプレート付き。">
+<meta name="description" content="ログイン機能を7個に分解し、依存関係から最短日数と全余裕(total float)を計算しました。一番大きいタスクを半分にしても全体は変わりません。動かせるスクリプトと、そのまま使えるテンプレート付き。">
 <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="apple-touch-icon" href="../../favicon.svg">
 <meta property="og:type" content="article">
@@ -33,7 +33,7 @@
       <span class="time-chip">⏱ 約7分</span>
       <span class="tag">リード向け</span>
       <span class="tag">テンプレ配布</span>
-      <span class="tag">50行のスクリプト付き</span>
+      <span class="tag">動かせるスクリプト付き</span>
     </div>
   </div>
 
@@ -49,8 +49,8 @@
         <span>実際に計算した結果です。4.5日のまま変わりません。</span>
       </li>
       <li>
-        <b>縮むのは「余裕ゼロの道」を縮めたときだけ。しかも縮めると道が移る</b>
-        <span>だから毎回計算し直します。50行のスクリプトを置いておきます。</span>
+        <b>縮むのは「全余裕ゼロの道」を縮めたときだけ。しかも縮めると道が増える</b>
+        <span>今回は1本だった道が2本になりました。だから毎回計算し直します。動かせるスクリプトを置いておきます。</span>
       </li>
     </ol>
   </section>
@@ -60,10 +60,11 @@
     <ol>
       <li><a href="#s1">まず7個に割ってみる</a></li>
       <li><a href="#s2">依存関係を書くと、並行にできる形が見える</a></li>
-      <li><a href="#s3">計算する（50行）</a></li>
+      <li><a href="#s3">計算する（全余裕を出す）</a></li>
       <li><a href="#s4">一番大きいタスクを縮めてみる</a></li>
       <li><a href="#s5">分解でよくある失敗3つ</a></li>
       <li><a href="#s6">そのまま使うテンプレート</a></li>
+      <li><a href="#corrections">訂正と追記</a></li>
       <li><a href="#refs">参考文献</a></li>
     </ol>
   </nav>
@@ -141,78 +142,139 @@ G  つないでE2Eテストを書く      1.0日   D と F のあと</pre>
 
   <!-- ============ 3 ============ -->
   <section class="section section-c" id="s3">
-    <h2><span class="step">3</span>計算する（50行）</h2>
+    <h2><span class="step">3</span>計算する（全余裕を出す）</h2>
 
     <article class="item">
-      <h3>目で追うと間違えるので、書かせて計算させる</h3>
-      <p class="lead">タスクが7個ならまだ目で追えます。<mark>15個を超えると人間には無理</mark>です。計算させます。</p>
+      <h3>目で追うと間違えます。この記事の初版が実際に間違えました</h3>
+      <p class="lead">7個でも目では追えません。<mark>この記事の初版は、C（DB設計）を「余裕なし」と表示していました。実際には半日の余裕があります。</mark>詳細は<a href="#corrections">訂正と追記</a>に書きました。</p>
+      <p class="lead">計算させます。ポイントは<b>後ろ向きの計算を必ずやる</b>ことです。ここを省くと、初版と同じ間違いをします。</p>
 
       <div class="code">
-        <div class="code-head">critical_path.py — 依存関係から最短日数を出す</div>
+        <div class="code-head">critical_path.py（抜粋）— 前向きと後ろ向きの2回計算する</div>
         <pre># id, 名前, 日数, 依存(先に終わっている必要があるタスク)
 TASKS = [
-    ("A", "仕様を1枚にまとめる",        0.5, []),
-    ("B", "APIの入出力を決める",        0.5, ["A"]),
-    ("C", "DBのテーブルを決める",        0.5, ["A"]),
-    ("D", "認証APIを実装する",          2.0, ["B", "C"]),
-    ("E", "ログイン画面を作る",          1.5, ["B"]),
-    ("F", "入力エラーの表示を作る",      1.0, ["E"]),
-    ("G", "つないでE2Eテストを書く",     1.0, ["D", "F"]),
+    ("A", "仕様を1枚にまとめる",     0.5, []),
+    ("B", "APIの入出力を決める",     0.5, ["A"]),
+    ("C", "DBのテーブルを決める",    0.5, ["A"]),
+    ("D", "認証APIを実装する",       2.0, ["B", "C"]),
+    ("E", "ログイン画面を作る",      1.5, ["B"]),
+    ("F", "入力エラーの表示を作る",  1.0, ["E"]),
+    ("G", "つないでE2Eテストを書く", 1.0, ["D", "F"]),
 ]
 
 
-def schedule(tasks):
-    """各タスクの最早開始日と最早終了日を出す。"""
-    days = {t[0]: t[2] for t in tasks}
-    deps = {t[0]: t[3] for t in tasks}
-    start, finish = {}, {}
+def forward(days, deps):
+    """前向き計算。最早開始(ES)と最早終了(EF)を出す。"""
+    es, ef = {}, {}
 
-    def finish_of(tid):
-        if tid in finish:
-            return finish[tid]
-        s = max([finish_of(d) for d in deps[tid]], default=0.0)
-        start[tid] = s
-        finish[tid] = s + days[tid]
-        return finish[tid]
+    def ef_of(t):
+        if t not in ef:
+            es[t] = max([ef_of(d) for d in deps[t]], default=0.0)
+            ef[t] = es[t] + days[t]
+        return ef[t]
 
-    for tid in days:
-        finish_of(tid)
-    return start, finish
+    for t in days:
+        ef_of(t)
+    return es, ef
 
 
-def critical_path(tasks, finish, deps):
-    """終わりから逆にたどって、全体の長さを決めている一本道を出す。"""
-    end = max(finish, key=lambda k: finish[k])
-    path = [end]
-    while deps[path[-1]]:
-        prev = max(deps[path[-1]], key=lambda d: finish[d])
-        path.append(prev)
-    return list(reversed(path))</pre>
+def backward(days, deps, span):
+    """後ろ向き計算。最遅開始(LS)を出す。全余裕はここでしか出ない。"""
+    succ = {t: [] for t in days}
+    for t in deps:
+        for d in deps[t]:
+            succ[d].append(t)
+    ls = {}
+
+    def ls_of(t):
+        if t not in ls:
+            lf = min([ls_of(s) for s in succ[t]], default=span)
+            ls[t] = lf - days[t]
+        return ls[t]
+
+    for t in days:
+        ls_of(t)
+    return ls</pre>
+      </div>
+
+      <p class="lead">この2つを使って、全余裕は引き算1回で出ます。</p>
+
+      <div class="code">
+        <div class="code-head">critical_path.py（抜粋）— 全余裕を出している行</div>
+        <pre>    es, ef = forward(days, deps)
+    span = max(ef.values())
+    ls = backward(days, deps, span)
+    ...
+    for tid, name, d, _ in tasks:
+        tf = round(ls[tid] - es[tid], 6)</pre>
+      </div>
+
+      <p class="lead">上に載せたのは計算部分だけの抜粋です。表を整形して表示する部分は省いています。<mark>そのままでは何も表示されません。</mark>全文（112行）は <a href="critical_path.py">critical_path.py</a> に置きました。</p>
+
+      <div class="code wrap">
+        <div class="code-head">動かし方（3ステップ）</div>
+        <pre>1. python3 -V でPython 3が入っているか確認する
+2. 全文を critical_path.py という名前で保存する
+3. そのフォルダで python3 critical_path.py と実行する
+
+あとは TASKS の中身を自分のタスクに書き換えるだけです。</pre>
       </div>
 
       <div class="code term">
-        <div class="code-head">実行結果（実際の出力）</div>
+        <div class="code-head">実行結果 ①／③（1回の実行で3つとも出ます）</div>
         <pre>$ python3 critical_path.py
 === そのまま ===
-id  タスク                    日数   開始   完了    余裕
-A   仕様を1枚にまとめる        0.5   0.0   0.5   0.0日  ←余裕なし
-B   APIの入出力を決める        0.5   0.5   1.0   0.0日  ←余裕なし
-C   DBのテーブルを決める       0.5   0.5   1.0   0.0日  ←余裕なし
-D   認証APIを実装する          2.0   1.0   3.0   0.5日
-E   ログイン画面を作る         1.5   1.0   2.5   0.0日  ←余裕なし
-F   入力エラーの表示を作る     1.0   2.5   3.5   0.0日  ←余裕なし
-G   つないでE2Eテストを書く    1.0   3.5   4.5   0.0日  ←余裕なし
-
-<span class="ok-line">全部を1人で順番にやると : 7.0 日
-人を足して並行にやると   : 4.5 日
-全体の長さを決めている道 : A → B → E → F → G</span></pre>
+  id タスク                  日数 全余裕
+<span class="ok-line">* A  仕様を1枚にまとめる      0.5   0.0</span>
+<span class="ok-line">* B  APIの入出力を決める      0.5   0.0</span>
+  C  DBのテーブルを決める     0.5   0.5
+  D  認証APIを実装する        2.0   0.5
+<span class="ok-line">* E  ログイン画面を作る       1.5   0.0</span>
+<span class="ok-line">* F  入力エラーの表示を作る   1.0   0.0</span>
+<span class="ok-line">* G  つないでE2Eテストを書く  1.0   0.0</span>
+* = 全余裕ゼロ(遅れたら納期が延びる)
+1人で順番にやると :  7.0 日
+並行にやると      :  4.5 日
+納期を決めている道 :
+  A → B → E → F → G</pre>
       </div>
 
       <ul class="points">
-        <li><b>「余裕」の列が全部です。</b>0.0日のタスクは、1時間遅れたら全体が1時間遅れます。ここだけ毎日見ればいい。</li>
-        <li><b>Dだけ0.5日の余裕があります。</b>つまりDは半日遅れても納期に影響しません。<b>Dの担当者に毎日進捗を聞く必要はありません。</b></li>
+        <li><b>「全余裕」の列が全部です。</b>0.0日のタスクは、1時間遅れたら納期が1時間延びます。ここだけ毎日見ればいい。</li>
+        <li><b>0.5日の余裕があるのは C と D の2つ。</b>どちらも半日遅れて納期に影響しません。<b>この2人に毎日進捗を聞く必要はありません。</b></li>
         <li><b>見るべきはA・B・E・F・Gの5つ。</b>7個全部を追いかけるより、5個に集中したほうが早く異常に気づけます。</li>
       </ul>
+
+      <p class="lead">この「全余裕」という言葉には、まぎらわしい兄弟がいます。NASAのスケジュール管理ハンドブックが、両方をはっきり定義しています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">NASA/SP-2010-3403, p.48, 5.8.3 Float (Slack) より原文</div>
+        <pre>Total float is defined as the amount of time that a task or milestone can slip before affecting the project end date.
+
+Free float is defined as the amount of time a task or milestone may move into the future from its early finish date before affecting its immediate successor task(s).</pre>
+      </div>
+
+      <p class="lead">全余裕は<b>納期</b>に効くまでの余裕、自由余裕は<b>すぐ次のタスク</b>に効くまでの余裕です。同じ文書はこう続けます。<mark>自由余裕を、プロジェクト全体の進捗管理に使うべきではない</mark>（"it should generally not be used as a means of monitoring and managing schedule performance for the total project"）。初版はここを取り違えていました。</p>
+
+      <details>
+        <summary>本当に「納期への余裕」になっているか、遅延を入れて確かめた</summary>
+        <div class="body">
+          <p class="lead">定義を写しただけでは検算になりません。各タスクを<b>全余裕ぶんちょうど</b>遅らせ、次に<b>そこから0.1日だけ足して</b>遅らせ、全体日数がどう動くかを見ました。</p>
+          <div class="code term">
+            <div class="code-head">$ python3 verify_float.py の出力</div>
+            <pre>基準の全体日数 : 4.5 日
+id 全余裕 ぶん遅延 +0.1日
+A    0.0      4.5     4.6  OK
+B    0.0      4.5     4.6  OK
+C    0.5      4.5     4.6  OK
+D    0.5      4.5     4.6  OK
+E    0.0      4.5     4.6  OK
+F    0.0      4.5     4.6  OK
+G    0.0      4.5     4.6  OK</pre>
+          </div>
+          <p class="lead">7個とも、全余裕ぶんなら 4.5日 のまま。0.1日でも超えると 4.6日 に延びます。列の意味が定義どおりであることの確認です。スクリプトは <a href="verify_float.py">verify_float.py</a>（34行）。</p>
+        </div>
+      </details>
     </article>
   </section>
 
@@ -225,29 +287,47 @@ G   つないでE2Eテストを書く    1.0   3.5   4.5   0.0日  ←余裕な�
       <p class="lead">遅れそうなとき、まず<mark>一番大きいタスク</mark>に人を足したくなります。この例ではD（認証API、2.0日）です。やってみます。</p>
 
       <div class="code term">
-        <div class="code-head">Dを 2.0日 → 1.0日 にした結果</div>
-        <pre>=== 一番大きい D を 2.0日 → 1.0日 に縮めた ===
-D   認証APIを実装する          1.0   1.0   2.0   1.5日
-E   ログイン画面を作る         1.5   1.0   2.5   0.0日  ←余裕なし
-
-全部を1人で順番にやると : 6.0 日
-<span class="ng-line">人を足して並行にやると   : 4.5 日      ← 変わっていない</span>
-全体の長さを決めている道 : A → B → E → F → G</pre>
+        <div class="code-head">実行結果 ②／③ — Dを 2.0日 → 1.0日 にした結果</div>
+        <pre>=== D を 2.0→1.0日 に縮めた ===
+  id タスク                  日数 全余裕
+* A  仕様を1枚にまとめる      0.5   0.0
+* B  APIの入出力を決める      0.5   0.0
+  C  DBのテーブルを決める     0.5   1.5
+  D  認証APIを実装する        1.0   1.5
+* E  ログイン画面を作る       1.5   0.0
+* F  入力エラーの表示を作る   1.0   0.0
+* G  つないでE2Eテストを書く  1.0   0.0
+* = 全余裕ゼロ(遅れたら納期が延びる)
+1人で順番にやると :  6.0 日
+<span class="ng-line">並行にやると      :  4.5 日</span>
+納期を決めている道 :
+  A → B → E → F → G</pre>
       </div>
 
-      <p class="lead">作業量は7日から6日に減りました。<mark>それでも終わる日は1日も動きません。</mark>Dは元々余裕のある道にいたからです。</p>
+      <p class="lead">「並行にやると」の行が <b>4.5日 のまま動いていません</b>。作業量は7日から6日に減りました。<mark>それでも終わる日は1日も動きません。</mark>Dは元々余裕のある道にいたからです。</p>
+
+      <p class="lead">むしろDの余裕が 0.5日 から 1.5日 に増えただけでした。余裕を増やす作業に人を投入したことになります。</p>
 
       <div class="code term">
-        <div class="code-head">今度は余裕ゼロのE（1.5日 → 0.5日）</div>
-        <pre>=== 余裕なしの E を 1.5日 → 0.5日 に縮めた ===
-D   認証APIを実装する          2.0   1.0   3.0   0.0日  ←余裕なし
-E   ログイン画面を作る         0.5   1.0   1.5   0.0日  ←余裕なし
-F   入力エラーの表示を作る     1.0   1.5   2.5   0.5日
-
-全部を1人で順番にやると : 6.0 日
-<span class="ok-line">人を足して並行にやると   : 4.0 日      ← 0.5日 縮んだ</span>
-<span class="ok-line">全体の長さを決めている道 : A → B → D → G   ← 道が移った</span></pre>
+        <div class="code-head">実行結果 ③／③ — 今度は全余裕ゼロのE（1.5日 → 0.5日）</div>
+        <pre>=== E を 1.5→0.5日 に縮めた ===
+  id タスク                  日数 全余裕
+* A  仕様を1枚にまとめる      0.5   0.0
+* B  APIの入出力を決める      0.5   0.0
+* C  DBのテーブルを決める     0.5   0.0
+* D  認証APIを実装する        2.0   0.0
+  E  ログイン画面を作る       0.5   0.5
+  F  入力エラーの表示を作る   1.0   0.5
+* G  つないでE2Eテストを書く  1.0   0.0
+* = 全余裕ゼロ(遅れたら納期が延びる)
+1人で順番にやると :  6.0 日
+<span class="ok-line">並行にやると      :  4.0 日</span>
+納期を決めている道 :
+  A → B → D → G
+  A → C → D → G</pre>
       </div>
+
+      <p class="lead">今度は 4.5日 → <b>4.0日</b>。0.5日 縮みました。そして<mark>最後の2行に注目してください。道が1本から2本に増えています。</mark></p>
 
       <figure>
         <picture>
@@ -258,8 +338,8 @@ F   入力エラーの表示を作る     1.0   1.5   2.5   0.5日
       </figure>
 
       <ul class="points">
-        <li><b>縮めていいのは、余裕ゼロのタスクだけ。</b>それ以外に人を足すのは、作業量を減らしているだけで納期には効きません。</li>
-        <li><b>縮めると道が移ります。</b>今回は E を縮めた瞬間、Dが余裕ゼロになりました。<b>1回縮めたら必ず計算し直す。</b></li>
+        <li><b>縮めていいのは、全余裕ゼロのタスクだけ。</b>それ以外に人を足すのは、作業量を減らしているだけで納期には効きません。</li>
+        <li><b>縮めると道が移り、しかも増えます。</b>E を縮めた瞬間、C と D が全余裕ゼロに変わり、納期を決める道が2本になりました。<b>1回縮めたら必ず計算し直す。</b></li>
         <li><b>0.5日しか縮まなかったことにも意味があります。</b>「1日ぶん頑張っても半日しか効かない」と分かれば、そもそも別の手を探せます。</li>
       </ul>
 
@@ -267,8 +347,8 @@ F   入力エラーの表示を作る     1.0   1.5   2.5   0.5日
         <p class="q">Q. 納期に間に合わない。人を1人足せる。どこに入れる?</p>
         <button class="opt" type="button" data-correct="false">一番大きいタスクに入れる</button>
         <button class="opt" type="button" data-correct="false">一番遅れているタスクに入れる</button>
-        <button class="opt" type="button" data-correct="true">余裕ゼロの道の中で、一番大きいタスクに入れる</button>
-        <p class="ans" hidden>正解。条件が2つ重なっているのがポイントです。「余裕ゼロの道の上にある」かつ「その中で大きい」。片方だけだと効きません。なお、人を足すこと自体に引き継ぎのコストがかかるので、それも日数に足して計算してください。</p>
+        <button class="opt" type="button" data-correct="true">全余裕ゼロの道の中で、一番大きいタスクに入れる</button>
+        <p class="ans" hidden>正解。条件が2つ重なっているのがポイントです。「全余裕ゼロの道の上にある」かつ「その中で大きい」。片方だけだと効きません。道が2本以上あるときは、両方に乗っているタスク（この例ではD）を先に狙うと効率がいいです。なお、人を足すこと自体に引き継ぎのコストがかかるので、それも日数に足して計算してください。</p>
       </div>
     </article>
   </section>
@@ -318,7 +398,7 @@ F   入力エラーの表示を作る     1.0   1.5   2.5   0.5日
     <h2><span class="step">6</span>そのまま使うテンプレート</h2>
 
     <article class="item">
-      <h3>コピーして、名前を書き換えるだけで動きます</h3>
+      <h3>コピーして、名前を書き換えるだけで使えます</h3>
 
       <div class="code wrap">
         <div class="code-head">Issue の雛形（コピーして使えます）</div>
@@ -331,9 +411,9 @@ F   入力エラーの表示を作る     1.0   1.5   2.5   0.5日
 ## 見積もり
 0.5日 / 1日 / 1.5日 / 2日  ← どれかに丸を付ける。2日を超えるなら割る
 
-## 余裕
-□ 余裕ゼロ（遅れたら全体が遅れる）
-□ 余裕あり（◯日まで遅れてよい）
+## 全余裕（critical_path.py の出力から転記）
+□ 全余裕ゼロ（遅れたら納期が延びる）
+□ 全余裕あり（◯日まで遅れてよい）
 
 ## 触るもの
 - ファイル / テーブル / 画面：
@@ -357,8 +437,8 @@ F   入力エラーの表示を作る     1.0   1.5   2.5   0.5日
       <ul class="checklist" data-key="task-breakdown-2026-08-14">
         <li><label><input type="checkbox"><span>いま一番大きいタスクを、0.5〜2日の粒度まで割った</span></label></li>
         <li><label><input type="checkbox"><span>各タスクに「◯◯のあと」を1行書いた</span></label></li>
-        <li><label><input type="checkbox"><span>スクリプトで計算して、余裕ゼロのタスクを特定した</span></label></li>
-        <li><label><input type="checkbox"><span>毎日の確認対象を、余裕ゼロのタスクだけに絞った</span></label></li>
+        <li><label><input type="checkbox"><span><a href="critical_path.py">critical_path.py</a> を保存して実行し、全余裕ゼロのタスクを特定した</span></label></li>
+        <li><label><input type="checkbox"><span>毎日の確認対象を、全余裕ゼロのタスクだけに絞った</span></label></li>
         <li><label><input type="checkbox"><span>「調査」「対応」で終わっているタスク名を、成果物の名前に直した</span></label></li>
       </ul>
       <div class="cl-done" hidden>🎉 これでもう「頑張ったのに縮まない」は起きません</div>
@@ -383,6 +463,62 @@ F   入力エラーの表示を作る     1.0   1.5   2.5   0.5日
     </article>
   </section>
 
+  <!-- ============ 訂正と追記 ============ -->
+  <section class="section section-d" id="corrections">
+    <h2>訂正と追記</h2>
+
+    <article class="item">
+      <h3>初版は「余裕」の定義を取り違えていました（2026年8月15日訂正）</h3>
+      <p class="lead">公開後の検証で、<mark>スクリプトが出していた「余裕」は全余裕ではなく自由余裕（free float）だった</mark>ことが分かりました。記事の解説文は全余裕の説明で、表の数字は自由余裕。中身が食い違っていました。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>初版の記述</th><th>実際</th><th>直した内容</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>C は「0.0日 ←余裕なし」</b></td>
+              <td data-label="実際">C の全余裕は 0.5日。半日遅らせても納期は 4.5日 のまま</td>
+              <td data-label="直した内容">後ろ向き計算（LS/LF）を足して全余裕を出すようスクリプトを書き直し、3つの出力を貼り直した</td>
+            </tr>
+            <tr>
+              <td><b>「Dだけ0.5日の余裕がある」</b></td>
+              <td data-label="実際">0.5日の余裕があるのは <b>C と D の2つ</b></td>
+              <td data-label="直した内容">「C と D の2つ」に修正</td>
+            </tr>
+            <tr>
+              <td><b>Eを縮めた出力で、Eに「←余裕なし」が付いたまま「道が移った」と書いていた</b></td>
+              <td data-label="実際">Eの全余裕は 0.5日 で道の上にいない。同じブロック内で矛盾していた</td>
+              <td data-label="直した内容">出力が正しくなり矛盾が解消。あわせて<b>道が2本に増える</b>ことも分かった</td>
+            </tr>
+            <tr>
+              <td><b>「50行のスクリプト」</b></td>
+              <td data-label="実際">実際に走らせていたファイルは86行。記事に載っていたのは39行の抜粋で、そのままでは何も表示されない</td>
+              <td data-label="直した内容">行数の主張をやめ、書き直した全文（112行）を <a href="critical_path.py">critical_path.py</a> として同梱。抜粋であることと動かし方も明記</td>
+            </tr>
+            <tr>
+              <td><b>「15個を超えると人間には無理」</b></td>
+              <td data-label="実際">15という数字の根拠を示せませんでした</td>
+              <td data-label="直した内容">数値を削除。代わりに、実際に間違えた例（この訂正そのもの）を置いた</td>
+            </tr>
+            <tr>
+              <td><b>出力の行末に手書きの注記（← 変わっていない など）</b></td>
+              <td data-label="実際">スクリプトはその文字を出力していません</td>
+              <td data-label="直した内容">注記を本文へ移し、<code>pre</code> の中は素の出力だけに戻した</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="points">
+        <li><b>結論は変わっていません。</b>一番大きいDを半分にしても 4.5日 のまま、Eを縮めると 4.0日。ここは初版と同じです。</li>
+        <li><b>変わったのは「誰を毎日見るか」。</b>初版に従うとC（DB設計）の担当者を無駄に追いかけることになります。ここが実害でした。</li>
+        <li><b>原因は一次資料に当たらなかったこと。</b>全余裕と自由余裕を定義した資料を読まずに実装し、コメントだけ全余裕の定義で書いていました。</li>
+      </ul>
+    </article>
+  </section>
+
   <!-- ============ 参考文献 ============ -->
   <section class="section section-d" id="refs">
     <h2>参考文献</h2>
@@ -391,6 +527,12 @@ F   入力エラーの表示を作る     1.0   1.5   2.5   0.5日
       <p class="lead">この記事の主張は、次の資料と自分の計算だけに基づいています。<mark>読んでいないものは「書誌のみ照合」と明記します。</mark></p>
 
       <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          NASA「NASA Schedule Management Handbook」<i>NASA/SP-2010-3403</i>, 2011年3月.
+          <span class="note">参照箇所: p.48「5.8.3 Float (Slack)」。全余裕（total float）と自由余裕（free float）の定義、および「自由余裕をプロジェクト全体の進捗管理に使うべきではない」という記述を、公開PDFの本文を取得して該当ページを読んだうえで引用しています。記事の「全余裕」という用語と、初版の訂正はこの定義に従いました。</span>
+          <a href="https://ntrs.nasa.gov/api/citations/20110012668/downloads/20110012668.pdf">https://ntrs.nasa.gov/api/citations/20110012668/downloads/20110012668.pdf</a>（2026年8月15日参照）
+        </li>
         <li>
           <span class="flag unverified">書誌のみ照合</span>
           Kelley, J. E., Jr. &amp; Walker, M. R.「Critical-path planning and scheduling」<i>Papers presented at the December 1-3, 1959, eastern joint IRE-AIEE-ACM computer conference (IRE-AIEE-ACM '59 Eastern)</i>, pp.160-173, ACM Press, 1959.
@@ -404,8 +546,8 @@ F   入力エラーの表示を作る     1.0   1.5   2.5   0.5日
         </li>
         <li>
           <span class="flag self">自分の計算</span>
-          <code>critical_path.py</code> の実行結果。Python 3.11.15、2026年8月14日実施。
-          <span class="note">記事中の3つの出力（そのまま／Dを縮めた場合／Eを縮めた場合）は、実際に実行して得たものをそのまま貼っています。タスクの日数は架空の例です。</span>
+          <code>critical_path.py</code> と <code>verify_float.py</code> の実行結果。Python 3.11.15、2026年8月15日に再実行。
+          <span class="note">記事中の4つの出力（そのまま／Dを縮めた場合／Eを縮めた場合／遅延注入の検算）は、実際に実行して得たものを<b>1文字も足さずに</b>貼っています。初版では出力の行末に手書きの注記を足していました。現在は注記を本文側に出しています。「全余裕」列は total float であり、後ろ向き計算（LS − ES）で出しています。タスクの日数は架空の例です。</span>
         </li>
         <li>
           <span class="flag self">自分の意見</span>
@@ -417,8 +559,8 @@ F   入力エラーの表示を作る     1.0   1.5   2.5   0.5日
   </section>
 
   <footer class="article-foot">
-    <div>この記事は2026年8月14日時点の内容です。掲載したスクリプトは Python 3.11.15 で実際に実行し、出力をそのまま載せています。</div>
-    <div>公開: 2026年8月14日 JST</div>
+    <div>掲載したスクリプトは Python 3.11.15 で実際に実行し、出力を加工せずそのまま載せています。</div>
+    <div>公開: 2026年8月14日 JST ／ 訂正: 2026年8月15日（<a href="#corrections">訂正と追記</a>）</div>
     <div><a href="../../">← ホームに戻る</a></div>
   </footer>
 

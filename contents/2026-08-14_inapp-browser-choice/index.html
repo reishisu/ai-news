@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>アプリ内ブラウザの3択は、Cookieがどこに貯まるかの3択</title>
+<meta name="description" content="WebView / Custom Tabs / SFSafariViewController。違いは見た目ではなくCookieの置き場です。ログイン状態が引き継がれるかを実測し、RFC 8252の原文・Apple公式・Android公式で裏を取った判断表。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="アプリ内ブラウザの3択は、Cookieがどこに貯まるかの3択">
+<meta property="og:description" content="「SFSafariViewController = iOS版Custom Tabs」は一次資料では成り立ちません。実測と原文で確認しました。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_inapp-browser-choice/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=19bddda4">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">クライアント技術 ｜ 2026年8月14日(金)</div>
+    <h1>アプリ内ブラウザの3択は、Cookieがどこに貯まるかの3択</h1>
+    <div class="range">アプリの中でWebページを開く方法は3つあります。見た目はほぼ同じ。中身はまったく別物です。どこが分かれ目なのかを実測し、規格と公式ドキュメントの原文で裏を取りました。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約9分</span>
+      <span class="tag">RFC 8252 原文つき</span>
+      <span class="tag">判断表あり</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <p class="lead">スマホアプリの中でWebページを開くとき、選べる部品は3つです。<mark>WebView / Custom Tabs (Android) / SFSafariViewController (iOS)</mark>。この記事は、その3つが何で分かれているのかの話です。</p>
+    <ol>
+      <li>
+        <b>分かれ目はCookieとストレージの置き場。見た目ではありません</b>
+        <span>同じ端末で同じサイトを開いても、置き場が違うだけで片方はログイン済み、片方は未ログインになりました。実測を載せます。</span>
+      </li>
+      <li>
+        <b>WebViewでログインさせるのは規格上 MUST NOT。Googleは実際に閉めました</b>
+        <span>RFC 8252 の禁止条項と、Googleが2021年9月30日にブロックを始めた告知の原文を並べます。パスワードの全打鍵を盗めることも実演しました。</span>
+      </li>
+      <li>
+        <b>「SFSafariViewController = iOS版 Custom Tabs」は一次資料では成り立ちません</b>
+        <span>Androidの公式は「共有Cookieジャー」と明記しています。Appleは共有すると書いておらず、共有したいなら別のAPIを使えと書いています。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">3択は「データ置き場」の3択だと規格が定義している</a></li>
+      <li><a href="#s2">実測。置き場が違うだけでログインが消えた</a></li>
+      <li><a href="#s3">WebViewは全打鍵とHttpOnly Cookieを盗める</a></li>
+      <li><a href="#s4">「SFSafariViewController = iOS版Custom Tabs」は成り立たない</a></li>
+      <li><a href="#s5">Googleのドキュメントが、Googleのコードと矛盾している</a></li>
+      <li><a href="#s6">審査で落ちるのは、この2行に書いてある</a></li>
+      <li><a href="#s7">判断表 — 今日どれを選ぶか</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>3択は「データ置き場」の3択だと規格が定義している</h2>
+
+    <article class="item">
+      <h3>「アプリ内ブラウザ」は感覚的な呼び名ではなく、定義された用語です</h3>
+      <p class="lead">アプリの中にWebページが出てくるとき、実装は3通りあります。どれも画面上は「アプリの中にWebが出た」に見えます。</p>
+      <p class="lead">ところが<mark>この3つは、IETFの規格に用語として定義されています</mark>。しかも「見た目」ではなく「アプリがデータに触れられるか」で分けられています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">RFC 8252「OAuth 2.0 for Native Apps」§3 Terminology — 原文</div>
+        <pre>"embedded user-agent"  A user-agent hosted by the native app making the authorization request that forms a part of the app or shares the same security domain such that the app can access the cookie storage and/or inspect or modify page content.
+
+"in-app browser tab"  A programmatic instantiation of the browser that is displayed inside a host app but that retains the full security properties and authentication state of the browser.
+
+"web-view"  A web browser UI (user interface) component that is embedded in apps to render web pages under the control of the app.</pre>
+      </div>
+
+      <p class="lead">訳すと、こうです。</p>
+
+      <ul class="points">
+        <li><b>embedded user-agent（埋め込みユーザーエージェント）。</b>アプリ自身がホストしていて、<mark>アプリがCookieストレージに触れる、かつ／またはページ内容を検査・改変できる</mark>もの。</li>
+        <li><b>in-app browser tab（アプリ内ブラウザタブ）。</b>アプリの中に表示されるが、<mark>ブラウザの完全なセキュリティ特性と認証状態を保持する</mark>もの。</li>
+        <li><b>web-view。</b>アプリの制御下でページを描画する、埋め込み用のUI部品。</li>
+      </ul>
+
+      <p class="lead">どれがどれに当たるかも、同じRFCの付録に名指しで書かれています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">RFC 8252 Appendix B.1 / B.2 — 原文</div>
+        <pre>B.1.  iOS Implementation Details
+   Apps can initiate an authorization request in the browser, without the user leaving the app, through the "SFSafariViewController" class or its successor "SFAuthenticationSession", which implement the in-app browser tab pattern.
+
+B.2.  Android Implementation Details
+   Apps can initiate an authorization request in the browser, without the user leaving the app, through the Android Custom Tab feature, which implements the in-app browser tab pattern.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>WebView = embedded user-agent。</b>アプリがCookieとページの中身に手を出せる側です。</li>
+        <li><b>Custom Tabs と SFSafariViewController = in-app browser tab。</b>手を出せない側、という整理になっています。</li>
+        <li><b>ただし、この付録は2017年10月時点の話です。</b>RFC自身がそう断っています。ここが4章の伏線になります。</li>
+      </ul>
+
+      <div class="code wrap">
+        <div class="code-head">RFC 8252 Appendix B 冒頭 — 原文（予防線）</div>
+        <pre>The implementation details herein are considered accurate at the time of publishing but will likely change over time.  It is hoped that such a change won't invalidate the generic principles in the rest of the document and that those principles should take precedence in the event of a conflict.</pre>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>実測。置き場が違うだけでログインが消えた</h2>
+
+    <article class="item">
+      <h3>同じ端末・同じサイト・同じユーザー。置き場を分けた瞬間にANONになる</h3>
+      <p class="lead">規格の話だけだと信じにくいので、手元で作りました。</p>
+      <p class="lead">まず<mark>ログインするだけの最小サイト</mark>を立てます。ログインすると <code>sid</code> というCookieを配り、ついでにブラウザ側の保存領域（localStorage）に初回だけランダムな印を1個置きます。この印が<mark>同じ値なら同じ保存領域</mark>を見ている、という判定に使います。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/storage-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/storage.png" alt="同じ ./prof/browser を見る①本体ブラウザと④アプリ内タブだけが sid=alice と tag=uqks3q を共有し、別ディレクトリを見る②③のWebViewはどちらもANONになる" loading="lazy">
+        </picture>
+        <figcaption>ログインが引き継がれるかどうかは、どのディレクトリを見ているかだけで決まっている</figcaption>
+      </figure>
+
+      <p class="lead">次に、ブラウザのデータ置き場（プロファイル）を切り替えて4回開きます。<mark>置き場が別＝WebView相当</mark>、<mark>置き場が本体と同じ＝アプリ内ブラウザタブ相当</mark>です。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（node exp1_share.js ./prof）</div>
+        <pre>1 本体ブラウザ(ログイン実行)
+  status: LOGGED_IN alice
+  sid   : alice
+  ls.tag: uqks3q
+2 アプリAのWebView(別領域)
+<span class="ng-line">  status: ANON</span>
+  sid   : (なし)
+  ls.tag: 07m9r4
+3 アプリBのWebView(別領域)
+<span class="ng-line">  status: ANON</span>
+  sid   : (なし)
+  ls.tag: k74coh
+4 アプリ内タブ(本体と同領域)
+<span class="ok-line">  status: LOGGED_IN alice</span>
+  sid   : alice
+  ls.tag: uqks3q</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>2と3は、ログイン画面すら通っていません。</b>Cookieが無いので <code>ANON</code>。印も <code>07m9r4</code> / <code>k74coh</code> と別値で、保存領域ごと別だと分かります。</li>
+        <li><b>4はログイン操作を1回もしていないのに <code>LOGGED_IN alice</code>。</b>印まで本体と同じ <code>uqks3q</code> です。置き場を共有しただけで認証状態が付いてきました。</li>
+        <li><b>アプリAとアプリBも互いに別。</b>同じ端末に入れた2つのアプリが同じサイトを開いても、ログインは共有されません。</li>
+      </ul>
+
+      <p class="lead">この「毎回ログインし直し」を、RFCは<mark>セキュリティとは別の欠点</mark>として名指ししています。Googleも同じことを書いています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Google Developers Blog（2021年6月29日）— 原文</div>
+        <pre>The sandboxed storage environment of an embedded webview disconnects a user from the single sign-on features they expect from Google.</pre>
+      </div>
+
+      <div class="quiz">
+        <p class="q">Q. 4の「アプリ内タブ」は、ログイン操作を一度もしていないのに <code>LOGGED_IN alice</code> になりました。なぜ?</p>
+        <button class="opt" type="button" data-correct="false">ログイン情報がネットワーク経由で自動同期されたから</button>
+        <button class="opt" type="button" data-correct="true">本体ブラウザと同じデータ置き場を指していて、そこに残っていたCookieをそのまま送ったから</button>
+        <button class="opt" type="button" data-correct="false">サーバーがIPアドレスでユーザーを判定しているから</button>
+        <p class="ans" hidden>正解。何も同期していません。Cookieファイルが置いてある場所が同じだった、それだけです。逆に言えば「ログイン状態を引き継ぐ／引き継がない」は、部品の見た目ではなく<b>どのディレクトリを見るか</b>で決まります。3択の本体はここです。</p>
+      </div>
+
+      <details>
+        <summary>ここは正直に書きます。実機のAPIそのものは動かしていません</summary>
+        <div class="body">
+          <p class="lead">この実測はLinux + Chromiumで行いました。<mark>iOS/Androidの実機や、SFSafariViewController・Custom Tabs・WKWebViewそのものは動かしていません。</mark></p>
+          <dl>
+            <dt>では何を測ったのか</dt>
+            <dd>「アプリがコンテキストを共有できるか／隔離されるか／制御できるか」という<b>ブラウザ側の性質</b>だけです。それをChromiumの永続コンテキスト（<code>launchPersistentContext</code>）のデータディレクトリ切り替えで再現しました。</dd>
+            <dt>測っていないこと</dt>
+            <dd>各プラットフォームのAPIが実際にどちらの領域を使うか（例: SFSafariViewControllerがSafari本体と共有するのか隔離されるのか）は、この環境では検証できません。そこは一次資料の記述だけを根拠にしていて、4章でその記述を全部貼ります。</dd>
+            <dt>もうひとつの差異</dt>
+            <dd>用意されていた <code>playwright-core</code> の参照先パスが存在せず、実体のあった <code>scratchpad/node_modules/playwright-core@1.62.1</code> を使いました。結果には影響しませんが、指定と違う点として記録しておきます。</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details>
+        <summary>使ったコード全文（server.js / exp1_share.js）</summary>
+        <div class="body">
+          <p class="lead">依存は <code>playwright-core</code> だけです。<code>node server.js</code> を別プロセスで動かした状態で、<code>rm -rf prof &amp;&amp; node exp1_share.js ./prof</code> を実行しました。</p>
+          <div class="code">
+            <div class="code-head">server.js — ログインするだけの最小サイト</div>
+            <pre>// 認可サーバのつもりの最小サイト (依存なし)
+// node server.js  → http://127.0.0.1:8863
+const http = require('http');
+const PORT = 8863;
+
+function page(user) {
+  const status = user ? 'LOGGED_IN ' + user : 'ANON';
+  return `&lt;!doctype html&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;idp&lt;/title&gt;
+&lt;h1 id="status"&gt;${status}&lt;/h1&gt;
+&lt;form method="POST" action="/login"&gt;
+&lt;input id="u" name="u" autocomplete="off"&gt;
+&lt;input id="p" name="p" type="password" autocomplete="off"&gt;
+&lt;button id="go" type="submit"&gt;login&lt;/button&gt;
+&lt;/form&gt;
+&lt;p id="ls"&gt;&lt;/p&gt;
+&lt;script&gt;
+  // 初回だけランダムな印を保存する(同じ値=同じ保存領域)
+  if (!localStorage.getItem('tag')) {
+    localStorage.setItem('tag', Math.random().toString(36).slice(2, 8));
+  }
+  document.getElementById('ls').textContent =
+    'localStorage.tag=' + localStorage.getItem('tag');
+&lt;/script&gt;`;
+}
+
+http.createServer((req, res) =&gt; {
+  const cookie = req.headers.cookie || '';
+  const m = /(?:^|; )sid=([^;]+)/.exec(cookie);
+  const user = m ? decodeURIComponent(m[1]) : null;
+
+  if (req.method === 'POST' &amp;&amp; req.url === '/login') {
+    let body = '';
+    req.on('data', c =&gt; body += c);
+    req.on('end', () =&gt; {
+      const p = new URLSearchParams(body);
+      const u = p.get('u') || 'anon';
+      res.writeHead(302, {
+        'Set-Cookie': [
+          'sid=' + encodeURIComponent(u) + '; Path=/; HttpOnly; Max-Age=86400',
+          'theme=dark; Path=/; Max-Age=86400'
+        ],
+        'Location': '/'
+      });
+      res.end();
+    });
+    return;
+  }
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end(page(user));
+}).listen(PORT, '127.0.0.1', () =&gt; console.log('listening ' + PORT));</pre>
+          </div>
+          <div class="code">
+            <div class="code-head">exp1_share.js — 置き場を切り替えて4回開くだけ</div>
+            <pre>// 実験1: プロファイル(データ置き場)が別か同じかで
+// ログイン状態が引き継がれるかを測る
+const { chromium } = require('playwright-core');
+const URL = 'http://127.0.0.1:8863/';
+const EXE = '/opt/pw-browsers/chromium';
+
+async function open(label, dir, doLogin) {
+  const ctx = await chromium.launchPersistentContext(dir, {
+    executablePath: EXE, args: ['--no-sandbox'],
+  });
+  const page = await ctx.newPage();
+  await page.goto(URL);
+  if (doLogin) {
+    await page.fill('#u', 'alice');
+    await page.fill('#p', 'hunter2');
+    await Promise.all([page.waitForNavigation(), page.click('#go')]);
+  }
+  const status = await page.textContent('#status');
+  const cookies = await ctx.cookies(URL);
+  const sid = cookies.find(c =&gt; c.name === 'sid');
+  const ls = await page.evaluate(() =&gt; localStorage.getItem('tag'));
+  console.log(label);
+  console.log('  status: ' + status);
+  console.log('  sid   : ' + (sid ? sid.value : '(なし)'));
+  console.log('  ls.tag: ' + (ls || '(なし)'));
+  await ctx.close();
+}
+
+(async () =&gt; {
+  const P = process.argv[2]; // プロファイル置き場
+  await open('1 本体ブラウザ(ログイン実行)', P + '/browser', true);
+  await open('2 アプリAのWebView(別領域)', P + '/appA', false);
+  await open('3 アプリBのWebView(別領域)', P + '/appB', false);
+  await open('4 アプリ内タブ(本体と同領域)', P + '/browser', false);
+})();</pre>
+          </div>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="section section-c" id="s3">
+    <h2><span class="step">3</span>WebViewは全打鍵とHttpOnly Cookieを盗める</h2>
+
+    <article class="item">
+      <h3>パスワードは <code>hunter2</code> でした。打った瞬間にホスト側へ流れます</h3>
+      <p class="lead">1章の定義に「アプリがページ内容を検査・改変できる」とありました。それが具体的に何を意味するのかを、そのまま実演します。</p>
+      <p class="lead">ホストアプリの立場で、ページに<mark>キー入力を全部拾うコード</mark>を仕込みます。ユーザーはIDとパスワードを普通に打つだけです。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（node exp2_spy.js）</div>
+        <pre>盗んだ入力キー:
+<span class="ng-line">  alicehunter2</span>
+盗んだCookie(HttpOnly):
+<span class="ng-line">  sid=alice httpOnly=true</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>alicehunter2</code> は、ユーザーが打った <code>alice</code> と <code>hunter2</code> の連結です。</b>パスワードが平文で復元できています。</li>
+        <li><b><code>httpOnly=true</code> なのに値が見えています。</b>HttpOnlyは「ページのJavaScriptから読めない」フラグであって、<mark>ホストアプリから読めない保証ではありません</mark>。</li>
+        <li><b>特殊な攻撃コードは使っていません。</b>使ったのは公開APIだけ。全文は下の折りたたみにあります。</li>
+      </ul>
+
+      <figure>
+        <picture>
+          <source srcset="images/reach-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/reach.png" alt="WebViewではキー入力・ページのDOM・Cookieの3つすべてがホストアプリの手が届く囲みの中にあり、アプリ内ブラウザタブでは囲みの中にあるのは渡したURLだけで3つとも外にある" loading="lazy">
+        </picture>
+        <figcaption>盗めるかどうかは実装の善し悪しではなく、囲みの線がどこを通っているかの違い</figcaption>
+      </figure>
+
+      <p class="lead">これは想定外の穴ではありません。<mark>RFCが理由として明記している内容そのもの</mark>です。</p>
+
+      <div class="code wrap">
+        <div class="code-head">RFC 8252 §8.12 Embedded User-Agents — 原文</div>
+        <pre>This best current practice requires that native apps MUST NOT use embedded user-agents to perform authorization requests and allows that authorization endpoints MAY take steps to detect and block authorization requests in embedded user-agents.
+
+In typical web-view-based implementations of embedded user-agents, the host application can record every keystroke entered in the login form to capture usernames and passwords, automatically submit forms to bypass user consent, and copy session cookies and use them to perform authenticated actions as the user.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>MUST NOT</code>。</b>ネイティブアプリは認可リクエストに埋め込みユーザーエージェントを使ってはならない、と書かれています。任意の推奨ではありません。</li>
+        <li><b><code>MAY</code> のほうも重要です。</b>「認可エンドポイント側が検出してブロックしてよい」と明記されています。これが次の話につながります。</li>
+      </ul>
+
+      <h3>Googleは2021年9月30日に、実際にブロックを始めました</h3>
+      <p class="lead">規格の <code>MAY</code> は、主要IdPの契約上の禁止事項として実装されています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Google「OAuth 2.0 Policies — Use secure browsers」— 原文</div>
+        <pre>A developer must not direct a Google OAuth 2.0 authorization request to an embedded user-agent under the developer's control. Embedded user-agents include, but are not limited to, software libraries that allow a developer to insert arbitrary scripts, alter the default routing of a request to the Google OAuth server, or access session cookies.</pre>
+      </div>
+
+      <div class="code wrap">
+        <div class="code-head">Google Developers Blog（2021年6月29日）— 原文</div>
+        <pre>All embedded webviews will be blocked starting on September 30, 2021.
+
+Android — Embedded webviews implementing or extending Android WebView do not comply with Google's secure browser policy for its OAuth 2.0 Authorization Endpoint.
+
+iOS &amp; macOS — Embedded webviews implementing or extending WKWebView, or the deprecated UIWebView, do not comply with Google's secure browser policy for its OAuth 2.0 Authorization Endpoint.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>クラス名で名指しされています。</b><code>android.webkit.WebView</code> と <code>WKWebView</code>、そして非推奨の <code>UIWebView</code>。「うちのWebViewは大丈夫」という余地はありません。</li>
+        <li><b>代替も同じ文書に書かれています。</b>Androidは Custom Tabs、iOSは SFSafariViewController。</li>
+        <li><b>つまりWebViewを選ぶ = Googleログインが動きません。</b>設計上の好みの問題ではなく、機能が落ちます。</li>
+      </ul>
+
+      <details>
+        <summary>2025年の最新BCPでは、この話は更新されたのか</summary>
+        <div class="body">
+          <p class="lead">2025年1月に RFC 9700（BCP 240, OAuth 2.0 セキュリティのベストカレントプラクティス）が出ています。念のため全文を検索しました。</p>
+          <dl>
+            <dt>結果</dt>
+            <dd><code>webview</code> / <code>web-view</code> / <code>embedded user-agent</code> のいずれも、本文に一度も出てきません。ネイティブアプリについては RFC 8252 を参照する形で委譲されています。</dd>
+            <dt>意味するところ</dt>
+            <dd>「WebViewを使うな」の一次規範は、2026年の時点でも<mark>2017年の RFC 8252 が唯一の出典</mark>のままです。古い文書だから無効、ではありません。上書きされていないから有効です。</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details>
+        <summary>使ったコード全文（exp2_spy.js）</summary>
+        <div class="body">
+          <div class="code">
+            <div class="code-head">exp2_spy.js</div>
+            <pre>// 実験2: 埋め込み型(WebView)ではホストアプリが
+// 入力キーとセッションCookieを盗める、を実演
+// RFC 8252 §8.12 の懸念そのもの
+const { chromium } = require('playwright-core');
+const URL = 'http://127.0.0.1:8863/';
+const EXE = '/opt/pw-browsers/chromium';
+
+(async () =&gt; {
+  const ctx = await chromium.launchPersistentContext('./spyprof', {
+    executablePath: EXE, args: ['--no-sandbox'],
+  });
+  const page = await ctx.newPage();
+
+  // ホストアプリの立場: ページに盗聴コードを仕込む
+  const keys = [];
+  await page.exposeFunction('leak', k =&gt; keys.push(k));
+  await page.addInitScript(() =&gt; {
+    document.addEventListener('keydown', e =&gt; window.leak(e.key));
+  });
+
+  await page.goto(URL);
+  // ユーザーがパスワードを打つ様子
+  await page.click('#u');
+  await page.keyboard.type('alice');
+  await page.click('#p');
+  await page.keyboard.type('hunter2');
+  await Promise.all([page.waitForNavigation(), page.click('#go')]);
+
+  // ホストアプリはCookieも読める(HttpOnlyでも)
+  const cookies = await ctx.cookies(URL);
+  const sid = cookies.find(c =&gt; c.name === 'sid');
+
+  console.log('盗んだ入力キー:');
+  console.log('  ' + keys.join(''));
+  console.log('盗んだCookie(HttpOnly):');
+  console.log('  sid=' + (sid ? sid.value : '(取得失敗)') +
+              ' httpOnly=' + (sid ? sid.httpOnly : '?'));
+  await ctx.close();
+})();</pre>
+          </div>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="section section-a" id="s4">
+    <h2><span class="step">4</span>「SFSafariViewController = iOS版Custom Tabs」は成り立たない</h2>
+
+    <article class="item">
+      <h3>Androidは「共有する」と書いてある。Appleは書いていない</h3>
+      <p class="lead">ここが、この記事でいちばん誤解されている場所です。2つの公式ドキュメントを並べます。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Android Developers「Overview of Android Custom Tabs」— 原文</div>
+        <pre>Custom Tabs are powered directly by the user's preferred browser and automatically share the state and features offered by it. You don't need to write custom code to manage requests, permission grants, or cookie stores.
+
+Shared cookie jar and permissions model so users don't have to sign in to sites they are already connected to, or re-grant permissions they have already granted.</pre>
+      </div>
+
+      <div class="code wrap">
+        <div class="code-head">Apple「SFSafariViewController」— 原文</div>
+        <pre>An SFSafariViewController object presents a self-contained web interface inside your app. […] Interactions with the web interface aren't visible to your app, and you can't access AutoFill data, browsing history, or website data. You don't need to secure data between your app and Safari. To share data between your app and Safari, use ASWebAuthenticationSession instead.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>Androidは <code>Shared cookie jar</code> と明記しています。</b>「すでにサインイン済みのサイトに再ログインしなくて済む」という利点として書かれています。</li>
+        <li><b>Appleは「共有する」と一言も書いていません。</b>書いてあるのは <code>self-contained</code>（自己完結）と、<mark>共有したいなら <code>ASWebAuthenticationSession</code> を使え</mark>という誘導です。</li>
+        <li><b>この2つは同じものではありません。</b>「iOS版Custom Tabs」という説明を見たら、そこで一度止まってください。</li>
+      </ul>
+
+      <p class="lead">Apple公式の言い回しだけだと弱いので、API側の傍証も挙げます。<mark>SFSafariViewControllerは自前のデータストアを持っています。</mark></p>
+
+      <ul class="points">
+        <li><b><code>SFSafariViewController.DataStore</code> が iOS 16 で追加されました。</b>APIメタデータの <code>introducedAt</code> が <code>16.0</code>（iOS / iPadOS / Mac Catalyst）です。</li>
+        <li><b><code>clearWebsiteData(completionHandler:)</code> があります。</b>アプリ側から消せるウェブサイトデータが存在する、ということです。Safari本体の共有ストアなら、アプリが消せるはずがありません。</li>
+        <li><b>ただし、このページには散文の説明が一切ありません。</b>APIシグネチャとメタデータだけ。だから「アプリ間で隔離されているか」までは、これでは言えません。7章の未確認欄に回します。</li>
+      </ul>
+
+      <h3>Appleは2017年に、共有機能を「同意ダイアログ付きの別API」へ隔離した</h3>
+      <p class="lead">では、iOSでブラウザとログイン状態を共有する道はどこにあるのか。<code>SFAuthenticationSession</code> の説明文が答えです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Apple「SFAuthenticationSession」（iOS 11 導入 / iOS 12 で非推奨）— 原文</div>
+        <pre>A class that manages sharing a one-time login between Safari and an app, which can also provide automatic login for associated apps.
+
+Along with the login, this class manages sharing cookies and website data.
+
+If an application uses `SFAuthenticationSession`, users are prompted by a dialog to give explicit consent, allowing the application to access the website's data in Safari.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>「Cookieとウェブサイトデータの共有を管理する」のはこのクラスです。</b>SFSafariViewControllerではありません。</li>
+        <li><b>共有には明示的な同意ダイアログが必要です。</b>ユーザーが黙って共有される設計ではなくなりました。</li>
+        <li><b>APIメタデータ: <code>introducedAt: 11.0</code> / <code>deprecatedAt: 12.0</code> / <code>renamed: ASWebAuthenticationSession</code>。</b>iOS 12で今の名前になりました。</li>
+      </ul>
+
+      <p class="lead">そして現行の <code>ASWebAuthenticationSession</code> には、<mark>共有するかどうかのスイッチが1つ</mark>だけ付いています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Apple「prefersEphemeralWebBrowserSession」— 原文</div>
+        <pre>Set prefersEphemeralWebBrowserSession to `true` to request that the browser doesn't share cookies or other browsing data between the authentication session and the user's normal browser session.
+
+Safari always respects the request. In macOS, someone can choose a different default browser that might or might not respect the request.
+
+The value of this property is `false` by default.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>既定値は <code>false</code>。</b>つまり<mark>既定では、通常のブラウザセッションとCookieを共有します</mark>。SSOを効かせたいならこのまま、効かせたくないなら <code>true</code>。</li>
+        <li><b>共有スイッチは認証専用APIの中にしかありません。</b>汎用のアプリ内ブラウザ（SFSafariViewController）にはこの property がありません。</li>
+      </ul>
+
+      <h3>Androidも2025年に、同じ形へ寄せてきました</h3>
+      <p class="lead">「認証は汎用アプリ内ブラウザから分離する」という方向は、いま両OS共通です。</p>
+
+      <ul class="points">
+        <li><b><code>AuthTabIntent</code> が androidx.browser 1.9.0 に入りました。</b>安定版のリリースは<mark>2025年7月30日</mark>です。iOSの <code>ASWebAuthenticationSession</code> に対応する、認証専用の入口です。</li>
+        <li><b>リダイレクト先の検証まで面倒を見ます。</b>HTTPSのリダイレクトURLを使う場合、アプリとURLが同一組織の所有であることを Digital Asset Links で証明する必要があり、失敗すると <code>RESULT_VERIFICATION_FAILED</code> が返ります。</li>
+        <li><b>iOS側にも似た保証があります。</b><code>ASWebAuthenticationSession</code> は「同じcallback URLスキームを複数のアプリが登録していても、呼び出したアプリのセッションだけがコールバックを受け取る」とドキュメントに書かれています。自前WebViewでは得られない保証です。</li>
+      </ul>
+
+      <figure>
+        <picture>
+          <source srcset="images/tiers-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/tiers.png" alt="1段目のWebViewとWKWebView、3段目のAuthTabIntentとASWebAuthenticationSessionは対応するが、2段目のCustom TabsとSFSafariViewControllerだけがCookieの置き場で非対称" loading="lazy">
+        </picture>
+        <figcaption>AndroidとiOSが噛み合っていないのは2段目だけ。ここを1対1だと思うと設計を間違える</figcaption>
+      </figure>
+
+      <p class="lead">正しい対応づけは、1対1ではなく<mark>3段構え</mark>です。</p>
+
+      <ul class="points">
+        <li><b>1段目: WebView ↔ WKWebView。</b>どちらもアプリ専用の置き場。認可には使えません。</li>
+        <li><b>2段目: Custom Tabs ↔ SFSafariViewController。</b>ここだけ非対称です。Androidは共有Cookieジャー、iOSは自前ストア。</li>
+        <li><b>3段目: Auth Tab ↔ ASWebAuthenticationSession。</b>認証専用。ここが「ブラウザのログインを引き継ぐ」唯一の道です（iOSでは）。</li>
+      </ul>
+
+      <details>
+        <summary>RFCの定義は、iOSでは半分しか成り立っていません</summary>
+        <div class="body">
+          <p class="lead">1章の定義を思い出してください。<code>in-app browser tab</code> は「ブラウザの完全なセキュリティ特性と<b>認証状態</b>を保持するもの」でした。</p>
+          <dl>
+            <dt>ずれている点</dt>
+            <dd>RFC は Appendix B.1 で SFSafariViewController をその実装例に挙げています。しかしAppleの現行ドキュメントに従う限り、SFSafariViewController は Safari の認証状態を持ち込みません。<mark>定義の後半が、iOSの汎用アプリ内ブラウザについては現在成立していない</mark>ことになります。</dd>
+            <dt>ただし、RFCは古びていません</dt>
+            <dd>Appendix B の冒頭に「実装詳細は変わりうる。矛盾したら本文の原則が優先」と書いてあります（1章に原文を貼りました）。さらに同じ文の中で <code>or its successor "SFAuthenticationSession"</code> と、後継APIまで名前を出しています。RFCの公開は2017年10月で、SFAuthenticationSession が入った iOS 11 の出荷時期と重なります。</dd>
+            <dt>読み方</dt>
+            <dd>規格が時代遅れになったのではなく、<b>規格が自分で退避路を用意していた</b>という話です。原則（＝アプリがCookieに触れられる方式を認可に使うな）は今も生きています。</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details>
+        <summary>「iOS 11で共有をやめた」という説明について（未確認）</summary>
+        <div class="body">
+          <p class="lead">検索するとよく出てくる「SFSafariViewControllerは iOS 9 と 10 では Safari とCookieを共有していたが、iOS 11 でやめた」という説明があります。<mark>これを裏付けるApple自身の一次資料は、見つけられませんでした。</mark></p>
+          <dl>
+            <dt>何が確認できて、何ができないか</dt>
+            <dd>Appleの現行ドキュメントは「いま どうなっているか」しか書いていません。移行そのものを述べた公式文書（リリースノート、WWDCセッション等）に到達できませんでした。</dd>
+            <dt>過去版を見に行こうとしましたが</dt>
+            <dd>archive.org（Wayback Machine）は当環境のegress許可リストに入っておらず、<code>Host not in allowlist</code> で届きません。</dd>
+            <dt>この記事での扱い</dt>
+            <dd>「iOS 11 で変わった」とは書きません。書けるのは <code>SFAuthenticationSession</code> の <code>introducedAt: 11.0</code> というAPIメタデータの事実だけで、そこから先は状況証拠に基づく推論です。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="section section-b" id="s5">
+    <h2><span class="step">5</span>Googleのドキュメントが、Googleのコードと矛盾している</h2>
+
+    <article class="item">
+      <h3>「実行時に確認する方法はない」と書いてある。確認するAPIは1年前からあります</h3>
+      <p class="lead">Custom Tabs には、iOSの <code>prefersEphemeralWebBrowserSession</code> に相当するスイッチが2025年に入りました。</p>
+
+      <div class="code wrap">
+        <div class="code-head">androidx.browser「CustomTabsIntent.Builder#setEphemeralBrowsingEnabled」— 原文</div>
+        <pre>setEphemeralBrowsingEnabled — Added in 1.9.0
+Sets whether to enable ephemeral browsing within the Custom Tab. If ephemeral browsing is enabled, and the browser supports it, the Custom Tab does not share cookies or other data with the browser.</pre>
+      </div>
+
+      <p class="lead">注目してほしいのは <mark><code>and the browser supports it</code></mark> の部分です。<b>ブラウザ側が対応していれば</b>、という条件付きです。</p>
+      <p class="lead">では、対応しているかどうかをどう調べるのか。Chrome公式ドキュメントはこう書いています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">developer.chrome.com「Custom Tabs — Browser support」（最終更新 2026年8月13日 UTC）— 原文</div>
+        <pre>Caution: It is currently not possible to programmatically check on an Android device, if an installed browser supports a specific Custom Tab feature. While most features are progressive enhancements, if you require a particular feature you must manually confirm if the user's default browser and browser version support it.</pre>
+      </div>
+
+      <p class="lead">「プログラム的に確認することはできない」。ところが、<mark>確認するAPIは実在します。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">androidx.browser「CustomTabsClient」— 原文</div>
+        <pre>isEphemeralBrowsingSupported — Added in 1.9.0
+public static boolean isEphemeralBrowsingSupported(@NonNull Context context, @NonNull String provider)
+Checks whether the Custom Tabs provider supports Ephemeral Browsing.
+
+static boolean isAuthTabSupported(@NonNull Context context, @NonNull String provider) — Checks whether the Custom Tabs provider supports Auth Tab.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>リリースノートに日付まで残っています。</b>1.9.0-alpha04（2025年5月20日）で <code>Added capability check API for Ephemeral Browsing</code> と <code>Added Auth Tab capability check API</code>。安定版 1.9.0 は<mark>2025年7月30日</mark>。</li>
+        <li><b>より新しく更新されたドキュメントが、1年以上前に入ったAPIを「無い」と書いています。</b>Chrome側ページの最終更新は2026年8月13日です。</li>
+        <li><b>実害は「防御的に書きすぎる」こと。</b>機能検出できない前提で組むと、使える環境でも共有オフを諦める実装になります。</li>
+      </ul>
+
+      <div class="quiz">
+        <p class="q">Q. AndroidのCustom Tabsで「ブラウザとCookieを共有しない」モードが使えるかどうか、実行時に確認できる?</p>
+        <button class="opt" type="button" data-correct="false">できない。Chrome公式ドキュメントに「プログラム的に確認することはできない」と明記されている</button>
+        <button class="opt" type="button" data-correct="true">できる。androidx.browser 1.9.0 の <code>CustomTabsClient</code> にある <code>isEphemeralBrowsingSupported()</code> が2025年7月30日から安定版に入っている</button>
+        <button class="opt" type="button" data-correct="false">Custom Tabs にそんなモードは存在しない</button>
+        <p class="ans" hidden>正解。1つ目を選んだ人は悪くありません。Chrome公式ドキュメントに<b>いまも</b>そう書いてあるからです。これは同じGoogleの中でドキュメントとAPIリファレンスがずれている実例で、こういうときは<mark>APIリファレンスとリリースノートのほうが強い</mark>証拠です。実際に入ったコードとバージョン番号が残っているので。</p>
+      </div>
+
+      <details>
+        <summary>Custom Tabs は「Chromeの機能」ではありません</summary>
+        <div class="body">
+          <p class="lead">同じChrome公式ページに、設計思想が書かれています。</p>
+          <div class="code wrap">
+            <div class="code-head">developer.chrome.com「Custom Tabs — Browser support」— 原文</div>
+            <pre>Built on top of the Intent system, Custom Tabs are a collection of configurable option requests that are sent to the end user's preferred browser. It is up to each browser to implement the various options. The availability of Custom Tabs features can vary between Android browsers due to implementation differences.</pre>
+          </div>
+          <p class="lead">Custom Tabs は<mark>ユーザーの既定ブラウザに送る「お願いの束」</mark>です。実装するかは各ブラウザ次第。iOSのように「必ずWebKit」という保証はありません。</p>
+          <dl>
+            <dt>未確認</dt>
+            <dd>実際のAndroidブラウザ（Chromeを含む）が <code>EXTRA_ENABLE_EPHEMERAL_BROWSING</code> をどのバージョンから実装しているかは、一次資料を見つけられませんでした。Chrome側の機能比較ページにも <code>setEphemeralBrowsingEnabled</code> は載っていません。だからこそ、上の capability check API を実際に呼ぶ価値があります。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="section section-c" id="s6">
+    <h2><span class="step">6</span>審査で落ちるのは、この2行に書いてある</h2>
+
+    <article class="item">
+      <h3>「見えない SFSafariViewController」は明文で禁止されています</h3>
+      <p class="lead">アプリ内ブラウザ絡みでリジェクトされる条項は、App Store Review Guidelines に2つあります。原文で確認します。</p>
+
+      <div class="code wrap">
+        <div class="code-head">App Store Review Guidelines 5.1.1 (vii) — 原文</div>
+        <pre>SafariViewController must be used to visibly present information to users; the controller may not be hidden or obscured by other views or layers. Additionally, an app may not use SafariViewController to track users without their knowledge and consent.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>0pxで隠してCookieを同期させる、という定番の裏技が明文で潰されています。</b>「他のビューやレイヤーで隠したり覆い隠したりしてはならない」。</li>
+        <li><b>ユーザーの認識と同意なしのトラッキング目的も禁止です。</b></li>
+        <li><b>UI設計の制約もあります。</b>Appleのクラス解説には <code>Don't embed an SFSafariViewController as a child view controller in your app</code>、必ず <code>present(_:animated:completion:)</code> でモーダル表示せよ、とあります。画面の一部として埋め込む設計は取れません。</li>
+      </ul>
+
+      <div class="code wrap">
+        <div class="code-head">App Store Review Guidelines 2.5.6 — 原文</div>
+        <pre>Apps that browse the web must use the appropriate WebKit framework and WebKit JavaScript. You may apply for an entitlement to use an alternative web browser engine in your app. Learn more about these entitlements for the EU and Japan.</pre>
+      </div>
+
+      <p class="lead">「エンタイトルメントを申請できる」と書いてあるので、抜け道があるように読めます。<mark>実際にはほぼ通れません。</mark>条件を読むとこうです。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>枠</th><th>誰が取れるか</th><th>主な条件</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>EU</td>
+              <td data-label="誰が取れるか">アプリをEU限定で配布している開発者</td>
+              <td data-label="主な条件">既定ブラウザのエンタイトルメントを持たないこと。Web Platform Tests 90% / Test262 80% を通すこと。アプリの主目的がWebブラウジングであること</td>
+            </tr>
+            <tr>
+              <td>日本</td>
+              <td data-label="誰が取れるか">browser engine steward（独自ブラウザエンジンの運営を主業務とする組織）</td>
+              <td data-label="主な条件">サードパーティCookieを既定でブロック。ストレージをトップレベルサイト単位でパーティション分割。<b>同一開発者の別アプリであっても、ユーザーの明示的許可なくCookieを含む状態を同期しない</b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="points">
+        <li><b>「アプリ内ブラウザを自前エンジンで作りたい」の答えは、実質ノーです。</b>ブラウザベンダー向けの枠であって、一般的なアプリの選択肢ではありません。</li>
+        <li><b>日本枠の要件が、この記事のテーマそのものです。</b>「Cookieがどこに貯まるか」「アプリ間で同期していいか」が、規制の側から条件として書かれています。</li>
+      </ul>
+
+      <details>
+        <summary>日本の開発者は、ガイドライン本文からは日本向けページに辿り着けません</summary>
+        <div class="body">
+          <p class="lead">2.5.6 の <code>Learn more about these entitlements for the EU and Japan.</code> のリンク先を実際に開きました。</p>
+          <dl>
+            <dt>何が起きているか</dt>
+            <dd>唯一のリンク先は <code>/support/alternative-browser-engines/</code>。ページタイトルは <b>Using alternative browser engines in the European Union</b> で、<mark>本文中に <code>Japan</code> は0件</mark>です。</dd>
+            <dt>日本向けはどこにあるか</dt>
+            <dd>別URL（<code>/support/alternative-browser-engines-jp</code>、タイトル <b>Using alternative browser engines in Japan</b>）に存在します。要件もEU版とは違います（EU版は「アプリがEU限定配布であること」、日本版は「組織が browser engine steward であること」）。</dd>
+            <dt>実害</dt>
+            <dd>ガイドライン本文のリンクだけを辿った日本の開発者は、自分に適用される条件に到達できません。URLを直接叩く必要があります。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section class="section section-a" id="s7">
+    <h2><span class="step">7</span>判断表 — 今日どれを選ぶか</h2>
+
+    <article class="item">
+      <h3>4つの軸で並べると、迷う場面はほとんど残りません</h3>
+      <p class="lead">ここまでの一次資料を1枚にまとめます。<mark>◯✕は筆者の判断ではなく、各欄の根拠は本文で原文を貼ったものだけ</mark>です。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr>
+              <th>選択肢</th>
+              <th>Cookieの置き場</th>
+              <th>ログインを引き継ぐか</th>
+              <th>認可に使えるか</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>WebView<br>(android.webkit.WebView)</td>
+              <td data-label="Cookieの置き場">アプリ専用。<code>CookieManager</code> の対象は「そのアプリのWebView群」</td>
+              <td data-label="ログインを引き継ぐか">引き継がない</td>
+              <td data-label="認可に使えるか">✕ RFC 8252 が MUST NOT。Googleは2021年9月30日からブロック</td>
+            </tr>
+            <tr>
+              <td>WKWebView<br>(iOS)</td>
+              <td data-label="Cookieの置き場">アプリ専用。既定の <code>WKWebsiteDataStore</code> がディスクに永続保存</td>
+              <td data-label="ログインを引き継ぐか">引き継がない</td>
+              <td data-label="認可に使えるか">✕ 同上。Googleが名指しで不適合と明記</td>
+            </tr>
+            <tr>
+              <td>Custom Tabs<br>(Android)</td>
+              <td data-label="Cookieの置き場">ユーザーの既定ブラウザのCookieジャー</td>
+              <td data-label="ログインを引き継ぐか">引き継ぐ（Android公式が明記）</td>
+              <td data-label="認可に使えるか">◯ RFC 8252 の in-app browser tab。Googleも代替として案内</td>
+            </tr>
+            <tr>
+              <td>SFSafariViewController<br>(iOS)</td>
+              <td data-label="Cookieの置き場">自前のストア（iOS 16 で <code>clearWebsiteData()</code> が追加）</td>
+              <td data-label="ログインを引き継ぐか">Apple公式に「共有する」の記述なし。期待しないこと</td>
+              <td data-label="認可に使えるか">△ Googleは代替として案内。ただしSSOは効かない前提で設計する</td>
+            </tr>
+            <tr>
+              <td>Auth Tab / ASWebAuthenticationSession</td>
+              <td data-label="Cookieの置き場">認証セッション専用</td>
+              <td data-label="ログインを引き継ぐか">引き継ぐ（iOSは <code>prefersEphemeralWebBrowserSession</code> の既定が <code>false</code>）</td>
+              <td data-label="認可に使えるか">◎ 認証専用API。コールバックの取り違えもOSが防ぐ</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>それでもWebViewが正解の場面はあります。Google自身がそう書いています</h3>
+      <p class="lead">「Custom Tabs一択」と単純化しないでください。Android公式にちゃんと例外が書かれています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Android Developers「Overview of Android Custom Tabs」— 原文</div>
+        <pre>There is no single "correct" way to load web content. In certain situations, WebView is going to be the right technology to use. For example, if you are exclusively hosting your own content inside your app, or if you need to inject javascript directly from your app.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>自社コンテンツだけを出すならWebViewでいい。</b>ヘルプ画面、社内向け機能、アプリの一部としてのWeb UI。</li>
+        <li><b>アプリからJavaScriptを注入したいならWebView一択。</b>Custom Tabs / SFSafariViewController では原理的にできません。それが安全性の源なので。</li>
+        <li><b>境界線は「ログインさせるかどうか」。</b>他社のログイン画面を出す瞬間から、WebViewは選択肢から外れます。</li>
+      </ul>
+
+      <p class="lead">最後に、実装に入る前の確認リストです。<span class="cl-count">0 / 5</span></p>
+      <ul class="checklist" data-key="inapp-browser-choice-2026-08-14">
+        <li><label><input type="checkbox"><span>ログイン画面をWebViewで出していないか、コードを検索した</span></label></li>
+        <li><label><input type="checkbox"><span>iOSで「Safariのログインが引き継がれる」前提の画面設計になっていないか確認した</span></label></li>
+        <li><label><input type="checkbox"><span>認証は <code>ASWebAuthenticationSession</code> / <code>AuthTabIntent</code> に分離した</span></label></li>
+        <li><label><input type="checkbox"><span>Cookie共有を切りたい場面で、共有オフのスイッチを明示的に設定した</span></label></li>
+        <li><label><input type="checkbox"><span>SFSafariViewController を隠したり覆ったりしていない（5.1.1 vii）</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 これで「アプリの中だけログインできない」は起きません</div>
+
+      <a class="next-up" href="../2026-08-14_webview-origin/">
+        <div class="label">NEXT →</div>
+        <div class="t">WebViewだけ動かない。犯人は Origin: null</div>
+        <div class="d">WebViewを選んだあとに待っている、次の壁。同じように実測で追い詰めます。</div>
+      </a>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          W. Denniss, J. Bradley「OAuth 2.0 for Native Apps」<i>IETF, BCP 212 / RFC 8252, DOI 10.17487/RFC8252</i>, 2017年10月.
+          <span class="note">参照箇所: §3 Terminology（embedded user-agent / in-app browser tab / web-view / external user-agent の定義）、§8.12 Embedded User-Agents（MUST NOT と、キーストローク・セッションCookieを盗めるという記述）、Appendix B 冒頭（実装詳細は変わりうるという断り）、Appendix B.1 / B.2（SFSafariViewController と Android Custom Tab を in-app browser tab パターンとして名指し）。本文の引用は原文のまま。</span>
+          <a href="https://www.rfc-editor.org/rfc/rfc8252.txt">https://www.rfc-editor.org/rfc/rfc8252.txt</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          T. Lodderstedt, J. Bradley, A. Labunets, D. Fett「Best Current Practice for OAuth 2.0 Security」<i>IETF, BCP 240 / RFC 9700</i>, 2025年1月.
+          <span class="note">参照箇所: 全文。<mark>該当する記述が無いことの確認</mark>に使いました。<code>webview</code> / <code>web-view</code> / <code>embedded user-agent</code> は本文に0件で、ネイティブアプリについては RFC 8252 を参照する形で委譲されています。よって「WebViewを認可に使うな」の一次規範は、2025年時点でも RFC 8252 のままです。</span>
+          <a href="https://www.rfc-editor.org/rfc/rfc9700.txt">https://www.rfc-editor.org/rfc/rfc9700.txt</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Apple Inc.「SFSafariViewController」および「SFSafariViewController.DataStore」<i>Apple Developer Documentation（SafariServices）</i>.
+          <span class="note">参照箇所: クラス解説の Overview（<code>self-contained</code>、アプリからwebsite dataにアクセスできないこと、共有したいなら ASWebAuthenticationSession を使えという誘導）、Important 2件（審査ガイドライン準拠で隠してはならない／child view controller として埋め込まず必ずモーダル表示）。DataStore 側は <code>introducedAt: 16.0</code> のAPIメタデータと <code>clearWebsiteData(completionHandler:)</code> の存在のみ（このページに散文の説明はありません）。ページに最終更新日の明示はありません。</span>
+          <a href="https://developer.apple.com/documentation/safariservices/sfsafariviewcontroller">https://developer.apple.com/documentation/safariservices/sfsafariviewcontroller</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Apple Inc.「SFAuthenticationSession」「ASWebAuthenticationSession」「prefersEphemeralWebBrowserSession」<i>Apple Developer Documentation</i>.
+          <span class="note">参照箇所: SFAuthenticationSession の Overview（Safariとアプリの間で一度きりのログインを共有する／Cookieとwebsite dataの共有を管理する／明示的同意ダイアログ）と、APIメタデータ <code>introducedAt: 11.0</code>・<code>deprecatedAt: 12.0</code>・<code>renamed: ASWebAuthenticationSession</code>。ASWebAuthenticationSession は同一 callback URL scheme を複数アプリが登録した場合の保証。prefersEphemeralWebBrowserSession は既定値 <code>false</code> と、Safariが要求を常に尊重する旨。</span>
+          <a href="https://developer.apple.com/documentation/authenticationservices/aswebauthenticationsession">https://developer.apple.com/documentation/authenticationservices/aswebauthenticationsession</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Apple Inc.「WKWebsiteDataStore」<i>Apple Developer Documentation（WebKit）</i>.
+          <span class="note">参照箇所: Overview（<code>WKWebViewConfiguration</code> は既定で <code>default()</code> のデータストアを使い、website data をディスクに永続保存する／非永続は <code>nonPersistent()</code>／プロファイル分離は <code>init(forIdentifier:)</code>）。判断表の「WKWebViewはアプリ専用の置き場を持つ」の根拠です。</span>
+          <a href="https://developer.apple.com/documentation/webkit/wkwebsitedatastore">https://developer.apple.com/documentation/webkit/wkwebsitedatastore</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Apple Inc.「App Store Review Guidelines」<i>Apple Developer</i>.
+          <span class="note">参照箇所: 2.5.6（WebKitフレームワークの使用義務と代替エンジンのエンタイトルメント）、5.1.1 (vii)（SafariViewController を隠さず可視で提示すること、同意なきトラッキング禁止）。6章の引用は原文のまま。</span>
+          <a href="https://developer.apple.com/app-store/review/guidelines/">https://developer.apple.com/app-store/review/guidelines/</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Apple Inc.「Using alternative browser engines in the European Union」「Using alternative browser engines in Japan」<i>Apple Developer Support</i>.
+          <span class="note">参照箇所: EU版は Embedded Browser Engine Entitlement の要件（EU限定配布、既定ブラウザエンタイトルメント非保有、Web Platform Tests 90% / Test262 80%、アプリ内ブラウジング時のUI要件）。日本版は browser engine steward 要件と Program privacy requirements（サードパーティCookieの既定ブロック、トップレベルサイト単位のストレージ分割、同一開発者の別アプリ間でも許可なくCookieを同期しないこと）。<mark>EU版ページ本文に <code>Japan</code> は0件</mark>であることも確認しました。</span>
+          <a href="https://developer.apple.com/support/alternative-browser-engines/">https://developer.apple.com/support/alternative-browser-engines/</a>
+          <a href="https://developer.apple.com/support/alternative-browser-engines-jp">https://developer.apple.com/support/alternative-browser-engines-jp</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google / Android Developers「Overview of Android Custom Tabs」<i>developer.android.com</i>, 最終更新 2026年2月9日 UTC.
+          <span class="note">参照箇所: WebView の欠点（Webプラットフォームの全機能に非対応、ブラウザと状態を共有しない）、Custom Tabs が既定ブラウザに駆動され状態と機能を自動共有すること、<code>Shared cookie jar and permissions model</code>、および「自社コンテンツのみを出す場合やJavaScriptを注入したい場合はWebViewが正しい技術」という記述。7章の例外はここが根拠です。</span>
+          <a href="https://developer.android.com/develop/ui/views/layout/webapps/overview-of-android-custom-tabs">https://developer.android.com/develop/ui/views/layout/webapps/overview-of-android-custom-tabs</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google / Android Developers「CookieManager」<i>developer.android.com API reference（android.webkit）</i>.
+          <span class="note">参照箇所: 冒頭1文 <code>Manages the cookies used by an application's WebView instances.</code>。判断表の「WebViewのCookieはアプリ単位」の根拠です。</span>
+          <a href="https://developer.android.com/reference/android/webkit/CookieManager">https://developer.android.com/reference/android/webkit/CookieManager</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google / AndroidX「CustomTabsIntent.Builder」「CustomTabsClient」「AuthTabIntent」および <i>androidx.browser リリースノート</i>.
+          <span class="note">参照箇所: <code>setEphemeralBrowsingEnabled(boolean)</code>（Added in 1.9.0、<code>and the browser supports it</code> の条件つき）、<code>isEphemeralBrowsingSupported</code> / <code>isAuthTabSupported</code> / <code>isSetNetworkSupported</code>（いずれも Added in 1.9.0）、AuthTabIntent（Digital Asset Links 検証と <code>RESULT_VERIFICATION_FAILED</code>）。リリースノートで 1.9.0 安定版が2025年7月30日、capability check API の追加が 1.9.0-alpha04（2025年5月20日）であることを確認しました。</span>
+          <a href="https://developer.android.com/jetpack/androidx/releases/browser">https://developer.android.com/jetpack/androidx/releases/browser</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Patrick Kettner / Google Chrome Developers「Browser support（Android Custom Tabs）」<i>developer.chrome.com</i>, 最終更新 2026年8月13日 UTC.
+          <span class="note">参照箇所: Custom Tabs が Intent システム上の「設定可能なオプション要求の集合」であり実装は各ブラウザ次第という説明、および Caution の <code>It is currently not possible to programmatically check…</code>。5章の矛盾は、このページと上記 androidx リファレンスを突き合わせたものです。</span>
+          <a href="https://developer.chrome.com/docs/android/custom-tabs/browser-support">https://developer.chrome.com/docs/android/custom-tabs/browser-support</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「OAuth 2.0 Policies — Use secure browsers」<i>developers.google.com/identity</i>（Changelog 最終エントリ 2026年8月5日）.
+          <span class="note">参照箇所: <code>Use secure browsers</code> 節の全文。開発者の管理下にある埋め込みユーザーエージェントへ認可リクエストを向けてはならないこと、およびブラウジング環境がURIと接続のセキュリティ情報を検証可能にすべきこと。Changelog の日付で、現在も有効なポリシーであることを確認しました。</span>
+          <a href="https://developers.google.com/identity/protocols/oauth2/policies">https://developers.google.com/identity/protocols/oauth2/policies</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Badi Azad（Group Product Manager, Google Identity）「Upcoming security changes to Google's OAuth 2.0 authorization endpoint in embedded webviews」<i>Google Developers Blog</i>, 2021年6月29日.
+          <span class="note">参照箇所: <code>All embedded webviews will be blocked starting on September 30, 2021.</code>、サンドボックス化されたストレージがSSOからユーザーを切り離すという記述、Android / iOS &amp; macOS の各節（<code>Android WebView</code>・<code>WKWebView</code>・<code>UIWebView</code> の名指しと、代替としての Custom Tabs / SFSafariViewController）。</span>
+          <a href="https://developers.googleblog.com/upcoming-security-changes-to-googles-oauth-20-authorization-endpoint-in-embedded-webviews/">https://developers.googleblog.com/upcoming-security-changes-to-googles-oauth-20-authorization-endpoint-in-embedded-webviews/</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Woonghee Lee, Junbeom Hur, Hyunsoo Kwon「Deep Dive into In-app Browsers: Uncovering Hidden Pitfalls in Certificate Validation」<i>Proceedings of the 2025 ACM SIGSAC Conference on Computer and Communications Security (CCS '25), pp. 2997–3011, ACM</i>, 2025年11月.
+          <span class="note">アプリ内ブラウザの証明書検証について査読付きの研究が存在する、という事実だけを記しています。<mark>本文は読めていません</mark>: doi.org と dl.acm.org がいずれも403（Cloudflare）で到達不能でした。書誌（著者3名・掲載誌・ページ・掲載日）は Crossref API で照合済みです。内容は本記事のどの主張の根拠にもしていません。</span>
+          <a href="https://doi.org/10.1145/3719027.3765215">https://doi.org/10.1145/3719027.3765215</a>（2026年8月14日照合）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          裏が取れなかった3点（本文にも同じ内容を明記しています）.
+          <span class="note">
+            <b>(1) SFSafariViewController が Safari とのCookie共有をやめた時期。</b>「iOS 11」という説明が広く流通していますが、それを述べたApple一次資料を見つけられませんでした。archive.org は当環境のegress許可リストに無く <code>Host not in allowlist</code> で到達できません。本記事では「iOS 11で変わった」とは書いていません。
+            <b>(2) SFSafariViewController の website data store が、同一端末上の別アプリ間で隔離されているか。</b>Appleは「ホストアプリからアクセスできない」「共有したければ ASWebAuthenticationSession」とは書いていますが、アプリ間の隔離を明言した文は見つかりませんでした。
+            <b>(3) 実際のAndroidブラウザが <code>EXTRA_ENABLE_EPHEMERAL_BROWSING</code> をどのバージョンから実装しているか。</b>androidx の文言は <code>and the browser supports it</code> と条件付きで、Chrome側の機能比較ページにも掲載がありません。
+          </span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          データ置き場の共有／隔離実験（2章）と、ホストアプリによる入力・Cookie窃取の実演（3章）。Chromium 141.0.7390.37 / Node.js v22.22.2 / playwright-core 1.62.1 / Python 3.11.15 / Linux 6.18.5、2026年8月14日実施。
+          <span class="note">2章・3章のターミナル出力は、記載したコマンドをそのまま実行した結果を<mark>加工せずそのまま貼っています</mark>（行の削除・並べ替え・複数コマンドの合成なし）。使用した <code>server.js</code> / <code>exp1_share.js</code> / <code>exp2_spy.js</code> は全文を折りたたみに掲載しました。再現手順: 同ディレクトリで <code>node server.js</code> を別プロセスで起動 → <code>rm -rf prof &amp;&amp; node exp1_share.js ./prof</code> → <code>rm -rf spyprof &amp;&amp; node exp2_spy.js</code>。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          この実験の限界（2章の折りたたみに同内容を記載）。
+          <span class="note">iOS / Android の実機と、SFSafariViewController・Custom Tabs・WKWebView そのものは<mark>動かしていません</mark>。Linux + Chromium で測ったのは「アプリがコンテキストを共有できるか／隔離されるか／制御できるか」というブラウザ側の性質だけで、Chromiumの永続コンテキストのデータディレクトリ切り替えとホスト制御スクリプトで代替しています。各プラットフォームのAPIが実際にどちらの領域を使うかは、上記の一次資料の記述のみを根拠にしています。なお、指定されていた <code>playwright-core</code> のパスが存在せず、実体のあった <code>scratchpad/node_modules/playwright-core@1.62.1</code> を使用しました。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          7章の判断表の <code>◎ ◯ △ ✕</code> と、「境界線はログインさせるかどうか」という線引き。
+          <span class="note">各欄の事実（Cookieの置き場、共有の有無、MUST NOT、ブロック日）はすべて一次資料に基づきますが、それを4段階の記号にまとめる粒度と、SFSafariViewController を △ とする判断は筆者の運用上の目安です。規格や公式ドキュメントがそう格付けしているわけではありません。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月14日時点の内容です。検証環境: Chromium 141.0.7390.37 / Node.js v22.22.2 / playwright-core 1.62.1 / Python 3.11.15</div>
+    <div>公開: 2026年8月14日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

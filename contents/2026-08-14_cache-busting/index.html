@@ -38,6 +38,7 @@
 
   <section class="summary">
     <h2>⭐ 3行で言うと</h2>
+    <p class="lead">Webページは「中身と骨組みを書いたHTML」と「見た目を指定するCSS」の2つのファイルでできていて、ブラウザはこれを2回に分けて取りに行きます。<mark>この記事は、その2回にズレが生まれる話です。</mark></p>
     <ol>
       <li>
         <b>ブラウザは一度読んだCSSを、600秒間サーバーに聞かずに使い回す</b>
@@ -63,6 +64,7 @@
       <li><a href="#s4">効かない対処、4つ</a></li>
       <li><a href="#s5">8文字で直す</a></li>
       <li><a href="#s6">あなたのサイトを今すぐ確認する</a></li>
+      <li><a href="#corrections">訂正と追記</a></li>
       <li><a href="#refs">参考文献</a></li>
     </ol>
   </nav>
@@ -97,27 +99,26 @@
 
     <article class="item">
       <h3>GitHub Pagesは「600秒は聞きに来るな」と言っている</h3>
-      <p class="lead">推測せず、実物を見ます。このサイトのCSSにヘッダーだけ取りに行きました。</p>
+      <p class="lead">推測せず、実物を見ます。<code>curl</code>（URLを叩いて、返ってきた通信の中身をそのまま表示するコマンド）で、このサイトのCSSのヘッダーだけ取りに行きました。</p>
 
       <div class="code term">
-        <div class="code-head">実行結果（2026年8月14日 実測）</div>
-        <pre>$ curl -sS -D - -o /dev/null "https://reishisu.github.io/ai-news/css/article.css"
+        <div class="code-head">実行結果（2026年8月15日 00:45 UTC 実測）</div>
+        <pre>$ U=https://reishisu.github.io
+$ curl -sS -D - -o /dev/null \
+    "$U/ai-news/css/article.css" \
+    | grep -Ei "cache-control|etag|expires"
 
-HTTP/2 200
-server: GitHub.com
-content-type: text/css; charset=utf-8
-last-modified: Fri, 14 Aug 2026 12:46:26 GMT
-etag: "6a7f0e22-3cf5"
-expires: Fri, 14 Aug 2026 13:14:19 GMT
-<span class="ng-line">cache-control: max-age=600</span>
-age: 0
-via: 1.1 varnish</pre>
+etag: "6a7fb033-455d"
+expires: Sat, 15 Aug 2026 00:51:51 GMT
+<span class="ng-line">cache-control: max-age=600</span></pre>
       </div>
+
+      <p class="lead"><code>grep</code> は、出てきた行の中から指定した語を含む行だけを抜き出す道具です。ヘッダーは全部で24行返ってきますが、いま見たいのは3行だけなので絞っています。</p>
 
       <ul class="points">
         <li><b><code>max-age=600</code> が犯人。</b>「受け取ってから600秒間は、このファイルをサーバーに確認しなくていい」という意味です。</li>
         <li><b>ETagがあっても関係ありません。</b>ETagは「聞きに行ったとき」に使う照合用。600秒のあいだ、そもそも聞きに行きません。</li>
-        <li><b>GitHub Pagesではこの値を変えられません。</b>ヘッダーを自由に設定できるホスティングではないので、別の手で解決する必要があります。</li>
+        <li><b>GitHub Docs には、この値を変える手段が書かれていません。</b>公式の「GitHub Pages limits」と「What is GitHub Pages」を取得して全文を検索しましたが、<code>cache-control</code> も <code>max-age</code> もカスタムヘッダーの記述も0件でした（2026年8月15日確認）。<mark>「変えられない」と断定できる根拠は見つからなかった</mark>ので、ここでは「公式に方法が示されていない」とだけ言います。どちらにせよ、別の手で解決したほうが確実です。</li>
       </ul>
 
       <details>
@@ -125,7 +126,9 @@ via: 1.1 varnish</pre>
         <div class="body">
           <dl>
             <dt>HTMLはどうなっているのか</dt>
-            <dd>HTMLにも同じ <code>max-age=600</code> が付きます。ただしHTMLは戻る・進む・リンク遷移で新しく取り直される機会が多く、CSSより先に新しくなりがちです。この「寿命のズレ」が崩れの正体です。</dd>
+            <dd>HTMLにも同じ <code>max-age=600</code> が付きます。それでもHTMLのほうが先に新しくなる理由は2つです。<b>(1) リロードすると主リソース（＝HTML）だけは検証される</b>（4章のChromiumの説明）。<b>(2) 初めて開くURLのHTMLは手元に無いので必ず取りに行くが、CSSは他のページを見たときのものがもう残っている。</b>この「寿命のズレ」が崩れの正体です。</dd>
+            <dt>戻る・進むは新しくならない</dt>
+            <dd>直感に反しますが、履歴の「戻る」はむしろ<mark>古い表示をそのまま出す側</mark>です。RFC 9111 §6 は「履歴機構は、期限切れの表現であっても以前の表現を表示してよい」と書いています（原文: <code>a history mechanism can display a previous representation even if it has expired</code>）。§4.2 にも「鮮度はキャッシュの動作にのみ適用され、ユーザーエージェントに再描画や再読み込みを強制するものではない」という注記があります。</dd>
             <dt>expires と cache-control</dt>
             <dd>両方ありますが、<code>cache-control</code> が優先されます。<code>expires</code> は古いブラウザ向けの保険です。</dd>
           </dl>
@@ -176,7 +179,15 @@ with socketserver.TCPServer(("127.0.0.1", 8802), handler) as httpd:
     httpd.serve_forever()</pre>
       </div>
 
+      <ul class="points">
+        <li><b>① このファイルを <code>serve.py</code> という名前で保存。</b>置き場所はどこでも構いません。</li>
+        <li><b>② 同じ場所に <code>pub</code> フォルダを作る。</b>確認用のHTMLとCSSはこの中に置きます（次のスクリプトが自動で作ります）。</li>
+        <li><b>③ <code>python3 serve.py</code> を実行し、<code>http://127.0.0.1:8802</code> を開く。</b>この記事の実測は、まさにこのコードを動かして取りました。</li>
+      </ul>
+
       <p class="lead">次に、<mark>クラス名を変えるよくある改修</mark>をします。HTMLの <code>class="title"</code> を <code>class="headline"</code> にして、CSSも合わせて書き換える。ごく普通の作業です。</p>
+
+      <p class="lead">クラス名は<mark>HTML側に付けた名札</mark>です。CSS側は「<code>title</code> という名札の付いた場所を赤にする」と名指ししています。名札を <code>headline</code> に付け替えると、<code>title</code> しか知らない古いCSSは、どこも名指しできなくなります。</p>
 
       <div class="code term">
         <div class="code-head">実行結果（node repro.js）</div>
@@ -196,6 +207,73 @@ with socketserver.TCPServer(("127.0.0.1", 8802), handler) as httpd:
         <li><b>本物のサイトではこれが「レイアウト崩れ」に見えます。</b>背景が消える、余白が死ぬ、文字がはみ出す。全部これです。</li>
         <li><b>エラーは1件も出ません。</b>JSエラーもコンソール警告も無し。だから気づくのが遅れます。</li>
       </ul>
+
+      <details>
+        <summary>repro.js の中身（これを動かして上の出力を取りました）</summary>
+        <div class="body">
+          <p class="lead">やっていることは3つだけです。<b>① 初回訪問して色を測る ② HTMLとCSSを新しいものに差し替える ③ もう一度訪問して色を測る</b>。ブラウザ操作はヘッドレスのChromiumにやらせています。</p>
+          <div class="code">
+            <div class="code-head">repro.js</div>
+            <pre>// レイアウト崩れの再現。HTMLだけ新しくなり、CSSが古いまま残ると何が起きるか。
+const { chromium } = require('playwright-core');
+const fs = require('fs');
+const crypto = require('crypto');
+const { pad } = require('./pad');
+
+const URL = 'http://127.0.0.1:8802/';
+const put = (name, body) =&gt; fs.writeFileSync('pub/' + name, body);
+const hash = name =&gt;
+  crypto.createHash('sha256').update(fs.readFileSync('pub/' + name)).digest('hex').slice(0, 8);
+
+// v1: 見出しのクラスは title
+const HTML_V1 = '&lt;!doctype html&gt;&lt;html lang="ja"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;\n&lt;link rel="stylesheet" href="style.css"&gt;\n&lt;/head&gt;&lt;body&gt;&lt;h1 class="title"&gt;見出し&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;\n';
+const CSS_V1 = '.title { color: rgb(220, 40, 40); }\n';
+
+// v2: クラス名を headline に変更し、CSSも合わせて変更した
+const HTML_V2 = '&lt;!doctype html&gt;&lt;html lang="ja"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;\n&lt;link rel="stylesheet" href="style.css"&gt;\n&lt;/head&gt;&lt;body&gt;&lt;h1 class="headline"&gt;見出し&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;\n';
+const CSS_V2 = '.headline { color: rgb(30, 160, 90); }\n';
+
+const look = p =&gt; p.evaluate(() =&gt; {
+  const h = document.querySelector('h1');
+  return { cls: h.className, color: getComputedStyle(h).color };
+});
+
+const show = (label, r, note) =&gt; {
+  console.log(label);
+  console.log(` class=${pad(r.cls, 8)}  ${pad(r.color, 17)}${note}`);
+};
+
+(async () =&gt; {
+  put('index.html', HTML_V1);
+  put('style.css', CSS_V1);
+
+  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox'] });
+  const p = await b.newPage();
+
+  await p.goto(URL);
+  show('1. 読者が初回訪問', await look(p), '');
+
+  await p.waitForTimeout(1200);          // 更新日時が確実に変わるように1秒待つ
+  put('index.html', HTML_V2);
+  put('style.css', CSS_V2);
+  console.log('2. HTMLもCSSも新しくして公開');
+
+  await p.goto(URL);
+  show('3. 読者が再訪問', await look(p), '← 崩れた');
+
+  await p.waitForTimeout(1200);
+  const v = hash('style.css');
+  put('index.html', HTML_V2.replace('style.css', 'style.css?v=' + v));
+  console.log(`4. href に ?v=${v} を付けた`);
+
+  await p.goto(URL);
+  show('5. 読者が再訪問', await look(p), '← 直った');
+
+  await b.close();
+})();</pre>
+          </div>
+        </div>
+      </details>
     </article>
   </section>
 
@@ -206,10 +284,12 @@ with socketserver.TCPServer(("127.0.0.1", 8802), handler) as httpd:
     <article class="item">
       <h3>思いつく手を順に全部試しました。半分は無駄でした</h3>
       <p class="lead">CSSを緑に書き換えたあと、色が変わるかどうかで判定します。<mark>赤のままなら効いていない</mark>ということです。</p>
+      <p class="lead"><code>notwork.js</code> は、3章と同じサーバーに対して「もう一度開く／リロード／ファイルの更新日時を新しくする／別タブ／シークレット／強制リロード」を順にやらせ、そのつど見出しの色を測るだけのスクリプトです。<code>repro.js</code> と同じ作りなので、中身は3章の折りたたみを見てください。</p>
 
       <div class="code term">
         <div class="code-head">実行結果（node notwork.js）</div>
-        <pre>0. 初回アクセス        rgb(220, 40, 40)
+        <pre>$ node notwork.js
+0. 初回アクセス        rgb(220, 40, 40)
    → style.css を緑に書き換えて公開した
 
 <span class="ng-line">1. もう一度開く        rgb(220, 40, 40)</span>
@@ -217,15 +297,20 @@ with socketserver.TCPServer(("127.0.0.1", 8802), handler) as httpd:
 <span class="ng-line">3. 更新日時を新しく    rgb(220, 40, 40)</span>
 <span class="ng-line">4. 別タブで開く        rgb(220, 40, 40)</span>
 <span class="ok-line">5. シークレットで開く  rgb(30, 160, 90)</span>
-<span class="ok-line">6. Ctrl+Shift+R        rgb(30, 160, 90)</span>
+<span class="ok-line">6. Ctrl+Shift+R        rgb(30, 160, 90)</span></pre>
+      </div>
 
-=== サーバーに届いた style.css ===
+      <p class="lead">では、この6回の操作でサーバーには何回届いたのか。<code>serve.py</code> が記録した <code>access.log</code> を、別のコマンドで数えます。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（access.log を数える）</div>
+        <pre>$ grep "^GET /style.css$" access.log
 GET /style.css
 GET /style.css
 GET /style.css</pre>
       </div>
 
-      <p class="lead">6回も操作したのに、サーバーに届いたのは<mark>3回だけ</mark>。1〜4はサーバーに1度も来ていません。</p>
+      <p class="lead">6回も操作したのに、サーバーに届いたのは<mark>3回だけ</mark>。0（初回）と5（シークレット）と6（強制リロード）で、1〜4はサーバーに1度も来ていません。</p>
 
       <p class="lead">これは不具合ではなく<mark>仕様どおり</mark>です。HTTPの規格そのものに、そう書いてあります。</p>
 
@@ -284,6 +369,7 @@ the main resource and continue with a regular page load.
     <article class="item">
       <h3>URLの末尾に中身のハッシュを付ける。それだけ</h3>
       <p class="lead">ブラウザは<mark>URLが1文字でも違えば別のファイル</mark>として扱います。この性質を使います。</p>
+      <p class="lead">ここで言うハッシュとは、<mark>ファイルの中身から計算した8桁の文字列</mark>のことです。中身が1文字でも変われば、まったく別の値になります。逆に中身が同じなら、何度計算しても同じ値です。</p>
 
       <figure>
         <picture>
@@ -295,8 +381,8 @@ the main resource and continue with a regular page load.
 
       <div class="code wrap">
         <div class="code-head">やること（HTMLのこの1箇所）</div>
-        <pre>変更前: &lt;link rel="stylesheet" href="css/style.css?v=6afc843a"&gt;
-変更後: &lt;link rel="stylesheet" href="css/style.css?v=6afc843a"&gt;</pre>
+        <pre>変更前: &lt;link rel=&quot;stylesheet&quot; href=&quot;css/style.css&quot;&gt;
+変更後: &lt;link rel=&quot;stylesheet&quot; href=&quot;css/style.css?v=6afc843a&quot;&gt;</pre>
       </div>
 
       <p class="lead">大事なのは<mark>この8文字を手で書かない</mark>ことです。手で書くと必ず忘れます。ファイルの中身から自動で作ります。</p>
@@ -313,23 +399,54 @@ the main resource and continue with a regular page load.
     return versions
 
 
+PRE_BLOCK = re.compile(r"&lt;pre\b[^&gt;]*&gt;.*?&lt;/pre&gt;", re.S | re.I)
+
+
 def add_cache_busting(html, versions):
-    """既存の ?v=... を捨てて、現在の内容ハッシュを付け直す。"""
-    for rel, ver in versions.items():
-        name = rel.split("/")[-1]
-        html = re.sub(
-            r'((?:href|src)="[^"]*' + re.escape(name) + r')(?:\?v=[0-9a-f]+)?(")',
-            lambda m: f"{m.group(1)}?v={ver}{m.group(2)}",
-            html,
-        )
-    return html</pre>
+    """既存の ?v=... を捨てて、現在の内容ハッシュを付け直す。
+
+    &lt;pre&gt; の中(記事に載せたコード例)は書き換えない。
+    """
+    def bust(chunk):
+        for rel, ver in versions.items():
+            name = rel.split("/")[-1]
+            chunk = re.sub(
+                r'((?:href|src)="[^"]*' + re.escape(name) + r')(?:\?v=[0-9a-f]+)?(")',
+                lambda m: f"{m.group(1)}?v={ver}{m.group(2)}",
+                chunk,
+            )
+        return chunk
+
+    out, last = [], 0
+    for m in PRE_BLOCK.finditer(html):
+        out.append(bust(html[last:m.start()]))
+        out.append(m.group(0))          # コード例はそのまま残す
+        last = m.end()
+    out.append(bust(html[last:]))
+    return "".join(out)</pre>
       </div>
 
       <ul class="points">
         <li><b>日付や連番ではなく、中身のハッシュにする。</b>中身が変わっていないのにURLが変わると、変える必要のないファイルまで再ダウンロードさせてしまいます。</li>
         <li><b>既存の <code>?v=</code> を一度消してから付け直す。</b>これを忘れると <code>?v=aaa?v=bbb</code> のように壊れます。上の正規表現の <code>(?:\?v=[0-9a-f]+)?</code> がその処理です。</li>
         <li><b>ビルド時に全ページへ一括で付ける。</b>人間が書く場所を1つも残さないのがコツです。</li>
+        <li><b>ただし、コード例まで書き換えないこと。</b>この <code>&lt;pre&gt;</code> をよける処理は後から足しました。理由は次の折りたたみに書きます。</li>
       </ul>
+
+      <details>
+        <summary>この記事は、自分が紹介した道具に壊されました</summary>
+        <div class="body">
+          <p class="lead">公開直後の版では、上の「やること」の欄が<mark>変更前と変更後で1文字も違わない</mark>状態になっていました。記事の結論そのものが消えていたわけです。</p>
+          <dl>
+            <dt>何が起きていたか</dt>
+            <dd>最初の <code>add_cache_busting()</code> はHTML全体に正規表現をかけていました。記事の <code>&lt;pre&gt;</code> に書いたサンプルの <code>href=&quot;css/style.css&quot;</code> も「本物のリンク」と見なされ、ビルドのたびに <code>?v=6afc843a</code> を注入されていました。しかも同じスクリプトが記事ファイルに書き戻すので、手で直しても次のビルドで必ず元に戻ります。</dd>
+            <dt>どう直したか</dt>
+            <dd>置換対象を <code>&lt;pre&gt;…&lt;/pre&gt;</code> の外側だけに限定しました（上のコードがその修正版です）。あわせて、記事側のサンプルは引用符を <code>&amp;quot;</code> で書いて、正規表現に当たらないようにしてあります。二重の保険です。</dd>
+            <dt>教訓</dt>
+            <dd>HTMLを正規表現で書き換える処理は、<mark>「説明のために書かれたHTML」と「本物のHTML」を区別できません</mark>。生成物を書き戻す種類のスクリプトほど、範囲を狭く切ってください。</dd>
+          </dl>
+        </div>
+      </details>
 
       <details>
         <summary>ヘッダーを自由に設定できる環境なら、もっと良い形にできます</summary>
@@ -338,7 +455,7 @@ def add_cache_busting(html, versions):
             <dt>理想の組み合わせ</dt>
             <dd>HTMLは <code>Cache-Control: no-cache</code>（毎回確認させる）、ハッシュ付きのCSS/JSは <code>max-age=31536000, immutable</code>（1年間、確認すらさせない）。URLが変わったときだけ取り直されるので、速さと確実さが両立します。</dd>
             <dt>GitHub Pagesの場合</dt>
-            <dd>ヘッダーを変更できないため、全ファイルが <code>max-age=600</code> のままです。それでも <code>?v=</code> を付けておけば「新HTML × 旧CSS」の崩れは起きません。HTMLが新しくなった時点で、CSSのURLも一緒に新しくなるからです。</dd>
+            <dd>ヘッダーを変える方法が公式に案内されていないので、実測では全ファイルが <code>max-age=600</code> のままでした。それでも <code>?v=</code> を付けておけば「新HTML × 旧CSS」の崩れは起きません。HTMLが新しくなった時点で、CSSのURLも一緒に新しくなるからです。</dd>
           </dl>
         </div>
       </details>
@@ -353,9 +470,11 @@ def add_cache_busting(html, versions):
       <h3>1コマンドで、自分のサイトが何秒嘘をつくか分かります</h3>
 
       <div class="code wrap">
-        <div class="code-head">自分のCSSのURLに置き換えて実行</div>
+        <div class="code-head">URLを自分のCSSに置き換え、ターミナル（WindowsはPowerShell）で実行</div>
         <pre>curl -sS -D - -o /dev/null "https://あなたのサイト/css/style.css" | grep -i "cache-control\|etag"</pre>
       </div>
+
+      <p class="lead">縦棒（<code>|</code>）は「左の結果を右に渡す」という意味で、<code>grep -i "cache-control\|etag"</code> は<mark>返ってきた行から <code>cache-control</code> と <code>etag</code> だけを抜き出す</mark>指定です。2章で使ったものと同じです。</p>
 
       <ul class="points">
         <li><b><code>max-age</code> が0以外で、URLに <code>?v=</code> が無い。</b>→ その秒数だけ崩れる可能性があります。今日やるべきです。</li>
@@ -380,6 +499,23 @@ def add_cache_busting(html, versions):
     </article>
   </section>
 
+  <!-- ============ 訂正と追記 ============ -->
+  <section class="section section-d" id="corrections">
+    <h2>訂正と追記</h2>
+    <article class="item">
+      <h3>2026年8月15日 — 一次資料に当たり直し、5件を訂正しました</h3>
+      <p class="lead">外部監査の指摘を受けて検証し直しました。<mark>間違いは消さずに、何をどう直したかを残します。</mark></p>
+      <ul class="points">
+        <li><b>「HTMLは戻る・進むで新しく取り直される機会が多い」を削除しました。</b>RFC 9111 §6 は逆のことを書いています。履歴機構は期限切れの表現でも表示してよく、§4.2 にも「鮮度はキャッシュの動作にのみ適用され、再描画や再読み込みを強制しない」という注記があります。HTMLが先に新しくなる本当の理由は、リロード時に主リソースだけ検証されること（4章の出典と同じ）と、初訪問のURLはHTMLだけ手元に無いことの2つでした。2章の説明を差し替えています。</li>
+        <li><b>2章のcurl出力を、実際に打ったコマンドの出力に差し替えました。</b>公開時の版は24行返ってきたヘッダーから9行だけを残したもので、示したコマンドでは再現しませんでした（値そのものは実測値です）。<code>grep</code> で絞る形に書き換え、2026年8月15日 00:45 UTC に取り直した出力をそのまま貼っています。日付が8月15日になっているのはこのためです。</li>
+        <li><b>4章のブロックを2つに分けました。</b>「実行結果（node notwork.js）」の中に、実際には <code>access.log</code> を数えた結果が混ざっていました。<code>notwork.js</code> にログを読む処理はありません。コマンドと出力が1対1になるよう分割し、両方とも再実行して同じ結果になることを確認しています。</li>
+        <li><b>5章の「変更前」を正しい行に直しました。</b>変更前と変更後が1文字も違わない状態になっていました。原因はこのサイトのビルドスクリプトで、詳細と修正内容は5章の折りたたみに書いています。</li>
+        <li><b>「GitHub Pagesではヘッダーを変えられません」を撤回しました。</b>GitHub Docs の該当ページ2本（GitHub Pages limits / What is GitHub Pages）を取得して全文を検索しましたが、<code>cache-control</code>・<code>max-age</code>・カスタムヘッダーのいずれも記述がありません。「変えられない」と断定する根拠が無いため、「公式に方法が示されていない」という書き方に改めました。</li>
+      </ul>
+      <p class="lead">あわせて、初めて読む人が止まりやすかった箇所（HTMLとCSSが別ファイルであること、サーバーの起動手順、<code>repro.js</code> の中身、クラス名の役割、ハッシュの意味、コマンドを打つ場所）に説明を足しました。実務者向けの内容は削っていません。</p>
+    </article>
+  </section>
+
   <!-- ============ 参考文献 ============ -->
   <section class="section section-d" id="refs">
     <h2>参考文献</h2>
@@ -391,7 +527,7 @@ def add_cache_busting(html, versions):
         <li>
           <span class="flag primary">一次資料</span>
           R. Fielding, M. Nottingham, J. Reschke (Eds.)「HTTP Caching」<i>RFC 9111 (STD 98), Internet Engineering Task Force</i>, 2022年6月.
-          <span class="note">参照箇所: §4.2 Freshness、§5.2.2.1 max-age。本文中の引用は原文のまま。</span>
+          <span class="note">参照箇所: §4.2 Freshness（鮮度の定義と、鮮度が再描画を強制しないという注記）、§4.2.1 Calculating Freshness Lifetime、§5.2.2.1 max-age、§6 Relationship to Applications and Other Caches（履歴機構は期限切れの表現も表示してよい）。本文中の引用は原文のまま。</span>
           <a href="https://www.rfc-editor.org/rfc/rfc9111.html">https://www.rfc-editor.org/rfc/rfc9111.html</a>（2026年8月14日参照）
         </li>
         <li>
@@ -401,22 +537,28 @@ def add_cache_busting(html, versions):
           <a href="https://blog.chromium.org/2017/01/reload-reloaded-faster-and-leaner-page_26.html">https://blog.chromium.org/2017/01/reload-reloaded-faster-and-leaner-page_26.html</a>（2026年8月14日参照）
         </li>
         <li>
-          <span class="flag self">自分の実測</span>
-          GitHub Pages のレスポンスヘッダー実測。2026年8月14日 13:04 JST、<code>curl</code> により <code>https://reishisu.github.io/ai-news/css/article.css</code> を取得。
-          <span class="note">GitHub は Pages のキャッシュ指示値を公式には文書化していないため、記事中の <code>max-age=600</code> は「この日時に観測した値」であり、将来変わる可能性があります。</span>
+          <span class="flag primary">一次資料</span>
+          GitHub「GitHub Pages limits」「What is GitHub Pages?」<i>GitHub Docs</i>.
+          <span class="note">参照箇所: 全文。<mark>該当する記述が無いことの確認</mark>に使いました。2026年8月15日に両ページのHTMLを取得して検索したところ、<code>cache-control</code> / <code>max-age</code> / カスタムヘッダーの記述は0件。容量1GB・ビルド10回/時・帯域100GB/月といった制限の記載のみでした。よって本文では「変えられない」ではなく「公式に方法が示されていない」としています。</span>
+          <a href="https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits">https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag self">自分の実測</span>
-          崩れの再現実験。Chromium 141.0.7390.37 / Python 3.11.15 / Node.js v22.22.2、2026年8月14日実施。
-          <span class="note">記事中のターミナル出力は、加工せずそのまま貼っています。</span>
+          GitHub Pages のレスポンスヘッダー実測。2026年8月15日 00:45 UTC、<code>curl</code> により <code>https://reishisu.github.io/ai-news/css/article.css</code> を取得（初出は8月14日 13:04 UTC。値は同じ <code>max-age=600</code>）。
+          <span class="note">2章に載せたのは、記載どおりのコマンドをこの日時に実行した出力です。<code>grep</code> で3行に絞っている以外は手を入れていません（絞り込みもコマンドの一部として載せています）。GitHub は Pages のキャッシュ指示値を公式には文書化していないため、<code>max-age=600</code> は「この日時に観測した値」であり、将来変わる可能性があります。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          崩れの再現実験。Chromium 141.0.7390.37 / Python 3.11.15 / Node.js v22.22.2、2026年8月14日実施、8月15日に再実行。
+          <span class="note">3章・4章のターミナル出力は、記載したコマンドをそのまま実行した結果です。行の削除・並べ替え・複数コマンドの合成はしていません（公開時の版では合成していたため、8月15日に取り直しました。訂正と追記を参照）。使用した <code>serve.py</code> と <code>repro.js</code> は全文を掲載しています。</span>
         </li>
       </ol>
     </article>
   </section>
 
   <footer class="article-foot">
-    <div>この記事は2026年8月14日時点の内容です。検証環境: Chromium 141.0.7390.37 / Python 3.11.15 / Node.js v22.22.2</div>
-    <div>公開: 2026年8月14日 JST</div>
+    <div>この記事は2026年8月15日時点の内容です。検証環境: Chromium 141.0.7390.37 / Python 3.11.15 / Node.js v22.22.2</div>
+    <div>公開: 2026年8月14日 JST ／ 最終更新: 2026年8月15日（訂正5件。<a href="#corrections">訂正と追記</a>）</div>
     <div><a href="../../">← ホームに戻る</a></div>
   </footer>
 

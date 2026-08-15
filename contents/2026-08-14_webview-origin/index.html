@@ -28,10 +28,10 @@
   <div class="masthead">
     <div class="eyebrow">クライアント技術 ｜ 2026年8月14日(金)</div>
     <h1>WebViewだけ動かない。犯人は Origin: null</h1>
-    <div class="range">ブラウザでは動く。アプリの中に入れた瞬間だけAPIが落ちる。その理由を実測で突き止めます。</div>
+    <div class="range">スマホアプリの中に埋め込んだWebページ表示部品（WebView）。ブラウザでは動く。アプリの中に入れた瞬間だけAPIが落ちる。その理由を実測で突き止めます。</div>
     <div class="meta-row">
       <span class="time-chip">⏱ 約7分</span>
-      <span class="tag">Android / iOS 共通</span>
+      <span class="tag">Androidは公式で確認 / iOSは未確認</span>
       <span class="tag">CORS 4パターン実測</span>
     </div>
   </div>
@@ -41,7 +41,7 @@
     <ol>
       <li>
         <b><code>file://</code> や <code>loadData</code> で読み込むと、APIには <code>Origin: null</code> が届く</b>
-        <span>Androidの公式ドキュメントの言葉では「不透明なオリジン(opaque origin)」です。</span>
+        <span>ブラウザは「このページはどこから来たか」を <code>Origin</code> ヘッダーでAPIに伝えます。端末内のファイルを直接開く <code>file://</code>（アドレス欄に <code>file://</code> と出るあれ）や、HTML文字列をWebViewに直接渡す <code>loadData</code> では、名乗る先が無いので <code>null</code> になります。Androidの公式ドキュメントの言葉では「不透明なオリジン(opaque origin)」です。</span>
       </li>
       <li>
         <b>だから許可リスト方式のAPIは100%落ちます。nullは絶対に一致しないからです</b>
@@ -63,6 +63,7 @@
       <li><a href="#s4">よくある回避策が穴になる</a></li>
       <li><a href="#s5">正しい直し方（Android / iOS）</a></li>
       <li><a href="#s6">今すぐ確認するリスト</a></li>
+      <li><a href="#corrections">訂正と追記</a></li>
       <li><a href="#refs">参考文献</a></li>
     </ol>
   </nav>
@@ -79,7 +80,7 @@
       <ul class="points">
         <li><b>HTMLの中身は関係ありません。</b>1文字も変えなくても、読み込み方が違うだけで結果が変わります。</li>
         <li><b>画像やCSSは普通に表示されます。</b>だから「通信自体はできている」と思ってしまい、原因から遠ざかります。</li>
-        <li><b>Androidでも iOSでも起きます。</b>どちらも同じ理屈です。</li>
+        <li><b>Androidは公式ドキュメントで裏が取れています。</b>iOSでも同じ相談をよく見ますが、<mark>WebKit側の一次資料は見つけられませんでした</mark>。この記事ではiOSの挙動を断定しません（第2章と第5章で切り分け方だけ書きます）。</li>
       </ul>
 
       <div class="quiz">
@@ -101,7 +102,7 @@
       <p class="lead">推測をやめて実物を見ます。APIサーバー側で、受け取った <code>Origin</code> ヘッダーをそのまま記録しました。</p>
 
       <div class="code term">
-        <div class="code-head">APIサーバーが受け取ったOrigin（実測）</div>
+        <div class="code-head">APIサーバーが受け取ったOrigin（実測 / パス名は次章の4パターンに対応。none=CORSヘッダー無し、star=<code>*</code>、allowlist=許可リスト）</div>
         <pre>$ cat api.log
 <span class="ng-line">GET /none  Origin: null</span>
 <span class="ng-line">GET /star  Origin: null</span>
@@ -123,8 +124,8 @@
 
       <ul class="points">
         <li><b>Androidの公式ドキュメントも同じことを言っています。</b>「<code>file://</code> URLと <code>data:</code> URLは<b>不透明なオリジン</b>とみなされ、<code>fetch()</code> や <code>XMLHttpRequest</code> のような強力なWeb APIを利用できません」</li>
-        <li><b>iOSでも同じです。</b><code>loadFileURL</code> で読み込むと、リクエストのオリジンは <code>null</code> になります。</li>
-        <li><b>localStorage は使えます。</b>ここが紛らわしいところで、保存系は動くのに通信系だけ死ぬので、原因の切り分けが遅れます。</li>
+        <li><b>iOSは未確認です。</b>Appleの <code>loadFileURL(_:allowingReadAccessTo:)</code> リファレンスを全文取得して検索しましたが、<mark><code>origin</code> / <code>CORS</code> の語は1件も出てきません</mark>。だから「iOSでも <code>null</code> になる」とは書きません。第5章の手順で実機のログを取って確かめてください。</li>
+        <li><b>保存系は動くので切り分けが遅れます。</b>デスクトップのChromium 141で <code>file://</code> のページを開くと <code>localStorage</code> は普通に読み書きできました（実測）。WebView実機での挙動は測っていません（AndroidはWebView側の <code>setDomStorageEnabled</code> にも左右されます）。</li>
       </ul>
 
       <details>
@@ -147,7 +148,8 @@
 
     <article class="item">
       <h3>APIの返し方を4通り用意して、全部叩いた</h3>
-      <p class="lead"><code>file://</code> のページ（つまり <code>Origin: null</code>）から呼んだ結果です。</p>
+      <p class="lead">CORSは、別の住所（オリジン）のサーバーを呼んでいいかをブラウザが判定する仕組みです。許可はサーバーが返すヘッダーで表明します。</p>
+      <p class="lead"><code>file://</code> のページ（つまり <code>Origin: null</code>）から呼んだ結果です。表の<mark>「拒否」はサーバーが断ったという意味ではありません</mark>。サーバーは正常に応答を返していて、ブラウザがその結果をJSに渡さず握りつぶしています。</p>
 
       <div class="table">
         <table>
@@ -181,27 +183,36 @@
         <li><b>つまり「ログインが必要なAPI」は、<code>file://</code> のWebViewからは正攻法では呼べません。</b>これが問題の本質です。</li>
       </ul>
 
-      <h3>この4行は、仕様書の6ステップを写しただけ</h3>
+      <h3>この4行は、仕様書の8ステップを写しただけ</h3>
       <p class="lead">なぜこの結果になるのか。<mark>Fetch仕様に判定手順がそのまま書いてあります。</mark>上から順に読むだけで、表の4行が全部説明できます。</p>
 
       <div class="code wrap">
-        <div class="code-head">Fetch Standard §4.10「CORS check」— 原文（判定手順）</div>
+        <div class="code-head">Fetch Standard §4.10「CORS check」— 全8ステップ（原文＋訳注）</div>
         <pre>1. Let origin be the result of getting
-   `Access-Control-Allow-Origin` from response's header list.
+   `Access-Control-Allow-Origin` from
+   response's header list.
 2. If origin is null, then return failure.
    （注: Null is not `null`. ＝「ヘッダーが無い」と
      「文字列 null が入っている」は別物）
 3. If request's credentials mode is not "include"
    and origin is `*`, then return success.
-4. If the result of byte-serializing a request origin with
-   request is not origin, then return failure.
+   （注: Cookieを送らない呼び方で、かつ値が `*`
+     なら、ここで合格）
+4. If the result of byte-serializing a request
+   origin with request is not origin,
+   then return failure.
+   （注: 送ったOriginの文字列と、返ってきた値が
+     完全一致するか。違えば不合格）
 5. If request's credentials mode is not "include",
    then return success.
+   （注: Cookieを送らないなら、ここまでで合格）
 6. Let credentials be the result of getting
-   `Access-Control-Allow-Credentials` ...
-   If credentials is `true`, then return success.
-   Return failure.</pre>
+   `Access-Control-Allow-Credentials` from
+   response's header list.
+7. If credentials is `true`, then return success.
+8. Return failure.</pre>
       </div>
+      <p class="lead">よく「6ステップ」と紹介されますが、原文の <code>&lt;ol&gt;</code> は8項目です。6・7・8は別のステップに分かれています。</p>
 
       <div class="table">
         <table>
@@ -223,7 +234,7 @@
             </tr>
             <tr>
               <td><b>そのまま返す → 両方通る</b></td>
-              <td data-label="どのステップで決まるか">ステップ4を <code>null = null</code> で通過し、ステップ6の <code>Allow-Credentials: true</code> で success。<b>ここが穴</b></td>
+              <td data-label="どのステップで決まるか">ステップ4を <code>null = null</code> で通過し、ステップ7の <code>Allow-Credentials: true</code> で success。<b>ここが穴</b></td>
             </tr>
           </tbody>
         </table>
@@ -261,6 +272,7 @@ self.send_header("Access-Control-Allow-Credentials", "true")</pre>
       <ul class="points">
         <li><b>Cookieが付いたまま通ることを実測しました。</b>表の右下です。ユーザーのログイン状態を使って、そのままAPIを叩けてしまいます。</li>
         <li><b>サーバー側に見分ける手段がありません。</b>あなたのアプリのWebViewも、攻撃者のHTMLも、まったく同じ <code>Origin: null</code> です。</li>
+        <li><b>攻撃側は端末を触らなくても <code>null</code> を作れます。</b>ページの中に別ページを埋め込む枠(<code>iframe</code>)に <code>sandbox</code> 指定を付けると、その中身は意図的にオリジンを剥がされます。HTML仕様の言葉では「sandboxed origin browsing context flag が content を不透明なオリジンに強制する」（<code>allow-same-origin</code> を書かない限り付く）。<mark>普通のWebページからでも <code>null</code> を名乗れる</mark>、ということです。</li>
         <li><b>「アプリ内でしか使わないから大丈夫」は成立しません。</b>APIはインターネットに面しています。呼ぶ側を制限しているのはCORSだけです。</li>
       </ul>
 
@@ -297,8 +309,11 @@ self.send_header("Access-Control-Allow-Credentials", "true")</pre>
       <p class="lead"><b>Android</b> は公式に専用のクラスがあります。<code>androidx.webkit</code> の <code>WebViewAssetLoader</code> です。</p>
 
       <div class="code">
-        <div class="code-head">Android — 公式ドキュメントのサンプル</div>
-        <pre>private class LocalContentWebViewClient(private val assetLoader: WebViewAssetLoader) : WebViewClientCompat() {
+        <div class="code-head">Android — 公式ドキュメントのサンプル（後半はActivityの onCreate() に置く）</div>
+        <pre>// app/build.gradle.kts に依存を追加（標準搭載ではありません）
+// implementation("androidx.webkit:webkit:1.17.0")
+
+private class LocalContentWebViewClient(private val assetLoader: WebViewAssetLoader) : WebViewClientCompat() {
     @RequiresApi(21)
     override fun shouldInterceptRequest(
         view: WebView,
@@ -320,26 +335,59 @@ webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")</pre>
       <ul class="points">
         <li><b>読み込むURLが <code>https://appassets.androidplatform.net/…</code> になります。</b>実際に通信は出ません。アプリ内のファイルを返しているだけです。</li>
         <li><b>このドメインをAPIの許可リストに書けます。</b>これで通常のCORS運用に戻せます。ドメインは <code>setDomain()</code> で自分のものに変えられます。</li>
-        <li><b>おまけに安全なコンテキスト扱いになります。</b><code>https</code> を名乗るので、Service Workerなど「安全なページでしか使えないAPI」も使えるようになります。</li>
+        <li><b>「安全なコンテキストになるから」ではありません。</b>よくある説明ですが、<code>file://</code> は<mark>元から安全なコンテキストです</mark>。W3C Secure Contexts の判定手順に「If origin's scheme is "file", return "Potentially Trustworthy".」と書かれています。効くのは、あくまで<b>オリジンが <code>null</code> でなくなること</b>です。</li>
       </ul>
+
+      <div class="code term">
+        <div class="code-head"><code>file://</code> のページで測った値（Chromium 141 / 実測）</div>
+        <pre><span class="ok-line">isSecureContext: true</span>
+<span class="ng-line">origin: null</span>
+<span class="ok-line">serviceWorker in navigator: true</span>
+<span class="ng-line">register NG: Failed to register a
+  ServiceWorker: The URL protocol of
+  the current origin ('null') is not
+  supported.</span></pre>
+      </div>
+
+      <p class="lead">Service Workerが登録できないのも、安全なコンテキストかどうかではなく<mark>スキームとオリジンが理由</mark>です。エラーメッセージが <code>('null')</code> と言っています。</p>
+
+      <details>
+        <summary>この実測を再現する（コピペ用）</summary>
+        <div class="body">
+          <dl>
+            <dt>やったこと</dt>
+            <dd>HTMLに <code>window.isSecureContext</code> / <code>window.origin</code> / <code>navigator.serviceWorker.register()</code> を書いて <code>file://</code> で開き、出力をそのまま貼りました。折り返しは表示のためスクリプト側で36桁に指定しています（文言は無加工）。</dd>
+            <dt>注意</dt>
+            <dd>これはデスクトップのヘッドレスChromiumでの結果です。<b>Android WebView・WKWebViewの実機では測っていません。</b></dd>
+          </dl>
+        </div>
+      </details>
 
       <p class="lead"><b>iOS</b> には同名のクラスはありません。<code>WKURLSchemeHandler</code> で独自スキームを処理するか、<code>loadFileURL(_:allowingReadAccessTo:)</code> を使います。</p>
 
       <div class="code wrap">
         <div class="code-head">iOSでの選び方</div>
         <pre>ローカルHTMLを表示するだけ  → loadFileURL(_:allowingReadAccessTo:)
-APIも呼ぶ                → WKURLSchemeHandler で独自スキームを実装し、
-                          サーバー側の許可リストにそのオリジンを登録する
+APIも呼ぶ                → WKURLSchemeHandler で独自スキームを実装
+                          （例: myapp://appassets/index.html）
 どうしても間に合わない      → アプリ側(ネイティブ)で通信し、結果をJSに渡す</pre>
       </div>
 
+      <ul class="points">
+        <li><b>独自スキームにすればCORSが通る、とは書けません。</b>Appleの <code>WKURLSchemeHandler</code> / <code>setURLSchemeHandler</code> のリファレンスにも <code>origin</code> の記述はありません。Chromium側（Android WebView）の文書はむしろ逆で、<mark>「独自スキームは不透明なオリジンとして処理されるため、<code>Access-Control-Allow-Origin</code> には <code>*</code> か <code>null</code> が必要」</mark>と書いています。</li>
+        <li><b>だからiOSは、まず実機でOriginをログに出す。</b>第2章と同じやり方で、APIサーバー側の <code>Origin</code> ヘッダーを見てから設計を決めてください。<code>null</code> が届くなら、許可リスト方式は選べません（ネイティブ側で通信するのが確実です）。</li>
+      </ul>
+
       <div class="code">
-        <div class="code-head">Androidで必ず false にしておく設定</div>
-        <pre>WebSettings.setAllowFileAccessFromFileURLs(false)
-WebSettings.setAllowUniversalAccessFromFileURLs(false)</pre>
+        <div class="code-head">Androidで必ず false にしておく設定（WebViewを作った直後に）</div>
+        <pre>val s = webView.settings
+s.setAllowFileAccessFromFileURLs(false)
+s.setAllowUniversalAccessFromFileURLs(false)</pre>
       </div>
 
       <p class="lead">この2つを <code>true</code> にすると <code>file://</code> の制限を回避できます。<mark>ただし公式が明確に推奨していません。</mark></p>
+
+      <p class="lead">既定値は、リファレンスによれば <code>JELLY_BEAN</code>（API 16）以上を対象にするアプリでは <code>false</code>、<code>ICE_CREAM_SANDWICH_MR1</code> 以下では <code>true</code>。API 30 で非推奨になり、「この設定は安全ではありません。ファイルの内容を安全に読み込むには <code>androidx.webkit.WebViewAssetLoader</code> を使ってください」と書かれています。<b>書かなくても今どきのアプリは <code>false</code> ですが、明示するのが公式推奨です。</b></p>
 
       <ul class="points">
         <li><b>公式の言葉。</b>「これらを <code>true</code> にすることは推奨しません。ファイルベースの攻撃に対して脆弱になるためです。最も強い安全性のために、すべてのAPIレベルで明示的に <code>false</code> を設定することを推奨します」</li>
@@ -354,22 +402,40 @@ WebSettings.setAllowUniversalAccessFromFileURLs(false)</pre>
     <h2><span class="step">6</span>今すぐ確認するリスト</h2>
 
     <article class="item">
-      <h3>iOS 26.4で loadFileURL の挙動が変わったという報告があります</h3>
-      <p class="lead">Appleの開発者フォーラムに、<code>loadFileURL(_:allowingReadAccessTo:)</code> の第2引数に関する報告が出ています。</p>
+      <h3>iOS 26.4の loadFileURL 騒ぎは、公式リファレンスに答えが書いてある</h3>
+      <p class="lead">Appleの開発者フォーラムに、<code>loadFileURL(_:allowingReadAccessTo:)</code> の第2引数に関する投稿があります（2026年2月投稿、Appleからの回答なし）。</p>
 
       <ul class="points">
-        <li><b>報告内容。</b>iOS 26.3までは第1引数と第2引数に同じパス（<code>h5path/index.html</code>）を渡しても動いていたが、iOS 26.4 Betaではエラーになり、第2引数は<b>親ディレクトリ</b>を指す必要がある、というもの。</li>
-        <li><b>状態は未確認です。</b>スレッドにAppleからの回答は付いていません（2026年8月14日時点で返信0件）。仕様変更なのか不具合なのかは確定していません。</li>
-        <li><b>やること。</b>ローカルHTMLを表示しているiOSアプリを持っているなら、ベータで一度確認しておくと安全です。<a href="https://developer.apple.com/forums/thread/817245">報告スレッド</a></li>
+        <li><b>投稿内容。</b>原文は「<code>Before iOS 26.3</code>」＝<b>26.3より前</b>は第1引数と第2引数に同じパス（<code>h5path/index.html</code>）を渡しても動いていた、というもの。<code>iOS 26.4 Beta</code> ではエラーになり、第2引数は<b>親ディレクトリ</b>を指す必要がある、と書かれています。投稿者自身の記述で境界が26.3と26.4に食い違っており、そこは曖昧なままです。</li>
+        <li><b>iOS 26.4はもうベータではありません。</b>Appleのセキュリティアップデート一覧によれば、iOS 26.4 の公開は<mark>2026年3月24日</mark>。この記事の5か月前です。確認するならベータではなく26.4以降の実機で。</li>
       </ul>
 
-      <p class="lead">最後に、自分のプロジェクトを点検するリストです。<span class="cl-count">0 / 5</span></p>
+      <p class="lead">ただし、この件は<mark>公式リファレンスを読めば未確認のままにしなくて済みます。</mark>第2引数 <code>readAccessURL</code> の説明にこう書かれています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Apple「loadFileURL(_:allowingReadAccessTo:)」readAccessURL の説明 — 原文</div>
+        <pre>The URL of a file or directory containing
+web content that you grant the system
+permission to read. ...
+To prevent WebKit from reading any other
+content, specify the same value as the URL
+parameter. To read additional files related
+to the content file, specify a directory.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>同じパスを渡す形は「そのファイル以外を読ませない」ための書き方です。</b>CSSやJSなど<b>関連ファイルも読むならディレクトリを渡せ</b>、と公式が明記しています。ローカルHTMLがCSS/JSを読み込むなら、最初からディレクトリを渡すのが文書どおりの使い方です。</li>
+        <li><b>26.4の挙動が仕様変更か不具合かは、まだ確定していません。</b>スレッドに回答は付いていません（2026年8月14日時点で返信0件）。ただし<mark>ディレクトリを渡す形にしておけば、どちらでも文書の範囲内</mark>に収まります。<a href="https://developer.apple.com/forums/thread/817245">報告スレッド</a></li>
+      </ul>
+
+      <p class="lead">最後に、自分のプロジェクトを点検するリストです。<span class="cl-count">0 / 6</span></p>
       <ul class="checklist" data-key="webview-origin-2026-08-14">
         <li><label><input type="checkbox"><span>APIサーバーで、受け取った <code>Origin</code> をログに出して実物を確認した</span></label></li>
         <li><label><input type="checkbox"><span><code>null</code> を許可リストに入れていない</span></label></li>
         <li><label><input type="checkbox"><span>届いたOriginをそのまま返す実装になっていない（照合してから返している）</span></label></li>
         <li><label><input type="checkbox"><span>ローカルHTMLを <code>https://</code> として読み込んでいる（Androidは <code>WebViewAssetLoader</code>）</span></label></li>
         <li><label><input type="checkbox"><span><code>setAllowUniversalAccessFromFileURLs</code> を明示的に <code>false</code> にした</span></label></li>
+        <li><label><input type="checkbox"><span>iOSで <code>loadFileURL</code> を使っているなら、第2引数に<b>ディレクトリ</b>を渡している</span></label></li>
       </ul>
       <div class="cl-done" hidden>🎉 これで「WebViewだけ動かない」は卒業です</div>
 
@@ -378,6 +444,25 @@ WebSettings.setAllowUniversalAccessFromFileURLs(false)</pre>
         <div class="t">一番大きいタスクを速くしても、納期は1日も縮まない</div>
         <div class="d">タスク分解を計算で検証します。縮めるべき場所は、たいてい直感と違います。</div>
       </a>
+    </article>
+  </section>
+
+  <!-- ============ 訂正と追記 ============ -->
+  <section class="section section-d" id="corrections">
+    <h2>訂正と追記</h2>
+
+    <article class="item">
+      <h3>2026年8月15日: 一次資料に当て直して6か所を直しました</h3>
+      <p class="lead">公開後の事実検証で、出典と食い違う記述が見つかりました。<mark>直した内容をそのまま残します。</mark></p>
+
+      <ul class="points">
+        <li><b>Fetch仕様は6ステップではなく8ステップ。</b>原文の <code>&lt;ol&gt;</code> を数え直すと8項目でした。記事は6・7・8を1つに畳んだものを「原文」として載せていました。全8ステップに直し、対応表の「ステップ6で success」も<b>ステップ7</b>に訂正しました。</li>
+        <li><b>iOSの挙動を断定していた箇所を撤回。</b>「<code>loadFileURL</code> だとオリジンが <code>null</code> になる」「Android/iOSどちらも同じ理屈」「独自スキームのオリジンを許可リストに登録する」には出典がありませんでした。Appleのリファレンス本文を取得して検索しても <code>origin</code> / <code>CORS</code> の語は0件です。<b>未確認</b>と明記し、実機でOriginを測る手順に置き換えました。</li>
+        <li><b>「https を名乗るので安全なコンテキストになる」は誤り。</b><code>file://</code> は元から安全なコンテキストです（Secure Contexts 仕様＋実測 <code>isSecureContext: true</code>）。Service Workerが登録できない理由もスキームとオリジンでした。理由付けを実測に差し替えました。</li>
+        <li><b>「iOS 26.3までは」→「26.3より前は」。</b>投稿の原文は <code>Before iOS 26.3</code> で、26.3を含みません。あわせて投稿日（2026年2月）と iOS 26.4 の公開日（2026年3月24日、Appleのセキュリティアップデート一覧）を明記し、「ベータで確認」という実行できない指示を消しました。</li>
+        <li><b>「確定していません」で止めていた件に答えを足した。</b>Appleのリファレンスに「関連ファイルも読むならディレクトリを指定せよ」と書かれています。到達できる一次資料を読んでいませんでした。</li>
+        <li><b>localStorage の話の測定範囲を明記。</b>デスクトップChromiumでの結果で、WebView実機では測っていません。図版の「loadData / loadFileURL も同じ」も、出典のある「data: URL や loadData」に直しました。</li>
+      </ul>
     </article>
   </section>
 
@@ -392,39 +477,85 @@ WebSettings.setAllowUniversalAccessFromFileURLs(false)</pre>
         <li>
           <span class="flag primary">一次資料</span>
           WHATWG「Fetch Standard」<i>Living Standard</i>.
-          <span class="note">参照箇所: §3.3.3 HTTP responses（<code>Access-Control-Allow-Origin</code> は Origin ヘッダーの値そのまま、または <code>*</code>）、§4.10 CORS check（判定手順の全ステップ）。本文中の引用は原文のまま。</span>
+          <span class="note">参照箇所: §3.3.3 HTTP responses（<code>Access-Control-Allow-Origin</code> は Origin ヘッダーの値そのまま、または <code>*</code>）、§4.10 CORS check。本文の第3章にはHTMLを取得して数えた<b>全8ステップを原文のまま</b>掲載し、日本語の訳注を丸括弧で追記しています（訳注は原文にはありません）。</span>
           <a href="https://fetch.spec.whatwg.org/">https://fetch.spec.whatwg.org/</a>（2026年8月14日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
           Google「Load in-app content」<i>Android Developers</i>.
-          <span class="note">参照箇所: <code>WebViewAssetLoader</code> のKotlinサンプル、<code>file://</code> と <code>data:</code> が不透明なオリジンである旨、<code>setAllowFileAccessFromFileURLs</code> / <code>setAllowUniversalAccessFromFileURLs</code> を <code>false</code> にする推奨。本文中の「公式の言葉」は同ページの記述の訳。</span>
-          <a href="https://developer.android.com/develop/ui/views/layout/webapps/load-local-content">https://developer.android.com/develop/ui/views/layout/webapps/load-local-content</a>（2026年8月14日参照）
+          <span class="note">参照箇所: <code>WebViewAssetLoader</code> のKotlinサンプル（「adding the following code to the onCreate() method」）、<code>file://</code> と <code>data:</code> が不透明なオリジンである旨、<code>setAllowFileAccessFromFileURLs</code> / <code>setAllowUniversalAccessFromFileURLs</code> を <code>false</code> にする推奨。本文中の「公式の言葉」は同ページの記述の訳。</span>
+          <a href="https://developer.android.com/develop/ui/views/layout/webapps/load-local-content">https://developer.android.com/develop/ui/views/layout/webapps/load-local-content</a>（2026年8月15日再取得）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「WebSettings」<i>Android Developers リファレンス</i>.
+          <span class="note">参照箇所: <code>setAllowFileAccessFromFileURLs</code> / <code>setAllowUniversalAccessFromFileURLs</code> の既定値（「The default value is true for apps targeting ICE_CREAM_SANDWICH_MR1 and below, and false when targeting JELLY_BEAN and above.」）と、API 30 での非推奨メッセージ。第5章の既定値の記述はここから。</span>
+          <a href="https://developer.android.com/reference/android/webkit/WebSettings">https://developer.android.com/reference/android/webkit/WebSettings</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Webkit — 依存関係の宣言」<i>AndroidX リリースノート</i>.
+          <span class="note">参照箇所: <code>implementation("androidx.webkit:webkit:1.17.0")</code>。第5章のコード内コメントに書いたバージョンは2026年8月15日時点の同ページの表記です。</span>
+          <a href="https://developer.android.com/jetpack/androidx/releases/webkit">https://developer.android.com/jetpack/androidx/releases/webkit</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          WHATWG「HTML Standard」<i>Living Standard</i>, 7.3 Origin / sandboxing.
+          <span class="note">参照箇所: 「The sandboxed origin browsing context flag … forces content into an opaque origin」と、<code>allow-same-origin</code> が無ければこのフラグが付く旨。第4章の <code>iframe</code> の説明の根拠。</span>
+          <a href="https://html.spec.whatwg.org/multipage/browsers.html">https://html.spec.whatwg.org/multipage/browsers.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          W3C「Secure Contexts」<i>Editor's Draft</i>, §3.1 Is origin potentially trustworthy?
+          <span class="note">参照箇所: 「If origin's scheme is "file", return "Potentially Trustworthy".」。第5章の「<code>file://</code> は元から安全なコンテキスト」の根拠。なお同アルゴリズムの第1項は「不透明なオリジンは Not Trustworthy」で、実装（Chromium）の挙動とは一致しません。実測値のほうを本文に載せています。</span>
+          <a href="https://w3c.github.io/webappsec-secure-contexts/">https://w3c.github.io/webappsec-secure-contexts/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Apple「loadFileURL(_:allowingReadAccessTo:)」<i>WebKit / WKWebView APIリファレンス</i>.
+          <span class="note">参照箇所: <code>readAccessURL</code> パラメータの説明（第6章に原文を掲載）。本文はJSON版 <code>/tutorials/data/documentation/…json</code> を取得して全文を確認しました。<b>同ページに <code>origin</code> / <code>CORS</code> / <code>cross-origin</code> の語は1件もありません</b>。iOSでオリジンが <code>null</code> になるという記述は、ここには存在しません。</span>
+          <a href="https://developer.apple.com/documentation/webkit/wkwebview/loadfileurl(_:allowingreadaccessto:)">https://developer.apple.com/documentation/webkit/wkwebview/loadfileurl(_:allowingreadaccessto:)</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Apple「Apple security releases」<i>Apple サポート</i>.
+          <span class="note">参照箇所: 「iOS 26.4 and iPadOS 26.4 … 24 Mar 2026」。第6章の公開日はこの一覧の表記に基づきます。</span>
+          <a href="https://support.apple.com/en-us/100100">https://support.apple.com/en-us/100100</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
           The Chromium Projects「CORS and WebView API」<i>chromium/src, android_webview/docs</i>.
-          <span class="note">参照箇所: ローカルリソースの読み込みに <code>WebViewAssetLoader</code> を推奨する記述、独自スキームが不透明なオリジンとして扱われ <code>*</code> か <code>null</code> が必要になる旨。</span>
+          <span class="note">参照箇所: ローカルリソースの読み込みに <code>WebViewAssetLoader</code> を推奨する記述、および「When a custom scheme is used, <code>*</code> or <code>null</code> should appear in the Access-Control-Allow-Origin response header as such custom scheme is processed as an opaque origin.」。第5章で独自スキームを断定しない根拠にしています。<b>これはAndroid WebView（Chromium）の文書で、WebKitには適用できません。</b></span>
           <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/android_webview/docs/cors-and-webview-api.md">https://chromium.googlesource.com/chromium/src/+/HEAD/android_webview/docs/cors-and-webview-api.md</a>（2026年8月14日参照）
         </li>
         <li>
           <span class="flag unverified">未確認</span>
           pengda「Issue with loadFileURL in WKWebView on iOS 26.4 Beta」<i>Apple Developer Forums</i>, thread 817245.
-          <span class="note">利用者による投稿のみで、Appleからの回答はありません（2026年8月14日時点で返信0件）。仕様変更か不具合かは確定していないため、本文でも「報告」として扱っています。</span>
+          <span class="note">投稿は2026年2月。利用者による投稿のみで、Appleからの回答はありません（2026年8月14日時点で返信0件）。仕様変更か不具合かは確定していないため、本文でも「報告」として扱っています。<b>2026年8月15日に再取得を試みたところ、<code>developer.apple.com</code> がボット検証ページを返し本文を再確認できませんでした。</b>本文に引用した <code>Before iOS 26.3</code> は8月14日時点の読み取りに基づくもので、再照合はできていません。</span>
           <a href="https://developer.apple.com/forums/thread/817245">https://developer.apple.com/forums/thread/817245</a>（2026年8月14日参照）
         </li>
         <li>
           <span class="flag self">自分の実測</span>
           CORSの挙動測定。Chromium 141.0.7390.37 / Python 3.11.15 / Node.js v22.22.2、2026年8月14日実施。
-          <span class="note">同一のHTMLを <code>file://</code> と <code>http://</code> から開き、CORSの返し方4通り × 認証情報の有無で計測。表とログは加工していません。<b>iOS・Androidの実機検証は行っていません</b>。両OSに関する記述は上記の公式文書に基づく説明です。</span>
+          <span class="note">同一のHTMLを <code>file://</code> と <code>http://</code> から開き、CORSの返し方4通り × 認証情報の有無で計測。表とログは加工していません。<b>iOS・Androidの実機検証は行っていません。</b>Androidに関する記述のみ公式文書に基づきます。<b>iOSは一次資料・実機とも未確認</b>で、断定していません。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          <code>file://</code> の安全なコンテキスト判定とService Worker登録。Chromium 141.0.7390.37、2026年8月15日実施。
+          <span class="note">ローカルのHTMLを <code>file://</code> で開き、<code>window.isSecureContext</code> / <code>window.origin</code> / <code>navigator.serviceWorker.register()</code> の結果を出力。第5章のログは文言を変えずそのまま貼っています（折り返し位置だけスクリプト側で36桁に指定）。<code>localStorage</code> の可否も同じ環境で確認しました。<b>WebView実機ではありません。</b></span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「iOSはまず実機でOriginをログに出してから設計を決める」は、標準や公式の指示ではなく筆者の運用上の目安です。
+          <span class="note">WebKit側の一次資料が見つからない以上、実測が唯一の確実な判断材料だと考えたためです。</span>
         </li>
       </ol>
     </article>
   </section>
 
   <footer class="article-foot">
-    <div>この記事は2026年8月14日時点の内容です。CORSの実測は Chromium 141.0.7390.37 / Python 3.11.15 で行いました。Android・iOSの記述は各公式ドキュメントに基づきます（実機検証は行っていません）。</div>
-    <div>公開: 2026年8月14日 JST</div>
+    <div>この記事は2026年8月14日時点の内容です（2026年8月15日に訂正）。CORSの実測は Chromium 141.0.7390.37 / Python 3.11.15 で行いました。Androidの記述は公式ドキュメントに基づきます。iOSは一次資料・実機とも未確認の箇所があり、本文でその都度明記しています。</div>
+    <div>公開: 2026年8月14日 JST ／ 訂正: 2026年8月15日 JST</div>
     <div><a href="../../">← ホームに戻る</a></div>
   </footer>
 

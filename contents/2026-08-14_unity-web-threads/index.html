@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Unity Webが本番だけ動かない。原因はビルドではなくサーバー</title>
-<meta name="description" content="ローカルでは動いたUnity Webビルドが、本番に置いた途端に起動しない。マルチスレッドに必要なHTTPヘッダー2本を実測で確かめ、Unity公式ドキュメントの記述と突き合わせました。">
+<meta name="description" content="Unity Webでマルチスレッドを有効にすると、配信サーバーのHTTPヘッダーが要ります。その条件をブラウザで実測し、Unity公式ドキュメントの原文と突き合わせました。適用条件と、確認できなかったことも書いています。">
 <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="apple-touch-icon" href="../../favicon.svg">
 <meta property="og:type" content="article">
@@ -28,7 +28,7 @@
   <div class="masthead">
     <div class="eyebrow">クライアント技術 ｜ 2026年8月14日(金)</div>
     <h1>Unity Webが本番だけ動かない。原因はビルドではなくサーバー</h1>
-    <div class="range">ローカルで動いたビルドが、置いた瞬間に起動しない。その条件をブラウザで実測し、Unity公式の記述と突き合わせます。</div>
+    <div class="range">ローカルと本番で何が変わるのか。マルチスレッドの前提条件をブラウザで実測し、Unity公式マニュアルの原文と突き合わせます。</div>
     <div class="meta-row">
       <span class="time-chip">⏱ 約6分</span>
       <span class="tag">実測 + 公式ドキュメント</span>
@@ -40,12 +40,12 @@
     <h2>⭐ 3行で言うと</h2>
     <ol>
       <li>
-        <b>Unity Webのマルチスレッドは、HTTPヘッダー2本が無いと丸ごと死にます</b>
-        <span>ビルド設定ではなく、<b>配信サーバー側の設定</b>で決まります。ここが盲点です。</span>
+        <b>対象は <code>Native C/C++ Multithreading</code> を有効にしてビルドしたときだけです</b>
+        <span>この設定を使うなら、<b>配信サーバー側のHTTPヘッダー</b>が要ります。ヘッダーとは、サーバーがファイル本体と一緒に返す「添え状」のこと。ブラウザはこれを読んで扱い方を決めます。</span>
       </li>
       <li>
         <b>ヘッダーが無いと <code>SharedArrayBuffer</code> は「存在しない」扱いになります</b>
-        <span>値が空なのではなく、参照した瞬間に <code>ReferenceError</code>。実測しました。</span>
+        <span>値が空なのではなく、参照した瞬間に <code>ReferenceError</code>。素のページで実測しました。</span>
       </li>
       <li>
         <b>そもそもC#のスレッドは使えません。これは仕様です</b>
@@ -63,6 +63,7 @@
       <li><a href="#s4">C#のスレッドは使えない</a></li>
       <li><a href="#s5">配信サーバー別の設定</a></li>
       <li><a href="#s6">確認リスト</a></li>
+      <li><a href="#corrections">訂正と追記</a></li>
       <li><a href="#refs">参考文献</a></li>
     </ol>
   </nav>
@@ -72,15 +73,41 @@
     <h2><span class="step">1</span>症状 — ローカルでは動いたのに</h2>
 
     <article class="item">
-      <h3>ビルドは同じ。置き場所を変えただけで起動しなくなる</h3>
-      <p class="lead">Unityの「Build And Run」では問題なく動きます。同じ成果物をサーバーに上げると、<mark>ロード画面から先に進まない</mark>。</p>
-      <p class="lead">Unityのビルド設定を疑って何時間も溶かす典型です。<b>ビルドは悪くありません。</b></p>
+      <h3>まず前提。ヘッダーが要るのは「実験的な設定を有効にしたビルド」だけ</h3>
+      <p class="lead">最初に適用範囲を切ります。Unity公式のサーバー設定ページは、<mark>ヘッダーが必要になる条件をはっきり限定しています</mark>。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Unity Manual (6000.0) Nginx設定ページ — 原文</div>
+        <pre>If you built your project with Enable Native C/C++
+Multithreading activated in the Player settings, you
+need to set specific server headers. These headers
+include Cross-Origin Opener Policy (COOP),
+Cross-Origin Embedded Policy (COEP), and Cross-Origin
+Resource Policy (CORP).</pre>
+      </div>
+
+      <p class="lead"><b>訳:</b> Player設定で <code>Enable Native C/C++ Multithreading</code> を有効にしてビルドしたなら、サーバー側で特定のヘッダーを設定する必要がある。COOP・COEP・CORPである。</p>
+      <p class="lead">裏を返すと、<mark>この設定を有効にしていない既定のビルドは、ヘッダーが無くても動きます</mark>。Unity公式のNode.jsサンプルも「マルチスレッド対応でビルドしたなら <code>true</code>、そうでなければ <code>false</code>」と書き分けています。以降はすべて<b>有効にした場合の話</b>です。</p>
+    </article>
+
+    <article class="item">
+      <h3>ビルドは同じ。置き場所を変えると、返ってくるヘッダーが変わる</h3>
+      <p class="lead">Unityの「Build and Run」はUnity自前のローカルサーバーで動きます。本番のホスティングは別物です。<mark>成果物が同じでも、返ってくるヘッダーまで同じとは限りません。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">「Technical limitations」— Build and run limitations 節</div>
+        <pre>Unity uses a web server with only basic functionality
+to host web builds created with Build and Run
+(menu: Edit &gt; Build Profiles &gt; Build and Run).</pre>
+      </div>
 
       <ul class="points">
-        <li><b>「Build And Run」は自前のローカルサーバーを立てています。</b>そのサーバーが必要なヘッダーを付けてくれるので動きます。</li>
-        <li><b>本番のホスティングは何も付けません。</b>だから同じファイルでも結果が変わります。</li>
-        <li><b>エラーが分かりにくい。</b>コンソールに出るのは <code>SharedArrayBuffer is not defined</code> 系で、Unityの文字は出てきません。</li>
+        <li><b>公式に書いてあるのは「自前のサーバーで配る」ところまで。</b>そのサーバーがCOOP/COEPを返すかどうかは<b>未確認</b>です。参考文献に挙げた公式ページを読みましたが、<code>Build and Run</code> とクロスオリジン関連ヘッダーを結びつける記述はどこにもありませんでした。</li>
+        <li><b>ヘッダーはサーバーの担当です。</b>Unity側のビルド設定をいくらいじっても付きません（3節の原文）。だから<b>疑うべきはビルドではなく配信</b>です。</li>
+        <li><b>「ロード画面から進まない」という症状は、この記事では未確認です。</b>Unityエディタでの実機ビルド検証はしていません。確かめたのは<b>ブラウザ側の前提条件</b>だけで、その範囲を2節に全部出します。</li>
       </ul>
+
+      <p class="lead">以降、ブラウザの<b>開発者ツール</b>を使います。Windows / Linux は <code>F12</code>、macOS は <code>Command + Option + I</code>。または画面を右クリック →「検証」→「Console」タブ。JavaScriptのエラーはここに出ます。</p>
 
       <div class="quiz">
         <p class="q">Q. ローカルで動いて本番で動かない。まず疑うのは?</p>
@@ -100,40 +127,76 @@
       <h3>同じHTMLを、ヘッダーだけ変えて2通り配信した</h3>
       <p class="lead">Unityを持ち出さなくても、条件はブラウザだけで確かめられます。<mark>ヘッダー2本の有無だけが違う</mark>サーバーを立てました。</p>
 
+      <p class="lead">測る対象は <code>crossOriginIsolated</code> です。これは「このページはクロスオリジン分離済み」というブラウザ側の状態を表します。HTML仕様は、この能力を<mark>「クロスオリジン分離を必要とするAPIを使ってよいか」を表す真偽値</mark>と定義しています。</p>
+      <p class="lead">その代表が <code>SharedArrayBuffer</code>、つまり複数スレッドで同じメモリを共有する仕組みです。仕様上、能力が <code>false</code> のままワーカーへ渡そうとすると例外になります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">HTML Standard 2.7.3 StructuredSerializeInternal — 原文</div>
+        <pre>If IsSharedArrayBuffer(value) is true:
+  If the current settings object's cross-origin
+  isolated capability is false, then throw a
+  "DataCloneError" DOMException.</pre>
+      </div>
+
+      <p class="lead">そしてCOOPとCOEPが、その分離を<b>サーバーから宣言する</b>ヘッダーです。<b>ヘッダー → 分離 → 共有メモリ</b>の順に効きます。ここを実際に測ります。</p>
+
+      <ul class="points">
+        <li><b>1. <code>coi.py</code> で2つのURLを配る。</b>返すHTMLは1バイトも同じで、<code>/coi</code> のときだけヘッダー2本を足します。</li>
+        <li><b>2. <code>probe.js</code> でブラウザを自動操作する。</b>Playwrightでchromiumを起動し、両方のURLを開いて判定値を集めます。</li>
+        <li><b>3. 並べて出力する。</b>違いがヘッダー以外に無いので、差はヘッダーのせいだと言えます。</li>
+      </ul>
+
       <div class="code">
-        <div class="code-head">coi.py — ヘッダーの有無を切り替えるだけのサーバー</div>
-        <pre>class Handler(http.server.BaseHTTPRequestHandler):
+        <div class="code-head">coi.py — ヘッダーの有無だけを切り替えるサーバー（抜粋）</div>
+        <pre>COOP = "Cross-Origin-Opener-Policy"
+COEP = "Cross-Origin-Embedder-Policy"
+COI = [(COOP, "same-origin"),
+       (COEP, "require-corp")]
+
+
+class H(hs.BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
-        self.send_header("Content-Length", str(len(PAGE)))
-        if self.path.startswith("/coi"):
-            self.send_header("Cross-Origin-Opener-Policy", "same-origin")
-            self.send_header("Cross-Origin-Embedder-Policy", "require-corp")
+        self.send_header(*HTML)
+        if "/coi" in self.path:
+            for k, v in COI:
+                self.send_header(k, v)
         self.end_headers()
         self.wfile.write(PAGE)</pre>
       </div>
+
+      <p class="lead">出力の <code>SAB</code> は <code>SharedArrayBuffer</code> の略です（狭い画面で折り返さないよう縮めています）。</p>
 
       <div class="code term">
         <div class="code-head">実行結果（node probe.js）</div>
         <pre>ブラウザ: 141.0.7390.37
 
-■ ヘッダーなしで配信した場合
+■ ヘッダーなし
   crossOriginIsolated   <span class="ng-line">false</span>
-  SharedArrayBuffer     <span class="ng-line">なし / 作れない (ReferenceError)</span>
+  typeof SAB            <span class="ng-line">undefined</span>
+  new SAB(8)            <span class="ng-line">ReferenceError</span>
   WebAssembly           あり
   WebGL2                あり
-  WebGPU                あり
+  navigator.gpu         object
+  requestAdapter()      null
   論理コア数            4
 
-■ COOP + COEP を付けて配信した場合
+■ COOP + COEP あり
   crossOriginIsolated   <span class="ok-line">true</span>
-  SharedArrayBuffer     <span class="ok-line">あり / 作れる</span>
+  typeof SAB            <span class="ok-line">function</span>
+  new SAB(8)            <span class="ok-line">できた</span>
   WebAssembly           あり
   WebGL2                あり
-  WebGPU                あり
-  論理コア数            4</pre>
+  navigator.gpu         object
+  requestAdapter()      null
+  論理コア数            4
+
+■ ヘッダーなしで SAB を直接参照
+  <span class="ng-line">ReferenceError:</span>
+  <span class="ng-line">SharedArrayBuffer is not defined</span></pre>
       </div>
+
+      <p class="lead">仕様は「共有メモリを<b>渡せない</b>」と書いていました。実際のChromium 141では、<mark>その手前で変数ごと存在しません</mark>でした。</p>
 
       <figure>
         <picture>
@@ -145,7 +208,8 @@
 
       <ul class="points">
         <li><b><code>SharedArrayBuffer</code> は「値が無い」のではなく「存在しない」。</b><code>typeof</code> で見ると <code>undefined</code>、直接触ると <code>ReferenceError</code> です。だから <code>if (SharedArrayBuffer)</code> と書くと、そこで落ちます。</li>
-        <li><b>WebAssembly・WebGL2・WebGPUはヘッダー無しでも使えます。</b>止まるのは<b>スレッド関連だけ</b>。だから「描画は出るのに固まる」といった中途半端な壊れ方をします。</li>
+        <li><b>WebAssemblyとWebGL2はヘッダー無しでも使えました。</b>止まるのは<b>スレッド関連だけ</b>。だから「描画は出るのに固まる」といった中途半端な壊れ方をします。</li>
+        <li><b>WebGPUは判定を保留します。</b><code>navigator.gpu</code> は両方の条件で存在しましたが、<code>requestAdapter()</code> は<b>どちらも <code>null</code></b>でした。ヘッドレスかつGPUの無いこの環境ではアダプタを取得できず、<mark>ヘッダーの影響は測れていません</mark>。「APIが在る」と「使える」は別だ、という例でもあります。</li>
         <li><b>判定は1行で書けます。</b><code>self.crossOriginIsolated</code> が <code>true</code> かどうか。これがマルチスレッド可否とほぼ同義です。</li>
       </ul>
     </article>
@@ -160,15 +224,21 @@
       <p class="lead">実測は実測として、<mark>Unityが何を要求しているか</mark>を公式マニュアルで確認しました。原文はこうです。</p>
 
       <div class="code wrap">
-        <div class="code-head">Unity Manual (6000.0)「WebGL technical overview」— 原文</div>
-        <pre>The Web platform supports multithreading, when your document is
-within a secure context. The following HTTP response headers must
-be set by the server.
+        <div class="code-head">「Technical limitations」— Multithreading support 節 Notes</div>
+        <pre>The Web platform supports C/C++ multithreading only if
+you enable Native C/C++ support in the Web Player
+settings.
+
+The Web platform supports multithreading, when your
+document is within a secure context. The following HTTP
+response headers must be set by the server.
 
 Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
 Cross-Origin-Resource-Policy: cross-origin</pre>
       </div>
+
+      <p class="lead"><b>訳:</b> Web版がC/C++マルチスレッドに対応するのは、Web用Player設定でNative C/C++サポートを有効にした場合だけである。／Web版がマルチスレッドに対応するのは、文書が secure context にあるときである。<mark>次のHTTPレスポンスヘッダーをサーバーが設定しなければならない</mark>。</p>
 
       <ul class="points">
         <li><b>Unityは3本挙げています。</b>私が実測したのは上2本で、これだけで <code>crossOriginIsolated</code> は <code>true</code> になりました。3本目の <code>Cross-Origin-Resource-Policy</code> は<b>今回検証していません</b>。Unityが挙げている以上、まとめて設定するのが安全です。</li>
@@ -199,15 +269,22 @@ Cross-Origin-Resource-Policy: cross-origin</pre>
       <p class="lead">ここが一番の落とし穴です。ヘッダーを整えても、<mark>使えるようになるのはC/C++側のスレッドだけ</mark>です。</p>
 
       <div class="code wrap">
-        <div class="code-head">Unity Manual — 原文</div>
-        <pre>Managed (C#) threads aren't supported due to the lack of a
-multithreaded garbage collection feature in WebAssembly.
-
-Although Unity provides multithreading support for native C/C++
-code, the Web platform doesn't yet support C# multithreading due
-to limitations of WebAssembly. This means that applications built
-using the Web platform must run on a single C# thread.</pre>
+        <div class="code-head">「Technical limitations」— Lack of managed threading support 節</div>
+        <pre>Managed (C#) threads aren’t supported due to the lack of
+a multithreaded garbage collection feature in
+WebAssembly.</pre>
       </div>
+
+      <div class="code wrap">
+        <div class="code-head">同ページ「Multithreading support」節（冒頭）</div>
+        <pre>Although Unity provides multithreading support for
+native C/C++ code, the Web platform doesn’t yet support
+C# multithreading due to limitations of WebAssembly.
+This means that applications built using the Web
+platform must run on a single C# thread.</pre>
+      </div>
+
+      <p class="lead"><b>訳:</b> WebAssemblyにマルチスレッド対応のガベージコレクションが無いため、マネージド（C#）スレッドは非対応。UnityはネイティブC/C++コードのマルチスレッドには対応するが、Web版はWebAssemblyの制限によりC#のマルチスレッドにまだ対応していない。<mark>Web版で作ったアプリケーションは単一のC#スレッドで動かさなければならない</mark>。</p>
 
       <figure>
         <picture>
@@ -219,8 +296,9 @@ using the Web platform must run on a single C# thread.</pre>
 
       <ul class="points">
         <li><b>C#側は1スレッドで動かすしかありません。</b>他プラットフォーム向けに <code>System.Threading</code> で組んだ処理は、そのままでは持ち込めません。</li>
-        <li><b>公式の代替案は <code>Awaitable</code>。</b>マニュアルは「複雑な非同期処理には <code>Awaitable</code> を使うことを推奨する。多くの場合 <code>System.Threading.Tasks.Task</code> を置き換えられる」としています。</li>
-        <li><b>C/C++スレッドも実験的な扱いです。</b>Player設定の <code>Native C/C++ Multithreading</code> を有効にする必要があります。</li>
+        <li><b>公式の代替案は <code>Awaitable</code>。</b>同じ Multithreading support 節の記述で、訳すと「Web版で複雑な非同期処理を行う推奨のやり方は <code>Awaitable</code> を使うことであり、多くの場合 <code>System.Threading.Tasks.Task</code> を置き換えられる」です。</li>
+        <li><b>C/C++スレッドも実験的な扱いです。</b>場所は <code>Edit &gt; Project Settings &gt; Player</code> を開き、Webのタブ → <code>Other Settings</code> → <code>Configuration</code> の中の <code>Enable Native C/C++ Multithreading</code>。1節のヘッダーが要るのは、ここを有効にしたときだけです。</li>
+        <li><b>Unity自身が「切っておけ」と書いています。</b>Web Player settings の原文は「It’s recommended to disable this option and use it only for evaluating future web features.」（このオプションは無効にし、将来のWeb機能を評価する目的にのみ使うことを推奨する）。<mark>まずこの設定が本当に要るかを疑うのが先</mark>です。</li>
       </ul>
 
       <div class="quiz">
@@ -240,7 +318,7 @@ using the Web platform must run on a single C# thread.</pre>
             <dt>コードの動的生成ができない</dt>
             <dd>WebはAOTプラットフォームのため <code>System.Reflection.Emit</code> は使えません。これはiOSや多くのコンソールと同じ制約です。</dd>
             <dt>GCの動き方が違う</dt>
-            <dd>ブラウザがWebAssemblyのスタックへの直接アクセスを塞いでいるため、ガベージコレクションが<b>毎フレームの最後に1回だけ</b>走ります。他プラットフォームのように複数フレームに分散されません。フレーム末尾のスパイクとして観測されます。</dd>
+            <dd>ブラウザがWebAssemblyのスタックへの直接アクセスを塞いでいるため、ガベージコレクションが<b>毎フレームの最後に1回だけ</b>走ります。他プラットフォームのように複数フレームに分散されません（ここまでがマニュアルの記述）。実際のフレーム時間にどう出るかは、<b>本記事ではプロファイリングしていません</b>。</dd>
           </dl>
         </div>
       </details>
@@ -252,8 +330,9 @@ using the Web platform must run on a single C# thread.</pre>
     <h2><span class="step">5</span>配信サーバー別の設定</h2>
 
     <article class="item">
-      <h3>コピーして貼るだけの設定</h3>
+      <h3>コピーして貼るだけの設定（貼る場所と反映のしかたつき）</h3>
       <p class="lead">Unityが挙げている3本をまとめて設定します。<mark>あわせて <code>https</code> で配ること。</mark></p>
+      <p class="lead">なおUnity公式の例は、この3本を <code>.htm / .html / .js</code> などに絞って付けています。下は<b>全レスポンスに付ける簡略版</b>です。細かく絞りたいときは参考文献の公式ページを見てください。</p>
 
       <div class="code wrap">
         <div class="code-head">nginx</div>
@@ -270,26 +349,41 @@ Header always set Cross-Origin-Resource-Policy "cross-origin"</pre>
       </div>
 
       <div class="code wrap">
-        <div class="code-head">Cloudflare Pages / Netlify（_headers ファイル）</div>
+        <div class="code-head">Cloudflare Pages / Netlify（_headers）</div>
         <pre>/*
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: require-corp
   Cross-Origin-Resource-Policy: cross-origin</pre>
       </div>
 
-      <p class="lead"><b>GitHub Pages では設定できません。</b>レスポンスヘッダーを変更する手段が無いため、<mark>マルチスレッドを使うUnity Webビルドは置けません</mark>。単一スレッド構成なら問題なく動きます。</p>
+      <ul class="points">
+        <li><b>nginx は設定ファイルの <code>server</code> ブロックの中へ。</b>保存したら <code>nginx -t</code> で構文を検査し、<code>nginx -s reload</code> で反映します。</li>
+        <li><b>Apache はビルドを置いた公開ディレクトリ直下の <code>.htaccess</code> へ。</b><code>mod_headers</code> が有効なら、保存した時点で反映されます。</li>
+        <li><b><code>_headers</code> は拡張子なしのテキストファイル。</b>Cloudflare Pagesは静的アセットのディレクトリ（＝ビルド出力先）、Netlifyは publish directory に置きます。どちらも<mark>置いただけでは効かず、再デプロイが要ります</mark>。</li>
+      </ul>
 
-      <div class="code term">
-        <div class="code-head">設定できたかの確認（1コマンド）</div>
-        <pre>$ curl -sS -D - -o /dev/null "https://あなたのサイト/" \
-    | grep -i "cross-origin"
+      <p class="lead"><b>GitHub Pages については、置けないと筆者は考えています。</b>レスポンスヘッダーを追加する手段が提供されていないためです。ただし<b>Unity・GitHubのどちらも、この組み合わせについて明示していません</b>（筆者の判断であることを参考文献にも書いています）。単一スレッド構成なら、そもそもこの3本は要りません。</p>
 
-cross-origin-opener-policy: same-origin
-cross-origin-embedder-policy: require-corp
-cross-origin-resource-policy: cross-origin</pre>
+      <div class="code">
+        <div class="code-head">設定できたかの確認</div>
+        <pre>curl -sS -D - -o /dev/null \
+    https://あなたのサイト/ \
+  | grep -i cross-origin \
+  | sed 's/: /:\n  /'</pre>
       </div>
 
-      <p class="lead">ブラウザ側からも1行で確認できます。開発者ツールのコンソールで <code>crossOriginIsolated</code> と打つだけです。<b><code>true</code> が返れば成功。</b></p>
+      <p class="lead">最後の <code>sed</code> は、狭い画面でも読めるように折り返しているだけです。3本そろって返れば成功。返らなければ、サーバーに反映されていません。</p>
+      <p class="lead">参考までに、<b>2節の検証サーバー</b>（COOPとCOEPの2本だけ付ける版）へ同じコマンドを打った結果です。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（2節の検証サーバーに対して）</div>
+        <pre>Cross-Origin-Opener-Policy:
+  same-origin
+Cross-Origin-Embedder-Policy:
+  require-corp</pre>
+      </div>
+
+      <p class="lead">ブラウザ側からも1行で確認できます。さきほどのコンソールで <code>crossOriginIsolated</code> と打つだけです。<b><code>true</code> が返れば成功。</b></p>
     </article>
   </section>
 
@@ -298,23 +392,41 @@ cross-origin-resource-policy: cross-origin</pre>
     <h2><span class="step">6</span>確認リスト</h2>
 
     <article class="item">
-      <h3>本番に置く前に、この5つだけ見てください</h3>
+      <h3>本番に置く前に、この6つだけ見てください</h3>
 
-      <p class="lead">上から順に潰せば、この記事の事故は起きません。<span class="cl-count">0 / 5</span></p>
+      <p class="lead">上から順に潰せば、この記事の事故は起きません。<span class="cl-count">0 / 6</span></p>
       <ul class="checklist" data-key="unity-web-threads-2026-08-14">
+        <li><label><input type="checkbox"><span><code>Enable Native C/C++ Multithreading</code> を有効にしてビルドしたか確認した（無効なら以下は不要）</span></label></li>
         <li><label><input type="checkbox"><span><code>https</code> で配信している（<code>http://192.168.x.x</code> になっていない）</span></label></li>
         <li><label><input type="checkbox"><span>COOP / COEP / CORP の3本をサーバーに設定した</span></label></li>
         <li><label><input type="checkbox"><span>本番URLで <code>crossOriginIsolated</code> が <code>true</code> を返すのを確認した</span></label></li>
         <li><label><input type="checkbox"><span>COEPを付けたあと、外部の画像・タグが壊れていないか見た</span></label></li>
         <li><label><input type="checkbox"><span>C#スレッド前提の処理が残っていないか確認した（<code>Awaitable</code> に寄せた）</span></label></li>
       </ul>
-      <div class="cl-done" hidden>🎉 これで「本番だけ動かない」は起きません</div>
+      <div class="cl-done" hidden>🎉 マルチスレッドの前提条件はこれで満たせています</div>
 
       <a class="next-up" href="../2026-08-14_webview-origin/">
         <div class="label">NEXT →</div>
         <div class="t">WebViewだけ動かない。犯人は Origin: null</div>
         <div class="d">同じ「置き場所で挙動が変わる」問題を、アプリ内ブラウザで追いかけた回です。</div>
       </a>
+    </article>
+  </section>
+
+  <!-- ============ 訂正と追記 ============ -->
+  <section class="section section-d" id="corrections">
+    <h2>訂正と追記</h2>
+
+    <article class="item">
+      <p class="lead">公開後の事実検証で、裏の取れない記述が見つかりました。<mark>2026年8月15日に次の6点を直しています。</mark></p>
+      <ul class="points">
+        <li><b>参照した文書名が誤っていました。</b>「WebGL technical overview」と書いていましたが、当該ページの実際のタイトルは<b>「Technical limitations」</b>です（URLは同じ）。ページ本文に “technical overview” という語はありません。3節の見出しと参考文献を直しました。</li>
+        <li><b>適用条件が抜けていました。</b>ヘッダー3本が必要なのは <code>Enable Native C/C++ Multithreading</code> を有効にしてビルドした場合だけです。公式のサーバー設定ページがそう限定しています。1節の冒頭に前提として置き直しました。</li>
+        <li><b>「Build And Runのサーバーがヘッダーを付けてくれる」を削除しました。</b>Unityが自前のサーバーを使うことは公式に書かれていますが、そのサーバーがCOOP/COEPを返すという記述は見つかりませんでした。未確認と明記しています。</li>
+        <li><b>Unityビルドでの症状を断定していた箇所を外しました。</b>「ロード画面から進まない」「コンソールにUnityの文字は出ない」は実機検証をしていません。実測した素のページでの <code>ReferenceError</code> と分けて書き直しました。</li>
+        <li><b>「WebGPUはヘッダー無しでも使えます」を撤回しました。</b>再測定したところ <code>navigator.gpu</code> は存在するものの、<code>requestAdapter()</code> はヘッダーの有無にかかわらず <code>null</code>。この環境では可否を判定できません。2節の実行結果を測り直して差し替えました。</li>
+        <li><b>GCの「フレーム末尾のスパイクとして観測されます」を削除しました。</b>マニュアルにその記述は無く、本記事でもプロファイリングをしていません。</li>
+      </ul>
     </article>
   </section>
 
@@ -328,14 +440,43 @@ cross-origin-resource-policy: cross-origin</pre>
       <ol class="refs">
         <li>
           <span class="flag primary">一次資料</span>
-          Unity Technologies「WebGL technical overview」<i>Unity Manual 6000.0</i>.
-          <span class="note">参照箇所: マルチスレッドに必要な3つのHTTPレスポンスヘッダー、マネージド(C#)スレッド非対応とその理由、<code>Awaitable</code> の推奨、ネットワーク・コード動的生成・GCの制限。本文中の引用は原文のまま。</span>
-          <a href="https://docs.unity3d.com/6000.0/Documentation/Manual/webgl-technical-overview.html">https://docs.unity3d.com/6000.0/Documentation/Manual/webgl-technical-overview.html</a>（2026年8月14日参照）
+          Unity Technologies「Technical limitations」<i>Unity Manual 6000.0</i>.
+          <span class="note">参照箇所: Multithreading support 節（C/C++マルチスレッドの有効化条件と3つのHTTPレスポンスヘッダー、<code>Awaitable</code> の推奨）、Lack of managed threading support 節（C#スレッド非対応の理由）、Networking limitations / Dynamic generation of code / Constraints on native stack scanning 節、Build and run limitations 節。<b>本文の引用は原文のまま</b>で、出どころの節名を各引用ブロックに書きました（4節は別々の節からの引用なのでブロックを分けています）。ページ全文を取得して確認しています。</span>
+          <a href="https://docs.unity3d.com/6000.0/Documentation/Manual/webgl-technical-overview.html">https://docs.unity3d.com/6000.0/Documentation/Manual/webgl-technical-overview.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Unity Technologies「Set up your Nginx server configuration for Web builds」ほか Apache / Node.js 版<i>Unity Manual 6000.0</i>.
+          <span class="note">参照箇所: Add C/C++ multithreading support 節。1節の引用元で、ヘッダーが必要になる条件（<code>Enable Native C/C++ Multithreading</code> を有効にしてビルドした場合）と3本の内容、および公式例が <code>.htm/.html/.js</code> に絞って付けていることを確認。Node.js版の <code>enableWasmMultithreading</code> の書き分けも同ページで確認しました。</span>
+          <a href="https://docs.unity3d.com/6000.0/Documentation/Manual/web-server-config-nginx.html">https://docs.unity3d.com/6000.0/Documentation/Manual/web-server-config-nginx.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Unity Technologies「Web Player settings」<i>Unity Manual 6000.0</i>.
+          <span class="note">参照箇所: Other Settings &gt; Configuration の <code>Enable Native C/C++ Multithreading</code> の項。設定の場所、有効時にサーバー側でCOOP/COEP/CORPが要ること、および「無効にして将来のWeb機能の評価にのみ使うことを推奨する」という記述（4節で引用）を確認。</span>
+          <a href="https://docs.unity3d.com/6000.0/Documentation/Manual/class-PlayerSettingsWebGL.html">https://docs.unity3d.com/6000.0/Documentation/Manual/class-PlayerSettingsWebGL.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          WHATWG「HTML Standard」§2.7.3 StructuredSerializeInternal ／ §8.1.3.2 Environment settings objects.
+          <span class="note">参照箇所: 共有バッファの直列化時に cross-origin isolated capability が false なら <code>DataCloneError</code> を投げる規定（2節で引用）と、cross-origin isolated capability の定義（「クロスオリジン分離を必要とするAPIを使ってよいかを表す真偽値」）。両方とも本文を取得して該当箇所を読みました。定義側は <a href="https://html.spec.whatwg.org/multipage/webappapis.html">webappapis.html</a> にあります。</span>
+          <a href="https://html.spec.whatwg.org/multipage/structured-data.html">https://html.spec.whatwg.org/multipage/structured-data.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Cloudflare「Headers · Cloudflare Pages docs」／ Netlify「Custom headers | Netlify Docs」.
+          <span class="note">参照箇所: <code>_headers</code> の置き場所。Cloudflare Pagesは「拡張子のないプレーンテキストファイルを静的アセットのディレクトリ（またはビルド出力先）に置く」、Netlifyは「publish directory に置く」。5節の記述の根拠です。Netlify側は <a href="https://docs.netlify.com/manage/routing/headers/">docs.netlify.com/manage/routing/headers/</a>。</span>
+          <a href="https://developers.cloudflare.com/pages/configuration/headers/">https://developers.cloudflare.com/pages/configuration/headers/</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag self">自分の実測</span>
-          クロスオリジン分離の効果測定。Chromium 141.0.7390.37 / Python 3.11.15 / Node.js v22.22.2、2026年8月14日実施。
-          <span class="note">同一のHTMLを、COOP・COEPの有無だけ変えて配信し、<code>crossOriginIsolated</code> と <code>SharedArrayBuffer</code> を計測。出力は加工していません。<b>3本目の <code>Cross-Origin-Resource-Policy</code> は検証していません</b>。また <b>Unityエディタでの実機ビルド検証は行っていません</b>。ブラウザ側の前提条件のみを測っています。</span>
+          クロスオリジン分離の効果測定。Chromium 141.0.7390.37 / Python 3.11.15 / Node.js v22.22.2、2026年8月15日に再測定。
+          <span class="note">同一のHTMLを、COOP・COEPの有無だけ変えて配信し、<code>crossOriginIsolated</code>・<code>SharedArrayBuffer</code>・WebAssembly・WebGL2・<code>navigator.gpu</code> を計測。出力は加工せずそのまま貼っています。<b>3本目の <code>Cross-Origin-Resource-Policy</code> は検証していません</b>。<b>WebGPUは <code>requestAdapter()</code> が両条件とも <code>null</code></b> で、この環境では可否を判定できませんでした。</span>
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Unityビルドを本番へ置いたときの挙動（ロード画面で止まる、コンソールに何が出るか）。
+          <span class="note"><b>Unityエディタでの実機ビルド検証は行っていません。</b>手元にUnityエディタが無いためです。本文でも断定を避け、測ったのはブラウザ側の前提条件だけだと明記しています。GCのフレーム時間への影響も同様に未測定です。</span>
         </li>
         <li>
           <span class="flag self">自分の意見</span>
@@ -347,7 +488,7 @@ cross-origin-resource-policy: cross-origin</pre>
 
   <footer class="article-foot">
     <div>この記事は2026年8月14日時点の内容です。ブラウザ側の測定は Chromium 141.0.7390.37 で行いました。</div>
-    <div>公開: 2026年8月14日 JST</div>
+    <div>公開: 2026年8月14日 JST ／ 訂正: 2026年8月15日（<a href="#corrections">訂正と追記</a>）</div>
     <div><a href="../../">← ホームに戻る</a></div>
   </footer>
 

@@ -64,6 +64,7 @@
       <li><a href="#s4">4. 回す(やっとループ)</a></li>
       <li><a href="#trap">私が事故った話</a></li>
       <li><a href="#next">今日やることリスト</a></li>
+      <li><a href="#corrections">訂正と追記</a></li>
       <li><a href="#refs">参考文献</a></li>
     </ol>
   </nav>
@@ -86,9 +87,9 @@
       </figure>
 
       <ul class="points">
-        <li><b>1. 頼む。</b>毎回プロンプトを打つ。だいたいの人がここ。</li>
+        <li><b>1. 頼む。</b>毎回プロンプトを打つ。多くの人がここで止まっている、というのが筆者の実感です。</li>
         <li><b>2. 型にする。</b>よく使う頼み方をファイルに保存する。</li>
-        <li><b>3. 見張る。</b>テストを書いて、編集のたびに自動実行。<b>ここが山場。</b></li>
+        <li><b>3. 見張る。</b>テスト（期待値を書いた小さなプログラム）を用意して、編集のたびに自動実行。<b>ここが山場。</b></li>
         <li><b>4. 回す。</b>「テストが通るまで直して」と投げて、席を立つ。</li>
       </ul>
     </article>
@@ -100,12 +101,12 @@
 
     <article class="item">
       <h3>プロンプト術は忘れていい。効き目があるのはこの3つ</h3>
-      <p class="lead">コツは山ほど流通していますが、<mark>実務で差が出るのは3つ</mark>だけ。残りは誤差です。</p>
+      <p class="lead">コツは山ほど流通していますが、<mark>筆者が実務で効くと感じたのはこの3つ</mark>です。計測した比率ではなく、運用上の目安として読んでください。</p>
 
       <ul class="points">
         <li><b>①ゴールを先に書く。</b>「3000円ちょうどは送料無料が正しい。直して」の順。</li>
         <li><b>②現物を貼る。</b>説明を書くより、失敗したテスト出力をそのまま貼るほうが速くて正確。</li>
-        <li><b>③禁止事項を1行。</b>「テストは書き換えないで」。事故の9割はこれで消えます。</li>
+        <li><b>③禁止事項を1行。</b>「テストは書き換えないで」。これを書き忘れたときが、いちばん静かに事故ります。</li>
       </ul>
 
       <div class="code wrap">
@@ -140,7 +141,8 @@ FAILED test_shipping.py::test_ちょうど3000円は送料無料 - assert 500 ==
 
     <article class="item">
       <h3>同じ説明を2回した時点で、それはファイルにすべき</h3>
-      <p class="lead">Claude Codeには<mark>スキル</mark>があります。手順書を置くと <code>/名前</code> で呼べる仕組みです。</p>
+      <p class="lead"><b>Claude Code</b>はAnthropicのAIコーディングツールです。公式ドキュメントによれば、ターミナル・IDE拡張・デスクトップアプリ・ウェブで動きます。<mark>以降の設定は全部これの話</mark>（この記事はターミナルでの利用が前提。入手方法は<a href="https://code.claude.com/docs/en/overview">公式の Get started</a>）。</p>
+      <p class="lead">これには<mark>スキル</mark>があります。手順書を置くと <code>/名前</code> で呼べる仕組みです。</p>
       <p class="lead">やることはフォルダを1つ作るだけ。<span class="time-chip">⏱ 約1分</span></p>
 
       <div class="code wrap">
@@ -164,7 +166,8 @@ description: 失敗しているテストを直す。テスト自体は書き換�
 
       <ul class="points">
         <li><b>置き場所は2つだけ。</b>そのプロジェクト用なら <code>.claude/skills/</code>、全部で使うなら <code>~/.claude/skills/</code>。</li>
-        <li><b>中身はただのMarkdown。</b>決まりは冒頭の <code>name</code> と <code>description</code> だけ。あとは日本語でOK。</li>
+        <li><b>中身はただのMarkdown。</b>冒頭の項目に必須はありません。公式ドキュメントは <code>description</code> だけを「推奨」としています。本文は日本語でOK。</li>
+        <li><b><code>/fix-test</code> を決めるのはフォルダ名。</b><code>name:</code> は一覧に出る表示名です。<mark>フォルダ名を変えると呼び名も変わります。</mark></li>
         <li><b>「やらないこと」が本体。</b>禁止事項のないスキルは、いつか事故ります。</li>
       </ul>
 
@@ -173,7 +176,7 @@ description: 失敗しているテストを直す。テスト自体は書き換�
         <div class="body">
           <dl>
             <dt>ポイント</dt>
-            <dd>この一文を見てAIが「いま使うべきか」を決めます。「〜のとき使う」と用途で書くと呼ばれやすくなります。</dd>
+            <dd>この一文を見てAIが「いま使うべきか」を決めます。「〜のとき使う」と用途で書くと呼ばれやすくなります。省略すると本文の最初の段落が代わりに使われます。</dd>
             <dt>注意</dt>
             <dd>スキルの書式は更新が入る領域です。使う前に公式ドキュメントで最新を確認してください。</dd>
           </dl>
@@ -188,6 +191,8 @@ description: 失敗しているテストを直す。テスト自体は書き換�
 
     <article class="item">
       <h3>「直ったか」を機械が判定できる。それだけが全部の土台</h3>
+      <p class="lead">ここで言う<b>テスト</b>とは、「<code>shipping_fee(3000)</code> は <code>0</code> を返すはず」のような期待値を書いた小さなプログラムです。</p>
+      <p class="lead">人が目で確かめる代わりに、機械が一瞬で○×を出します。<mark>この○×があるから、AIに丸投げできる</mark>わけです。</p>
       <p class="lead">ここは飛ばせません。逆に<mark>ここさえ作れば4段目は一瞬</mark>です。</p>
       <p class="lead">実際に動かした例で見ます。まずバグ入りのコード。</p>
 
@@ -242,13 +247,30 @@ FAILED test_shipping.py::test_ちょうど3000円は送料無料 - assert 500 ==
       <ul class="points">
         <li><b>この出力をそのまま貼る。</b>どのテストがどの値で落ちたか全部入り。説明文を書くより速い。</li>
         <li><b>テスト名は日本語でいい。</b>Pythonは日本語の関数名が使えます。そのまま仕様書になります。</li>
-        <li><b>3件で十分。</b>境界(3000)・その手前(2999)・普通の値(5000)。off-by-oneはこれで捕まります。</li>
+        <li><b>まずは3件から。</b>境界(3000)・その手前(2999)・普通の値(5000)。off-by-oneはこれで捕まります。</li>
       </ul>
     </article>
 
     <article class="item">
       <h3>編集するたび、勝手にテストが走る状態にする</h3>
-      <p class="lead">毎回自分で打つのはすぐ飽きます。<mark>編集したら自動でテスト</mark>にします。設定1つ。<span class="time-chip">⏱ 約1分</span></p>
+      <p class="lead">毎回自分で打つのはすぐ飽きます。<mark>編集したら自動でテスト</mark>にします。<span class="time-chip">⏱ 約1分</span></p>
+      <p class="lead">この「◯◯したら自動で走る仕組み」を<b>フック</b>と呼びます。まず走らせる中身をファイルにします。</p>
+
+      <div class="code">
+        <div class="code-head">.claude/hooks/pytest.sh（実行権限を付ける）</div>
+        <pre>#!/bin/bash
+f=$(jq -r '.tool_input.file_path // empty')
+case "$f" in *.py) ;; *) exit 0 ;; esac
+python3 -m pytest -q --tb=no &gt;&amp;2 || exit 2</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>1行目の <code>jq</code>。</b>フックには「どのファイルを触ったか」がJSONで渡ってきます。そこからパスを取り出しています。</li>
+        <li><b>2行目で拡張子を絞る。</b>Python以外なら何もせず終了。Markdownを直すたびにテストが走ると邪魔です。</li>
+        <li><b>3行目が肝。</b>出力を <code>&gt;&amp;2</code> で標準エラーに出し、落ちたときだけ<mark>終了コード2</mark>で終わります。理由は下に書きます。</li>
+      </ul>
+
+      <p class="lead">次に、これを「AIがファイルを書いた直後」に呼ぶ設定です。</p>
 
       <div class="code">
         <div class="code-head">.claude/settings.json</div>
@@ -260,7 +282,8 @@ FAILED test_shipping.py::test_ちょうど3000円は送料無料 - assert 500 ==
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path' | { read -r f; case \"$f\" in *.py) python3 -m pytest -q ;; esac; } 2&gt;&amp;1 || true"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/pytest.sh",
+            "args": []
           }
         ]
       }
@@ -269,34 +292,61 @@ FAILED test_shipping.py::test_ちょうど3000円は送料無料 - assert 500 ==
 }</pre>
       </div>
 
-      <p class="lead">書いたら<b>起動する前に</b>動作確認します。フックにはJSONが渡るので、手で流し込めば単体で試せます。</p>
+      <ul class="points">
+        <li><b><code>PostToolUse</code>。</b>「AIが道具を使い終わった直後に」という意味のきっかけです。</li>
+        <li><b><code>matcher</code> の <code>Write|Edit</code>。</b>その道具が「新規書き込み」か「編集」のときだけ、という絞り込み。</li>
+        <li><b><code>${CLAUDE_PROJECT_DIR}</code>。</b>プロジェクトの根っこを指す変数です。どこで実行されてもスクリプトを見つけられます。</li>
+      </ul>
+
+      <p class="lead">書いたら<b>起動する前に</b>動作確認します。渡ってくるJSONを手で流し込めば、単体で試せます。</p>
 
       <div class="code term">
         <div class="code-head">フック単体の動作確認(実際の出力)</div>
-        <pre>$ echo '{"tool_name":"Edit","tool_input":{"file_path":"shipping.py"}}' | eval "$CMD"
+        <pre>$ IN='{"tool_input":{"file_path":"shipping.py"}}'
+$ echo "$IN" | .claude/hooks/pytest.sh
+.F.                                                                      [100%]
+=========================== short test summary info ============================
+FAILED test_shipping.py::test_ちょうど3000円は送料無料 - assert 500 == 0
+<span class="ng-line">1 failed, 2 passed in 0.01s</span>
+$ echo $?
+<span class="ng-line">2</span>
+
+# バグを直して、もう一度叩く
+$ echo "$IN" | .claude/hooks/pytest.sh
 ...                                                                      [100%]
 <span class="ok-line">3 passed in 0.00s</span>
-
-# わざとバグを戻して、もう一度叩く
-$ echo '{"tool_name":"Edit","tool_input":{"file_path":"shipping.py"}}' | eval "$CMD"
-FAILED test_shipping.py::test_ちょうど3000円は送料無料 - assert 500 == 0
-<span class="ng-line">1 failed, 2 passed in 0.01s</span></pre>
+$ echo $?
+<span class="ok-line">0</span></pre>
       </div>
 
       <ul class="points">
         <li><b>壊したとき赤くなるかまで確認する。</b>緑しか見ないと、何も検査してないフックが完成します。</li>
-        <li><b>末尾の <code>|| true</code> は意図的。</b>テストが落ちてもフック自体は失敗にせず、結果だけAIに見せます。</li>
-        <li><b>拡張子で絞る。</b><code>case "$f" in *.py)</code> の部分。Markdown直すたびに走ると邪魔です。</li>
+        <li><b>落ちたら終了コード2。ここを間違えるとAIに何も届きません。</b>Hooksリファレンスの「Exit code 2 behavior per event」表は、<code>PostToolUse</code> の行を <mark>Shows stderr to Claude; the tool already ran</mark> と書いています。逆に終了コード0だと、標準出力も標準エラーもデバッグログ行きでAIには見えません。</li>
+        <li><b>成功時は何も伝わらない。それでいい。</b>通ったときにAIへ渡すことは何もありません。伝えたいのは落ちたときだけです。</li>
       </ul>
+
+      <details>
+        <summary>「テストが通ったこと」もAIに伝えたい場合</summary>
+        <div class="body">
+          <dl>
+            <dt>方法</dt>
+            <dd>終了コード0のまま、標準出力にJSONを出します。<code>{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"…"}}</code> の <code>additionalContext</code> がAIに渡る文面です。Hooksリファレンスの「Run tests after file changes」に、<code>jq -nc --arg msg …</code> で組み立てる公式例があります。</dd>
+            <dt>注意</dt>
+            <dd>同リファレンスの「Exit code 0」節は <i>“Stderr from a hook that exits 0 goes to the debug log only, never the transcript, and Claude never sees it.”</i> としています。<b>0で終わるなら、JSONを出さない限り何も伝わりません。</b></dd>
+            <dt>テストが遅いとき</dt>
+            <dd>公式例は <code>"async": true</code> を併用しています。ただし出力は次のターンまで届きません（同リファレンス Limitations）。</dd>
+          </dl>
+        </div>
+      </details>
 
       <details>
         <summary>効かないときの確認順</summary>
         <div class="body">
           <dl>
             <dt>1. JSONが壊れていないか</dt>
-            <dd><code>jq -e . .claude/settings.json</code>。壊れているとファイル全体の設定が黙って無効になります。</dd>
-            <dt>2. コマンド単体で動くか</dt>
-            <dd>上のように手でJSONを流し込む。</dd>
+            <dd><code>jq -e . .claude/settings.json</code> で先に確かめます。壊れたまま起動すると、Settingsドキュメントによれば対話セッションでは起動時に <b>Settings Error</b> ダイアログが出て、「直す／終了する／壊れた設定なしで続行する」を選ばされます。<mark>続行を選ぶと、そのファイルの設定は効きません。</mark>どれが問題かは <code>/status</code> と <code>claude doctor</code> で確認できます。</dd>
+            <dt>2. スクリプト単体で動くか</dt>
+            <dd>上のように手でJSONを流し込む。実行権限（<code>chmod +x</code>）の付け忘れが多いです。</dd>
             <dt>3. 読み込まれているか</dt>
             <dd>セッション開始後に作った設定は読まれないことがあります。読み直すか起動し直してください。</dd>
           </dl>
@@ -330,6 +380,9 @@ done
 echo "⛔ $MAX 回やっても直らないので打ち切り"
 exit 1</pre>
       </div>
+
+      <p class="lead">コマンドには成否の合図（<b>終了コード</b>）があります。<mark>0が成功、0以外が失敗</mark>。直感と逆なので注意。</p>
+      <p class="lead"><code>if</code> はこれを見て分岐しています。<code>echo $?</code> と打つと、直前のコマンドの終了コードが見られます。</p>
 
       <div class="code term">
         <div class="code-head">実行結果(実際に走らせたログ)</div>
@@ -432,7 +485,7 @@ $ echo $?
       <ul class="checklist" data-key="ai-basics-v1">
         <li><label><input type="checkbox"><span>手元のプロジェクトにテストを3件書く(境界・その手前・普通の値)</span></label></li>
         <li><label><input type="checkbox"><span><code>.claude/settings.json</code> にフックを1個置く</span></label></li>
-        <li><label><input type="checkbox"><span>わざとコードを壊して、フックが赤くなるのを確認する</span></label></li>
+        <li><label><input type="checkbox"><span>わざとコードを壊して、フックが<b>終了コード2</b>で終わるのを確認する</span></label></li>
         <li><label><input type="checkbox"><span>2回言った頼み方を <code>SKILL.md</code> に保存する</span></label></li>
         <li><label><input type="checkbox"><span>上限付きのループを1本、小さい対象で回してみる</span></label></li>
       </ul>
@@ -443,9 +496,9 @@ $ echo $?
         <div class="body">
           <dl>
             <dt>実行環境</dt>
-            <dd>Python 3 / pytest 9.1.1 / bash。掲載したコードは全てこの環境で実行し、出力はそのまま貼り付けています(色付けのみ追加)。</dd>
+            <dd>Python 3.11.15 / pytest 9.1.1 / jq 1.7 / bash。掲載したコードは全てこの環境で実行し、出力はそのまま貼り付けています(色付けのみ追加)。</dd>
             <dt>注意</dt>
-            <dd>Claude Codeの機能名・コマンド・設定書式は更新される可能性があります。設定前に公式ドキュメントで最新を確認してください。この記事は<b>2026年8月14日時点</b>の内容です。</dd>
+            <dd>Claude Codeの機能名・コマンド・設定書式は更新される可能性があります。設定前に公式ドキュメントで最新を確認してください。この記事は<b>2026年8月14日時点</b>（フック部分は<b>8月15日に訂正</b>）の内容です。</dd>
           </dl>
         </div>
       </details>
@@ -458,6 +511,25 @@ $ echo $?
     </a>
   </section>
 
+  <!-- ============ 訂正と追記 ============ -->
+  <section class="section section-d" id="corrections">
+    <h2>訂正と追記</h2>
+    <article class="item">
+      <h3>2026年8月15日、フックの説明を全面的に直しました</h3>
+      <p class="lead">公開後の事実検証で、<mark>ステップ3の土台そのものが間違っていた</mark>ことが分かりました。記事の教訓どおりの事故です。</p>
+
+      <ul class="points">
+        <li><b>訂正1（重大）。フックの <code>|| true</code>。</b>初出時は「テストが落ちてもフック自体は失敗にせず、結果だけAIに見せます」と書いていました。<b>逆でした。</b>終了コード0で終わると出力はデバッグログ行きで、AIには何も届きません。落ちたことを伝えるには終了コード2で標準エラーに出す必要があります。設定例ごと差し替え、<code>additionalContext</code> を使う別解も追記しました。</li>
+        <li><b>訂正2。スキルの冒頭項目。</b>「決まりは <code>name</code> と <code>description</code> だけ」と書いていましたが、公式ドキュメントは全項目を任意（<code>description</code> は推奨）としています。また <code>/fix-test</code> という呼び名を決めているのは <code>name:</code> ではなくフォルダ名です。</li>
+        <li><b>訂正3。壊れた <code>settings.json</code>。</b>「黙って無効になる」と書いていましたが、対話セッションでは起動時に Settings Error ダイアログが出ます。</li>
+        <li><b>訂正4。「事故の9割はこれで消えます」。</b>出どころのない数字だったため削除し、筆者の運用上の実感である旨に書き換えました。同様に「実務で差が出るのは3つだけ」「3件で十分」も断定を外しています。</li>
+        <li><b>追記。</b>初学者の視点で読めなくなる箇所を補いました。テストの定義、Claude Codeが何か、<code>PostToolUse</code> と <code>matcher</code> の意味、終了コードの説明、そして定義されていなかった <code>$CMD</code> の削除（スクリプトファイル方式に変更）。</li>
+      </ul>
+
+      <p class="lead">差し替えたスクリプトと設定は、この環境で改めて実行し直しています。上のログは新しい版の出力です。</p>
+    </article>
+  </section>
+
   <!-- ============ 参考文献 ============ -->
   <section class="section section-d" id="refs">
     <h2>参考文献</h2>
@@ -467,32 +539,48 @@ $ echo $?
         <li>
           <span class="flag primary">一次資料</span>
           Anthropic「Skills」<i>Claude Code Documentation</i>.
-          <span class="note">参照箇所: スキルの置き場所と呼び出し方。</span>
-          <a href="https://code.claude.com/docs/en/skills">https://code.claude.com/docs/en/skills</a>（2026年8月14日参照）
+          <span class="note">参照箇所: 「Frontmatter reference」（全項目が任意で <code>description</code> のみ推奨。<code>name</code> は表示名で既定はディレクトリ名）と「How a skill gets its command name」（個人・プロジェクトのスキルでは呼び出し名はディレクトリ名から決まる）。スキルの置き場所も同ページ。</span>
+          <a href="https://code.claude.com/docs/en/skills">https://code.claude.com/docs/en/skills</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
-          Anthropic「Hooks」<i>Claude Code Documentation</i>.
-          <span class="note">参照箇所: <code>PostToolUse</code> の設定書式と matcher の指定方法。</span>
-          <a href="https://code.claude.com/docs/en/hooks">https://code.claude.com/docs/en/hooks</a>（2026年8月14日参照）
+          Anthropic「Hooks reference」<i>Claude Code Documentation</i>.
+          <span class="note">参照箇所: 「Exit code 0」（終了コード0のstdout/stderrはデバッグログのみでClaudeに渡らない。伝えるにはexit 2）、「Exit code 2 behavior per event」表の <code>PostToolUse</code> 行、「Reference scripts by path」（<code>${CLAUDE_PROJECT_DIR}</code>）、「Run tests after file changes」（<code>additionalContext</code> と <code>async</code>）、および <code>PostToolUse</code> の設定書式と matcher の指定方法。</span>
+          <a href="https://code.claude.com/docs/en/hooks">https://code.claude.com/docs/en/hooks</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
           Anthropic「Settings」<i>Claude Code Documentation</i>.
-          <span class="note">参照箇所: <code>settings.json</code> の配置場所と権限の書き方。</span>
-          <a href="https://code.claude.com/docs/en/settings">https://code.claude.com/docs/en/settings</a>（2026年8月14日参照）
+          <span class="note">参照箇所: 「Verify active settings」（設定ファイルが不正なときは起動時に Settings Error ダイアログが出て、修正／終了／壊れた設定なしで続行を選ぶ。続行後は <code>/status</code> と <code>claude doctor</code> で詳細を確認）と <code>settings.json</code> の配置場所。</span>
+          <a href="https://code.claude.com/docs/en/settings">https://code.claude.com/docs/en/settings</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Claude Code overview」<i>Claude Code Documentation</i>.
+          <span class="note">参照箇所: 冒頭と「Get started」。Claude Codeがターミナル・IDE拡張・デスクトップアプリ・ウェブで動くこと。</span>
+          <a href="https://code.claude.com/docs/en/overview">https://code.claude.com/docs/en/overview</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag self">自分の実測</span>
-          記事内のコードと実行ログ。Python 3.11.15 / pytest 9.1.1 / bash、2026年8月14日実施。
-          <span class="note">失敗ログ・成功ログとも、実際に出た出力をそのまま貼っています。「パイプの罠」も執筆中に実際に踏んだものです。</span>
+          記事内のコードと実行ログ。Python 3.11.15 / pytest 9.1.1 / jq 1.7 / bash、2026年8月14日および訂正版を2026年8月15日に実施。
+          <span class="note">失敗ログ・成功ログとも、実際に出た出力をそのまま貼っています（色付けのみ追加）。差し替えた <code>.claude/hooks/pytest.sh</code> の単体動作確認も、同じ環境で実行して終了コード2／0を確認した実物です。「パイプの罠」も執筆中に実際に踏んだものです。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「頼み方で効くのは3つ」「テストはまず3件」「1ステップ約1分」「多くの人が1段目で止まっている」。
+          <span class="note">いずれも規格や公式ドキュメントの記述ではなく、筆者の運用上の目安・実感です。計測した数値ではありません。</span>
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          <code>/goal</code> と <code>/loop</code> の現在の仕様。
+          <span class="note">本文では「状態で終わる／時間で回す」用途の違いにしか触れていません。コマンド名と挙動は更新される領域のため、本記事では公式ドキュメントの該当ページを読み直しての再確認を行っていません。使う前に <code>/help</code> と公式ドキュメントで確認してください。</span>
         </li>
       </ol>
     </article>
   </section>
 
   <footer class="article-foot">
-    <div>公開: 2026年8月14日 JST</div>
+    <div>公開: 2026年8月14日 JST / 訂正: 2026年8月15日 JST</div>
     <div><a href="../../">← ホームに戻る</a></div>
   </footer>
 

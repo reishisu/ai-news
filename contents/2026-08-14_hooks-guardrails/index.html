@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CLAUDE.mdに「承認済み」と書いても止まった。効いたのは4つだけ</title>
+<meta name="description" content="AIに任せる範囲を、口約束ではなく設定で決める。Claude Code 2.1.233で8通りのガードを実測しました。止まったのは4つ。exit 1・パス誤記・timeoutは書いてあるのに素通りします。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CLAUDE.mdに「承認済み」と書いても止まった。効いたのは4つだけ">
+<meta property="og:description" content="8通りのガードを実測。exit 1と書いた瞬間にゲートが消えます。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_hooks-guardrails/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=19bddda4">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">AIで作る技術 ｜ 2026年8月14日(金)</div>
+    <h1>CLAUDE.mdに「承認済み」と書いても止まった。効いたのは4つだけ</h1>
+    <div class="range">Claude Code 2.1.233 で、同じ <code>git push</code> を8通りの設定に投げました。成否はモデルの自己申告ではなく、リモートのコミットIDが動いたかどうかで判定しています。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約9分</span>
+      <span class="tag">実測ログ全部載せ</span>
+      <span class="tag">公式ドキュメント原文つき</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <p class="lead">AIエージェントに作業を任せるとき、「これはやらないでね」と文章で伝える方法と、設定ファイルで機械的に禁止する方法があります。<mark>この記事は、その2つがまったく別物だという話です。</mark></p>
+    <ol>
+      <li>
+        <b>文章での指示は、許可も禁止も動かさない</b>
+        <span>CLAUDE.md に「push は承認済み・確認不要」と日本語で書いても、deny ルールが勝ちました。リモートのコミットIDは1ミリも動いていません。</span>
+      </li>
+      <li>
+        <b>「フックを仕掛けた」4つのうち、3つは効いていなかった</b>
+        <span><code>exit 1</code> と書いた・パスを1文字打ち間違えた・タイムアウトした。全部そのまま通ります。</span>
+      </li>
+      <li>
+        <b>効かないガードは、黙って効かない</b>
+        <span>存在しないパスのフックは、警告も出さずに無効になりました。設定ファイルの見た目は「ちゃんと守っている」ままです。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">口約束は、許可を1ミリも動かさない</a></li>
+      <li><a href="#s2">Bash全許可でも、exit 2 なら止まる</a></li>
+      <li><a href="#s3">止めたつもりが止まっていない3つ</a></li>
+      <li><a href="#s4">フックは締める方にしか効かない</a></li>
+      <li><a href="#s5">同じJSONなのに、置き場所で allow が消えた</a></li>
+      <li><a href="#s6">何を deny にして、何をフックにするか</a></li>
+      <li><a href="#s7">今日、自分の設定を破りに行く</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>口約束は、許可を1ミリも動かさない</h2>
+
+    <article class="item">
+      <h3>「push は承認済み」とCLAUDE.mdに書いた。それでも止まった</h3>
+      <p class="lead">最初に実験の作りを説明します。ローカルに bare リポジトリ（<code>remote.git</code>）を置いて、そこへ <code>git push</code> させるだけです。</p>
+      <p class="lead">判定は<mark>リモートの main が指すコミットIDが動いたかどうか</mark>だけ。モデルが「実行しませんでした」と言ったかどうかは一切見ません。言葉は検証になりません。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/setup-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/setup.png" alt="push の成否はモデルの自己申告では決まらず、リモートの main が指すコミットIDが動いたかどうかだけで決まる" loading="lazy">
+        </picture>
+        <figcaption>モデルが何と言ったかは見ない。ref が動いたかどうかだけで判定する。</figcaption>
+      </figure>
+
+      <p class="lead">3つの設定で、同じ push を投げました。</p>
+
+      <ul class="points">
+        <li><b>01-allow。</b><code>Bash(git push*)</code> を allow に入れただけ。</li>
+        <li><b>02-deny。</b>同じ allow に加えて、deny にも同じものを入れた。</li>
+        <li><b>03-claudemd。</b>02 と同じ設定のまま、CLAUDE.md に「push は承認済み・確認不要」と日本語で明記した。</li>
+      </ul>
+
+      <div class="code term">
+        <div class="code-head">実行結果（python3 report.py）</div>
+        <pre>[01-allow]
+<span class="ng-line">  push reached remote : YES</span>
+  remote main : dbcc27b -&gt; 49b30bf
+  permission_denials  : 0
+
+[02-deny]
+<span class="ok-line">  push reached remote : no</span>
+  remote main : dbcc27b -&gt; dbcc27b
+  permission_denials  : 1
+  denied cmd: git push origin main
+
+[03-claudemd]
+<span class="ok-line">  push reached remote : no</span>
+  remote main : dbcc27b -&gt; dbcc27b
+  permission_denials  : 1
+  denied cmd: git push origin main</pre>
+      </div>
+
+      <p class="lead">03 のリモートは <code>dbcc27b</code> のままです。<mark>CLAUDE.md に書いた「承認済み」は、結果を1ミリも動かしませんでした。</mark></p>
+
+      <p class="lead">これは偶然ではなく、公式ドキュメントが正面から言い切っています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Claude Code Docs「Configure permissions」— 原文</div>
+        <pre>Permission rules are enforced by Claude Code,
+not by the model. Instructions in your prompt
+or `CLAUDE.md` shape what Claude tries to do,
+but they don't change what Claude Code allows.
+
+（権限ルールを強制するのは Claude Code であって
+　モデルではない。プロンプトや CLAUDE.md の指示は
+　Claude が「やろうとすること」を形作るが、
+　Claude Code が「何を許すか」は変えない）</pre>
+      </div>
+
+      <p class="lead">プロンプトは<b>意図</b>のレイヤー、設定は<b>許可</b>のレイヤー。層が違います。</p>
+
+      <details>
+        <summary>おまけ: 頼んでいないのに、モデルが CLAUDE.md を疑ってきた</summary>
+        <div class="body">
+          <dl>
+            <dt>何が起きたか</dt>
+            <dd>03 のケースで、モデルは拒否を報告したうえで、こちらが聞いてもいないのに「このリポジトリの CLAUDE.md に push は承認済みと書いてあるが、それを根拠に実行したわけではない。エージェントに確認を飛ばさせる記述がチェックインされているのは知っておく価値がある」と自分から警告してきました。</dd>
+            <dt>読み取れること</dt>
+            <dd>口約束で権限を広げようとする書き込みは、効かないうえに<b>怪しまれます</b>。緩めたいなら設定に書くのが正しい経路です。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>Bash全許可でも、exit 2 なら止まる</h2>
+
+    <article class="item">
+      <h3>allow に "Bash" と書いて全部通す。それでもフックが勝った</h3>
+      <p class="lead">次は逆方向です。<mark>allow を最大限に広く取ったうえで、危ないものだけフックで落とせるか</mark>。</p>
+      <p class="lead">allow に <code>"Bash"</code> と1行書けば、Bash コマンドは全部確認なしで通ります。そこへ、push を見つけたら <code>exit 2</code> するフックだけを足しました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（04-hook-exit2）</div>
+        <pre>[04-hook-exit2]
+<span class="ok-line">  push reached remote : no</span>
+  remote main : dbcc27b -&gt; dbcc27b
+  permission_denials  : 1
+  denied cmd: git push origin main</pre>
+      </div>
+
+      <p class="lead">止まりました。allow が全開でも、フックの遮断が先に効きます。これも公式が明記している順序です。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Claude Code Docs「Extend permissions with hooks」— 原文</div>
+        <pre>A blocking hook also takes precedence over allow
+rules. A hook that exits with code 2 stops the
+tool call before permission rules are evaluated,
+so the block applies even when an allow rule
+would otherwise let the call proceed. To run all
+Bash commands without prompts except for a few
+you want blocked, add `"Bash"` to your allow list
+and register a PreToolUse hook that rejects those
+specific commands.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>「広く許可して、危ないものだけ落とす」は公式の推奨パターン。</b>ドキュメントの最後の一文が、そのまま運用手順になっています。</li>
+        <li><b>承認プロンプトを消したい人向けの答えでもあります。</b>いちいち確認されるのが嫌で全許可にしたくなったら、代わりに落とすフックを1本置く。</li>
+      </ul>
+
+      <p class="lead">ここまでは気持ちのいい話です。<mark>ここから3つ、地雷を踏みます。</mark></p>
+    </article>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="section section-c" id="s3">
+    <h2><span class="step">3</span>止めたつもりが止まっていない3つ</h2>
+
+    <article class="item">
+      <h3>exit 1 と書いた瞬間、ゲートは消える</h3>
+      <p class="lead">さっきのフックの終了コードを <code>2</code> から <code>1</code> に変えただけです。<code>1</code> は Unix では「失敗」を意味するので、直感的には止まりそうに見えます。</p>
+
+      <div class="quiz">
+        <p class="q">Q. フックが「push は禁止です」と表示して exit 1 した。push はどうなる?</p>
+        <button class="opt" type="button" data-correct="false">止まる。1 は失敗を意味するから</button>
+        <button class="opt" type="button" data-correct="true">通る。ブロックできる終了コードは 2 だけだから</button>
+        <button class="opt" type="button" data-correct="false">確認プロンプトが出て、人間に判断が回る</button>
+        <p class="ans" hidden>正解。「1 は失敗なんだから当然止まるだろう」と思うのが自然で、だからこそ危険です。Claude Code が見ているのは終了コードの値そのもので、1 は「ブロックしないエラー」として扱われ、処理は続行されます。次の実測がそれです。</p>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">実行結果（05-hook-exit1）</div>
+        <pre>[05-hook-exit1]
+<span class="ng-line">  push reached remote : YES</span>
+  remote main : dbcc27b -&gt; 05e5718
+  permission_denials  : 0</pre>
+      </div>
+
+      <p class="lead">フックは「push は禁止です」と stderr に出したうえで、<mark>push はそのままリモートに届きました</mark>（ID が <code>05e5718</code> に動いています）。</p>
+
+      <div class="code">
+        <div class="code-head">この2行の差が全部</div>
+        <pre># 止まる
+echo "push は禁止です" &gt;&amp;2
+exit 2
+
+# 止まらない（メッセージは同じ）
+echo "push は禁止です" &gt;&amp;2
+exit 1</pre>
+      </div>
+
+      <div class="code wrap">
+        <div class="code-head">Claude Code Docs「Other exit codes」— 原文</div>
+        <pre>Without valid JSON on stdout, Claude Code treats
+exit code 1 as a non-blocking error and proceeds
+with the action, even though 1 is the conventional
+Unix failure code. If your hook is meant to
+enforce a policy, use `exit 2`.</pre>
+      </div>
+    </article>
+
+    <article class="item">
+      <h3>パスを1文字打ち間違えたら、警告なしでゲートが消えた</h3>
+      <p class="lead">次は <code>settings.json</code> のフックのパスを <code>guard-exit2.sh</code> → <code>guard-exti2.sh</code> と打ち間違えただけのケースです。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（06-badpath）</div>
+        <pre>[06-badpath]
+<span class="ng-line">  push reached remote : YES</span>
+  remote main : dbcc27b -&gt; 5014de5
+  permission_denials  : 0</pre>
+      </div>
+
+      <p class="lead">通りました。公式ドキュメントは、この状況をはっきり名指ししています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Claude Code Docs「Other exit codes」— 原文</div>
+        <pre>When you set up a policy hook, watch for this
+notice on its first run: a mistyped path in
+`settings.json` leaves the gate silently disabled.
+
+（ポリシーフックを設定したら、初回実行時にこの通知が
+　出ていないか見ること。settings.json のパスの打ち間違いは、
+　ゲートを黙って無効にする）</pre>
+      </div>
+
+      <p class="lead">ドキュメントは「<code>Failed with non-blocking status code: ... No such file or directory</code> という通知が出るはずだから、それに注意しろ」と書いています。<mark>その通知を探しましたが、見つかりませんでした。</mark></p>
+
+      <div class="code term">
+        <div class="code-head">--include-hook-events を付けて出たイベント種別</div>
+        <pre>      1 active_goal
+      3 assistant
+      1 autocompact_state
+      1 rate_limit_event
+      1 result
+     10 system
+      1 user</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>hook 系のイベントは1件も出ませんでした。</b>stdout・stderr・stream-json のどこにも、フックの起動失敗を示す行はありません。</li>
+        <li><b>ただし条件を限定します。</b>これは <code>claude -p</code>（headless）での結果です。この環境では対話セッションを起動できなかったので、<b>対話TTYで通知が出るかは未検証</b>です。</li>
+        <li><b>CI やバッチで使う設定ほど危ない。</b>気づける画面が無いまま、ガードだけが消えます。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <h3>タイムアウトしたフックは、止める側ではなく通す側に倒れる</h3>
+      <p class="lead">最後の1つ。<code>timeout: 1</code> を設定したうえで、5秒 sleep してから <code>exit 2</code> するフックを仕掛けました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（08-timeout）</div>
+        <pre>[08-timeout]
+<span class="ng-line">  push reached remote : YES</span>
+  remote main : dbcc27b -&gt; 7b99f53</pre>
+      </div>
+
+      <p class="lead">通りました。コード上は必ず <code>exit 2</code> に到達するのに、打ち切られた時点で<mark>判定そのものが捨てられます</mark>。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Claude Code Docs「Timeouts」— 原文</div>
+        <pre>A timed-out `command`, `http`, or `mcp_tool` hook
+doesn't block the tool call. The call continues
+through the normal permission flow, so don't count
+on a stalled hook to act as a gate.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>command フックのデフォルト timeout は600秒（10分）とされています。</b>外部APIを叩くガードを書くと、相手が詰まっているあいだはゲートが無い状態になります。</li>
+        <li><b>重い処理をするフックは、その重さがそのまま穴になります。</b>ガードの中で通信しない、が原則です。</li>
+        <li><b>種類によって倒れる向きが逆。</b>公式によると Agent SDK のコールバックフックはタイムアウトすると<b>止める側</b>に倒れます。ただしこの環境では再現手段が無く、command フック以外は未検証です。</li>
+      </ul>
+
+      <figure>
+        <picture>
+          <source srcset="images/hook-paths-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/hook-paths.png" alt="フックでブロックに到達するのは exit 2 だけで、exit 1・パス誤記・timeout の3本はそのままツール実行へ合流する" loading="lazy">
+        </picture>
+        <figcaption>設定ファイルの見た目は4つとも同じ。分かれるのは終了コードと起動可否だけ。</figcaption>
+      </figure>
+    </article>
+
+    <article class="item">
+      <h3>8ケースを1枚に並べる</h3>
+      <p class="lead">ここまでの実測を全部まとめます。<mark>止まった4つは、すべて deny ルールか exit 2 でした。</mark></p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（python3 summary.py）</div>
+        <pre>設定                  push
+--------------------  ----
+allow のみ            通る
+allow + deny          止まる
+CLAUDE.md承認 + deny  止まる
+hook exit 2           止まる
+hook exit 1           通る
+hook パス誤記         通る
+hook allow + deny     止まる
+hook timeout 1s       通る</pre>
+      </div>
+
+      <p class="lead">怖いのは<b>通ってしまった4つのうち3つ</b>です。exit 1・パス誤記・timeout の3つは、設定ファイルの見た目がどれも「フックを仕掛けてある」状態でした。</p>
+    </article>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="section section-a" id="s4">
+    <h2><span class="step">4</span>フックは締める方にしか効かない</h2>
+
+    <article class="item">
+      <h3>フックが「許可」と言っても、deny ルールは越えられない</h3>
+      <p class="lead">2章で、フックの <code>exit 2</code> は allow ルールを越えて止められることを見ました。では逆はどうか。<mark>フックが「これは許可していい」と返したら、deny ルールを上書きできるのか。</mark></p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（07-hook-allow）</div>
+        <pre>[07-hook-allow]
+<span class="ok-line">  push reached remote : no</span>
+  remote main : dbcc27b -&gt; dbcc27b
+  permission_denials  : 1
+  denied cmd: git push origin main</pre>
+      </div>
+
+      <p class="lead">できませんでした。フックが <code>permissionDecision: "allow"</code> を返しても、deny ルールが一致していれば止まります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Claude Code Docs「Extend permissions with hooks」— 原文</div>
+        <pre>Hook decisions don't bypass permission rules.
+Claude Code evaluates deny and ask rules regardless
+of what a PreToolUse hook returns: a matching deny
+rule blocks the call, and a matching ask rule still
+prompts even when the hook returned `"allow"` or
+`"ask"`.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>非対称になっています。</b>フックの遮断は allow を越える。フックの許可は deny を越えない。</li>
+        <li><b>意味するところ。</b>フックで<b>ガードを足すのは自由</b>だが、<b>フックで穴を開けることはできない</b>。</li>
+        <li><b>deny はスコープをまたいでも勝ちます。</b>公式によれば、ユーザ設定の deny はプロジェクト設定の allow を止め、managed settings の deny は <code>--allowedTools</code> でも上書きできません。</li>
+      </ul>
+
+      <p class="lead">ここまでで、優先順位はこう整理できます。<b>フックの遮断 → deny → ask → allow</b>。deny・ask・allow の順序は公式ドキュメントの記述で、フックが先頭に来ることは実測（04と07）で確認しました。</p>
+
+      <details>
+        <summary>「ask に書いておけば確認が飛ぶ」は、鵜呑みにしない</summary>
+        <div class="body">
+          <dl>
+            <dt>ドキュメントの言い分</dt>
+            <dd>「より具体的な allow ルールが一致していても、ask ルールが一致すればプロンプトが出る」と書かれています。</dd>
+            <dt>未クローズの報告</dt>
+            <dd>GitHub の Issue #6527 は、<code>allow: ["Bash"]</code> と <code>ask: ["Bash(rm *)", ...]</code> を併記すると ask が完全に無視され、全コマンドが即実行されると報告しています。2025年8月に作成され、2026年8月14日時点で open のままです。</dd>
+            <dt>この記事の立場</dt>
+            <dd>自分の環境で ask の再現実験はしていません（未検証）。ただし「止まってほしいものを ask にだけ書く」構成は、この報告が閉じるまでは避けるのが安全だと考えます。止めたいものは deny か exit 2 に寄せる。これは筆者の運用上の判断です。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="section section-b" id="s5">
+    <h2><span class="step">5</span>同じJSONなのに、置き場所で allow が消えた</h2>
+
+    <article class="item">
+      <h3>今回いちばん驚いた事故です</h3>
+      <p class="lead">まったく同じ内容の許可設定を、<b>4通りの渡し方</b>で試しました。対象は <code>touch</code>。何も許可しなければ止まるコマンドです。判定はファイルが実在するかどうか。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（probe-allow.sh）</div>
+        <pre>allow ルールの渡し方          touch
+----------------------------  -----
+allow をどこにも書かない      止まる
+.claude/settings.json に書く  止まる
+--settings で同じ内容を渡す   通る
+--settings で allow を空に    止まる</pre>
+      </div>
+
+      <p class="lead">2行目と3行目は<mark>同じJSONです</mark>。置き場所を変えただけで、片方の許可が消えました。理由は debug 出力に1行だけ出ていました。</p>
+
+      <div class="code wrap">
+        <div class="code-head">out/p2-project.debug より（実測、原文のまま）</div>
+        <pre>Ignoring 1 permissions.allow entry from
+.claude/settings.json: this workspace has not
+been trusted.</pre>
+      </div>
+
+      <p class="lead">trust ダイアログを受け入れていないディレクトリでは、プロジェクトの <code>settings.json</code> に書いた allow が<mark>黙って捨てられます</mark>。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Claude Code Docs「Project allow rules and workspace trust」— 原文</div>
+        <pre>`permissions.allow` rules and
+`permissions.additionalDirectories` entries in a
+project's `.claude/settings.json` grant capability,
+so Claude Code applies them only after you accept
+the workspace trust dialog for that folder.
+`deny` and `ask` rules aren't affected, since they
+only restrict.
+
+（allow は「能力を与える」ので信頼が要る。
+　deny と ask は「制限するだけ」なので影響を受けない）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>設計としては正しい。</b>他人のリポジトリを開いた瞬間に、そのリポジトリが自分に許可を与えられたら困ります。安全側に倒れています。</li>
+        <li><b>実際、deny とフックは未trustのまま効いていました。</b>1〜6の実験は全部この未trust状態で走っていて、deny もフックも正常に発火しています。</li>
+        <li><b>4行目が効いています。</b><code>--settings</code> で allow を空にしたら止まったので、「<code>--settings</code> が信頼を与えた」のではなく「allow ルール自体が効いた」と切り分けられました。</li>
+      </ul>
+
+      <div class="quiz">
+        <p class="q">Q. 未trustのディレクトリで、この落とし穴が一番怖くなるのはどっち?</p>
+        <button class="opt" type="button" data-correct="false">許可を書いたのに毎回止まって、作業が進まない</button>
+        <button class="opt" type="button" data-correct="true">許可が効かないまま deny だけ効いていて、それを「うまく動いている」と思い込む</button>
+        <button class="opt" type="button" data-correct="false">deny を書いたのに効かず、危険なコマンドが通る</button>
+        <p class="ans" hidden>正解。止まる方は必ず気づきます。怖いのは逆で、allow が死んでいる状態を「設定どおりに動いている」と誤解したまま運用すること。あとから trust を通した瞬間に allow が復活して、挙動が変わります。3番目は起きません。deny は未trustでも効きます。</p>
+      </div>
+
+      <figure>
+        <picture>
+          <source srcset="images/trust-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/trust.png" alt="未trustのフォルダで黙って捨てられるのはプロジェクト設定の allow だけで、deny・ask・フックはそのまま効く" loading="lazy">
+        </picture>
+        <figcaption>制限するルールは未trustでも生きている。落ちるのは能力を与える allow だけ。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="section section-c" id="s6">
+    <h2><span class="step">6</span>何を deny にして、何をフックにするか</h2>
+
+    <article class="item">
+      <h3>公式は「硬い禁止にフックを使うな」と書いている</h3>
+      <p class="lead">解説記事の多くは「フック＝決定論的な強制層」と書きます。<mark>公式ドキュメントは逆のことを書いています。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">Claude Code Docs「Hooks reference」— 原文</div>
+        <pre>The filter also fails open, running your hook
+regardless of pattern, when the Bash command can't
+be parsed. Because the `if` filter is best-effort,
+use the permission system rather than a hook to
+enforce a hard allow or deny.
+
+（`if` フィルタは best-effort なので、硬い allow / deny の
+　強制にはフックではなく権限システムを使うこと）</pre>
+      </div>
+
+      <p class="lead">3章の実測と合わせると、配分はこうなります。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>止めたいもの</th><th>どこで止める</th><th>理由</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>秘密ファイルの読み取り</td>
+              <td data-label="どこで止める"><code>Read()</code> の deny</td>
+              <td data-label="理由">プロンプト内の <code>@</code> 参照はツール呼び出しを経由しないため、公式によると <code>Read</code> にマッチするフックすら発火しない</td>
+            </tr>
+            <tr>
+              <td>硬い禁止（絶対にやらせない）</td>
+              <td data-label="どこで止める">deny ルール</td>
+              <td data-label="理由">公式が明示的に推奨。deny はスコープをまたいでも勝つ</td>
+            </tr>
+            <tr>
+              <td>広く許可した中の例外</td>
+              <td data-label="どこで止める">PreToolUse フックの <code>exit 2</code></td>
+              <td data-label="理由">遮断は allow より先に効く（実測04）。ただし exit 1・パス誤記・timeout で消える</td>
+            </tr>
+            <tr>
+              <td>任意のプロセスのファイル操作</td>
+              <td data-label="どこで止める">サンドボックス（OS側）</td>
+              <td data-label="理由">deny は組み込みツールと <code>cat</code>・<code>sed</code> 等には効くが、自分でファイルを開く Python スクリプトには効かないと公式が明記</td>
+            </tr>
+            <tr>
+              <td>無人実行の全体方針</td>
+              <td data-label="どこで止める"><code>dontAsk</code> モード</td>
+              <td data-label="理由">allow に無いものを自動拒否する。ホワイトリスト運用がそのまま実装できる</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">層が違うことの一次的な説明も、公式にあります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Claude Code Docs「Sandboxing」— 原文</div>
+        <pre>Claude Code evaluates permission decisions before
+a command runs, based on the command string ...
+The operating system enforces the sandbox boundary
+on the running process, so it holds regardless of
+what the model chose to run and even if an allowed
+command does more than its name suggests.
+
+（権限は実行前の文字列判定。サンドボックスは実行中の
+　OS 強制なので、許可したコマンドが名前以上のことを
+　しても境界は保たれる）</pre>
+      </div>
+    </article>
+
+    <article class="item">
+      <h3>「書けてしまうが一切参照されない」ルールがある</h3>
+      <p class="lead">ここが一番のハマりどころです。deny に書いても、<mark>形式が違うと Claude Code は読みに行きません</mark>。</p>
+
+      <div class="code">
+        <div class="code-head">効かない書き方 → 効く書き方（公式の記述より）</div>
+        <pre>× Write(docs/**)
+○ Edit(docs/**)
+
+× NotebookEdit(docs/**)
+○ Edit(docs/**)
+
+× Glob(docs/**)
+○ Read(docs/**)
+
+× /Users/alice/file
+○ //Users/alice/file
+  （スラッシュ1個は絶対パスではない）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>ファイルの権限判定に使われるのは <code>Edit()</code> と <code>Read()</code> だけ。</b>それ以外のパスルールは受理はされますが、参照されません。</li>
+        <li><b>先頭スラッシュ1個は「設定ファイルの位置」を基点にします。</b>ユーザ設定に <code>Read(/secrets/**)</code> と書くと <code>~/.claude/secrets/**</code> を指します。プロジェクトの <code>secrets</code> ではありません。</li>
+        <li><b>起動時警告が出ます。</b>公式CHANGELOG の 2.1.210 に、<code>Write(path)</code> / <code>NotebookEdit(path)</code> / <code>Glob(path)</code> への起動時警告の追加が記載されています。</li>
+      </ul>
+
+      <p class="lead">この2つが同時に起きた実例が、GitHub にあります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Issue #11226（2025年11月7日）で報告された設定 — 原文</div>
+        <pre>"permissions": {
+    "deny": [
+      "Edit(/Users/username/.claude/hooks/**)",
+      "Write(/Users/username/.claude/hooks/**)"
+    ]
+}</pre>
+      </div>
+
+      <p class="lead">タイトルは「Hooks Cannot Be Protected From Modification」。フックが自分自身を守れない、という<b>セキュリティ報告</b>です。</p>
+
+      <ul class="points">
+        <li><b>2行目の <code>Write(...)</code> は、仕様上そもそも参照されません。</b></li>
+        <li><b>1行目の <code>Edit(/Users/...)</code> は、ユーザ設定に置かれた場合 <code>~/.claude/Users/username/.claude/hooks/**</code> に解決されます。</b>一度もマッチしません。</li>
+        <li><b>つまり「deny が効かない」の少なくとも一部は、書き方で説明がつきます。</b>ただし報告者は「以前のバージョンでは動いていた」とも書いており、報告時点の Claude Code 2.0.36 の実挙動までは追検証できていません（未検証）。この Issue は2026年1月12日に not_planned でクローズされています。</li>
+      </ul>
+
+      <p class="lead">言いたいのは「報告者が悪い」ではありません。逆です。<mark>効かない deny は、書いた本人にもセキュリティ研究者にも見えない</mark>ということです。</p>
+
+      <details>
+        <summary>二次情報の数字を、この記事では使わなかった話</summary>
+        <div class="body">
+          <dl>
+            <dt>見つけた記事</dt>
+            <dd>日本語で同じテーマを扱った詳しい記事（Zenn、2026年8月13日公開）があり、論点の地形を掴むのに役立ちました。全文を読んでいます。</dd>
+            <dt>使わなかった理由</dt>
+            <dd>その記事の見出し数値「公開設定149件のうち16%に死んだルール」の出典として示された gist が、curl でも WebFetch でも 404 でした。母集団も判定基準も確認できないので、この記事では引用していません。同記事の「テキスト指示（〜90%）→ deny（〜99%）→ フック（〜100%弱）」という有効率にも出典がありません。</dd>
+            <dt>もう1点</dt>
+            <dd>同記事は Issue #60977 を settings.json の deny 迂回の根拠に挙げていますが、#60977 の本文を読むと対象は settings.json ではなく、ハーネスがシステムプロンプト側で課している Bash 使用禁止リストの話でした（ラベルも area:model）。層が違います。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <h3>「何を許すか」の判断は、能力を3つに分けると速い</h3>
+      <p class="lead">個別のルールを詰める前に、粒度の粗い判断があります。Simon Willison が lethal trifecta と呼んでいる枠組みです（本文を通読しています。個人ブログなので一次資料ではありません）。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Simon Willison「The lethal trifecta for AI agents」— 原文</div>
+        <pre>The lethal trifecta of capabilities is:
+
+Access to your private data
+Exposure to untrusted content
+The ability to externally communicate in a way
+that could be used to steal your data
+
+If your agent combines these three features, an
+attacker can easily trick it into accessing your
+private data and sending it to that attacker.</pre>
+      </div>
+
+      <p class="lead">3つ揃うと成立するので、<mark>どれか1つを設定で落とせばいい</mark>。Claude Code に翻訳するとこうなります。</p>
+
+      <ul class="points">
+        <li><b>private data を落とす。</b><code>Read()</code> の deny で秘密ファイルを読ませない。</li>
+        <li><b>持ち出し経路を落とす。</b>公式ドキュメントによると <code>curl</code> や <code>wget</code> はデフォルトでは自動承認されません。ここを <code>Bash(curl *)</code> で allow に入れる判断は、<b>持ち出し経路を開ける判断</b>です。</li>
+        <li><b>ラッパー経由の抜け道に注意。</b>公式によると <code>timeout</code>・<code>nice</code> 等は剥がして判定されますが、<code>npx</code>・<code>docker exec</code>・<code>devbox run</code> は剥がされません。<code>Bash(devbox run *)</code> を許可すると <code>devbox run rm -rf .</code> まで許可されます。</li>
+      </ul>
+
+      <p class="lead">「なぜ口約束では駄目なのか」は、業界標準側からも学術側からも同じ答えが出ています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">OWASP「LLM01:2025 Prompt Injection」— 原文</div>
+        <pre>Given the stochastic influence at the heart of the
+way models work, it is unclear if there are
+fool-proof methods of prevention for prompt
+injection.
+
+（モデルの動作の中心に確率的な影響があるため、
+　プロンプトインジェクションに完全な予防法が
+　あるかどうかは不明である）</pre>
+      </div>
+
+      <p class="lead">OWASP はその上で「モデルを untrusted user として扱い、権限を最小化し、機能はモデルに渡すのではなくコード側で扱う」「高リスク操作には人間の承認を要求する」を挙げています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Debenedetti ら「Defeating Prompt Injections by Design」— 原文</div>
+        <pre>Current defenses often rely on training or
+prompting models to adhere to security policies,
+frequently implemented as vulnerable system
+prompts.
+
+（既存の防御はモデルの訓練やプロンプトに依存しており、
+　それは脆弱なシステムプロンプトとして実装されている）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>この論文の提案（CaMeL）は、ツール呼び出し時にポリシーを強制する設計です。</b>Claude Code の PreToolUse フックと権限ルールが置かれている位置と同じ層です。</li>
+        <li><b>安全化にはコストがあります。</b>AgentDojo というベンチマーク（97タスク・629セキュリティテストケース）で、防御なしが84%、CaMeL が77%。7ポイント落ちています。</li>
+        <li><b>逆に言えば、7ポイントで済むということでもあります。</b>これは筆者の受け取り方で、論文がそう主張しているわけではありません。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section class="section section-a" id="s7">
+    <h2><span class="step">7</span>今日、自分の設定を破りに行く</h2>
+
+    <article class="item">
+      <h3>ガードの検収は「設定した」ではなく「破ろうとして失敗した」</h3>
+      <p class="lead">この記事の実測で分かったことは、結局これに尽きます。<mark>止まると思っていた4つのうち3つが、書いてあるのに止まりませんでした。</mark></p>
+
+      <p class="lead">確認は簡単です。実際に禁止したはずの操作を1回やらせて、<b>結果を副作用側で見る</b>。モデルの報告は見ません。</p>
+
+      <div class="code wrap">
+        <div class="code-head">フックが本当に止めたときの表示（実測、原文のまま）</div>
+        <pre>The command was blocked by a hook. Verbatim error:
+
+PreToolUse:Bash hook error: [/tmp/hk/g.sh]: push は禁止です</pre>
+      </div>
+
+      <p class="lead">この2行目は、幅の都合で折り返しています。<code>PreToolUse:Bash hook error:</code> という接頭辞だけで28桁あり、そこにフックの絶対パスが必ず入るため、パスを最短にしても40桁には収まりませんでした。<b>短くできるのはフック側のメッセージだけ</b>です。</p>
+
+      <p class="lead">最後に、順に潰していくためのリストです。<span class="cl-count">0 / 6</span></p>
+      <ul class="checklist" data-key="hooks-guardrails-2026-08-14">
+        <li><label><input type="checkbox"><span>禁止したい操作を1回わざと実行させ、<b>副作用側</b>（ファイル・リモート・ログ）で止まったことを確認した</span></label></li>
+        <li><label><input type="checkbox"><span>ブロック用フックの終了コードが <code>exit 2</code> になっている（<code>exit 1</code> ではない）</span></label></li>
+        <li><label><input type="checkbox"><span>フックの <code>command</code> のパスが実在し、実行可能ビットが立っている</span></label></li>
+        <li><label><input type="checkbox"><span>フックの中で外部通信や重い処理をしていない（タイムアウトは通す側に倒れる）</span></label></li>
+        <li><label><input type="checkbox"><span>パスの deny を <code>Write()</code> / <code>Glob()</code> / <code>NotebookEdit()</code> ではなく <code>Edit()</code> / <code>Read()</code> で書いている</span></label></li>
+        <li><label><input type="checkbox"><span>絶対パスを指すつもりの行が <code>//</code> で始まっている</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 「設定した」から「効いている」に変わりました</div>
+
+      <p class="lead">1つだけ持ち帰るなら、公式ドキュメントのこの一文です。<mark>権限ルールを強制するのは Claude Code であって、モデルではない。</mark>CLAUDE.md に何を書いても、この線は動きません。逆に言えば、線を引くべき場所は設定ファイルの中にあります。</p>
+
+      <a class="next-up" href="../2026-08-14_loop-graph/">
+        <div class="label">NEXT →</div>
+        <div class="t">プロンプトを書く時代から、ループとグラフを設計する時代へ</div>
+        <div class="d">任せる範囲を決めたら、次は回し方です。終了条件の設計と、ループをグラフへ移すべき兆候。</div>
+      </a>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Configure permissions」<i>Claude Code Docs</i>.
+          <span class="note">参照箇所: 冒頭（権限を強制するのはモデルではない）、Manage permissions（deny→ask→allow の評価順）、Extend permissions with hooks（フックの遮断は allow に優先／フックの allow は deny を越えない）、Read and Edit（Write/Glob/NotebookEdit ルールは参照されない、先頭スラッシュのアンカリング、サブプロセスには効かない）、Process wrappers（剥がされるラッパーと剥がされないもの）、Project allow rules and workspace trust、Settings precedence。.md 版全568行を取得して通読。</span>
+          <a href="https://code.claude.com/docs/en/permissions">https://code.claude.com/docs/en/permissions</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Hooks reference」<i>Claude Code Docs</i>.
+          <span class="note">参照箇所: Bash if matching（if フィルタは best-effort、硬い禁止には権限システムを使え）、Timeouts（command フックはタイムアウトでブロックしない）、Other exit codes（exit 1 は非ブロッキング／パス誤記でゲートが黙って無効化）、PreToolUse（@ 参照ではフックが発火しない）、PreToolUse decision control、Security considerations。.md 版3425行を取得して該当節を通読。</span>
+          <a href="https://code.claude.com/docs/en/hooks">https://code.claude.com/docs/en/hooks</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Choose a permission mode」<i>Claude Code Docs</i>.
+          <span class="note">参照箇所: 各モードの挙動（<code>dontAsk</code> は allow に無いものを自動拒否）、Protected paths。.md 版488行を取得して通読。</span>
+          <a href="https://code.claude.com/docs/en/permission-modes">https://code.claude.com/docs/en/permission-modes</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Configure the sandboxed Bash tool」<i>Claude Code Docs</i>.
+          <span class="note">参照箇所: How sandboxing relates to permissions（権限は実行前の文字列判定、サンドボックスは実行中の OS 強制）。.md 版671行を取得して通読。</span>
+          <a href="https://code.claude.com/docs/en/sandboxing">https://code.claude.com/docs/en/sandboxing</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Security」<i>Claude Code Docs</i>.
+          <span class="note">参照箇所: Network command approval（<code>curl</code>・<code>wget</code> はデフォルトで自動承認されない）。.md 版148行を取得して通読。</span>
+          <a href="https://code.claude.com/docs/en/security">https://code.claude.com/docs/en/security</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「CHANGELOG.md」<i>GitHub anthropics/claude-code</i>.
+          <span class="note">参照箇所: 2.1.210（<code>Write</code>/<code>NotebookEdit</code>/<code>Glob</code> ルールへの起動時警告の追加）。raw.githubusercontent.com から510,641バイトを取得して該当節を確認。</span>
+          <a href="https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md">https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          @aayest「Security Gap: Hooks Cannot Be Protected From Modification」<i>anthropics/claude-code Issue #11226</i>, 2025年11月7日作成 / 2026年1月12日 not_planned でクローズ.
+          <span class="note">参照箇所: 本文の Description に記載された <code>permissions.deny</code> の2行（原文のまま引用）。本文全文を取得して確認。報告環境は Claude Code 2.0.36 / macOS。</span>
+          <a href="https://github.com/anthropics/claude-code/issues/11226">https://github.com/anthropics/claude-code/issues/11226</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          「[BUG] ask list is ignored when "Bash" is in allow list」<i>anthropics/claude-code Issue #6527</i>, 2025年8月25日作成、2026年8月14日時点 open.
+          <span class="note">参照箇所: 報告された settings.json と Expected / Actual の記述。本文を取得して確認。</span>
+          <a href="https://github.com/anthropics/claude-code/issues/6527">https://github.com/anthropics/claude-code/issues/6527</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          OWASP Gen AI Security Project「LLM01:2025 Prompt Injection」<i>OWASP Top 10 for LLM Applications 2025</i>, 2025年.
+          <span class="note">参照箇所: 冒頭の予防不能性に関する記述、および Prevention and Mitigation Strategies の 4（最小権限）・5（高リスク操作への人間承認）・7（敵対的テスト）。<code>curl</code> で取得して本文通読。</span>
+          <a href="https://genai.owasp.org/llmrisk/llm01-prompt-injection/">https://genai.owasp.org/llmrisk/llm01-prompt-injection/</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          E. Debenedetti, I. Shumailov, T. Fan, J. Hayes, N. Carlini, D. Fabian, C. Kern, C. Shi, A. Terzis, F. Tramèr「Defeating Prompt Injections by Design」<i>arXiv:2503.18813</i>, 2025年3月24日投稿 / 2025年6月24日改訂（v2）. DOI 10.48550/arXiv.2503.18813.
+          <span class="note">参照箇所: v2 Abstract（AgentDojo で防御なし84%に対し CaMeL は77%）、Introduction（既存防御は脆弱なシステムプロンプトとして実装されている）。abs ページと ar5iv 版を通読。書誌は DataCite API で照合済み。記事中の数値は v2 のものです（v1 相当の版は67%と書かれており、古い版を引いた二次情報があります）。</span>
+          <a href="https://arxiv.org/abs/2503.18813">https://arxiv.org/abs/2503.18813</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          E. Debenedetti, J. Zhang, M. Balunović, L. Beurer-Kellner, M. Fischer, F. Tramèr「AgentDojo: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for LLM Agents」<i>arXiv:2406.13352</i>, 2024年6月19日投稿 / 2024年11月24日改訂.
+          <span class="note">参照箇所: Abstract の規模（97タスク・629セキュリティテストケース）。abs ページを通読。</span>
+          <a href="https://arxiv.org/abs/2406.13352">https://arxiv.org/abs/2406.13352</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Simon Willison「The lethal trifecta for AI agents」<i>Simon Willison's Weblog</i>, 2025年6月16日.
+          <span class="note">本文は <code>curl</code> で取得して通読しており、引用は原文のままです。ただし<b>個人ブログであり一次資料ではない</b>ため、このラベルにしています。3能力の枠組みは筆者個人の整理として提示されているものです。</span>
+          <a href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/">https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          krbrr「そのdenyルール、効いていません——settings.json堅牢化チートシート」<i>Zenn</i>, 2026年8月13日.
+          <span class="note">本文は全文を読んでいますが、<b>記事中の数値は引用していません</b>。見出しの「公開設定149件のうち16%に死んだルール」の出典 gist が <code>curl</code>・WebFetch の両方で 404 であり、母集団も判定基準も確認できないためです。「テキスト指示（〜90%）→ deny（〜99%）→ フック（〜100%弱）」という有効率にも出典の記載がありません。</span>
+          <a href="https://zenn.dev/zenn_content/articles/claude-code-settings-hardening">https://zenn.dev/zenn_content/articles/claude-code-settings-hardening</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Anthropic「Claude Code Best Practices」<i>Anthropic Engineering Blog</i>.
+          <span class="note">許可リスト設計に関する公式見解を確認しようとしましたが、この環境では <code>curl</code> で 403、WebFetch はネットワーク egress プロキシによりブロック、web.archive.org 経由も接続リセットで取得できませんでした。<b>本文を読めていないため、この記事では一切引用していません。</b></span>
+          <a href="https://www.anthropic.com/engineering/claude-code-best-practices">https://www.anthropic.com/engineering/claude-code-best-practices</a>（2026年8月14日 取得試行）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          <b>この記事で再現実験をしていない論点。</b>
+          <span class="note">(1) <code>ask</code> ルールが allow と併記されたときの挙動（Issue #6527）は報告本文を読んだだけで、当環境では再現していません。(2) フックのパス誤記に対する通知が<b>対話TTY</b>で出るかどうか。この環境では対話セッションを起動できず、headless でのみ「出なかった」ことを確認しています。(3) <code>type</code> が <code>http</code> / <code>mcp_tool</code> のフック、および Agent SDK のコールバックフック（公式によればタイムアウト時に挙動が逆になる）は再現手段が無く未検証です。(4) タイムアウトが実際に何秒で打ち切られたかは計測していません。通す側に倒れたことだけが確認できた事実です。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          権限ルールとフックの8ケース比較。Claude Code 2.1.233 / Node.js v22.22.2 / Python 3.11.15 / git 2.43.0 / jq 1.7 / Linux 6.18.5-fc-v20、2026年8月15日実施。
+          <span class="note">判定方法: モデルの自己申告は一切使わず、ローカルの bare リポジトリ <code>remote.git</code> の main の ref が動いたかどうかだけで push の成否を決めています。各ケースの前にローカルとリモートを同じ初期コミットへ reset しました。記事中のターミナル出力は加工せずそのまま貼っています。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          allow ルールの渡し方4通りの比較（workspace trust の影響）。同環境・同日。
+          <span class="note">対象を <code>touch</code> にしたのは、当環境のユーザ設定にあった allow（<code>Bash(git *)</code> と <code>Bash(python3 *)</code>）に当たらず「何もしなければ止まる」コマンドを選ぶ必要があったためです。<code>--settings</code> で allow を空にしたケースが止まったことで、<code>--settings</code> が信頼を与えたのではなく allow ルール自体が効いたと切り分けています。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          <b>報告できなかったこと。</b>
+          <span class="note">作業ディレクトリ内のファイルに対する <code>rm</code> と <code>touch</code> が、パーミッションルールとは別の組み込みガードで止まる現象を観測しましたが、エラーメッセージが「許可されたディレクトリ」として当該ディレクトリを挙げながらその中のファイルを拒否しており、原因を特定できませんでした。<code>realpath</code> で symlink が無いことは確認済みです。<b>原因不明のため記事の主張には使っていません。</b>題材を <code>git push</code> に差し替えて測り直しています。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「止めたいものは <code>ask</code> ではなく deny か <code>exit 2</code> に寄せる」「ガードの中で外部通信をしない」「絶対パスは <code>//</code> で始める」は、上記の実測と公式記述から筆者が導いた運用上の目安です。
+          <span class="note">Anthropic が推奨する構成として文書化されているものではありません。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月14日時点の内容です。検証環境: Claude Code 2.1.233 / Node.js v22.22.2 / Python 3.11.15 / git 2.43.0 / jq 1.7 / Linux 6.18.5-fc-v20（実測実施日: 2026年8月15日 JST）</div>
+    <div>公開: 2026年8月14日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

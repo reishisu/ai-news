@@ -44,16 +44,32 @@ def asset_versions():
     return versions
 
 
+PRE_BLOCK = re.compile(r"<pre\b[^>]*>.*?</pre>", re.S | re.I)
+
+
 def add_cache_busting(html, versions):
-    """既存の ?v=... を捨てて、現在の内容ハッシュを付け直す。"""
-    for rel, ver in versions.items():
-        name = rel.split("/")[-1]
-        html = re.sub(
-            r'((?:href|src)="[^"]*' + re.escape(name) + r')(?:\?v=[0-9a-f]+)?(")',
-            lambda m: f"{m.group(1)}?v={ver}{m.group(2)}",
-            html,
-        )
-    return html
+    """既存の ?v=... を捨てて、現在の内容ハッシュを付け直す。
+
+    <pre> の中(記事に載せたコード例)は書き換えない。ここを書き換えると
+    「変更前」と「変更後」が同じ行になるなど、説明そのものが壊れる。
+    """
+    def bust(chunk):
+        for rel, ver in versions.items():
+            name = rel.split("/")[-1]
+            chunk = re.sub(
+                r'((?:href|src)="[^"]*' + re.escape(name) + r')(?:\?v=[0-9a-f]+)?(")',
+                lambda m: f"{m.group(1)}?v={ver}{m.group(2)}",
+                chunk,
+            )
+        return chunk
+
+    out, last = [], 0
+    for m in PRE_BLOCK.finditer(html):
+        out.append(bust(html[last:m.start()]))
+        out.append(m.group(0))          # コード例はそのまま残す
+        last = m.end()
+    out.append(bust(html[last:]))
+    return "".join(out)
 
 
 def load_json(path, default):

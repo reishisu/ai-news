@@ -1,0 +1,14 @@
+{
+  "category": "Web開発・インフラ",
+  "tags": [
+    "npm",
+    "依存管理",
+    "実測",
+    "CI",
+    "公式ドキュメント"
+  ],
+  "featured": true,
+  "title": "lockがあるのに揃わない。npmが固定していない4つ",
+  "summary": "package-lock.json を14通りの方法でいじめて、何が固定され何が固定されないかを測りました。lockには registry.npmjs.org と書いてあるのに、7個すべてを手元の別サーバーから警告ゼロで取得。npm ci は package.json を読んでいます。npm 12 で npm-shrinkwrap.json が黙って無視されるようになった件まで、実測ログをそのまま載せます。",
+  "thumbnail": "images/thumb.png"
+}

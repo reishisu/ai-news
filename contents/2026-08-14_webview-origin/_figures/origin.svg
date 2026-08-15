@@ -12,7 +12,7 @@
   <!-- 行1: file:// -->
   <rect x="14" y="44" width="222" height="62" rx="10" fill="var(--track)" stroke="var(--sub)" stroke-width="1"/>
   <text x="125" y="70" fill="var(--fg)" font-size="13.5" font-weight="700" text-anchor="middle">file:// で読み込む</text>
-  <text x="125" y="91" fill="var(--sub)" font-size="11.5" text-anchor="middle">loadData / loadFileURL も同じ</text>
+  <text x="125" y="91" fill="var(--sub)" font-size="11.5" text-anchor="middle">data: URL や loadData も同じ</text>
 
   <path d="M240 75 L262 75" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#ar)"/>
 

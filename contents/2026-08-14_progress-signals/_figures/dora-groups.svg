@@ -1,0 +1,38 @@
+<svg viewBox="0 0 640 280" xmlns="http://www.w3.org/2000/svg" role="img">
+
+  <text x="20" y="26" fill="var(--b)" font-size="13" font-weight="800">Throughput（3指標）</text>
+  <text x="340" y="26" fill="var(--c)" font-size="13" font-weight="800">Instability（2指標）</text>
+
+  <!-- 左: Throughput -->
+  <rect x="20" y="38" width="290" height="52" rx="8" fill="var(--track)" stroke="var(--sub)" stroke-width="1"/>
+  <text x="34" y="60" fill="var(--fg)" font-size="13" font-weight="700">Change lead time</text>
+  <text x="34" y="78" fill="var(--sub)" font-size="12.5">変更のリードタイム</text>
+
+  <rect x="20" y="100" width="290" height="52" rx="8" fill="var(--track)" stroke="var(--sub)" stroke-width="1"/>
+  <text x="34" y="122" fill="var(--fg)" font-size="13" font-weight="700">Deployment frequency</text>
+  <text x="34" y="140" fill="var(--sub)" font-size="12.5">デプロイ頻度</text>
+
+  <rect x="20" y="162" width="290" height="52" rx="8" fill="var(--track)" stroke="var(--d)" stroke-width="2.5"/>
+  <text x="34" y="184" fill="var(--fg)" font-size="13" font-weight="700">Failed deployment recovery time</text>
+  <text x="34" y="202" fill="var(--sub)" font-size="12.5">失敗したデプロイの復旧時間</text>
+
+  <!-- 右: Instability -->
+  <rect x="340" y="38" width="280" height="52" rx="8" fill="var(--track)" stroke="var(--sub)" stroke-width="1"/>
+  <text x="354" y="60" fill="var(--fg)" font-size="13" font-weight="700">Change fail rate</text>
+  <text x="354" y="78" fill="var(--sub)" font-size="12.5">変更失敗率</text>
+
+  <rect x="340" y="100" width="280" height="52" rx="8" fill="var(--track)" stroke="var(--sub)" stroke-width="1"/>
+  <text x="354" y="122" fill="var(--fg)" font-size="13" font-weight="700">Deployment rework rate</text>
+  <text x="354" y="140" fill="var(--sub)" font-size="12.5">デプロイ手戻り率</text>
+
+  <!-- 誤分類の矢印 -->
+  <line x1="316" y1="188" x2="380" y2="188" stroke="var(--d)" stroke-width="2" stroke-dasharray="5 4"/>
+  <polygon points="380,182 392,188 380,194" fill="var(--d)"/>
+  <line x1="341" y1="181" x2="355" y2="195" stroke="var(--c)" stroke-width="2.5"/>
+  <line x1="355" y1="181" x2="341" y2="195" stroke="var(--c)" stroke-width="2.5"/>
+  <text x="404" y="178" fill="var(--d)" font-size="13" font-weight="800">二次情報では</text>
+  <text x="404" y="196" fill="var(--d)" font-size="13" font-weight="800">こちら側に分類されがち</text>
+
+  <text x="20" y="242" fill="var(--sub)" font-size="12.5">復旧時間は Throughput 側。Instability は右の2つだけ</text>
+  <text x="20" y="264" fill="var(--sub)" font-size="12.5">MTTR という名前は 2023年に廃止された</text>
+</svg>

@@ -28,7 +28,7 @@
   <div class="masthead">
     <div class="eyebrow">AIで作る技術 ｜ 2026年8月14日(金)</div>
     <h1>プロンプトを書く時代から、ループとグラフを設計する時代へ</h1>
-    <div class="range">Claude Codeでの実践を前提に、ループエンジニアリングとグラフエンジニアリングを整理します</div>
+    <div class="range">Claude Code（ターミナル上で動き、人の代わりにファイルを読み書きしコマンドを実行するコーディングエージェント）での実践を前提に、ループエンジニアリングとグラフエンジニアリングを整理します</div>
   </div>
 
   <section class="summary">
@@ -36,7 +36,7 @@
     <ol>
       <li>
         <b>ループエンジニアリングは「終了条件だけ決めて、あとは回させる」設計</b>
-        <span>人が毎回プロンプトを打つのをやめ、エージェント自身に次の一手を決めさせます。</span>
+        <span>人が毎回プロンプトを打つのをやめ、エージェント（自分で判断してファイルを読み書きし、コマンドを実行するAI）自身に次の一手を決めさせます。</span>
       </li>
       <li>
         <b>成否を分けるのは停止条件。機械が判定できる形に落とせるかがすべて</b>
@@ -44,7 +44,7 @@
       </li>
       <li>
         <b>グラフエンジニアリングは、ループが破綻し始めたときの次の一手</b>
-        <span>作業をノードに分け、順序・分岐・戻り先を先に決めます。最初から使うと複雑になるだけです。</span>
+        <span>作業をノード（1つの作業単位）に分け、順序・分岐・戻り先を先に決めます。最初から使うと複雑になるだけです。</span>
       </li>
     </ol>
   </section>
@@ -58,6 +58,7 @@
       <li><a href="#graph">グラフエンジニアリング — 破綻し始めたら点と線に分ける</a></li>
       <li><a href="#choice">ループのままか、グラフへ移すかの判断</a></li>
       <li><a href="#practice">Claude Codeでの組み立て方</a></li>
+      <li><a href="#corrections">訂正と追記</a></li>
       <li><a href="#refs">参考文献</a></li>
     </ol>
   </nav>
@@ -89,9 +90,9 @@
         <div class="body">
           <dl>
             <dt>注意</dt>
-            <dd>「ループエンジニアリング」「グラフエンジニアリング」はどちらも2026年に広まった比較的新しい言い方で、定義が完全に固まっているわけではありません。この記事は複数の解説記事で共通している内容を軸にまとめています。</dd>
+            <dd>2つの語で扱いが違います。<b>「ループエンジニアリング」はAnthropic自身が公式ブログの表題に使い、ループの定義も置いています。</b>一方<mark>「グラフエンジニアリング」はAnthropicの公開ドキュメント全文を検索しても1件も出てきません</mark>（2026年8月15日時点）。後者は完全にコミュニティ側の呼び名なので、この記事では機能の根拠にはせず、使われ方の紹介にとどめています。</dd>
             <dt>参考</dt>
-            <dd><a href="https://zenn.dev/aria3/articles/claude-code-loop-goal-engineering">もうプロンプトは打たない!? — Claude Code の /loop と /goal という考え方(Zenn)</a> / <a href="https://fyve.co.jp/claude-code/articles/loop-engineering-guide">Loop Engineeringとは</a></dd>
+            <dd><a href="https://zenn.dev/aria3/articles/claude-code-loop-goal-engineering">もうプロンプトは打たない!? — Claude Code の /loop と /goal という考え方(Zenn)</a> / <a href="https://fyve.co.jp/claude-code/articles/loop-engineering-guide">Loop Engineeringとは(Fyve)</a>。どちらも<a href="#refs">参考文献</a>に確度ラベル付きで載せています。</dd>
           </dl>
         </div>
       </details>
@@ -104,7 +105,9 @@
 
     <article class="item">
       <h3>「実行 → 確認 → 直す」を、条件を満たすまで自分で繰り返させる</h3>
-      <p class="lead">ループエンジニアリングは、<mark>エージェントに作業と確認を繰り返させ、条件を満たしたときだけ止める</mark>設計です。1回のプロンプトで完璧な出力を狙うのではなく、雑でもいいから回して収束させる、という発想の転換になります。</p>
+      <p class="lead">ループエンジニアリングとは、<mark>1回の指示で仕上げることを最初からあきらめ、「作業と検証の繰り返し」と「そこから抜ける条件」のほうを設計する</mark>やり方です。1発の出力の質を上げるのではなく、雑でもいいから回して収束させる、という発想の転換になります。</p>
+      <p class="lead">流行語のように使われている言葉ですが、<mark>Anthropic自身も2026年6月30日の公式ブログで「Loop engineering」を表題に掲げ、ループを「停止条件が満たされるまで作業のサイクルを繰り返すエージェント」と定義しています</mark>。同ブログは冒頭で「ループが何を指すのかXで探すと答えがいくつも出てくる」と認めたうえで、Claude Codeチームとしての定義を置く、という書き方をしています。</p>
+      <p class="lead">なお日本語での言い回しは、ほぼ同じ趣旨の定義文が<a href="https://note.com/masa_wunder/n/ncca2f2db5a64">まさお氏のnote記事</a>にあり、この記事もその整理を出発点にしています（<a href="#refs">参考文献</a>参照）。</p>
 
       <ul class="points">
         <li><b>ループの最小構成は4つ。</b>やること(目標)、実行、結果の確認、そして<b>止まる条件</b>。このうち最後が抜けると永久に回ります。</li>
@@ -113,16 +116,55 @@
       </ul>
 
       <details>
-        <summary>Claude Codeでの入口</summary>
+        <summary>Claude Codeでの入口 — /goal と /loop（選ぶ軸は「終わり方」ではない）</summary>
         <div class="body">
           <dl>
+            <dt>そもそも「/」で始まる表記は何か</dt>
+            <dd>Claude Codeの入力欄に <b>/goal つづきの条件…</b> のように打ち込む組み込みコマンドです。公式用語集はコマンドを「プロンプトに <b>/name</b> と入力して呼び出す再利用可能な指示」と定義しています。ターミナルのシェルに打つのではなく、Claudeと話している入力欄に打ちます。</dd>
+            <dt>「ターン」とは</dt>
+            <dd>あなたが1回メッセージを送ってから、Claudeが応答を終えるまでの1往復です（公式用語集の定義）。途中で何回ツールを使っても1ターンです。後で出てくる「20ターンで打ち切る」は、この往復を20回試してダメなら諦める、という意味になります。</dd>
             <dt>/goal</dt>
-            <dd>完了条件を渡すと、達成できたかを毎ターン判定しながらターンを跨いで自走します。「終わったら止まる」を宣言的に書ける入口です。</dd>
+            <dd>完了条件を渡すと、1ターン終わるたびに<b>作業役とは別の小さな高速モデル（評価役）</b>が条件の成否を判定します。「満たした」または「達成不可能」と判定されるまで、あなたが打たなくても次のターンが始まります。評価役はコマンドを実行せず、会話に出てきた内容だけで判定するので、<mark>条件はClaude自身の出力で証明できる形に書く</mark>必要があります。</dd>
             <dt>/loop</dt>
-            <dd>指定した処理を一定間隔で繰り返します。外部の状態を待つ用途(CIの結果を見る、デプロイを見張る)に向きます。</dd>
-            <dt>使い分け</dt>
-            <dd>ざっくり言えば <b>/goal は「達成したら止まる」、/loop は「間隔をあけて何度も見に行く」</b>。終わりが状態で決まるなら/goal、時間で決まるなら/loopです。</dd>
+            <dd>次のターンが<b>時間の経過</b>で始まります。間隔もプロンプトもどちらも省略でき、<mark>間隔を省くとClaudeが毎回1分〜1時間の範囲で待ち時間を自分で選びます</mark>。固定スケジュール（cron）になるのは間隔を明示したときだけです。CI（コードを保存するたびに自動でテストを回す仕組み）の結果待ちや、デプロイ（作ったものを本番環境に反映する作業）の見張りには、この動的モードが向きます。</dd>
+            <dt>公式ブログはループを4種類に分けている</dt>
+            <dd>「ターン駆動（あなたのプロンプトで始まり、Claudeが完了と判断したら終わる）」「ゴール駆動＝/goal」「時間駆動＝/loop と /schedule」「先回り型（イベントや時刻で始まり、人がリアルタイムでは関与しない）」の4つです。分類の軸は<b>何で始まるか・何で止まるか・どの機能を使うか・どんなタスクに向くか</b>。同ブログは「すべてのタスクが複雑なループを必要とするわけではない。いちばん単純な解から始めよ」とも書いています。</dd>
+            <dt>使い分けの軸は「次の一手をいつ始めるか」</dt>
+            <dd>公式ドキュメントは、この2つを<b>停止条件ではなく開始条件</b>で並べています。<mark>/loopは時間で止まるのではありません</mark>。止めるのは人か、Claude自身の完了判断です。</dd>
           </dl>
+
+          <div class="table">
+            <table>
+              <thead><tr><th>手段</th><th>次のターンが始まるのは</th><th>止まるのは</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>/goal</td>
+                  <td data-label="次のターンが始まるのは">前のターンが終わったとき</td>
+                  <td data-label="止まるのは">モデルが条件成立、または達成不可能と判定したとき</td>
+                </tr>
+                <tr>
+                  <td>/loop</td>
+                  <td data-label="次のターンが始まるのは">時間間隔が経過したとき</td>
+                  <td data-label="止まるのは">人が止めるか、Claudeが作業完了と判断したとき</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code wrap">
+            <div class="code-head">原文（goal.md の比較表・セルの文字列をそのまま。表の余白とリンク記法だけ除いています）</div>
+            <pre>Approach: /goal
+Next turn starts when:
+  The previous turn finishes
+Stops when:
+  A model confirms the condition is met or judges it impossible
+
+Approach: /loop
+Next turn starts when:
+  A time interval elapses
+Stops when:
+  You stop it, or Claude decides the work is done</pre>
+          </div>
         </div>
       </details>
     </article>
@@ -145,10 +187,10 @@
       </figure>
 
       <ul class="points">
-        <li><b>コマンドの終了ステータスに変換する。</b>「テストが通る」「型チェックが通る」「lintがゼロ件」は、そのまま判定できます。</li>
+        <li><b>コマンドの終了ステータスに変換する。</b>コマンドは終わるときに成功／失敗の合図（終了ステータス）を返します。この合図をそのまま判定に使うのが最短です。「テストが通る」「型チェック（データの種類の食い違いを機械が検出する処理）が通る」「lint（書き方の乱れを機械が指摘するツール）の指摘が0件」は、いずれもコマンド1本で真偽が確定します。</li>
         <li><b>数を数えられる形にする。</b>「未対応の項目が0件になる」「失敗しているテストが0件になる」のように、残数で表現すると進捗も見えます。</li>
-        <li><b>主観的な目標は、代理指標に置き換える。</b>「読みやすくして」ではなく「1関数50行以下にする」「循環的複雑度を10以下にする」と書けば止まります。</li>
-        <li><b>それでも保険は必要。</b>条件に加えて「20ターンで打ち切る」のような上限を併記しておきます。</li>
+        <li><b>主観的な目標は、代理指標に置き換える。</b>「読みやすくして」ではなく「1関数50行以下にする」「循環的複雑度（処理の分岐の多さを数値化した指標）を10以下にする」と書けば止まります。数値そのものは現場ごとに決めてよく、この50や10は筆者のチームでの目安です。</li>
+        <li><b>それでも保険は必要。</b>公式ドキュメントも、条件文の中に <b>or stop after 20 turns</b> のようなターン数・時間の句を入れて上限を切る書き方を挙げています。20ターン＝20往復ぶん試してダメなら諦める、ということです。</li>
       </ul>
 
       <details>
@@ -157,8 +199,10 @@
           <dl>
             <dt>置き換えの例</dt>
             <dd>「バグを直して」→「再現手順のテストを追加し、それが通る」。目標を<b>先にテストとして書く</b>と、ループの停止条件がそのまま手に入ります。</dd>
+            <dt>評価役はコマンドを実行しない</dt>
+            <dd>公式ドキュメントによれば、/goal の評価役モデルは自分でコマンドを走らせたりファイルを読んだりしません。会話に出てきた内容だけで判定します。だから「npm test が通る」は<b>Claudeが実際にテストを走らせ、その結果が会話に出ている</b>ことで初めて成立します。停止条件には「どう証明するか」まで書いてください。</dd>
             <dt>最初の一歩</dt>
-            <dd>いきなり大きな改修に使わず、「関数にJSDocコメントを付ける、20ターンで打ち切り」のような小さく安全なタスクで挙動を掴むのが安全です。</dd>
+            <dd>いきなり大きな改修に使わず、「関数にJSDoc（関数の説明を決まった書式でコードに書き添えるコメント）を付ける、20ターンで打ち切り」のような小さく安全なタスクで挙動を掴むのが安全です。JSDocが分からなければ「READMEに各コマンドの説明を追記する」でも同じ練習になります。</dd>
             <dt>参考</dt>
             <dd><a href="https://note.com/masa_wunder/n/ncca2f2db5a64">Claude Code ループエンジニアリング入門 /goal・/loopの使い分けと停止条件の設計</a> / <a href="https://dev.classmethod.jp/articles/claude-loop-engineering-practice/">Loop EngineeringをClaudeを使って実践してみた(DevelopersIO)</a></dd>
           </dl>
@@ -184,7 +228,7 @@
       </figure>
 
       <ul class="points">
-        <li><b>ノードは作業単位。</b>LLMの呼び出しに限らず、普通のコード実行や人間の承認ステップもノードとして置けます。</li>
+        <li><b>ノードは作業単位。</b>AIモデルの呼び出しに限らず、普通のコード実行や人間の承認ステップもノードとして置けます。</li>
         <li><b>エッジは「次にどこへ行くか」。</b>条件分岐・並列・失敗時の戻り先を、実行前に決めておける点がループとの決定的な違いです。</li>
         <li><b>ステートは引き継ぐ情報。</b>各ノードが何を受け取り何を返すかを決めると、途中から再開したりノードを差し替えたりできます。</li>
         <li><b>強みは再現性と分離。</b>どこで失敗したかが特定でき、失敗したノードだけ作り直せます。</li>
@@ -244,11 +288,11 @@
       <p class="lead">Claude Codeには、ループとグラフをそれぞれ担う道具が揃っています。<mark>1つのセッションで回すか、役割ごとに分けるか</mark>が最初の分岐点です。</p>
 
       <ul class="points">
-        <li><b>ループを回す: /goal と /loop。</b>状態で終わるなら/goal、時間や外部イベントを待つなら/loop。どちらも上限を添えます。</li>
-        <li><b>ノードを分ける: サブエージェント。</b>調査役・実装役・検証役のように役割ごとに文脈を分離できます。読み取り専用の調査役を別に立てると、本体の文脈が汚れません。</li>
-        <li><b>順序と分岐を決める: ワークフロー。</b>「調べる → 並列で直す → まとめて検証」のような手順を決定的に書き下せます。</li>
-        <li><b>エッジに条件を仕込む: フック。</b>編集後にテストを走らせる、危険なコマンドを止めるといった遷移条件を、プロンプトではなく仕組み側に持たせられます。</li>
-        <li><b>定期実行はスケジュールで。</b>毎朝の定型作業のように「時間で始まるループ」は、セッションの外に出したほうが安定します。</li>
+        <li><b>ループを回す: /goal と /loop。</b>前のターンが終わり次第すぐ次を回したいなら/goal、時間をあけて見に行きたいなら/loop。選ぶ軸は「次のターンをいつ始めるか」です。どちらも上限を添えます。</li>
+        <li><b>ノードを分ける: サブエージェント。</b>公式ドキュメントの定義は「独自のコンテキストウィンドウ・独自のシステムプロンプト・限定したツール権限で動く専門アシスタント」。調査役・実装役・検証役のように役割ごとに文脈を分離でき、読み取り専用の調査役を別に立てれば本体の文脈が汚れません。</li>
+        <li><b>順序と分岐を決める: ダイナミックワークフロー。</b>Claudeが書いたJavaScriptのスクリプトが多数のサブエージェントを指揮する仕組みです。公式ドキュメントいわく<mark>「スクリプトがループと分岐と中間結果そのものを保持する」</mark>ため、Claudeの文脈には最終結果だけが残ります。エッジとステートをコードに落とす、という意味でまさにグラフです。</li>
+        <li><b>エッジに条件を仕込む: フック。</b>フックは、ツール実行の前後やセッション開始時など<b>決まった地点で自動的に走る処理</b>で、設定ファイルに書いておきます。モデルの気分ではなく決まった場所で必ず発火する点が肝です。編集後にテストを走らせる、危険なコマンドを止めるといった遷移条件を、プロンプトの言い聞かせではなく仕組み側に持たせられます。</li>
+        <li><b>定期実行はセッションの外へ。</b>/loop はセッション（Claude Codeを起動してから終えるまでの一続きの作業）に紐づき、会話を変えると消え、作成から7日で自動失効します。毎朝の定型作業のように長く回したいものは、クラウドで動く<b>Routines</b>（公式ブログは <b>/schedule</b> でループをクラウドへ移す、と書いています）、自分のPCで動く<b>デスクトップのスケジュールタスク</b>、または<b>GitHub Actions</b>に出したほうが安定します。</li>
       </ul>
 
       <details>
@@ -258,7 +302,7 @@
             <dt>まず手で1周やる</dt>
             <dd>自動化する前に、自分で1周分の作業をやってみて、判断していた箇所を書き出します。その判断がそのままエッジの条件になります。</dd>
             <dt>検証を独立させる</dt>
-            <dd>実装したエージェント自身に「できましたか?」と聞くと甘い判定になりがちです。検証を別ノードに分けると精度が上がります。</dd>
+            <dd>実装したエージェント自身に「できましたか?」と聞くと甘い判定になりがちです。検証を別ノードに分けると精度が上がります。公式ブログも同じことを書いています——<mark>「レビュー役は文脈が新しいぶん偏りが少なく、本体エージェントの推論に引きずられない」</mark>。/goal の評価役が作業役と別モデルなのも、同じ理屈です。</dd>
             <dt>ログを残す</dt>
             <dd>どのノードで何回失敗したかが残っていないと、次にどこを分割すべきか判断できません。ループが失敗した記録こそがグラフ設計の材料になります。</dd>
           </dl>
@@ -267,38 +311,119 @@
     </article>
   </section>
 
+  <!-- ============ 訂正と追記 ============ -->
+  <section class="section section-d" id="corrections">
+    <h2>訂正と追記</h2>
+    <article class="item">
+      <h3>2026年8月15日: /goal と /loop の説明が公式ドキュメントと食い違っていたので直しました</h3>
+      <p class="lead">公開後の検証で、この記事の中核である<mark>停止条件の説明そのものに誤りが見つかりました</mark>。読者が使い分けを間違える内容だったため、公式ドキュメントに合わせて書き直しています。</p>
+
+      <ul class="points">
+        <li><b>誤: 「終わりが状態で決まるなら/goal、時間で決まるなら/loop」。</b>正しくは、時間が決めるのは<b>次のターンが始まるタイミング</b>であって、終わりではありません。/loop の停止条件は「人が止めるか、Claudeが作業完了と判断したとき」です。#loop と #practice の該当箇所を、公式の2軸（開始条件・停止条件）に沿って書き直しました。</li>
+        <li><b>誤: 「/loop は指定した処理を一定間隔で繰り返す」。</b>間隔は省略でき、省略した場合はClaudeが毎回1分〜1時間の範囲で待ち時間を動的に決めます。固定スケジュールになるのは間隔を明示したときだけでした。記事が勧める「外部の状態を待つ」用途にはむしろ動的モードが合うため、加筆しました。</li>
+        <li><b>誤: 「ループエンジニアリングは公式に定義された用語ではない」。</b>今回、公式ドキュメントの全文からAnthropicの公式ブログ「Loop engineering: Getting started with loops」（2026年6月30日）への参照を見つけ、本文を取得して確認しました。同ブログはループを「停止条件が満たされるまで作業のサイクルを繰り返すエージェント」と明確に定義しています。<b>「公式に定義がない」は誤りだったので撤回します。</b>一方「グラフエンジニアリング」は公式ドキュメント全文検索で0件で、こちらはコミュニティ由来の呼び名という記述のままです。</li>
+        <li><b>出典の欠落を補いました。</b>ループエンジニアリングの定義文が、本文中でリンクしていたnote記事の一文とほぼ逐語一致していました。定義を自分の言葉で書き直したうえで、由来を本文と参考文献の両方に明示しています。</li>
+        <li><b>参考文献に一次資料が1件も無い状態でした。</b>Claude Codeの機能について断定的に書いているのに、根拠が全件コミュニティ記事という構成だったため、公式ドキュメント5件を実際に取得して読み、一次資料として追加しました。確度ラベルの表示も規定の4種類に統一しています。</li>
+      </ul>
+    </article>
+  </section>
+
   <!-- ============ 参考文献 ============ -->
   <section class="section section-d" id="refs">
     <h2>参考文献</h2>
     <article class="item">
-      <p class="lead"><mark>「ループエンジニアリング」「グラフエンジニアリング」は、公式に定義された用語ではありません。</mark>実務者が使い始めた呼び名で、書き手ごとに範囲が少しずつ違います。この記事は下記の記事群に共通する使われ方を整理したものです。</p>
+      <p class="lead">この記事の主張は、次の資料と筆者の整理だけに基づいています。<mark>読んでいない資料は引用しません。</mark>Claude Codeの機能仕様は公式ドキュメント（一次資料）に、用語の使われ方はコミュニティ記事に、それぞれ分けて依拠しています。</p>
       <ol class="refs">
         <li>
-          <span class="flag unverified">コミュニティ記事</span>
-          クラスメソッド「Claude Code のループエンジニアリング実践」<i>DevelopersIO</i>.
+          <span class="flag primary">一次資料</span>
+          Anthropic「Loop engineering: Getting started with loops」<i>Claude by Anthropic 公式ブログ</i>, 2026年6月30日.
+          <span class="note">参照箇所: 冒頭の定義（"we define loops as agents repeating cycles of work until a stop condition is met"）と、Turn-based / Goal-based / Time-based / Proactive の4分類（各項の Triggered by・Stop criteria）、および "Maintaining code quality" の "Use a second agent for code reviews"（引用した「レビュー役は文脈が新しいぶん偏りが少なく…」の原文）。「ループエンジニアリングをAnthropic自身が用語として使い、定義している」ことと、4分類・「いちばん単純な解から始めよ」の根拠。時間駆動ループの停止条件が "You cancel it, or the work completes" である点も、公式ドキュメントの記述と一致することを確認しました。</span>
+          <a href="https://claude.com/blog/getting-started-with-loops">https://claude.com/blog/getting-started-with-loops</a>（2026年8月15日に本文を取得して参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Keep Claude working toward a goal」<i>Claude Code 公式ドキュメント</i>.
+          <span class="note">参照箇所: 冒頭説明、「Compare ways to keep a session running」の比較表、「Write an effective condition」、「How evaluation works」。/goal と /loop の開始条件・停止条件、評価役が別の小さな高速モデルであること、評価役はコマンドを実行せず会話の内容だけで判定すること、条件に「or stop after 20 turns」のような上限句を入れられることの根拠。</span>
+          <a href="https://code.claude.com/docs/en/goal.md">https://code.claude.com/docs/en/goal.md</a>（2026年8月15日に本文を取得して参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Run prompts on a schedule」<i>Claude Code 公式ドキュメント</i>.
+          <span class="note">参照箇所: 「Run a prompt repeatedly with /loop」の3モード表、「Let Claude choose the interval」、「Stop a loop」、「Seven-day expiry」、「Compare scheduling options」。間隔とプロンプトが省略可であること、省略時は1分〜1時間の遅延をClaudeが動的に選ぶこと、7日で自動失効すること、長期運用はRoutines／デスクトップのスケジュールタスク／GitHub Actionsに寄せる指針の根拠。</span>
+          <a href="https://code.claude.com/docs/en/scheduled-tasks.md">https://code.claude.com/docs/en/scheduled-tasks.md</a>（2026年8月15日に本文を取得して参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Glossary」<i>Claude Code 公式ドキュメント</i>.
+          <span class="note">参照箇所: Turn / Session / Command / Hook / Subagent / Agentic coding の各項目。記事中の「ターン」「セッション」「/で始まるコマンド」「フック」の語釈は、この定義に合わせています。</span>
+          <a href="https://code.claude.com/docs/en/glossary.md">https://code.claude.com/docs/en/glossary.md</a>（2026年8月15日に本文を取得して参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Create custom subagents」<i>Claude Code 公式ドキュメント</i>.
+          <span class="note">参照箇所: 冒頭の定義（独自のコンテキストウィンドウ・独自のシステムプロンプト・限定したツール権限で動く）。「ノードを分ける: サブエージェント」の根拠。</span>
+          <a href="https://code.claude.com/docs/en/sub-agents.md">https://code.claude.com/docs/en/sub-agents.md</a>（2026年8月15日に本文を取得して参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Orchestrate subagents at scale with dynamic workflows」<i>Claude Code 公式ドキュメント</i>.
+          <span class="note">参照箇所: 冒頭説明と「When to use a workflow」の比較表。引用した「スクリプトがループと分岐と中間結果そのものを保持する」は同節の "A workflow script holds the loop, the branching, and the intermediate results itself" の訳です。</span>
+          <a href="https://code.claude.com/docs/en/workflows.md">https://code.claude.com/docs/en/workflows.md</a>（2026年8月15日に本文を取得して参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          まさお「Claude Code ループエンジニアリング入門 /goal・/loopの使い分けと停止条件の設計」<i>note</i>, 2026年7月2日.
+          <span class="note">本文を取得し、冒頭の定義文（「ループエンジニアリングとは、エージェントに作業と確認を繰り返させ、条件を満たした時だけ止める設計のこと。」）と /goal・/loop の節を読みました。ただし<b>個人ブログであり一次資料ではありません</b>。この記事の定義はここを出発点にしていますが、機能仕様の根拠には使っていません。なお同記事が挙げる「公式ブログ Getting started with loops（2026年6月30日）」は、今回こちらで本文を取得し、内容が一致することを確認したうえで上記の一次資料として別に立てています。</span>
+          <a href="https://note.com/masa_wunder/n/ncca2f2db5a64">https://note.com/masa_wunder/n/ncca2f2db5a64</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Fyve「Loop Engineeringとは」<i>Claude Code for Business</i>.
+          <span class="note">本文を取得し、冒頭の定義（プロンプトを打つのをやめ、プロンプトを出し続けるループ自体を設計する考え方）と「成功テストと停止条件を先に決める」の節を読みました。企業ブログであり一次資料ではありません。用語の使われ方の証拠としてのみ扱っています。</span>
+          <a href="https://fyve.co.jp/claude-code/articles/loop-engineering-guide">https://fyve.co.jp/claude-code/articles/loop-engineering-guide</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          クラスメソッド「Loop EngineeringをClaudeを使って実践してみた」<i>DevelopersIO</i>.
+          <span class="note">記事執筆時に参照した書誌情報のみ。今回の検証では本文を再取得しておらず、内容を根拠にした記述はありません。</span>
           <a href="https://dev.classmethod.jp/articles/claude-loop-engineering-practice/">https://dev.classmethod.jp/articles/claude-loop-engineering-practice/</a>（2026年8月14日参照）
         </li>
         <li>
-          <span class="flag unverified">コミュニティ記事</span>
+          <span class="flag unverified">未確認</span>
           サーバーワークス「グラフエンジニアリングとは」<i>Serverworks Engineer Blog</i>.
+          <span class="note">記事執筆時に参照した書誌情報のみ。今回の検証では本文を再取得していません。</span>
           <a href="https://blog.serverworks.co.jp/what-is-graph-engineering">https://blog.serverworks.co.jp/what-is-graph-engineering</a>（2026年8月14日参照）
         </li>
         <li>
-          <span class="flag unverified">コミュニティ記事</span>
-          aria3「Claude Code のループ／ゴール設計」<i>Zenn</i>.
+          <span class="flag unverified">未確認</span>
+          aria3「もうプロンプトは打たない!? — Claude Code の /loop と /goal という考え方」<i>Zenn</i>.
+          <span class="note">記事執筆時に参照した書誌情報のみ。今回の検証では本文を再取得していません。</span>
           <a href="https://zenn.dev/aria3/articles/claude-code-loop-goal-engineering">https://zenn.dev/aria3/articles/claude-code-loop-goal-engineering</a>（2026年8月14日参照）
         </li>
         <li>
-          <span class="flag unverified">コミュニティ記事</span>
-          suwash「グラフエンジニアリング」<i>Zenn</i>, 2026年7月27日.
+          <span class="flag unverified">未確認</span>
+          suwash「Graph Engineering入門」<i>Zenn</i>, 2026年7月27日.
+          <span class="note">記事執筆時に参照した書誌情報のみ。今回の検証では本文を再取得していません。</span>
           <a href="https://zenn.dev/suwash/articles/graph-engineering_20260727">https://zenn.dev/suwash/articles/graph-engineering_20260727</a>（2026年8月14日参照）
         </li>
         <li>
+          <span class="flag self">自分の実測</span>
+          用語の有無の確認方法: 2026年8月15日、<b>https://code.claude.com/docs/llms-full.txt</b>（取得サイズ 7,445,892バイト）を取得し、大文字小文字を区別せず全文検索しました。結果は "graph engineering" が0件、"loop engineering" が1件（Agent SDK のページから公式ブログ記事へのリンク）。この1件をたどって公式ブログ本文を確認しています。
+        </li>
+        <li>
           <span class="flag self">自分の意見</span>
-          「ループのままでよい場合／グラフへ移すべき兆候」の切り分けは、<b>筆者の整理</b>です。上記の記事群に明示的に書かれている区分ではありません。
+          「ループのままでよい場合／グラフへ移すべき兆候」の4つの判断材料は、<b>筆者の整理</b>です。上記のどの資料にも、この区分は明示されていません。
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          停止条件の数値（1関数50行以下、循環的複雑度10以下）は<b>筆者のチームでの運用上の目安</b>で、標準や規格ではありません。一方「20ターンで打ち切る」は公式ドキュメントに例示のある書き方です。
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          冒頭の図が示す「2023年コード補完 → 2024年プロンプト → 2025年並列 → 2026年ループ設計」という4段階の区切りは、<b>筆者による時代の整理</b>です。特定の資料に基づく区分ではありません。
         </li>
       </ol>
-      <p class="lead">上記はいずれも個人・企業のブログで、<mark>仕様書や査読論文ではありません</mark>。用語の使われ方の証拠としては有効ですが、定義の根拠にはなりません。</p>
+      <p class="lead">2つの用語で扱いが違うので分けて書きます。<b>「ループエンジニアリング」はAnthropic自身が公式ブログの表題に使い、ループの定義も置いています</b>（上記1件目）。<mark>一方「グラフエンジニアリング」は、Anthropicの公開ドキュメント全文（llms-full.txt、約7.4MB）を検索して0件でした</mark>。こちらは実務者が使い始めた呼び名で、書き手ごとに範囲が少しずつ違います。コミュニティ記事は<b>仕様書でも査読論文でもなく</b>、使われ方の証拠にはなりますが、機能の根拠にはしていません。</p>
     </article>
   </section>
 

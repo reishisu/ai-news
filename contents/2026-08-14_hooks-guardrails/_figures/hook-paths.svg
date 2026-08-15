@@ -1,0 +1,46 @@
+<svg viewBox="0 0 640 274" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="10" y="24" fill="var(--sub)" font-size="12">settings.json の見た目は、4つとも「フックを仕掛けてある」</text>
+
+  <!-- 1: exit 2 -->
+  <rect x="10" y="44" width="246" height="42" rx="8" fill="none" stroke="var(--a)" stroke-width="2"/>
+  <text x="24" y="70" fill="var(--fg)" font-size="13" font-weight="700" font-family="ui-monospace, monospace">exit 2</text>
+  <text x="96" y="70" fill="var(--sub)" font-size="12.5">で終了した</text>
+  <path d="M258 65 L348 65" stroke="var(--a)" stroke-width="1.8" marker-end="url(#ar-a)"/>
+
+  <!-- 2: exit 1 -->
+  <rect x="10" y="94" width="246" height="42" rx="8" fill="none" stroke="var(--c)" stroke-width="2"/>
+  <text x="24" y="120" fill="var(--fg)" font-size="13" font-weight="700" font-family="ui-monospace, monospace">exit 1</text>
+  <text x="96" y="120" fill="var(--sub)" font-size="12.5">で終了した</text>
+  <path d="M258 115 L348 115" stroke="var(--c)" stroke-width="1.8" marker-end="url(#ar-c)"/>
+
+  <!-- 3: パス誤記 -->
+  <rect x="10" y="144" width="246" height="42" rx="8" fill="none" stroke="var(--c)" stroke-width="2"/>
+  <text x="24" y="170" fill="var(--fg)" font-size="12.5">パスを誤記して起動せず</text>
+  <path d="M258 165 L348 165" stroke="var(--c)" stroke-width="1.8" marker-end="url(#ar-c)"/>
+
+  <!-- 4: timeout -->
+  <rect x="10" y="194" width="246" height="42" rx="8" fill="none" stroke="var(--c)" stroke-width="2"/>
+  <text x="24" y="220" fill="var(--fg)" font-size="13" font-weight="700" font-family="ui-monospace, monospace">timeout</text>
+  <text x="106" y="220" fill="var(--sub)" font-size="12.5">で打ち切られた</text>
+  <path d="M258 215 L348 215" stroke="var(--c)" stroke-width="1.8" marker-end="url(#ar-c)"/>
+
+  <!-- 右: 結末 -->
+  <rect x="356" y="44" width="274" height="42" rx="8" fill="none" stroke="var(--a)" stroke-width="2"/>
+  <text x="493" y="70" fill="var(--a)" font-size="13.5" font-weight="800" text-anchor="middle">ブロック（push は止まる）</text>
+
+  <rect x="356" y="94" width="274" height="142" rx="8" fill="none" stroke="var(--c)" stroke-width="2"/>
+  <text x="493" y="152" fill="var(--c)" font-size="13.5" font-weight="800" text-anchor="middle">そのままツール実行へ</text>
+  <text x="493" y="176" fill="var(--c)" font-size="13.5" font-weight="800" text-anchor="middle">（push は通る）</text>
+  <text x="493" y="202" fill="var(--sub)" font-size="12" text-anchor="middle">警告も通知も出ない</text>
+
+  <text x="320" y="264" fill="var(--sub)" font-size="12" text-anchor="middle">ブロックに届くのは exit 2 の1本だけ</text>
+
+  <defs>
+    <marker id="ar-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--a)"/>
+    </marker>
+    <marker id="ar-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--c)"/>
+    </marker>
+  </defs>
+</svg>

@@ -1,0 +1,1226 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>カバレッジ100%のテストが、バグ4個中1個しか見つけなかった</title>
+<meta name="description" content="同じアプリに4つのバグを1行ずつ入れて、粒度の違うテストで検出できるか実測しました。行カバレッジ100%のテストは1個しか見つけず、59.1%のテストが4個全部見つけた。壊れて困る順に書くための、担当分けとAIの線引きまで。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="カバレッジ100%のテストが、バグ4個中1個しか見つけなかった">
+<meta property="og:description" content="カバレッジ100%は1/4、59.1%は4/4。実測マトリクスから、粒度の配分と担当分けを決め直します。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_test-design/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=19bddda4">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">チームで作る技術 ｜ 2026年8月14日(金)</div>
+    <h1>カバレッジ100%のテストが、バグ4個中1個しか見つけなかった</h1>
+    <div class="range">同じアプリに、同じ4つのバグを1行ずつ入れて、どのテストが落ちるかを全部測りました。実行できるコードと生の出力を全部載せます。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約12分</span>
+      <span class="tag">実測ログ全部載せ</span>
+      <span class="tag">コピペで再現できる</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li>
+        <b>行カバレッジ100%のテストは、4つのバグのうち1つしか見つけられなかった</b>
+        <span>同じアプリでカバレッジ59.1%のテストは4つ全部見つけました。数字が高いほうが負けています。</span>
+      </li>
+      <li>
+        <b>どの層を厚くするかは好みではない。壊れ方ごとに、落ちる層が完全に分かれる</b>
+        <span>4通りの壊し方 × 3つの粒度で検出マトリクスを実測しました。素通りする組み合わせがはっきり出ます。</span>
+      </li>
+      <li>
+        <b>Googleが出している粒度の配分は2つあって、食い違っている</b>
+        <span>2015年のブログは70/20/10、2020年の書籍は80/15/5。比率を目標にするのは、カバレッジ100%と同じ罠です。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">カバレッジ100%が、59.1%に負けた</a></li>
+      <li><a href="#s2">壊れ方ごとに、落ちる層は決まっている</a></li>
+      <li><a href="#s3">E2Eは「壊れた」としか言わない</a></li>
+      <li><a href="#s4">Googleの配分は2つあって食い違う</a></li>
+      <li><a href="#s5">誰がどこを書くかは、レビューに出す単位で決まる</a></li>
+      <li><a href="#s6">AIにテストを書かせるときの線引き</a></li>
+      <li><a href="#s7">明日から変えること</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>カバレッジ100%が、59.1%に負けた</h2>
+
+    <article class="item">
+      <h3>同じアプリ、同じ4つのバグ。数字が高いほうが1個しか見つけなかった</h3>
+
+      <p class="lead">席数割引つきの請求計算という、小さなアプリを書きました。44行です。そこに<mark>1行だけ書き換えるバグを4通り</mark>用意します。</p>
+
+      <p class="lead">テストセットは2つ。片方は行カバレッジ100%、もう片方は59.1%。どちらが多く見つけるかを測りました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（python3 run_cov.py）</div>
+        <pre>テストセット  cov%  未到達 検出
+----------------------------------
+cov_only      100.0     0行 1/4
+3粒度セット    59.1    18行 4/4
+
+(app/ の総ステートメント数: 44)</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>100%のほうが 1/4。</b>見つけられた1つは、実行するとその場でクラッシュするバグだけでした。金額がズレる3つは全部素通りしています。</li>
+        <li><b>59.1%のほうが 4/4。</b>18行が一度も実行されていないのに、4つ全部を捕まえました。</li>
+        <li><b>これはカバレッジ計測のバグではありません。</b>100%のほうは本当に全行を通しています。通しているだけです。</li>
+      </ul>
+
+      <p class="lead">なぜこうなるのか。100%側のテストが何をアサートしているかを見れば一瞬でわかります。</p>
+
+      <div class="code">
+        <div class="code-head">t_cov_only.py — カバレッジを稼ぐためだけのテスト（抜粋）</div>
+        <pre>def test_1():
+    for s in (1, 9, 10, 49, 50, 500):
+        r = price.volume_discount_rate(s)
+        assert isinstance(r, float)
+        assert price.monthly_subtotal(s) &gt; 0
+    with pytest.raises(ValueError):
+        price.volume_discount_rate(0)
+
+
+def test_2():
+    for plan in ("monthly", "annual"):
+        inv = bill.make_invoice(3, plan)
+        assert inv is not None
+        assert "total" in inv
+    with pytest.raises(ValueError):
+        bill.make_invoice(3, "weekly")</pre>
+      </div>
+
+      <p class="lead">アサートしているのは <code>isinstance</code>、<code>&gt; 0</code>、<code>is not None</code>、<code>in</code> だけ。<mark>「金額がいくらか」を一度も見ていません。</mark>だから割引率が変わっても、税の計算が変わっても、落ちません。</p>
+
+      <p class="lead">意地悪に書いたわけではありません。<b>カバレッジの数字だけを目標にすると、人はこの形に収束します。</b>これは20年前から言われていることです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Martin Fowler「Test Coverage」(2012年4月17日) — 原文</div>
+        <pre>If you make a certain level of coverage a target, people
+will try to attain it. The trouble is that high coverage
+numbers are too easy to reach with low quality testing.
+
+（ある水準のカバレッジを目標にすれば、人はそれを達成
+　しようとする。厄介なのは、低品質なテストでも高い
+　カバレッジ数値はあまりに簡単に届いてしまうことだ）</pre>
+      </div>
+
+      <p class="lead">経験則だけではありません。査読付きの実証研究もあります。31,000個のテストスイートを生成して測ったものです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Inozemtseva &amp; Holmes, ICSE 2014 — Abstract より</div>
+        <pre>Our results suggest that coverage, while useful for
+identifying under-tested parts of a program, should not
+be used as a quality target because it is not a good
+indicator of test suite effectiveness.
+
+（カバレッジは、プログラムのテスト不足の箇所を特定
+　するには有用だが、テストスイートの有効性の良い指標
+　ではないため、品質目標として使われるべきではない）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>「欠落を見つける道具」としては有用。</b>18行が未到達だ、という情報には価値があります。</li>
+        <li><b>「品質目標」としては使えない。</b>目標にした瞬間、上の <code>isinstance</code> だらけのテストが正解になります。</li>
+      </ul>
+
+      <div class="quiz">
+        <p class="q">Q. カバレッジ100%のテストが4個中1個しか見つけなかった。その1個はどんなバグ?</p>
+        <button class="opt" type="button" data-correct="false">割引率の境界が1席ズレるバグ</button>
+        <button class="opt" type="button" data-correct="true">定数の名前を変え忘れて、実行するとクラッシュするバグ</button>
+        <button class="opt" type="button" data-correct="false">APIが税込ではなく税抜を返すバグ</button>
+        <p class="ans" hidden>正解。<code>PRICE</code> を <code>PRICE_YEN</code> に改名して参照側を直し忘れたバグです。実行した瞬間に <code>NameError</code> で落ちるので、値を一切見ていないテストでも巻き添えで落ちます。逆に言うと、<mark>値を見ないテストが検出できるのは「クラッシュする壊れ方」だけ</mark>。金額が静かに間違う壊れ方は全部通ります。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>壊れ方ごとに、落ちる層は決まっている</h2>
+
+    <article class="item">
+      <h3>ユニットだけが落ちる壊し方と、E2Eだけが落ちる壊し方がある</h3>
+
+      <p class="lead">同じアプリに、粒度の違うテストを3つ書きました。ユニット12件、結合4件、E2E3件です。そこへ4通りの壊し方を1つずつ入れて、どれが落ちるかを全部測ります。</p>
+
+      <div class="code">
+        <div class="code-head">bugs.py — 壊し方の定義（1行だけ置換する）</div>
+        <pre>BUGS = [
+    ("b1 境界ズレ", "app/price.py",
+     "    if seats &gt;= 10:",
+     "    if seats &gt; 10:"),
+    ("b2 年割無視", "app/bill.py",
+     "        months = ANNUAL_PAID_MONTHS",
+     "        months = 12"),
+    ("b3 出力取違", "app/api.py",
+     '            "amount_due": inv["total"],   # 税込',
+     '            "amount_due": inv["subtotal"],'),
+    ("b4 改名漏れ", "app/price.py",
+     "PRICE = 1000  # 1席あたり月額(税抜)",
+     "PRICE_YEN = 1000  # 1席あたり月額(税抜)"),
+]</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">実行結果（python3 run_matrix.py）P=全通過 F=失敗</div>
+        <pre>壊し方         unit  intg   e2e
+-------------------------------
+(なし)          12P    4P    3P
+<span class="ng-line">b1 境界ズレ   2F/12    4P    3P</span>
+<span class="ng-line">b2 年割無視     12P  2F/4  1F/3</span>
+<span class="ng-line">b3 出力取違     12P    4P  2F/3</span>
+<span class="ng-line">b4 改名漏れ   5F/12  3F/4  2F/3</span></pre>
+      </div>
+
+      <figure>
+        <picture>
+          <source srcset="images/detect-matrix-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/detect-matrix.png" alt="壊し方ごとに検出できる層が違うため、どの1層を厚くしても4つのバグ全部は取れない" loading="lazy">
+        </picture>
+        <figcaption>b1はunitだけ、b3はe2eだけが落ちた。素通りのセルは全部「その層からは見えない壊れ方」。</figcaption>
+      </figure>
+
+      <p class="lead">きれいに分かれました。<mark>1つの層で全部は取れません。</mark></p>
+
+      <ul class="points">
+        <li><b>b1（割引の境界を1席ズラす）はユニットだけが落ちた。</b>結合とE2Eは素通り。理由は単純で、結合とE2Eは3席と60席という代表値しか使っておらず、境界の10席を一度も踏んでいないからです。</li>
+        <li><b>b2（年払いを10ヶ月分から12ヶ月分に）はユニットが全部通った。</b>ユニットは <code>price.py</code> しか見ていないので、<code>bill.py</code> のプラン計算は視界に入りません。</li>
+        <li><b>b3（APIが税込ではなく税抜を返す）は結合まで全部通った。</b>落ちたのはE2Eだけ。金額の計算は全部正しくて、外に出す1個のキーだけが間違っているからです。</li>
+        <li><b>b4（定数の改名漏れ）は全層が落ちた。</b>クラッシュ系はどこからでも見えます。</li>
+      </ul>
+
+      <p class="lead">つまり<b>「ユニットを何%にするか」は最初に決める問いではありません。</b>先に決めるのは<mark>どの壊れ方が怖いか</mark>で、それが決まれば必要な層は自動的に決まります。</p>
+
+      <p class="lead">この順番は、業界標準の資格シラバスが第一原理として置いているものと同じです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">ISTQB CTFL シラバス v4.0.1 (2024年9月15日) 1.3 テストの7原則 より</div>
+        <pre>2. Exhaustive testing is impossible. Testing everything
+is not feasible except in trivial cases (Manna 1978).
+Rather than attempting to test exhaustively, test
+techniques, test case prioritization, and risk-based
+testing, should be used to focus test efforts.
+
+（網羅的テストは不可能である。すべてをテストすること
+　は、些末な場合を除いて実行可能ではない。網羅的に
+　テストしようとするのではなく、テスト技法、テスト
+　ケースの優先順位付け、リスクベースドテストを用いて
+　テストの労力を集中させるべきである）</pre>
+      </div>
+
+      <p class="lead">同じシラバスに、優先順位の付け方も3種類だけ挙がっています。<mark>カバレッジベースは、そのうちの1つでしかありません。</mark></p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>戦略</th><th>何で順番を決めるか</th><th>今回の実測との対応</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>リスクベース</td>
+              <td data-label="何で順番を決めるか">リスク分析の結果。重要なリスクを覆うテストから実行する</td>
+              <td data-label="今回の実測との対応">「壊れて困る順」はこれ。b1〜b4を先に列挙する形</td>
+            </tr>
+            <tr>
+              <td>カバレッジベース</td>
+              <td data-label="何で順番を決めるか">カバレッジ（例: 命令カバレッジ）が高いものから実行する</td>
+              <td data-label="今回の実測との対応">実測ではこれで選ぶと <code>isinstance</code> 群が勝つ</td>
+            </tr>
+            <tr>
+              <td>要求ベース</td>
+              <td data-label="何で順番を決めるか">要求の優先度。優先度はステークホルダーが定義する</td>
+              <td data-label="今回の実測との対応">ビジネス側が「割引は絶対」と言えばb1が最優先になる</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">同じ考え方を、Googleの書籍はもっと短く言い切っています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Software Engineering at Google 第11章 (2020年) — 原文</div>
+        <pre>The straightforward answer is: test everything that you
+don't want to break.
+
+（率直な答えはこうだ: 壊れてほしくないものを全部
+　テストせよ）</pre>
+      </div>
+
+      <p class="lead">同じ章には「ビヨンセ・ルール」という名前も付いています。<b>If you liked it, then you shoulda put a test on it.</b>（気に入ってたなら、テストを付けとくべきだったね）。無関係な変更で自分のプロダクトが壊れたなら、直してテストを足す責任は自分にある、という運用ルールです。</p>
+
+      <details>
+        <summary>リスクの大きさを「計算」するやり方も書いてあります</summary>
+        <div class="body">
+          <dl>
+            <dt>定量的アプローチ</dt>
+            <dd>ISTQBシラバス 5.2.3 では、リスクレベルを「発生可能性 × 影響」の掛け算として計算する、と書かれています。定性的にやるならリスクマトリクスを使う、とも。b1〜b4に発生可能性と影響を付ければ、そのまま順位表になります。</dd>
+            <dt>欠陥は偏る</dt>
+            <dd>同シラバスの原則4は「欠陥は偏在する」。少数のコンポーネントが欠陥の大半を含む、というパレートの法則の一例で、実際に観測された偏りはリスクベースドテストの重要な入力になる、と書かれています。全ファイルに均等にテストを配る根拠はここにありません。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="section section-c" id="s3">
+    <h2><span class="step">3</span>E2Eは「壊れた」としか言わない</h2>
+
+    <article class="item">
+      <h3>同じ1個のバグで、ユニットは壊した行を、E2Eは標準ライブラリを指した</h3>
+
+      <p class="lead">上の表では、b4はユニットもE2Eも落ちています。同点に見えます。<mark>落ちたあとに何がわかるか</mark>を比べると、同点ではありません。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（python3 run_isolate.py）b4を注入して比較</div>
+        <pre>=== t_unit.py ===
+.......F
+=============== FAILURES ===============
+________ test_subtotal[1-1000] _________
+t_unit.py:39: in test_subtotal
+    assert price.monthly_subtotal(seats) == yen
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<span class="ok-line">app/price.py:20: in monthly_subtotal</span>
+    gross = PRICE * seats
+            ^^^^^
+<span class="ok-line">E   NameError: name 'PRICE' is not defined</span>
+======= short test summary info ========
+FAILED t_unit.py::test_subtotal[1-1000]
+!!!!!! stopping after 1 failures !!!!!!!
+1 failed, 7 passed in 0.02s
+
+=== t_e2e.py ===
+F
+=============== FAILURES ===============
+__________ test_e2e_monthly_3 __________
+t_e2e.py:22: in test_e2e_monthly_3
+    code, body = run(req)
+                 ^^^^^^^^
+t_e2e.py:16: in run
+    body = json.loads(p.stdout)
+           ^^^^^^^^^^^^^^^^^^^^
+<span class="ng-line">/usr/lib/python3.11/json/__init__.py:346: in loads</span>
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.11/json/decoder.py:337: in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.11/json/decoder.py:355: in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+<span class="ng-line">E   json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)</span>
+======= short test summary info ========
+FAILED t_e2e.py::test_e2e_monthly_3
+!!!!!! stopping after 1 failures !!!!!!!
+1 failed in 0.05s</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>ユニットは <code>app/price.py:20</code> と、壊した行そのものを指しました。</b>原因も <code>NameError: name 'PRICE' is not defined</code> と出ています。読めば終わりです。</li>
+        <li><b>E2Eのスタックには <code>price.py</code> が1度も出てきません。</b>指しているのはPython標準ライブラリの <code>json/decoder.py:355</code>。「JSONが空だった」としか言っていません。</li>
+        <li><b>直す人の作業量が違います。</b>片方は1行読めば終わり。もう片方は、サブプロセスのstdoutが空だった理由を自分で調べに行くところから始まります。</li>
+      </ul>
+
+      <p class="lead">この性質は、Googleがフィードバックループの必須条件として名指ししているものです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Mike Wacker「Just Say No to More End-to-End Tests」(2015年4月22日)</div>
+        <pre>It isolates failures. To fix a bug, developers need to
+find the specific lines of code causing the bug.
+
+（失敗を切り分けること。バグを直すには、開発者は
+　バグを起こしている具体的なコード行を見つける
+　必要がある）</pre>
+      </div>
+
+      <h3>1件あたり1.7ms 対 28.6ms。同じ検証で約17倍</h3>
+
+      <p class="lead">次はコストです。同じ内容の検証を200件ずつ、粒度[小]と粒度[大]で書いて実行時間を測りました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（python3 run_time.py）3回実行の最良値</div>
+        <pre>粒度     件数   合計s  1件ms
+------------------------------
+小 unit   200   0.34    1.7
+大 e2e    200   5.71   28.6</pre>
+      </div>
+
+      <p class="lead">ここで測ったE2Eは<mark>DBもネットワークもブラウザも入っていません</mark>。Pythonのサブプロセスを起動してJSONを1往復させるだけです。それでも17倍つきました。現実のE2Eはこれより確実に遅いので、この17倍は<b>下限</b>です。</p>
+
+      <h3>コードを1文字も変えていないのに、CIが混むと41%が落ちる</h3>
+
+      <p class="lead">遅いだけなら待てばいい。問題は、遅いテストが<mark>時計に触れた瞬間にflakyの種になる</mark>ことです。同じE2Eを200回、空いている状態とCPUを埋めた状態で計りました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（python3 run_flaky.py）単位はマイクロ秒</div>
+        <pre>マイクロ秒 (1000us = 1ms)
+              最小    中央    最大
+----------------------------------
+小unit           0       0       4
+大e2e        22476   25031   37370
+<span class="ng-line">大(混雑)     21478   46749   95005</span>
+
+予算 = 空いてる時の中央値x2 = 50061us
+<span class="ok-line">  空いてる時  超過   0/200 (0.0%)</span>
+<span class="ng-line">  混雑時      超過  82/200 (41.0%)</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>「空いているときの中央値の2倍」という素直なタイムアウトを置いただけ。</b>空いていれば0/200回しか超えないのに、CPUを埋めると82/200回超えました。</li>
+        <li><b>テストのコードも対象のコードも1文字も変わっていません。</b>変わったのはCIが混んでいるかどうかだけです。</li>
+        <li><b>この数字自体がぶれます。</b>同じスクリプトを単独で実行したときは 46/200 (23.0%) でした。負荷の掛かり方に依存するので、<mark>「混雑させると2〜4割が超過する」以上の精度では言えません</mark>。0/200のほうは両方の実行で再現しました。</li>
+      </ul>
+
+      <p class="lead">flakyが増えると何が壊れるか。Googleが自社の数字で書いています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">John Micco「Flaky Tests at Google and How We Mitigate Them」(2016年5月27日)</div>
+        <pre>What we find in practice is that about 84% of the
+transitions we observe from pass to fail involve a flaky
+test! [...] It is quite common to ignore legitimate
+failures in flaky tests due to the high number of
+false-positives.
+
+（実際に見出すのは、パスから失敗への遷移として観測
+　されるもののうち約84%がflakyテストを伴うということ
+　だ。偽陽性の数が多いために、flakyテストの中の正当な
+　失敗が無視されることは非常によくある）</pre>
+      </div>
+
+      <p class="lead">同じ記事は「全テスト実行の約1.5%がflakyな結果を報告する」とも書いています。平均的なプロジェクトが1000テストを持つなら、毎回15件が理由なく赤くなる計算です。</p>
+
+      <p class="lead"><b>ただしこの数字は引用に注意が必要です。</b>2020年の書籍 Software Engineering at Google は「Googleのflaky率は0.15%前後で推移している」と書いていて、10倍違います。前者は明示的に「テスト実行(test runs)」が分母、後者は分母が書かれていません。どちらの資料も相手に言及していないので、<mark>この差は本記事では説明できません</mark>。引くなら年と分母をセットにするしかありません。</p>
+
+      <div class="quiz">
+        <p class="q">Q. E2Eで見つけたバグを直すとき、Fowlerが勧めている手順は?</p>
+        <button class="opt" type="button" data-correct="false">E2Eが落ちているのだから、E2Eをもう1件足して再発を防ぐ</button>
+        <button class="opt" type="button" data-correct="true">直す前に、そのバグをユニットテストで再現してから直す</button>
+        <button class="opt" type="button" data-correct="false">E2Eが遅いので、まずE2Eを削ってから直す</button>
+        <p class="ans" hidden>正解。Fowlerは高レベルテストを「第二の防衛線」と呼び、そこで失敗が出たということは<mark>機能コードにバグがあるだけでなく、ユニットテストが欠けているか間違っている</mark>のだと書いています。だから直す前にユニットで再現する。そうすればユニットがそのバグを死んだままにしてくれる、と。E2Eを足すと、上で見たとおり「原因の場所を教えないテスト」が1件増えるだけです。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="section section-a" id="s4">
+    <h2><span class="step">4</span>Googleの配分は2つあって食い違う</h2>
+
+    <article class="item">
+      <h3>70/20/10 と 80/15/5。同じ会社が5年差で別の数字を出している</h3>
+
+      <p class="lead">「ユニット70%、結合20%、E2E10%」という数字を見たことがあると思います。出典はGoogleのブログです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Mike Wacker (Google Testing Blog), 2015年4月22日 — 原文</div>
+        <pre>As a good first guess, Google often suggests a 70/20/10
+split: 70% unit tests, 20% integration tests, and 10%
+end-to-end tests.
+
+（最初の当たりとして、Googleはしばしば70/20/10の配分を
+　薦める: ユニットテスト70%、結合テスト20%、E2E 10%）</pre>
+      </div>
+
+      <p class="lead">5年後、同じGoogleの書籍には別の数字が書いてあります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Software Engineering at Google 第11章, 2020年 — 原文</div>
+        <pre>As a very rough guideline, we tend to aim to have a mix
+of around 80% of our tests being narrow-scoped unit
+tests [...]; 15% medium-scoped integration tests [...];
+and 5% end-to-end tests that validate the entire system.
+
+（ごく大まかな指針として、我々はテストの約80%を狭い
+　スコープのユニットテストに、15%を中スコープの結合
+　テストに、5%をシステム全体を検証するE2Eに、という
+　配合を目指す傾向にある）</pre>
+      </div>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>出典</th><th>ユニット</th><th>結合</th><th>E2E</th><th>数え方</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Testing Blog 2015</td>
+              <td data-label="ユニット">70%</td>
+              <td data-label="結合">20%</td>
+              <td data-label="E2E">10%</td>
+              <td data-label="数え方">記載なし</td>
+            </tr>
+            <tr>
+              <td>SWE at Google 2020</td>
+              <td data-label="ユニット">80%</td>
+              <td data-label="結合">15%</td>
+              <td data-label="E2E">5%</td>
+              <td data-label="数え方">テストケース数（図11-3の注記）</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="points">
+        <li><b>E2Eが10%→5%に半減、ユニットが70%→80%に増えています。</b>どちらも「Googleの推奨」として流通していますが、年も数字も違います。</li>
+        <li><b>数え方を書いているのは書籍だけ。</b>図11-3のキャプションに「percentages are by test case count」（パーセンテージはテストケース数による）とあります。2015年のブログは何で数えるのかを一切書いていません。</li>
+        <li><b>ブログのコメント欄で読者に測り方を聞かれ、Google側は「直接測るのは難しい」と答えています。</b>測れない量を比率で目標にする、という時点で<mark>カバレッジ100%とまったく同じ罠</mark>です。</li>
+      </ul>
+
+      <p class="lead">そもそもピラミッドという形自体が、条件付きのモデルです。提唱を広めた本人が書いています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Martin Fowler「Test Pyramid」(2012年5月1日) — 原文</div>
+        <pre>The pyramid is based on the assumption that broad-stack
+tests are expensive, slow, and brittle compared to more
+focused tests, such as unit tests. While this is usually
+true, there are exceptions. If my high level tests are
+fast, reliable, and cheap to modify - then lower-level
+tests aren't needed.
+
+（ピラミッドは、広いスタックのテストが、ユニット
+　テストのような焦点の絞られたテストに比べて高価で
+　遅く脆い、という仮定に基づいている。これは通常
+　真だが、例外はある。もし私の高レベルテストが速く、
+　信頼でき、修正が安いなら——低レベルのテストは
+　必要ない）</pre>
+      </div>
+
+      <p class="lead">ISTQBシラバスも、ピラミッドを「テストの粒度が違いうることを示すモデル」であり、<mark>チームの工数配分を支援するもの</mark>と定義しています。層の数と名前は異なりうる、とも明記されています。合格ラインの表ではありません。</p>
+
+      <h3>「Googleは60%が許容、75%が称賛、90%が模範」は、そのままでは誤読</h3>
+
+      <p class="lead">カバレッジの目標値としてよく見る数字です。出典はGoogleのブログで、確かにこう書いてあります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Arguelles, Ivanković, Bender「Code Coverage Best Practices」(2020年8月7日)</div>
+        <pre>Although there is no "ideal code coverage number," at
+Google we offer the general guidelines of 60% as
+"acceptable", 75% as "commendable" and 90% as
+"exemplary." However we like to stay away from broad
+top-down mandates and encourage every team to select the
+value that makes sense for their business needs.
+
+（「理想的なカバレッジ数値」は存在しないが、Googleでは
+　一般的な目安として60%を「許容可能」、75%を「称賛に
+　値する」、90%を「模範的」としている。ただし我々は
+　広範なトップダウンの強制からは距離を置き、各チームが
+　自分たちのビジネスニーズに合う値を選ぶことを推奨する）</pre>
+      </div>
+
+      <p class="lead">二次情報でほぼ必ず落ちるのが後半の <b>we like to stay away from broad top-down mandates</b> です。実態がどうなっているかは、査読付き論文のほうが明確に書いています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Ivanković, Petrović, Just, Fraser「Code Coverage at Google」ESEC/FSE 2019</div>
+        <pre>Google does not enforce any code coverage thresholds
+across the entire codebase. Projects (or groups of
+projects) are free to define their own thresholds and
+goals. Many projects opt-into a centralized voluntary
+alerting system that defines five levels of code
+coverage thresholds.
+
+（Googleはコードベース全体にわたるカバレッジ閾値を
+　一切強制していない。プロジェクトは自分たちの閾値と
+　目標を自由に定義できる。多くのプロジェクトは、
+　5段階のカバレッジ閾値を定義する中央集権的な
+　「任意参加の」アラートシステムにオプトインしている）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>60/75/90は全社基準ではありません。</b>論文の表2では、レベル3がプロジェクト60%以上・変更リスト70%以上、レベル4が75%/80%、レベル5が90%/90%。しかも「多くのプロジェクトが<mark>任意に</mark>これらを目標として設定している」と明記されています。</li>
+        <li><b>だから「Googleが60%と言っているからCIに60%ゲートを入れる」は、出典の誤読です。</b>強制されているのは閾値ではなく、閾値を自分で決める自由のほうです。</li>
+        <li><b>そして「100%はダメだから80%にしよう」という折衷案は、一次資料の誰も支持していません。</b>今回読んだ範囲で80%を推奨している一次資料は1つもありませんでした。</li>
+      </ul>
+
+      <p class="lead">むしろ80%は、失敗例として名指しされています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Software Engineering at Google 第11章 — 原文</div>
+        <pre>It is common for teams to establish a bar for expected
+code coverage-for instance, 80%. [...] In practice, what
+happens is that instead of treating 80% like a floor,
+engineers treat it like a ceiling. Soon, changes begin
+landing with no more than 80% coverage. After all, why
+do more work than the metric requires?
+
+（チームが期待カバレッジの基準——たとえば80%——を
+　設けるのはよくある。実際に起きるのは、エンジニアが
+　80%を「床」ではなく「天井」として扱いはじめること
+　だ。ほどなく、変更は80%を超えないカバレッジで着地し
+　はじめる。結局のところ、メトリクスが要求する以上の
+　仕事をなぜするのか?）</pre>
+      </div>
+
+      <details>
+        <summary>ここはGoogle自身が結論を出しきれていない論点です</summary>
+        <div class="body">
+          <dl>
+            <dt>同じブログ記事の中で矛盾している</dt>
+            <dd>「Code Coverage Best Practices」は、一方で「エンジニアが目標値をチェックボックスのように扱いはじめる点に注意せよ」と警告しながら、後半で「カバレッジ基準を満たさないデプロイはゲートすべきだ」とゲート化を推奨し、その直後にまた「ただしチェックボックス扱いされないよう注意せよ、逆効果になりうる」と打ち消しています。</dd>
+            <dt>だから「専門家が一致している」とは書けない</dt>
+            <dd>ゲートを入れる／入れないは、一次資料を読んでも決着しません。この記事では、その代わりに次章の「変更リスト単位で欠落行を名指しする」という運用を推しています。これは筆者の運用上の判断であって、規格でも標準でもありません。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="section section-b" id="s5">
+    <h2><span class="step">5</span>誰がどこを書くかは、レビューに出す単位で決まる</h2>
+
+    <article class="item">
+      <h3>テストゼロで14行足したのに、全体カバレッジは7.1ポイントしか下がらない</h3>
+
+      <p class="lead">複数人プロジェクトで一番よくある事故を再現します。<mark>テストを1行も書かずに機能を1つ足すPR</mark>です。クーポン機能を14行で追加しました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（python3 run_diffcov.py）</div>
+        <pre>全体cov  変更前: 100.0%
+全体cov  変更後: 92.9%
+追加行: 14行 / 通った: 10行
+<span class="ng-line">差分cov: 71.4%</span>
+-- 誰も通していない追加行 --
+<span class="ng-line">coupon.py:13 c = code.strip().upper()</span>
+<span class="ng-line">coupon.py:14 if c not in CODES:</span>
+<span class="ng-line">coupon.py:15 raise ValueError("unknown coupon: %s" % c)</span>
+<span class="ng-line">coupon.py:16 return CODES[c]</span></pre>
+      </div>
+
+      <figure>
+        <picture>
+          <source srcset="images/diff-cov-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/diff-cov.png" alt="同じPRでも全体カバレッジは7.1ポイントしか動かないが、差分カバレッジなら未到達の4行を名指しできる" loading="lazy">
+        </picture>
+        <figcaption>分母を変えるだけで、同じ変更が「ほぼ無害」から「この4行が危ない」に変わる。</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>全体の数字は 100.0% → 92.9%。たった7.1ポイントです。</b>閾値ゲートを全体カバレッジで見ているCIは、この変更を止められない可能性が高い。分母が大きいほど、新しい穴は薄まります。</li>
+        <li><b>差分だけで見ると71.4%、しかも未到達4行を名指しできます。</b>クーポンコードの照合と、未知コードで例外を投げる行。この機能で唯一こわい部分がまるごと出てきました。</li>
+        <li><b>レビューに出すべきは全体の数字ではなく、この4行のリストです。</b>「カバレッジが下がりました」では誰も動きませんが、「この4行を誰も通していません」は動けます。</li>
+      </ul>
+
+      <p class="lead"><b>予想は外れました。</b>「テストゼロのPRなら差分カバレッジは0%になるはずだ」と思って測りましたが、71.4%でした。14行のうち10行（<code>def</code> 行、定数の辞書、<code>if code is None: return 0.0</code> の経路）が、import時や既存テスト経由で実行済みと数えられます。<mark>行カバレッジは何もしなくても7割は勝手に埋まります。</mark></p>
+
+      <p class="lead">「変更単位で見る」という発想は、思いつきではありません。査読付き論文が、それを鍵として名指ししています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Code Coverage at Google, ESEC/FSE 2019 — 原文</div>
+        <pre>A key aspect of making coverage information actionable
+is to apply it at the level of changesets and code
+review.
+
+（カバレッジ情報を行動可能にする鍵となる側面は、それを
+　変更セットとコードレビューのレベルで適用することで
+　ある）</pre>
+      </div>
+
+      <h3>その前に。E2Eのカバレッジは、たぶん0%と表示されています</h3>
+
+      <p class="lead">カバレッジを担当分けの材料にする前に、計測が正しいか確認してください。テストファイルごと × ソースファイルごとに測るとこうなりました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（python3 run_covmap.py）</div>
+        <pre>file           unit  intg   e2e  cov1
+-------------------------------------
+price.py       100%   85%    0%  100%
+bill.py          0%  100%    0%  100%
+api.py           0%    0%    0%  100%
+cli.py           0%    0%    0%  100%</pre>
+      </div>
+
+      <p class="lead">E2Eの列が<mark>全ファイル 0%</mark>。実際にはアプリを端から端まで動かしているのに、別プロセスで動くのでカバレッジ計測に1行も乗りません。pytest-covの素の設定で誰でも踏みます。</p>
+
+      <ul class="points">
+        <li><b>E2Eを書いた人の仕事が、数値上ゼロになります。</b>カバレッジでPRを審査する運用にすると、この人は永久に評価されません。</li>
+        <li><b><code>api.py</code> と <code>cli.py</code> は「誰もテストしていないファイル」として表示され続けます。</b>実際にはE2Eが通しているのに。</li>
+      </ul>
+
+      <p class="lead">これは性質ではなく設定の問題です。<mark>テストを1行も変えずに</mark>直せます。</p>
+
+      <div class="code">
+        <div class="code-head">subproc_cov/coveragerc と sitecustomize.py</div>
+        <pre># coveragerc
+[run]
+parallel = true
+source = app
+
+# sitecustomize.py （PYTHONPATH に置く）
+import coverage
+
+coverage.process_startup()</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">実行結果（python3 run_subproc_cov.py）同じ t_e2e.py を測り直す</div>
+        <pre>計測ファイル数: 4
+Name              Stmts   Miss  Cover
+-------------------------------------
+app/__init__.py       0      0   100%
+app/api.py           10      1    90%
+app/bill.py          13      1    92%
+app/cli.py            8      0   100%
+app/price.py         13      2    85%
+-------------------------------------
+<span class="ok-line">TOTAL                44      4    91%</span></pre>
+      </div>
+
+      <p class="lead">同じ3件のE2Eが、0%から91%になりました。環境変数 <code>COVERAGE_PROCESS_START</code> を渡し、子プロセスごとにできる <code>.coverage.*</code> を <code>combine</code> で合流させただけです。<b>この設定をしていないチームのカバレッジ数値は、E2Eの分だけ実態より低く出ています。</b></p>
+
+      <h3>「値を守る人」と「形を守る人」は、別の仕事をしている</h3>
+
+      <p class="lead">担当分けの話に戻ります。同じ機能に対して、性格の違う2種類のテストを書きました。</p>
+
+      <div class="code">
+        <div class="code-head">t_spec_good.py — 表そのものが仕様になっている書き方</div>
+        <pre># 適用順: 席数割引 -&gt; 年払い(10ヶ月分) -&gt; 消費税10%
+SPEC = [
+    (1, "monthly", 1000, 1100, "1席は割引なし"),
+    (9, "monthly", 9000, 9900, "9席までは割引なし"),
+    (10, "monthly", 9000, 9900, "10席から10%引き"),
+    (49, "monthly", 44100, 48510, "49席までは10%引き"),
+    (50, "monthly", 40000, 44000, "50席から20%引き"),
+    (3, "annual", 30000, 33000, "年払いは10ヶ月分"),
+    (50, "annual", 400000, 440000, "割引と年払いは併用"),
+]
+IDS = ["m1", "m9", "m10", "m49", "m50", "a3", "a50"]
+
+
+@pytest.mark.parametrize("seats,plan,sub,ttl,why", SPEC, ids=IDS)
+def test_invoice(seats, plan, sub, ttl, why):
+    inv = bill.make_invoice(seats, plan)
+    assert inv["subtotal"] == sub, why
+    assert inv["total"] == ttl, why</pre>
+      </div>
+
+      <p class="lead">もう片方（<code>t_spec_bad.py</code>）は、モックで中身を差し替えて、期待値は裸の数字。名前は <code>test_1</code>、<code>test_2</code>、<code>test_3</code>。ビジネス側から<b>「割引を5席から10%、30席から25%に改定します」</b>と言われた日に、両者はこう鳴きました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（python3 run_spec.py）割引ルール改定を注入</div>
+        <pre>=== t_spec_bad.py ===
+..F                              [100%]
+=============== FAILURES ===============
+________________ test_3 ________________
+t_spec_bad.py:29: in test_3
+    assert r["total"] == 44000
+<span class="ng-line">E   assert 41250 == 44000</span>
+1 failed, 2 passed in 0.04s
+
+=== t_spec_good.py ===
+.F.FF.F                          [100%]
+=============== FAILURES ===============
+___________ test_invoice[m9] ___________
+t_spec_good.py:24: in test_invoice
+    assert inv["subtotal"] == sub, why
+<span class="ok-line">E   AssertionError: 9席までは割引なし</span>
+E   assert 8100 == 9000
+__________ test_invoice[m49] ___________
+t_spec_good.py:24: in test_invoice
+    assert inv["subtotal"] == sub, why
+<span class="ok-line">E   AssertionError: 49席までは10%引き</span>
+E   assert 36750 == 44100
+__________ test_invoice[m50] ___________
+t_spec_good.py:24: in test_invoice
+    assert inv["subtotal"] == sub, why
+<span class="ok-line">E   AssertionError: 50席から20%引き</span>
+E   assert 37500 == 40000
+__________ test_invoice[a50] ___________
+t_spec_good.py:24: in test_invoice
+    assert inv["subtotal"] == sub, why
+<span class="ok-line">E   AssertionError: 割引と年払いは併用</span>
+E   assert 375000 == 400000
+4 failed, 3 passed in 0.02s</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>bad は3件中1件しか落ちず、出るのは <code>assert 41250 == 44000</code> だけ。</b>44000が何の数字なのか、41250が正しいのか間違いなのか、この出力からは判断できません。モックを使った2件は仕様が変わったのに素通りしました。</li>
+        <li><b>good は落ちた4件が、破られた仕様を日本語で名指しします。</b><code>parametrize</code> の第5要素に理由の文字列を置き、<code>assert</code> の第2引数に渡すだけです。</li>
+        <li><b>落ちなかった3件も情報です。</b>1席・10席・年払い3席は影響を受けない。<mark>落ちたテストの一覧が、そのままレビューで確認すべき論点の一覧になります。</mark></li>
+      </ul>
+
+      <p class="lead">ここで「じゃあ bad は捨てていいのか」を、感想ではなく機械で測りました。mutmut で <code>price.py</code> と <code>bill.py</code> を53通りに書き換え、テストが落ちる（殺せる）か数えます。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（python3 run_mutation.py）</div>
+        <pre>suite     変異  殺した  残った
+------------------------------
+bad         53      39      14
+good        53      38      15
+
+生き残った変異の場所
+------------------------------
+                 bad    good
+bill.py            5      12
+price.py           9       3</pre>
+      </div>
+
+      <p class="lead"><b>予想が完全に外れました。</b>「モックだらけの bad はスコアが明確に低いはずだ」と思って測ったのに、bad 39殺し 対 good 38殺し。<mark>総スコアでは優劣がつきません。</mark></p>
+
+      <p class="lead">差は「どこを守れていないか」に出ました。生き残った変異の実物を見ると、何が起きているか一発でわかります。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（mutmut show）bad が殺せなかった変異</div>
+        <pre># app.price.x_volume_discount_rate__mutmut_9: survived
+--- app/price.py
++++ app/price.py
+@@ -4,6 +4,6 @@
+         raise ValueError("seats must be &gt;= 1")
+     if seats &gt;= 50:
+         return 0.20
+-    if seats &gt;= 10:
++    if seats &gt; 10:
+         return 0.10
+     return 0.0</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">実行結果（mutmut show）good が殺せなかった変異</div>
+        <pre># app.bill.x_make_invoice__mutmut_21: survived
+--- app/bill.py
++++ app/bill.py
+@@ -11,7 +11,7 @@
+     subtotal = unit * months
+     tax = int(subtotal * TAX_RATE)
+     return {
+-        "seats": seats,
++        "XXseatsXX": seats,
+         "plan": plan,
+         "months": months,
+         "subtotal": subtotal,
+     "subtotal": subtotal,</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>bad が見逃したのは、第2章で手で入れた b1 と完全に同じバグでした。</b><code>if seats &gt;= 10</code> を <code>if seats &gt; 10</code> に。手動のバグ注入と、機械のミューテーションテストが独立に同じ結論に到達しています。</li>
+        <li><b>good が見逃したのは、レスポンスのキー名 <code>"seats"</code> の改名です。</b>値の表は金額を守りますが、キー名には何も言っていません。逆に bad の <code>assert set(r) == {...}</code> はこれを殺します。</li>
+        <li><b>つまり両者は守っている対象が違うだけ。</b>good は<mark>振る舞い（値）</mark>を、bad は<mark>配線（どの関数にどの引数を渡すか、どのキーがあるか）</mark>を固定しています。両方いないと穴が残ります。</li>
+      </ul>
+
+      <p class="lead">これが「誰がどこを書くか」の具体形です。<b>層で割るのではなく、守る対象で割る。</b>ミューテーションスコアという1つの数字ではテストの良し悪しは決まらず、内訳を見て初めて「誰がどこを担当していないか」がわかります。</p>
+
+      <h3>担当表ではなく CODEOWNERS のパスとして書く</h3>
+
+      <p class="lead">口約束の担当表は守られません。GitHubには、パス単位で責任者を宣言する公式の仕組みがあります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">GitHub Docs「About code owners」— 原文</div>
+        <pre>Code owners are automatically requested for review when
+someone opens a pull request that modifies code that
+they own. [...] When someone with admin or owner
+permissions has enabled required reviews, they also can
+optionally require approval from a code owner before the
+author can merge a pull request in the repository.
+
+（コードオーナーは、自分が所有するコードを変更する
+　プルリクエストが開かれると自動的にレビュー依頼
+　される。admin/owner権限を持つ者が必須レビューを
+　有効にしている場合、PRをマージする前にコード
+　オーナーの承認を必須にすることも任意で可能）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>ファイルは <code>.github/</code>、ルート、<code>docs/</code> のいずれかに <code>CODEOWNERS</code> という名前で置きます。</b>選ぶ人はリポジトリの書き込み権限が必要です。</li>
+        <li><b>正直に書いておくと、これはテスト固有の機能ではありません。</b>コード所有権の仕組みを、テストの担当分けに流用しているだけです。</li>
+        <li><b>「誰がどの層のテストを書くか」を定めた一次資料は、今回の調査では見つかりませんでした。</b>ここは複数の一次資料からの構成であって、規格の裏付けではありません。</li>
+      </ul>
+
+      <p class="lead">ひとつだけ、定量結果のある方針の記述があります。専任テスト部隊ではなく<mark>コードを書いた本人がテストを書く</mark>への転換です。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Software Engineering at Google 第11章 — GWSの事例</div>
+        <pre>[...] all new code changes were required to include
+tests, and those tests would be run continuously. Within
+a year of instituting this policy, the number of
+emergency pushes dropped by half.
+
+（すべての新しいコード変更はテストを含むことが必須と
+　され、それらのテストは継続的に実行された。この方針を
+　敷いて1年以内に、緊急プッシュの件数は半減した）</pre>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="section section-c" id="s6">
+    <h2><span class="step">6</span>AIにテストを書かせるときの線引き</h2>
+
+    <article class="item">
+      <h3>エージェントが書いたテストの80.2%は、アサーションが弱いか無い</h3>
+
+      <p class="lead">ここまでの実測で「値を見ないテストは無力」だとわかりました。その視点でAIが書いたテストを大規模に測った研究が、2026年6月に出ています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Banik, Chowdhury, Shamim「All Smoke, No Alarm」arXiv:2606.18168 (2026年6月16日)</div>
+        <pre>We conduct an empirical study of 86,156 test-file
+patches from 33,596 agent-authored PRs across 2,807
+GitHub repositories produced by five coding agents:
+OpenAI Codex, GitHub Copilot, Devin, Cursor, and Claude
+Code. [...] Applied at scale, 80.2% of test patches
+contain weak or no explicit oracle signals.
+
+（5つのコーディングエージェントが生成した2,807の
+　GitHubリポジトリにまたがる33,596のPRからの86,156件の
+　テストファイルパッチについて実証研究を行った。
+　大規模に適用したところ、テストパッチの80.2%が弱いか、
+　明示的なオラクルシグナルを持たなかった）</pre>
+      </div>
+
+      <p class="lead">同じabstractに、こうも書かれています。<b>「明示的なアサーションを欠くテストファイルは、振る舞いを検証せずにコードを実行するだけである。したがってテストファイルの存在に基づく品質ゲートは、検証の強度を過大評価する」</b></p>
+
+      <p class="lead">第1章の <code>t_cov_only.py</code> と同じ形です。<mark>「テストが増えた」「カバレッジが上がった」をゲートにすると、AI時代には特に嘘をつきます。</mark></p>
+
+      <ul class="points">
+        <li><b>この論文は本文PDFを読んでいません。</b>abstractページのみ取得して読んでいます。80.2%という数値はabstract記載のもので、方法論の詳細は検証していません。</li>
+        <li><b>査読状況も未確認です。</b>arXivのcomments欄とjournal-ref欄が空で、査読済みか判断できません。</li>
+      </ul>
+
+      <h3>Metaの線引きは精神論ではなく、4段のフィルタ列</h3>
+
+      <p class="lead">では「AIに書かせてよい範囲」はどこか。Metaが本番投入している TestGen-LLM の論文に、実装された機械的な条件として書かれています。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>フィルタ</th><th>落とす条件</th><th>論文の記述</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1. ビルド</td>
+              <td data-label="落とす条件">既存インフラ内でビルドできない</td>
+              <td data-label="論文の記述">即座に破棄し、以降の検討から外す</td>
+            </tr>
+            <tr>
+              <td>2. 初回実行</td>
+              <td data-label="落とす条件">初回実行でパスしない</td>
+              <td data-label="論文の記述">バグを見つけたのか誤ったアサーションかを自動判別できないため破棄</td>
+            </tr>
+            <tr>
+              <td>3. 5回連続</td>
+              <td data-label="落とす条件">5回の実行すべてでパスしない</td>
+              <td data-label="論文の記述">flakyとみなして破棄</td>
+            </tr>
+            <tr>
+              <td>4. カバレッジ増</td>
+              <td data-label="落とす条件">カバレッジが実際に増えない</td>
+              <td data-label="論文の記述">改善と非退行の検証可能な保証を満たせないものは破棄</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">Instagram の Reels / Stories での評価は、<b>75%が正しくビルド、57%が安定してパス、25%がカバレッジを増加</b>。そして最後は必ず人間のレビューを通します。</p>
+
+      <ul class="points">
+        <li><b>推奨の73%が本番投入のために受け入れられました。</b>裏を返せば、4段のフィルタを全部通ったものでも<mark>27%は人間が却下している</mark>ということです。</li>
+        <li><b>「適用した全クラスのうち11.5%を改善」という数字には注意が必要です。</b>同じ論文のIntroductionの貢献リストでは「10%」と書かれていて、食い違っています。論文はこの差を明示的に説明していません。前者はtest-a-thon期間、後者は「より一般的に」の運用を指すようにも読めます。</li>
+        <li><b>フィルタ2と3は、この記事の第3章の実測とそのまま対応します。</b>flakyを持ち込まないという条件を、5回繰り返し実行という単純な方法で機械化しているだけです。</li>
+      </ul>
+
+      <h3>線引きは「リグレッション防止」か「バグ探し」かで反転する</h3>
+
+      <p class="lead">最後にもう1本。2026年7月の再現研究が、カバレッジという指標がAI生成テストで意味を持つかどうかを条件付きで整理しています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Zhao, Zhou, Cohen 再現研究 arXiv:2607.22880 (2026年7月24日) — Abstract より</div>
+        <pre>[...] in regression-style settings where the code
+provided to the LLM can be reasonably assumed bug-free,
+these metrics can provide meaningful signals when
+comparing across models; in another common scenario
+where the code-under-test may already be buggy and the
+goal is to expose the bug within the code-under-test,
+they no longer serve as reliable indicators.
+
+（LLMに与えられたコードがバグフリーだと合理的に仮定
+　できるリグレッション的な設定では、これらの指標は
+　モデル間比較において意味あるシグナルを提供しうる。
+　一方、テスト対象コードが既にバグを含んでいる可能性が
+　あり、その中のバグを暴くことが目標である、もう一つの
+　よくあるシナリオでは、これらはもはや信頼できる指標
+　ではない）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>いま動いている振る舞いを固定したい（リグレッション防止）なら、AIに書かせてよい。</b>コードが正しい前提なので、生成テストがパスすることに意味があります。TestGen-LLMのフィルタ列も、まさにこの前提の上に立っています。</li>
+        <li><b>「この実装、たぶんバグってる」を暴きたいなら、AIに任せてはいけません。</b>AIは目の前のコードの振る舞いをそのまま写し取るので、バグごと仕様として固定します。第2章のb1〜b4のような「壊れて困る壊れ方」を先に列挙するのは、人間の仕事です。</li>
+        <li><b>この論文も本文PDFは未読です。</b>abstractページのみ読んでいます。arXiv上に DOI 10.1145/3832093 の記載がありますが、Crossref API も doi.org も現時点では404を返し、解決しません。</li>
+      </ul>
+
+      <p class="lead">ついでに、この再現研究は2014年のICSE論文（第1章で引いたもの）と<mark>真逆の結果も出しています</mark>。「LLM生成テストについては、テストスイートのサイズが支配的な交絡因子である証拠はほとんど見つからなかった」。<b>「カバレッジは相関しないと研究で示されている」という言い切りは、2026年時点ではもう安全ではありません。</b></p>
+
+      <div class="quiz">
+        <p class="q">Q. AIに「このモジュールのテストを書いて」と頼むとき、いちばん危ないのはどれ?</p>
+        <button class="opt" type="button" data-correct="false">既存のテストクラスにケースを足させる</button>
+        <button class="opt" type="button" data-correct="true">まだ動作を確認していない新規実装のテストを書かせる</button>
+        <button class="opt" type="button" data-correct="false">生成されたテストを5回連続で実行して安定性を見る</button>
+        <p class="ans" hidden>正解。再現研究が条件付けしているとおり、AIが有効なのは<mark>コードがバグフリーだと仮定できる場合</mark>だけです。動作未確認の実装にテストを書かせると、AIは現在の振る舞いを読み取ってそれをアサートするので、バグがそのまま「仕様」として固定されます。しかもテストは全部緑になるので、誰も疑いません。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section class="section section-a" id="s7">
+    <h2><span class="step">7</span>明日から変えること</h2>
+
+    <article class="item">
+      <h3>会議で配分を決めるより先に、壊れて困る壊れ方を5つ書く</h3>
+
+      <p class="lead">今回の実測から言えるのは、配分の最適値ではありません。<mark>壊れて困る壊れ方を先に列挙すれば、どの層に何件必要かは配分表を見なくても決まる</mark>ということだけです。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>やめること</th><th>代わりにやること</th><th>根拠</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>全体カバレッジに閾値ゲート</td>
+              <td data-label="代わりにやること">差分の未到達行をPRに名指しで出す</td>
+              <td data-label="根拠">実測: 全体は7.1pt しか動かない／FSE 2019</td>
+            </tr>
+            <tr>
+              <td>「まず80%」を目標にする</td>
+              <td data-label="代わりにやること">壊れて困る壊れ方を先に5つ書く</td>
+              <td data-label="根拠">80%を推奨する一次資料は見つからなかった</td>
+            </tr>
+            <tr>
+              <td>層の比率を会議で決める</td>
+              <td data-label="代わりにやること">壊れ方ごとに検出できる層を確かめる</td>
+              <td data-label="根拠">実測: b1はunitのみ、b3はe2eのみ</td>
+            </tr>
+            <tr>
+              <td>E2Eで見つけたバグをE2Eで塞ぐ</td>
+              <td data-label="代わりにやること">直す前にユニットで再現してから直す</td>
+              <td data-label="根拠">Fowler「Test Pyramid」第二の防衛線</td>
+            </tr>
+            <tr>
+              <td>担当を口約束の表で決める</td>
+              <td data-label="代わりにやること">CODEOWNERS にパスとして書く</td>
+              <td data-label="根拠">GitHub Docs（テスト固有の機能ではない）</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">「十分にテストしたか」の判定も、数値ではなく体感条件に置き換えられます。Fowlerの2つの条件です。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Martin Fowler「Test Coverage」— 原文</div>
+        <pre>I would say you are doing enough testing if the
+following is true: You rarely get bugs that escape into
+production, and You are rarely hesitant to change some
+code for fear it will cause production bugs.
+
+（次が真なら十分にテストしていると私は言う: 本番に
+　漏れ出るバグがめったに起きないこと。そして、本番バグ
+　を引き起こすのが怖くてコードを変えるのをためらう、
+　ということがめったにないこと）</pre>
+      </div>
+
+      <p class="lead">逆に「テストしすぎ」のサインも書かれています。<b>コードへの単純な変更が、テストへの過大に長い変更を引き起こすなら、それはテストに問題があるサイン。</b>第5章の「配線を固定するテスト」を増やしすぎると、ここに来ます。</p>
+
+      <p class="lead">最後に、今日から順に潰せるリストです。<span class="cl-count">0 / 6</span></p>
+      <ul class="checklist" data-key="test-design-2026-08-14">
+        <li><label><input type="checkbox"><span>いま怖い壊れ方を5つ、名前を付けて書き出した</span></label></li>
+        <li><label><input type="checkbox"><span>その5つが、いまのテストで落ちるか実際に壊して確かめた</span></label></li>
+        <li><label><input type="checkbox"><span>E2Eがカバレッジ計測に乗っているか確認した（0%になっていないか）</span></label></li>
+        <li><label><input type="checkbox"><span>CIのゲートを、全体カバレッジから差分の未到達行の表示に変えた</span></label></li>
+        <li><label><input type="checkbox"><span>テストの担当を CODEOWNERS のパスとして書いた</span></label></li>
+        <li><label><input type="checkbox"><span>AIに書かせるのは「動作確認済みコードのリグレッション防止」に限定した</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 これで「カバレッジは高いのに壊れる」は起きにくくなります</div>
+
+      <details>
+        <summary>今回やらなかったこと・測れなかったこと</summary>
+        <div class="body">
+          <dl>
+            <dt>本物のE2Eは一度も測っていません</dt>
+            <dd>Dockerデーモンが動かないため、実DB・実ネットワーク・ブラウザを含むE2Eは測定していません。「1件28.6ms」「ユニットの17倍」は、Pythonのサブプロセスを1回起動してJSONを1往復させるだけの値で、現実のE2Eの<b>下限</b>です。この数字を現実のE2Eのコストとして引用しないでください。</dd>
+            <dt>70/20/10 と 80/15/5 のどちらが正しいかは検証していません</dt>
+            <dd>この環境では検証しようがありません。測ったのは「粒度ごとに何が検出できて何ができないか」「1件あたりいくらかかるか」だけです。</dd>
+            <dt>ミューテーションの実行手順は3回失敗しました</dt>
+            <dd>mutmut 3.7.0 で詰まった点は3つ。(1) <code>setup.cfg</code> の <code>source_paths</code> はカンマ区切りが効かず「0 files mutated」になる。(2) テストファイル名が <code>test</code> で始まらないと <code>mutants/</code> にコピーされず「no tests ran」になる（<code>also_copy</code> の既定値が <code>Path(".").glob("test*.py")</code> のため）。(3) それを直しても親ディレクトリの <code>pytest.ini</code> をpytestが拾ってしまい収集されない。作業ディレクトリ内に専用の <code>pytest.ini</code> を置き <code>also_copy=pytest.ini</code> を足して、ようやく動きました。</dd>
+          </dl>
+        </div>
+      </details>
+
+      <a class="next-up" href="../2026-08-14_task-breakdown/">
+        <div class="label">NEXT →</div>
+        <div class="t">一番大きいタスクを速くしても、納期は1日も縮まない</div>
+        <div class="d">「壊れて困る順」と同じ考え方を、今度はスケジュールに当てます。依存関係を書いて最短日数を実際に計算しました。</div>
+      </a>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Carlos Arguelles, Marko Ivanković, Adam Bender「Code Coverage Best Practices」<i>Google Testing Blog</i>, 2020年8月7日.
+          <span class="note">参照箇所: 「理想的なカバレッジ数値は存在しない」、60%/75%/90%の目安とトップダウン強制を避ける記述、目標のチェックボックス化への警告。同記事内でゲート化を推奨しつつ打ち消してもいる点は本文の details に明記した。</span>
+          <a href="https://testing.googleblog.com/2020/08/code-coverage-best-practices.html">https://testing.googleblog.com/2020/08/code-coverage-best-practices.html</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Mike Wacker「Just Say No to More End-to-End Tests」<i>Google Testing Blog</i>, 2015年4月22日.
+          <span class="note">参照箇所: 70/20/10の配分、アンチパターン（逆ピラミッド／砂時計）、理想のフィードバックループの3条件（速い・信頼できる・失敗を切り分ける）。コメント欄で比率の測定が難しいと回答している点も含む。</span>
+          <a href="https://testing.googleblog.com/2015/04/just-say-no-to-more-end-to-end-tests.html">https://testing.googleblog.com/2015/04/just-say-no-to-more-end-to-end-tests.html</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Titus Winters, Tom Manshreck, Hyrum Wright (eds.)「Software Engineering at Google, Chapter 11: Testing Overview」<i>O'Reilly / 全文公開版, ISBN 9781492082798</i>, 2020年.
+          <span class="note">参照箇所: 80/15/5の配分と図11-3のキャプション（テストケース数で数える）、ビヨンセ・ルール、「壊れてほしくないものを全部テストせよ」、80%が床でなく天井になる記述、GWSの事例（緊急プッシュ半減）、flaky率0.15%。</span>
+          <a href="https://abseil.io/resources/swe-book/html/ch11.html">https://abseil.io/resources/swe-book/html/ch11.html</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Martin Fowler「Test Coverage」<i>martinfowler.com (bliki)</i>, 2012年4月17日.
+          <span class="note">参照箇所: 目標にすると低品質テストで簡単に届く、100%への疑い、「十分にテストしたか」の2条件、テストしすぎのサイン。</span>
+          <a href="https://martinfowler.com/bliki/TestCoverage.html">https://martinfowler.com/bliki/TestCoverage.html</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Martin Fowler「Test Pyramid」<i>martinfowler.com (bliki)</i>, 2012年5月1日.
+          <span class="note">参照箇所: ピラミッドの前提が条件付きであること、高レベルテストは第二の防衛線でありバグはユニットで再現してから直す、Etymology節（Cohnが2003-4年にLisa Crispinとの会話で描いた）。</span>
+          <a href="https://martinfowler.com/bliki/TestPyramid.html">https://martinfowler.com/bliki/TestPyramid.html</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Marko Ivanković, Goran Petrović, René Just, Gordon Fraser「Code Coverage at Google」<i>ESEC/FSE 2019, pp.955-963, DOI 10.1145/3338906.3340459</i>, 2019年8月.
+          <span class="note">参照箇所: 全社での閾値強制はない／任意参加のアラートシステム、表2の5段階閾値（60/70・75/80・90/90）、変更セットとコードレビューのレベルで適用することが鍵。書誌はCrossref APIで照合済。本文はGoogle Research公式配布PDFで読了（doi.org と dl.acm.org は bot 遮断で403）。</span>
+          <a href="https://storage.googleapis.com/gweb-research2023-media/pubtools/5172.pdf">https://storage.googleapis.com/gweb-research2023-media/pubtools/5172.pdf</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laura Inozemtseva, Reid Holmes「Coverage Is Not Strongly Correlated with Test Suite Effectiveness」<i>ICSE 2014, pp.435-445, DOI 10.1145/2568225.2568271</i>, 2014年5月.
+          <span class="note">参照箇所: Abstract。5システム・31,000スイートの実験、サイズを統制すると相関は低〜中程度、カバレッジは品質目標として使われるべきではない。書誌はCrossref APIで照合済。本文は著者所属校ミラーで取得。</span>
+          <a href="https://www.cs.ubc.ca/~rtholmes/papers/icse_2014_inozemtseva.pdf">https://www.cs.ubc.ca/~rtholmes/papers/icse_2014_inozemtseva.pdf</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          ISTQB「Certified Tester Foundation Level Syllabus v4.0.1」<i>ISTQB公式シラバス（BCS配布の公式PDF, 78ページ）</i>, 2024年9月15日.
+          <span class="note">参照箇所: 1.3 原則2（網羅的テストは不可能）と原則4（欠陥は偏在する）、5.1.5 テストケース優先順位付けの3戦略、5.2.3 プロダクトリスク分析（リスクレベル＝発生可能性×影響）、5.1.6 テストピラミッド（工数配分のモデル、Cohn 2009を「オリジナル」として引用）。</span>
+          <a href="https://www.bcs.org/media/ilhdvwam/istqb-certified-tester-syllabus.pdf">https://www.bcs.org/media/ilhdvwam/istqb-certified-tester-syllabus.pdf</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          John Micco「Flaky Tests at Google and How We Mitigate Them」<i>Google Testing Blog</i>, 2016年5月27日.
+          <span class="note">参照箇所: 全テスト実行の約1.5%がflaky、テストの約16%に何らかのflakiness、パス→失敗の遷移の約84%がflakyを伴う、1000テスト×1.5%で15件の計算。2020年書籍の0.15%と10倍差がある点は本文に明記した。</span>
+          <a href="https://testing.googleblog.com/2016/05/flaky-tests-at-google-and-how-we.html">https://testing.googleblog.com/2016/05/flaky-tests-at-google-and-how-we.html</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Nadia Alshahwan ほか（Meta Platforms）「Automated Unit Test Improvement using Large Language Models at Meta」<i>arXiv:2402.09171 / FSE 2024 Industry Track</i>, 2024年2月14日投稿.
+          <span class="note">参照箇所: 4段のフィルタ（ビルド可否／初回実行でパス／5回連続でパス＝flaky排除／カバレッジ増）、Reels・Storiesでの75%・57%・25%、推奨の73%が受け入れ。本文は ar5iv のHTML変換版で読了。Abstractの「11.5%」とIntroductionの「10%」の食い違いは本文に明記した。</span>
+          <a href="https://arxiv.org/abs/2402.09171">https://arxiv.org/abs/2402.09171</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          GitHub「About code owners」<i>GitHub Docs</i>.
+          <span class="note">参照箇所: CODEOWNERSの置き場所（.github/・ルート・docs/）、所有パスを変更するPRに自動でレビュー依頼、必須承認にできる、書き込み権限が必要。ページ上に発行日表示がないため閲覧日のみ記載。テスト固有の機能ではない点は本文にも明記した。</span>
+          <a href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners">https://docs.github.com/en/repositories/.../about-code-owners</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Dipayan Banik, Kowshik Chowdhury, Shazibul Islam Shamim「All Smoke, No Alarm: Oracle Signals in Agent-Authored Test Code」<i>arXiv:2606.18168 [cs.SE]</i>, 2026年6月16日投稿.
+          <span class="note">なぜ未確認か: <b>abstractページのみ取得して読了し、本文PDFは未読</b>。記事中の 80.2% と 86,156件・33,596PR・2,807リポジトリはabstract記載の数値で、方法論は検証していない。arXivのcomments欄・journal-ref欄が空で査読状況も判断できない。</span>
+          <a href="https://arxiv.org/abs/2606.18168">https://arxiv.org/abs/2606.18168</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Junda Zhao, Shurui Zhou, Eldan Cohen「Do Coverage and Mutation Scores of LLM-Generated Test Suites Correlate with Their Effectiveness? (Replicability Study)」<i>arXiv:2607.22880 [cs.SE]</i>, 2026年7月24日投稿.
+          <span class="note">なぜ未確認か: <b>abstractページのみ取得して読了し、本文PDFは未読</b>。arXiv上に DOI 10.1145/3832093 の記載があるが api.crossref.org も doi.org も404を返し、現時点で解決しない（登録前と思われる）。査読状況は判断できない。</span>
+          <a href="https://arxiv.org/abs/2607.22880">https://arxiv.org/abs/2607.22880</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Mike Cohn『Succeeding with Agile: Software Development Using Scrum』<i>Addison-Wesley, ISBN 9780321579362</i>.
+          <span class="note">なぜ未確認か: <b>書誌のみ照合（OpenLibrary API, OL24044791M）で本文は未読</b>。ピラミッドが同書で「Test Automation Pyramid」と呼ばれているという記述は Fowler のページからの孫引き。さらに OpenLibrary の publish_date は "2010" だが、Fowler・SWE at Google・ISTQBシラバスはいずれも 2009年として引用しており、出版年が確定できない。本記事では同書を根拠にした主張は書いていない。</span>
+          <a href="https://openlibrary.org/books/OL24044791M/Succeeding_with_agile">https://openlibrary.org/books/OL24044791M/Succeeding_with_agile</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          ISO/IEC/IEEE 29119-1（ソフトウェアテストの国際規格）.
+          <span class="note">なぜ未確認か: ISTQBシラバスが参照先として挙げているが、iso.org は HTTP 403（有料規格）で本文を取得できなかった。<b>本記事はリスクベースドテストの定義をISTQBシラバス経由でのみ扱っており、規格そのものは一切引用していない。</b></span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          粒度別の検出マトリクス・カバレッジ・実行時間・ミューテーションの各実験。Python 3.11.15 / pytest 9.1.1 / pytest-cov 7.1.0 / coverage 7.15.4 / mutmut 3.7.0 / git 2.43.0 / Linux 6.18.5（4コア）、2026年8月14日実施。
+          <span class="note">記事中のターミナル出力は、色分けの <code>span</code> を被せた以外は加工せずそのまま貼っています（<code>mutmut show</code> の末尾に出た重複行も、出たまま残しています）。すべて隔離した作業ディレクトリで実行し、このリポジトリのコードは変更していません。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          実行ごとにぶれた数値。<code>run_flaky.py</code> の混雑時の超過率は、単独実行で 46/200 (23.0%)、通し実行で 82/200 (41.0%)。
+          <span class="note">同じスクリプト・同じ負荷の掛け方でこれだけ動くため、本文では「2〜4割」以上の精度では書いていません。「空いているときは 0/200 (0.0%)」は両方の実行で再現しました。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          外れた予想を2つ、そのまま残しています。(1) ミューテーションスコアは bad 39 : good 38 でほぼ同点になり、「良いテストはスコアが高い」は支持されませんでした。(2) テストゼロのPRの差分カバレッジは0%になると予想しましたが、実測は71.4%でした。
+          <span class="note">どちらも仮説が外れた測定であり、外れたことを含めて本文に書いています。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「壊れて困る壊れ方を先に5つ書く」「CIのゲートを全体カバレッジから差分の未到達行の表示に変える」「テストの担当を CODEOWNERS のパスとして書く」という運用。
+          <span class="note">標準や規格ではなく、上記の一次資料と実測から筆者が構成した運用上の目安です。特に「誰がどの層のテストを書くか」を規定した一次資料は、今回の調査範囲では見つかりませんでした。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月14日時点の内容です。検証環境: Python 3.11.15 / pytest 9.1.1 / pytest-cov 7.1.0 / coverage 7.15.4 / mutmut 3.7.0 / Linux 6.18.5（4コア）</div>
+    <div>公開: 2026年8月14日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

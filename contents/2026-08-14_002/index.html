@@ -36,15 +36,15 @@
     <ol>
       <li>
         <b>Claude Codeの「自動モード」が本日からPro / Max / Teamの標準になった</b>
-        <span>毎回の承認ポップアップが消え、安全分類器が危険な操作だけを止める方式に。追加のトークン課金も廃止。</span>
+        <span>毎回の承認ポップアップが消え、分類器が「不可逆・破壊的・環境の外に向かう」操作だけを止めます。分類器ぶんの追加課金は8月7日付で廃止済み。</span>
       </li>
       <li>
         <b>Geminiアプリの月間利用者が10億人を突破した</b>
-        <span>Google史上最速ペース。検索やGmailに並ぶ「10億人サービス」の14番目に。</span>
+        <span>Google公式ブログいわく「同社史上もっとも成長が速い製品」。利用者の63%が音声で話しかけているという内訳も出ました。</span>
       </li>
       <li>
-        <b>xAIの「Grok 4.6」が、競合より大幅に安い価格で首位級の性能を出してきた</b>
-        <span>出力価格は100万トークンあたり$6。GPT-5.6 Solの$30、Claude Opus 4.8の$25と比べて際立つ安さ。</span>
+        <b>xAIの「Grok 4.6」が、総合指標でGPT-5.6 Solに並びながら出力価格は5分の1</b>
+        <span>出力は100万トークンあたり$6。GPT-5.6 Solは$30、Claude Opus 4.8は$25です(トークンはAIが文章を区切って数える単位で、API料金はこの個数で決まります)。</span>
       </li>
     </ol>
   </section>
@@ -55,7 +55,8 @@
       <li><a href="#work">今日から効いてくる実務のアップデート(4件)</a></li>
       <li><a href="#research">技術・研究(2件)</a></li>
       <li><a href="#industry">モデル・業界(2件)</a></li>
-    <li><a href="#corrections">訂正と追記</a></li>
+      <li><a href="#corrections">訂正と追記</a></li>
+      <li><a href="#refs">参考文献</a></li>
     </ol>
   </nav>
 
@@ -72,7 +73,7 @@
         <span class="tag">Claude Code</span>
         <span class="tag">Pro / Max / Team</span>
       </div>
-      <p class="lead">自律実行モード「Auto Mode」が、8月14日から新規セッションの<mark>既定値</mark>になりました。ツール呼び出しのたびに人が承認する方式から、安全分類器が審査して危険な操作だけを止める方式に変わります。</p>
+      <p class="lead">Claude Code(ターミナル上でAnthropicのClaudeにファイル編集やコマンド実行まで任せる開発者向けツール)の自律実行モード「Auto Mode」が、8月14日から新規セッションの<mark>既定値</mark>になりました。ツール呼び出し(AIが自分でファイルを書き換えたりコマンドを実行したりする、一つ一つの操作)のたびに人が承認する方式から、分類器が審査して危険な操作だけを止める方式に変わります。</p>
 
       <figure>
         <picture>
@@ -83,21 +84,44 @@
       </figure>
 
       <ul class="points">
-        <li><b>分類器が見るのは4種類。</b>不可逆・破壊的な操作、gitリポジトリの公開状態、データの持ち出し、外部コンテンツ経由のプロンプトインジェクションを審査し、危険なら自動でブロックします。</li>
-        <li><b>分類器のトークン課金は廃止。</b>1回の呼び出しごとに少量のトークンを使いますが、Pro / Max / Teamへの追加課金は本日付でなくなりました。</li>
-        <li><b>手動承認を選んでいる人はそのまま。</b>既存の設定は尊重されます。Enterprise・API・各クラウド経由は当面オプトインのままです。</li>
+        <li><b>分類器が止めるのは3系統だけ。</b>「不可逆な操作」「破壊的な操作」「環境の外に向かう操作」が対象です。あらゆる危険を網羅的に審査するわけではありません。</li>
+        <li><b>詰まったら勝手に手動へ戻る。</b>ブロックが<mark>3回連続</mark>、またはセッション全体で<mark>20回</mark>に達すると、Claude Codeは手動承認モードにフォールバックします。</li>
+        <li><b>分類器のトークン課金は8月7日付で廃止済み。</b>公式ブログの公開日である8月7日に「effective today」でなくなりました。8月14日は既定化の日であって、課金廃止の日ではありません。</li>
+        <li><b>「何も変わらない」とは限らない。</b>自分で別の既定値を設定している人には、自動モードへ切り替えるか尋ねる確認が<b>一度だけ</b>出ます。完全に無変更なのは、ピン留めした既定値と、管理者がmanaged settingsで指定した場合だけです。Enterprise・API・各クラウド経由は当面オプトインのままです。</li>
       </ul>
+
+      <div class="code wrap">
+        <div class="code-head">Anthropic公式ブログの原文(該当箇所)</div>
+<pre>instead of prompts, it routes each tool call
+through a classifier targeted at blocking
+actions that are irreversible, destructive,
+or aimed outside your environment.
+
+if it can't make progress—three blocks in a
+row, or twenty across a session—Claude Code
+falls back to manual approvals.</pre>
+      </div>
 
       <details>
         <summary>もう少し詳しく</summary>
         <div class="body">
           <dl>
-            <dt>安全側の仕組み</dt>
-            <dd>管理者が設定できる「強制拒否」ルールに加え、3回警告が出ると手動承認へ戻すエスカレーションが用意されています。展開は今後1か月ほどかけて進む予定です。</dd>
-            <dt>注意</dt>
-            <dd>「平均的なユーザーがポップアップをクリックするのと同程度以上に安全」というのはAnthropic自身の主張で、第三者による独立検証はまだ確認できていません。自動化前提の運用では設定を見直しておくのが無難です。</dd>
+            <dt>最近足された安全側の仕組み(分類器の審査対象そのものとは別)</dt>
+            <dd>
+              公式ブログは「Making auto mode even safer」の章で、最近の追加として次の4つを挙げています。
+              <ul class="points">
+                <li><b>ハード拒否。</b>コードや秘密情報を外部へ送る操作は、要求されても決して承認しない区分に置かれています。設定でルールを追加できます。</li>
+                <li><b>データの取り扱いルール。</b>git push やプルリクエストの<b>宛先が公開か非公開か信頼済みか</b>を、実行前に確認します。同じpushでも、届く先によって日常作業にも情報流出にもなるためです。</li>
+                <li><b>破壊的なgit操作の前にgit statusを見る。</b><code>git reset --hard</code> のようにコミット前の作業を捨てうるコマンドの前に、リポジトリ(プログラムの保管庫)の現在の状態を分類器に渡します。</li>
+                <li><b>プロンプトインジェクションのスクリーニング。</b>Webページやファイルに仕込まれた文章をAIが命令と誤読して従ってしまう攻撃を、API側のプローブが検知します。ただし<mark>ブロックはしません</mark>。「injectionらしい」と判断した場合、結果を利用者に渡す前にClaudeの文脈へ警告を追加する、という挙動です。</li>
+              </ul>
+            </dd>
+            <dt>第三者検証はある。ただし委託</dt>
+            <dd>Apollo Research(英国のAI安全企業)との2週間のレッドチーム演習と、Trajectory Labsによる間接プロンプトインジェクション評価(72シナリオ×各10回=720回)が行われています。<mark>いずれもAnthropicの委託によるもの</mark>で、独立に公表された第三者の追試ではありません。Anthropicはこの720回で自社モデルの成功攻撃が0件だったと発表しています。</dd>
+            <dt>人と分類器を比べた数字</dt>
+            <dd>1,053人の有料テスターを使った対照実験で、危険なコマンドを止められたのは人が13.6%、自動モードが89%だったとAnthropicは報告しています。分類器の見逃し率は、Apolloの攻撃セットに対して12%→7%に下がったとのこと。ただしこれは敵対的に作った合成攻撃に対する数字で、実トラフィックでの見逃し率ではないと明記されています。</dd>
             <dt>出典</dt>
-            <dd><a href="https://claude.com/blog/auto-mode-default-in-claude-code">Claude公式ブログ</a> / <a href="https://www.infoworld.com/article/4207959/anthropic-makes-claude-codes-auto-mode-default-for-paid-users.html">InfoWorld</a> / <a href="https://www.theregister.com/ai-and-ml/2026/08/10/claude-code-puts-auto-mode-in-the-drivers-seat/5285326">The Register</a></dd>
+            <dd><a href="https://claude.com/blog/auto-mode-default-in-claude-code">Anthropic公式ブログ「Auto mode is now the default in Claude Code」(2026年8月7日)</a> / <a href="https://www.infoworld.com/article/4207959/anthropic-makes-claude-codes-auto-mode-default-for-paid-users.html">InfoWorld</a> / <a href="https://www.theregister.com/ai-and-ml/2026/08/10/claude-code-puts-auto-mode-in-the-drivers-seat/5285326">The Register</a></dd>
           </dl>
         </div>
       </details>
@@ -105,14 +129,14 @@
 
     <article class="item">
       <div class="source"><img src="https://www.google.com/s2/favicons?domain=x.ai&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">xAI</div>
-      <h3>xAIが「Grok 4.6」を投入 — 首位級の性能を、競合の5分の1の出力価格で</h3>
+      <h3>xAIが「Grok 4.6」を投入 — 総合指標でGPT-5.6 Solに並び、出力価格は5分の1</h3>
       <div class="tags">
         <span class="tag">8/12</span>
         <span class="tag ok">✓ 公式確認済</span>
         <span class="tag">新モデル</span>
         <span class="tag">Grok</span>
       </div>
-      <p class="lead">パラメータ規模は前モデルから据え置きつつ、指示追従と強化学習の改善で<mark>コーディングとエージェント作業のベンチマークを底上げ</mark>しました。目を引くのは価格で、主要フロンティアモデルより大幅に安く設定されています。</p>
+      <p class="lead">狙いは長時間動き続けるエージェント用途です。学習をやり直したうえでエージェント向けの強化学習を広げ、<mark>コーディングと知識労働のベンチマーク(各社共通のテスト問題での点数)を底上げ</mark>しました。目を引くのは価格で、他社のフロンティアモデル(各社最先端の大型モデル)より大幅に安く設定されています。</p>
 
       <figure>
         <picture>
@@ -123,19 +147,36 @@
       </figure>
 
       <ul class="points">
-        <li><b>コンテキストは500Kトークン。</b>テキストと画像を入力でき、出力はテキストです。</li>
-        <li><b>価格は20万トークンを境に2段階。</b>以下なら入力$2 / キャッシュ入力$0.50 / 出力$6、超えると入力$4 / キャッシュ$1 / 出力$12(100万トークンあたり)。</li>
-        <li><b>1プロンプトで約22分間動き続けた報告も。</b>Artificial Analysis Intelligence Indexは56(Grok 4.5)から61に上昇しました。</li>
+        <li><b>一度に渡せる文章量の上限(コンテキスト)は500Kトークン。</b>テキストと画像を入力でき、出力はテキストのみ。出力の長さ制限はありません。</li>
+        <li><b>価格は「プロンプトが20万トークンを超えるか」で2段階。</b>境目になるのは入力プロンプトの長さです。キャッシュ入力は、同じ文章を送り直すときに適用される割引価格です。</li>
+        <li><b>総合指標はGrok 4.5の56から61へ。</b>Artificial Analysis Intelligence Index(9つのベンチマークを合成した総合スコア)で、GPT-5.6 Solの61と同点。ただしFable 5の62には届きません。<mark>いずれもxAIが自社の発表ページに載せた数値</mark>です。</li>
       </ul>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>区分</th><th>入力</th><th>キャッシュ入力</th><th>出力</th></tr>
+          </thead>
+          <tbody>
+            <tr><th>20万トークン以下</th><td data-label="入力">$2</td><td data-label="キャッシュ入力">$0.50</td><td data-label="出力">$6</td></tr>
+            <tr><th>20万トークン超</th><td data-label="入力">$4</td><td data-label="キャッシュ入力">$1</td><td data-label="出力">$12</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">いずれも100万トークンあたり。高速版(fast variant)はこの2倍だとxAIは書いています。</p>
 
       <details>
         <summary>もう少し詳しく</summary>
         <div class="body">
           <dl>
-            <dt>注意</dt>
-            <dd>ベンチマーク数値はxAI自身の発表と一部独立系サイトの追試に基づきます。Grok 4.7が数週間以内、Grok 5が年内という報道もありますが未確定の観測情報です。</dd>
+            <dt>スコアの読み方に注意</dt>
+            <dd>ここに挙げた数値は<mark>すべてxAI自身が公開したもの</mark>です。xAIは表の下に「他社モデルのスコアは、自己申告または公開されている結果のうち最良のものを使った」と注記しています。第三者による独立の追試は、本日時点では確認できていません。</dd>
+            <dt>パラメータ数は非公表</dt>
+            <dd>xAIはリリースノートにも発表ページにもパラメータ数を書いていません。「Grok 4.5と同じ基盤の1.5兆パラメータ」とする記述をいくつかのサイトで見かけますが、いずれも一次資料に当たれなかったため、この記事では扱いません。</dd>
+            <dt>Grok 4.5との差分(xAIの説明)</dt>
+            <dd>Grok 4.5より長い補助学習を回し、推論・技術概念向けの生成データと高品質なエンジニアリングデータ、改良したオプティマイザを投入。そのうえでGrok 4.5にSFT軌跡を再生成させ、問題のある軌跡をモデルで弾いたとしています。カーネル最適化・Web開発・CADなどのエージェントRL環境でも学習。</dd>
             <dt>出典</dt>
-            <dd><a href="https://docs.x.ai/developers/release-notes">xAI公式リリースノート</a> / <a href="https://www.basenor.com/blogs/news/xai-launches-grok-4-6-1753-elo-half-the-price-of-rival-frontier-models">BaseNor</a></dd>
+            <dd><a href="https://x.ai/news/grok-4-6">xAI公式発表「Introducing Grok 4.6」(2026年8月12日)</a> / <a href="https://docs.x.ai/developers/release-notes">xAI公式リリースノート</a> / <a href="https://docs.claude.com/en/docs/about-claude/pricing">Anthropic公式料金表</a> / <a href="https://platform.openai.com/docs/models/gpt-5.6-sol">OpenAI platform docs (GPT-5.6 Sol)</a></dd>
           </dl>
         </div>
       </details>
@@ -159,13 +200,16 @@
       <ul class="points">
         <li><b>Deep Researchは新規受付を停止。</b>既存レポートの閲覧とWord形式へのエクスポートは引き続き可能です。</li>
         <li><b>後継はMicrosoft 365 Premiumの「Researcher」。</b>加入者は同種のリサーチを継続できます。</li>
-        <li><b>音声キャラクター「Mico」とCopilot Labsの実験機能も終了。</b>「アプリはその存在意義を証明しなければならない」というのが同社の説明です。</li>
+        <li><b>音声キャラクター「Mico」とグループチャットも終了。</b>Copilot Labsの実験機能も同日で止まります。Microsoftが挙げている狙いは「よりシンプルで一貫した体験(a simpler, more cohesive experience)」です。</li>
+        <li><b>移行中に他の機能も一時的に消えることがある、とMicrosoftは警告。</b>単体のCopilotアプリが生成したファイルはOneDriveへ移されます。</li>
       </ul>
 
       <details>
         <summary>もう少し詳しく</summary>
         <div class="body">
           <dl>
+            <dt>「存在する権利」発言の伝聞の段数</dt>
+            <dd>Copilotを統括するMicrosoftのJacob Andreou副社長(EVP)が7月の社内メモで、アプリは顧客の生活の中で「存在する権利(the right to exist)」を勝ち取る必要があり、そのためにうまくいかなかった機能から先へ進む必要がある、と述べた——と <i>The Information</i> が報じ、それをTechCrunchが引用しています。<mark>Microsoftの今回の公式説明ではなく、社内メモ→The Information→TechCrunchと2社を経由した伝聞</mark>です。原文で引用符が付いているのは "the right to exist" の部分だけです。</dd>
             <dt>注意</dt>
             <dd>Microsoft公式サポートページでのアナウンス本文は本日時点で直接確認できておらず、TechCrunchやThurrottなど複数メディアの報道に基づきます。日本語圏での案内時期は要確認です。</dd>
             <dt>出典</dt>
@@ -177,26 +221,29 @@
 
     <article class="item">
       <div class="source"><img src="https://www.google.com/s2/favicons?domain=openai.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">OpenAI</div>
-      <h3>ChatGPTがレストラン予約に対応 — チャットのまま空席検索から予約まで完結</h3>
+      <h3>ChatGPTがレストラン予約に対応 — 確実に裏が取れるのはYelpの分だけ</h3>
       <div class="tags">
         <span class="tag">8/10</span>
-        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag warn">⚠ 一部のみ公式確認</span>
         <span class="tag">ChatGPT</span>
-        <span class="tag">全プラン</span>
+        <span class="tag">Yelp</span>
       </div>
-      <p class="lead">OpenTable・Resy・Yelpと連携し、日時や人数、料理ジャンルを伝えると<mark>空き時間が回答内に表示され、そのまま予約できる</mark>ようになりました。無料プランを含む全プランで順次展開します。</p>
+      <p class="lead">Yelpが公式ブログで、<mark>Yelp ReservationsとWaitlistをChatGPTに統合した</mark>と発表しました。チャットから離れずに席を予約したり、順番待ちリストに入れたりできます。</p>
 
       <ul class="points">
-        <li><b>対応エリアは限定的。</b>OpenTableは世界各地、Resyは米国、Yelpは米国・カナダ。ChatGPT Work(法人プラン)は対象外です。</li>
-        <li><b>完結するのは予約まで。</b>変更やキャンセルは各予約サービス側での操作が必要で、ChatGPT内ではできません。</li>
+        <li><b>Yelp分の対象は米国とカナダの「数千店」。</b>Yelpの表現は「thousands of top restaurants across the U.S. and Canada」です。予約後の変更は<b>Yelp側</b>で行います。</li>
+        <li><b>OpenTable・Resyとの提携は報道ベース。</b>Android Authorityが「OpenAIはResyとOpenTableとも提携したと明らかにした」と書いていますが、OpenAI公式の発表ページやヘルプ記事には到達できていません(help.openai.com・openai.comともHTTP 403)。</li>
+        <li><b>対象プランは未確認。</b>「無料プランを含む全プランで順次展開」「ChatGPT Workは対象外」という記述の一次資料を確認できなかったため、この記事では扱いません。</li>
       </ul>
 
       <details>
         <summary>もう少し詳しく</summary>
         <div class="body">
           <dl>
+            <dt>Yelpが挙げている理由</dt>
+            <dd>Yelpは自社が委託したMorning Consult調査を引き、「AIツールでローカル検索をするとき、信頼できるプラットフォーム上で予約などの行動まで完結できることが重要だ」と答えた回答者が65%だったとしています。これはYelpの主張であり、調査原文には当たっていません。</dd>
             <dt>出典</dt>
-            <dd><a href="https://www.androidauthority.com/chatgpt-restaurant-reservations-and-waitlists-3696712/">Android Authority</a> / <a href="https://www.itechpost.com/articles/237000/20260810/chatgpt-partners-yelp-book-tables-reservations-directly-ai-chat.htm">iTech Post</a></dd>
+            <dd><a href="https://blog.yelp.com/news/yelp-chatgpt-integration/">Yelp公式ブログ「Yelp Brings Reservations and Waitlist to ChatGPT」(2026年8月10日)</a> / <a href="https://www.androidauthority.com/chatgpt-restaurant-reservations-and-waitlists-3696712/">Android Authority</a></dd>
           </dl>
         </div>
       </details>
@@ -209,37 +256,43 @@
 
     <article class="item">
       <div class="source"><img src="https://www.google.com/s2/favicons?domain=alibabacloud.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Alibaba(Qwen)</div>
-      <h3>アリババが2.4兆パラメータ級「Qwen3.8-Max」を公開 — ただしライセンスに収益上限が付いた</h3>
+      <h3>アリババが2.4兆パラメータの「Qwen3.8-2.4T-A95B」を公開 — Apache 2.0ではない独自ライセンス付き</h3>
       <div class="tags">
         <span class="tag">8/12</span>
         <span class="tag ok">✓ 公式確認済</span>
         <span class="tag">オープンウェイト</span>
         <span class="tag">ライセンス変更</span>
       </div>
-      <p class="lead">旗艦モデルの重みが公開されました。注目は規模だけでなくライセンスで、<mark>Apache 2.0から「競合事業に年間5000万ドルの収益上限を課す」独自ライセンスに変更</mark>されています。</p>
+      <p class="lead">重み(学習の成果である数値の塊。これを配れば手元で同じモデルを動かせます)が公開されました。注目は規模だけでなくライセンスで、<mark>他の多くのQwenモデルが使うApache 2.0ではなく、独自の「Qwen3.8-Max License」</mark>が付いています。</p>
 
       <figure>
         <picture>
           <source srcset="images/open-weights-dark.png" media="(prefers-color-scheme: dark)">
-          <img src="images/open-weights.png" alt="Qwen3.8-Maxは2.4兆パラメータ、Meta Muse Glimmerは300億パラメータ" loading="lazy">
+          <img src="images/open-weights.png" alt="Qwen3.8-2.4T-A95Bは2.4兆パラメータ、Meta Muse Glimmerは300億パラメータ" loading="lazy">
         </picture>
         <figcaption>同じ「オープンウェイト」でも、狙う場所はまったく違う</figcaption>
       </figure>
 
       <ul class="points">
-        <li><b>公開されたのはテキスト専用版。</b>マルチモーダル機能と100万トークンの長文脈は今回の公開版に含まれません。</li>
-        <li><b>商用利用は条文の確認が要る。</b>一定の売上高を超える競合事業者には別途契約が必要な設計です。</li>
-        <li><b>構成は92層512エキスパートのMoE。</b>総パラメータ2.4兆に対し、推論時に動くのは約950億です。</li>
+        <li><b>「Qwen3.8-Max」とは別物です。</b>公開されたのは Qwen3.8-2.4T-A95B。API提供のQwen3.8-Maxは、これに視覚入力・非thinkingモード・既定1Mコンテキスト・公式内蔵ツールを足した公式版だとモデルカードが明記しています。</li>
+        <li><b>公開版はテキスト専用で、thinkingを切れません。</b>すべての応答が <code>&lt;think&gt;…&lt;/think&gt;</code> の推論から始まります。コンテキストはネイティブ262,144トークン、最大1,010,000トークンまで拡張可能。</li>
+        <li><b>構成は92層・512エキスパートのMoE。</b>MoE(全パラメータを毎回使わず、入力ごとに一部の「専門家」だけを動かす方式)なので、総2.4兆に対して1トークンあたり動くのは950億。うち10個がルーティングで選ばれ、1個は常時共有です。</li>
       </ul>
 
       <details>
-        <summary>もう少し詳しく</summary>
+        <summary>ライセンスの条文を読む(2条だけ)</summary>
         <div class="body">
           <dl>
-            <dt>注意</dt>
-            <dd>一部メディアは「公開直後、Hugging Face上のモデルページが空だった」と報じており、実際にダウンロードできたかは時点により変動した可能性があります。</dd>
+            <dt>第1条: 大きく使うならモデル名を表示</dt>
+            <dd>月間アクティブユーザー1億超、または月商2000万ドル超の商用製品・サービスで使う場合、その製品のUIにモデル名を目立つように表示すること。</dd>
+            <dt>第2条: MaaS / AI業務アシスタント事業は別契約</dt>
+            <dd>ライセンシーとその関連会社が「Model as a Service」または「AI Work Assistant」事業を行っており、連続する12か月の合計売上が5000万ドルを超える場合、商用利用の前にQwenから別途ライセンスを取得する必要があります。<mark>社内利用は除外</mark>(モデル・出力・能力を第三者に提供しない限り)。</dd>
+            <dt>定義も条文に書いてある</dt>
+            <dd>「AI Work Assistant」は、AIによるコーディングまたはオフィス生産性を主目的とする独立製品(例としてQoderとQwenWorkが挙がっています)。翻訳ツールのような単機能AI、コーディング/オフィス以外の領域向けアシスタント、AIが主目的でない製品の一機能は含みません。</dd>
+            <dt>Apache 2.0のQwenも残っている</dt>
+            <dd>同時期に出た小型の <code>Qwen/Qwen3.8-27B</code> は、Hugging Face APIで確認したところライセンスが <code>apache-2.0</code> のままです。独自ライセンスが付いたのは、この2.4兆パラメータの旗艦だけです。</dd>
             <dt>出典</dt>
-            <dd><a href="https://www.techrepublic.com/article/news-alibaba-qwen3-8-max-pricing-open-weights/">TechRepublic</a> / <a href="https://forkast.news/open-weights-closed-revenue-ceiling-alibabas-qwen-3-8-license-is-a-platform-play-not-a-gift/">Forkast</a></dd>
+            <dd><a href="https://huggingface.co/Qwen/Qwen3.8-2.4T-A95B">Hugging Face モデルカード</a> / <a href="https://huggingface.co/Qwen/Qwen3.8-2.4T-A95B/raw/main/LICENSE">LICENSE 原文</a></dd>
           </dl>
         </div>
       </details>
@@ -247,23 +300,23 @@
 
     <article class="item">
       <div class="source"><img src="https://www.google.com/s2/favicons?domain=meta.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Meta AI</div>
-      <h3>Metaが「Muse Glimmer」を公開 — ノートPCのGPU1枚でエージェント作業が動く</h3>
+      <h3>Metaが「Muse Glimmer」を公開 — 民生用GPU1枚で、ネットにつながずエージェントが動く</h3>
       <div class="tags">
         <span class="tag">8/10</span>
         <span class="tag ok">✓ 公式確認済</span>
         <span class="tag">オープンウェイト</span>
         <span class="tag">Apache 2.0</span>
       </div>
-      <p class="lead">300億パラメータの軽量モデルがApache 2.0で公開されました。量子化で約17GBまで圧縮されており、<mark>24〜32GBクラスの民生用GPU1枚でクラウド接続なしに動きます</mark>。</p>
+      <p class="lead">300億パラメータの軽量モデルがApache 2.0(ほぼ制限なく商用利用できる代表的なライセンス)で公開されました。量子化(数値を粗くしてサイズを削る圧縮)で言語モデル本体を20GB未満に収め、<mark>GPUメモリ24GBまたは32GBの民生用GPU1枚で動く</mark>設計です。</p>
 
       <figure class="thumb">
         <img src="https://www.engadget.com/img/gallery/metas-open-source-muse-glimmer-model-can-run-on-a-single-computer/intro-1786364909.jpg" alt="Meta Muse Glimmerのイメージ" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('figure').style.display='none'">
       </figure>
 
       <ul class="points">
-        <li><b>できるのは日常的なエージェント作業。</b>スケジュール管理、ファイル整理、簡単なコーディングなどが対象です。</li>
-        <li><b>llama.cpp・MLX・ExecuTorchに対応。</b>Ollama、LM Studio、Together AI、Fireworks AI経由での提供も順次進みます。</li>
-        <li><b>狙いは性能ではなくプライバシー。</b>トップ級の大型モデルには及ばないとMeta自身が位置づけており、「データを外に出したくない」用途向けの選択肢です。</li>
+        <li><b>できるのは日常的なエージェント作業。</b>ローカルエージェント、関数呼び出し、ローカルでのコーディング、LLM-as-a-judge評価などをMetaは挙げています。</li>
+        <li><b>今日使えるのはHugging Faceでの重み配布だけ。</b>llama.cpp・MLX・ExecuTorchの最適化統合は「数日以内(in the coming days)」。Ollama・LM Studio・Unsloth、vLLM・SGLang、Together AI・Fireworks AI・OpenRouterも同じく「数日以内」です。</li>
+        <li><b>Metaは「プライバシー」とは言っていない。</b>公式ブログの本文に privacy の語は出てきません。位置づけは「同サイズ帯の主要モデルと比べて強い性能」で、押しているのは<mark>ネット接続の有無にかかわらずどこでも動く</mark>ことです。</li>
       </ul>
 
       <details>
@@ -271,9 +324,13 @@
         <div class="body">
           <dl>
             <dt>技術面</dt>
-            <dd>上位モデル「Muse Spark 1.2」から推論能力を蒸留。フル精度では55GB超になるところを量子化で約17GBに圧縮し、テキスト生成を高速化する補助モデルも同梱されています。</dd>
+            <dd>上位モデル「Muse Spark」の出力からlogit蒸留(教師と近いデータ配合を使用)。公式ブログにバージョン番号の記載はありません。フル精度なら55GB超のところを4bit相当まで量子化して20GB未満にし、画像理解用のperception encoderと投機的デコーディング用のdrafterを同時に載せても24GB / 32GBに収まるようにしています。</dd>
+            <dt>速さの工夫</dt>
+            <dd>DFlashベースの小さな「drafter」モデルを同梱し、トークンの塊をまとめて提案させて本体が並列に検証する投機的デコーディングを使います。出力品質は変わらないとMetaは書いています。速度計測はMacBook M4-Max / M5-Max と RTX 5090 上で、K-Quant-17GB版とdrafterの組み合わせで行われました。</dd>
+            <dt>入力はマルチモーダル</dt>
+            <dd>専用のperception encoderにより、テキストと画像を交互に入力できます。比較対象として挙げられているのは Gemma4-31B と Qwen3.6-27B です。</dd>
             <dt>出典</dt>
-            <dd><a href="https://research.meta.ai/blog/introducing-muse-glimmer-open-agentic-model">Meta AI Research公式</a> / <a href="https://www.engadget.com/2233312/metas-open-source-muse-glimmer-model-can-run-on-a-single-computer/">Engadget</a></dd>
+            <dd><a href="https://research.meta.ai/blog/introducing-muse-glimmer-open-agentic-model">Meta AI Research公式「Introducing Muse Glimmer」</a> / <a href="https://www.engadget.com/2233312/metas-open-source-muse-glimmer-model-can-run-on-a-single-computer/">Engadget</a></dd>
           </dl>
         </div>
       </details>
@@ -293,14 +350,15 @@
         <span class="tag">利用者数</span>
         <span class="tag">マイルストーン</span>
       </div>
-      <p class="lead">スンダー・ピチャイCEOが8月11日に発表しました。検索・Gmail・Android・YouTubeに続く、<mark>同社14番目の「10億人サービス」</mark>です。</p>
+      <p class="lead">Googleが8月11日に公式ブログで発表しました。公式ブログの表現は<mark>「Google史上もっとも成長が速い製品」</mark>。検索・Gmail・Android・Maps・Chrome・Play・YouTubeに続く同社14番目の「10億人サービス」だとピチャイCEOが述べたことは、TechCrunchと9to5Googleが報じています。</p>
 
       <figure class="hero">
         <img src="https://techcrunch.com/wp-content/uploads/2026/06/gemini-app-GettyImages-2276204472-1.jpg?w=1024" alt="Geminiアプリ" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('figure').style.display='none'">
       </figure>
 
       <ul class="points">
-        <li><b>加速がわかる推移。</b>2025年5月に4億人、10月に6.5億人、2026年2月に7.5億人、5月に9億人、7月22日の決算で9.5億人。そこから約3週間で10億人に届きました。</li>
+        <li><b>加速がわかる推移。</b>2025年5月に4億人、その1年後に9億人、7月下旬にさらに5000万人上乗せして9.5億人。そこから数週間で10億人に届きました(9to5Google)。</li>
+        <li><b>公式が出した内訳のほうが面白い。</b>利用者の63%が音声で直接Geminiに話しかけている。Gemini Liveのやりとりの5回に1回は音声を超えてカメラ映像や画面共有を使っている。画像生成は1日1.5億枚超。iOSのアクティブ利用者は1億人超。</li>
         <li><b>ただし比較には注意。</b>「何をもって利用とするか」の集計方法は各社で異なり、有料契約者数など収益に直結する指標は今回の発表に含まれていません。</li>
       </ul>
 
@@ -308,8 +366,10 @@
         <summary>もう少し詳しく</summary>
         <div class="body">
           <dl>
+            <dt>どこまでが公式で、どこからが報道か</dt>
+            <dd>Google公式ブログに書いてあるのは「10億人突破」「史上最速」と上の内訳だけです。<mark>「14番目」「ピチャイCEOがXで発表」「MAUの推移」は公式ブログには書かれていません</mark>。これらの根拠はTechCrunch("Pichai also noted it was the 14th Google product to hit the 1 billion mark.")と9to5Google("It is the company's 14th product to hit that milestone along with Search, Gmail, Android, Maps, Chrome, Play, and YouTube.")です。</dd>
             <dt>出典</dt>
-            <dd>Sundar Pichai氏の投稿 / <a href="https://blog.google/innovation-and-ai/products/gemini-app/one-billion-monthly-users/">TechCrunch</a> / 9to5Google</dd>
+            <dd><a href="https://blog.google/innovation-and-ai/products/gemini-app/one-billion-monthly-users/">Google公式ブログ</a> / <a href="https://techcrunch.com/2026/08/11/googles-gemini-app-surges-to-one-billion-users/">TechCrunch</a> / <a href="https://9to5google.com/2026/08/11/gemini-app-1-billion/">9to5Google</a></dd>
           </dl>
         </div>
       </details>
@@ -317,28 +377,57 @@
 
     <article class="item">
       <div class="source"><img src="https://www.google.com/s2/favicons?domain=manus.im&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Manus</div>
-      <h3>AIエージェント「Manus」がMetaから独立 — 中国当局の命令で29億ドルの買収が巻き戻しに</h3>
+      <h3>AIエージェント「Manus」がMetaから独立 — 一部の利用者は8月23日朝までにデータ退避が必要</h3>
       <div class="tags">
         <span class="tag">8/11</span>
         <span class="tag ok">✓ 公式確認済</span>
         <span class="tag">買収解消</span>
         <span class="tag">エージェント</span>
       </div>
-      <p class="lead">2025年12月に完了していたMetaによる買収が、<mark>中国の国家発展改革委員会の命令で巻き戻されました</mark>。Manusは8月11日、独立企業として活動を再開すると発表しています。</p>
+      <p class="lead">Manusは8月11日、<mark>独立企業としての運営に戻る</mark>と公式ブログで発表しました。この記事で唯一、読者が期限までに手を動かす必要がある項目です。対象になった利用者は、8月23日の朝までにデータをバックアップしないと消えます。</p>
 
       <ul class="points">
-        <li><b>利用者はデータ退避の期限に注意。</b>2025年12月29日以降に生成したデータは<b>8月23日7:59 JST</b>までにバックアップが必要。8月23〜24日に削除、25日から復元開始という日程です。</li>
-        <li><b>今後の資本構成は流動的。</b>拠点をシンガポールへ移した経緯があり、テンセントが筆頭株主になる可能性が報じられています。</li>
+        <li><b>消えるのは「一部の利用者が2025年12月29日以降に作ったデータ」。</b>12月29日はMetaがManusを買収した日です。特定の地域の規制要件に従うため、その日以降に生成されたデータを削除するとManusは説明しています。全利用者が対象ではありません。</li>
+        <li><b>公式の日程はシンガポール時間(SGT)。日本時間はその1時間後。</b>SGTはUTC+8、JSTはUTC+9です。</li>
+        <li><b>対象かどうかはアプリ内通知とメールで届く。</b>Apple IDやFacebookアカウントで登録した人はManusがメールアドレスを持っていないため、<b>アプリ内通知を見る必要があります</b>。ヘルプセンターに判定用のガイドもあります。対象外の人は何もしなくて構いません。</li>
+        <li><b>バックアップ期間中は課金されない。</b>8月11日〜23日(SGT)は対象利用者に請求せず、復元後に「welcome back bonus」を出すとしています。</li>
+      </ul>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>何が起きるか</th><th>公式表記(SGT)</th><th>日本時間(JST)</th></tr>
+          </thead>
+          <tbody>
+            <tr><th>バックアップ期限</th><td data-label="公式表記(SGT)">8月23日 7:59</td><td data-label="日本時間(JST)">8月23日 8:59</td></tr>
+            <tr><th>データ削除</th><td data-label="公式表記(SGT)">8月23日 8:00 〜 24日</td><td data-label="日本時間(JST)">8月23日 9:00 〜 24日</td></tr>
+            <tr><th>復元ポータル開放</th><td data-label="公式表記(SGT)">8月25日 8:00</td><td data-label="日本時間(JST)">8月25日 9:00</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">バックアップ期限を過ぎると、対象利用者は復元ポータルが開くまで<mark>アカウントにアクセスできません</mark>。つまり8月23〜24日の2日間は使えなくなります。</p>
+
+      <p class="lead">期限までにやること。<span class="cl-count">0 / 4</span></p>
+      <ul class="checklist" data-key="manus-backup-2026-08">
+        <li><label><input type="checkbox"><span>アプリ内通知またはメールで、自分が対象かを確認した</span></label></li>
+        <li><label><input type="checkbox"><span>対象だったので、Manusのバックアップツールでデータを保存した</span></label></li>
+        <li><label><input type="checkbox"><span>バックアップ後にも作業したので、もう一度バックアップし直した(ツールは複数回使えます)</span></label></li>
+        <li><label><input type="checkbox"><span>8月25日 9:00 JST以降に復元することをカレンダーに入れた</span></label></li>
       </ul>
 
       <details>
-        <summary>もう少し詳しく</summary>
+        <summary>なぜ独立に戻るのか(ここから先は報道ベース)</summary>
         <div class="body">
           <dl>
-            <dt>経緯</dt>
-            <dd>2026年4月、中国の国家発展改革委員会が技術輸出・対外投資に関する規制違反を理由に買収の巻き戻しを命じました。</dd>
+            <dt>Manus自身の説明(公式FAQ)</dt>
+            <dd>「これはMetaからの分離の一部で、世界の特定地域における規制要件に従うために取らねばならない措置」。あわせて「データ侵害やセキュリティ事故が理由ではない」と明記しています。独立後のデータ保管先は米国とシンガポールです。</dd>
+            <dt>買収額と当局の命令は、原記事に到達できていない</dt>
+            <dd>Reuters・APを引いた二次まとめによれば、中国の国家発展改革委員会(NDRC)が<mark>2021年施行の規則にもとづく外資の国家安全保障審査</mark>により、買収の巻き戻しを命じたとされます。「技術輸出規制の違反認定」ではなく審査に基づく禁止命令で、NDRCの声明は一行のみ、法的根拠の詳細は説明されていないとAPが報じたとのことです。買収額はWSJ・Fortuneの報道として<mark>約20〜25億ドル</mark>と幅があります。<b>Reuters・AP・WSJ・Fortune・CNBCの原記事はいずれも本文を取得できませんでした(CNBCはHTTP 403)</b>。したがってこの段落は二次情報の孫引きであり、確度は低いものとして読んでください。</dd>
+            <dt>削除した記述</dt>
+            <dd>初出時に書いていた「買収額29億ドル」と「テンセントが筆頭株主になる可能性」は、どの資料でも裏が取れなかったため削除しました。</dd>
             <dt>出典</dt>
-            <dd>Bloomberg / CNBC / Manus公式ユーザー通知</dd>
+            <dd><a href="https://manus.im/blog/a-note-to-our-users">Manus公式ブログ「A Note to Our Users」(2026年8月11日)</a> / <a href="https://letsdatascience.com/news/china-orders-unwinding-of-metas-manus-acquisition-01b797d6">Let's Data Science(Reuters・AP・WSJ・Fortune・NYTを引いた二次まとめ)</a></dd>
           </dl>
         </div>
       </details>
@@ -348,16 +437,146 @@
   <!-- ============ 訂正 ============ -->
   <section class="section section-d" id="corrections">
     <h2>訂正と追記</h2>
+
+    <article class="item">
+      <h3>2026年8月15日 — 一次資料に当たり直し、16か所を訂正しました</h3>
+      <p class="lead">全項目の出典を取得し直したところ、<mark>一次資料と食い違う記述が多数見つかりました</mark>。以下、何をどう直したかを残します。</p>
+      <ul class="points">
+        <li><b>Claude Code「分類器が見るのは4種類」→ 3系統に訂正。</b>公式ブログが分類器の対象としているのは「不可逆・破壊的・環境の外に向かう」操作です。以前挙げていた4項目は別章「Making auto mode even safer」の最近の追加機能であり、分類器の審査対象そのものではありませんでした。</li>
+        <li><b>プロンプトインジェクションは「ブロック」しない。</b>公式の挙動は「injectionらしいと判断したら、結果を渡す前にClaudeの文脈に警告を追加する」です。ブロックすると書いていたのを訂正しました。</li>
+        <li><b>「3回警告が出ると手動承認へ戻す」→「ブロックが3回連続、またはセッション全体で20回」。</b>「警告」ではなく「ブロック」、「3回」ではなく「3回連続」で、「セッション全体で20回」という条件が抜けていました。</li>
+        <li><b>「課金廃止は本日付」→ 8月7日付。</b>公式ブログの "effective today" は記事の公開日である8月7日を指します。8月14日は既定化の日です。</li>
+        <li><b>「手動承認を選んでいる人はそのまま」→ 一度だけ確認が出ます。</b>無変更が保証されるのはピン留めした既定値と管理者のmanaged settingsだけでした。</li>
+        <li><b>「第三者による独立検証はまだ確認できていません」→ 事実に反したので削除。</b>Apollo ResearchとTrajectory Labsによる第三者検証が実施されています(ただしいずれもAnthropicの委託)。</li>
+        <li><b>Grokの「パラメータ規模は据え置き」「1プロンプトで約22分」「Grok 4.7/5の予定」を削除。</b>xAI公式リリースノートにも公式発表ページにも根拠がなく、唯一の出典が通販サイトのニュース欄(basenor.com/blogs/news/)だったためです。同サイトへのリンクも出典から外しました。</li>
+        <li><b>逆に「Intelligence Index 56→61」は残しました。</b>xAI公式発表ページの評価表に Grok 4.5 High = 56 / Grok 4.6 High = 61 と明記されていることを確認したためです。あわせてGPT-5.6 Sol = 61、Fable 5 = 62 という比較も足しました。</li>
+        <li><b>Copilotの「アプリはその存在意義を証明しなければならない — 同社の説明」を訂正。</b>実際は社内メモ→The Information→TechCrunchの伝聞で、原文で引用符が付くのは "the right to exist" のみ。Microsoft自身の説明は「よりシンプルで一貫した体験」でした。</li>
+        <li><b>ChatGPT予約の「✓ 公式確認済」を「⚠ 一部のみ公式確認」に変更。</b>Yelp公式ブログを新たに読み、Yelp分だけを公式として書き直しました。「全プランで順次展開」「ChatGPT Workは対象外」「OpenTableは世界各地・Resyは米国」は一次資料に到達できなかったため削除しました。</li>
+        <li><b>「Qwen3.8-Maxを公開」→「Qwen3.8-2.4T-A95Bを公開」。</b>公開されたのは土台となる別モデルで、Qwen3.8-MaxはそこにAPI向けの機能を足した公式版でした。</li>
+        <li><b>「100万トークンの長文脈は公開版に含まれない」を訂正。</b>公開版もネイティブ262,144トークン、最大1,010,000トークンまで拡張可能です。既定で1Mなのがクローズド版のQwen3.8-Maxのほう、というのが正しい違いでした。</li>
+        <li><b>ライセンスの説明を条文ベースに書き直しました。</b>「年間5000万ドルの収益上限」ではなく、MaaSまたはAI Work Assistant事業で12か月の合計売上が5000万ドルを超える場合に別途ライセンスが必要、という条件です。出典もTechRepublic・ForkastからLICENSE原文に差し替えました。</li>
+        <li><b>Muse Glimmerの「狙いは性能ではなくプライバシー」を削除。</b>Meta公式ブログ本文に privacy の語は一度も出てきません。位置づけも「トップ級に及ばない」ではなく「同サイズ帯の主要モデルと比べて強い性能」でした。</li>
+        <li><b>「llama.cpp・MLX・ExecuTorchに対応」→「対応予定」。</b>公式ブログは "will land in the coming days" と書いており、公開時点で使えるのはHugging Faceからの重みダウンロードのみです。Unsloth・vLLM・SGLang・OpenRouterも補いました。</li>
+        <li><b>「上位モデル『Muse Spark 1.2』から蒸留」→「Muse Sparkから蒸留」。</b>公式ブログにバージョン番号の記載はなく、「1.2」はページ下部の他モデル一覧から拾った推測でした。</li>
+        <li><b>Manusのバックアップ期限を訂正。</b>公式の 7:59 は<mark>シンガポール時間</mark>であり、日本時間では8月23日 8:59です。「7:59 JST」は誤りでした。あわせて「買収額29億ドル」(どの資料にも存在しない)と「テンセントが筆頭株主になる可能性」(裏が取れず)を削除し、命令の根拠を「技術輸出・対外投資規制の違反」から「2021年施行の規則にもとづく外資の国家安全保障審査」に直しました。</li>
+        <li><b>Geminiの出典リンクの表示名を直しました。</b>「TechCrunch」と表示されたリンクがGoogle公式ブログを指していました。TechCrunchと9to5Googleの実URLも追加しています。MAU推移のうち「2025年10月に6.5億人」「2026年2月に7.5億人」は出所を確認できなかったため落としました。</li>
+        <li><b>参考文献セクションを新設しました。</b>各出典に確度ラベル(一次資料 / 未確認 / 自分の実測)を付けています。</li>
+      </ul>
+    </article>
+
     <article class="item">
       <h3>2026年8月14日 — リンク切れを1件直しました</h3>
       <ul class="points">
-        <li><b>「Geminiアプリ月間10億人」の出典を差し替えました。</b>掲載していたTechCrunchのURLが404になっていたため、Google公式ブログの発表ページに変更しました。内容(2026年8月11日に10億人到達)は公式で確認済みです。</li>
+        <li><b>「Geminiアプリ月間10億人」の出典を差し替えました。</b>掲載していたTechCrunchのURLが404になっていたため、Google公式ブログの発表ページに変更しました。<b>追記(8月15日):</b> 本家TechCrunchの当該記事(<code>/2026/08/11/googles-gemini-app-surges-to-one-billion-users/</code>)は現在HTTP 200で生存しており、当時どのURLが404だったのかを特定できませんでした。現在は公式ブログとTechCrunchの両方を出典に載せています。</li>
       </ul>
     </article>
   </section>
 
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の確認作業だけに基づいています。<mark>読んでいない資料は引用しません。</mark>取得できなかった資料は「未確認」として、なぜ読めなかったかも書いています。</p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Auto mode is now the default in Claude Code for Pro, Max, and Team plans」<i>Claude Blog</i>, 2026年8月7日.
+          <span class="note">参照箇所: 分類器の対象(irreversible / destructive / aimed outside your environment)、フォールバック条件(three blocks in a row, or twenty across a session)、"effective today" の課金廃止、ピン留め・managed settingsの扱い、Apollo Research と Trajectory Labs の検証条件、1,053人の対照実験(13.6% vs 89%)、「Making auto mode even safer」章の4機能。本文中の英文引用は原文のまま。</span>
+          <a href="https://claude.com/blog/auto-mode-default-in-claude-code">https://claude.com/blog/auto-mode-default-in-claude-code</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          xAI「Introducing Grok 4.6」<i>x.ai/news</i>, 2026年8月12日.
+          <span class="note">参照箇所: Evals表(AA Intelligence Index: Grok 4.6 High 61 / Grok 4.5 High 56 / GPT-5.6 Sol Max 61 / Fable 5 Max 62、GDPVal-AA v2 1753)、および表下の注記「他社スコアは自己申告または公開結果の最良値」、学習手法の記述、fast variant は2倍という価格記述。</span>
+          <a href="https://x.ai/news/grok-4-6">https://x.ai/news/grok-4-6</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          xAI「Release Notes — August 12: Grok 4.6」<i>SpaceXAI Docs</i>.
+          <span class="note">参照箇所: 500kコンテキスト、テキスト＋画像入力・テキストのみ出力、出力長制限なし、価格 $2 / $0.50 / $6(20万プロンプトトークン以下)と $4 / $1 / $12(超過時)。パラメータ数の記載が<b>ない</b>ことの確認にも使用。</span>
+          <a href="https://docs.x.ai/developers/release-notes">https://docs.x.ai/developers/release-notes</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Pricing」<i>Claude Docs</i>.
+          <span class="note">参照箇所: Claude Opus 4.8 の出力価格 $25 / MTok。図版と3行まとめの比較値の根拠。</span>
+          <a href="https://docs.claude.com/en/docs/about-claude/pricing">https://docs.claude.com/en/docs/about-claude/pricing</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          OpenAI「GPT-5.6 Sol」<i>OpenAI Platform Docs</i>.
+          <span class="note">参照箇所: Input $5 / Cached input $0.50 / Output $30.00。図版と3行まとめの比較値の根拠。</span>
+          <a href="https://platform.openai.com/docs/models/gpt-5.6-sol">https://platform.openai.com/docs/models/gpt-5.6-sol</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Qwen「Qwen3.8-2.4T-A95B」<i>Hugging Face モデルカード</i>および同リポジトリの <code>LICENSE</code>.
+          <span class="note">参照箇所: モデルカードの Model Overview(2.4T総パラメータ / 95B活性、92層、512エキスパート、活性10ルーテッド＋1共有、コンテキスト262,144〜1,010,000)、API Usage節の「text-only、thinkingは無効化できない」、冒頭Tipの「Qwen3.8-MaxはQwen3.8-2.4T-A95Bをベースに視覚入力・非thinking・既定1M・内蔵ツールを足した公式版」。LICENSEは第1条(1億MAU / 月商2000万ドル超でのモデル名表示)と第2条(MaaS / AI Work Assistant事業かつ12か月売上5000万ドル超で別途ライセンス、社内利用は除外)、および両用語の定義。</span>
+          <a href="https://huggingface.co/Qwen/Qwen3.8-2.4T-A95B">https://huggingface.co/Qwen/Qwen3.8-2.4T-A95B</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Meta Superintelligence Labs「Introducing Muse Glimmer: An Open Agentic Model That Runs on Your Device」<i>Meta AI Research Blog</i>.
+          <span class="note">参照箇所: 300億パラメータ / Apache 2.0、「Muse Spark の出力への logit distillation」(バージョン番号の記載が<b>ない</b>ことも確認)、フル精度55GB超→4bit相当で20GB未満、24GB / 32GBの枠、DFlashベースdrafterと投機的デコーディング、MacBook M4-Max・M5-Max・RTX 5090での計測、"Optimized integrations on llama.cpp, MLX, and ExecuTorch will land in the coming days"、"In the coming days, run it locally through partners like Ollama, LM Studio, and Unsloth…"、"strong performance … compared with leading models in its size category"、"with or without an internet connection"。本文中に privacy の語が出てこないことも全文取得のうえ確認。</span>
+          <a href="https://research.meta.ai/blog/introducing-muse-glimmer-open-agentic-model">https://research.meta.ai/blog/introducing-muse-glimmer-open-agentic-model</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「More than 1 billion people are using the Gemini app every month.」<i>The Keyword (blog.google)</i>, 2026年8月11日.
+          <span class="note">参照箇所: 10億人突破と「fastest-growing product in Google's history」、音声63%、Gemini Liveの5分の1がカメラ・画面共有、1日1.5億枚超の画像生成、iOSアクティブ1億人超。「14番目」「MAU推移」の記載が<b>ない</b>ことの確認にも使用。</span>
+          <a href="https://blog.google/innovation-and-ai/products/gemini-app/one-billion-monthly-users/">https://blog.google/innovation-and-ai/products/gemini-app/one-billion-monthly-users/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Chad Richard「Yelp Brings Reservations and Waitlist to ChatGPT」<i>Yelp Official Blog</i>, 2026年8月10日.
+          <span class="note">参照箇所: Yelp Reservations と Waitlist の ChatGPT 統合、"thousands of top restaurants across the U.S. and Canada"、"Once booked, users can make changes to their reservations directly through Yelp"、Morning Consult調査の65%。</span>
+          <a href="https://blog.yelp.com/news/yelp-chatgpt-integration/">https://blog.yelp.com/news/yelp-chatgpt-integration/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Manus「A Note to Our Users」<i>Manus Blog</i>, 2026年8月11日.
+          <span class="note">参照箇所: 2025年12月29日以降のデータ削除、バックアップ期限 7:59 a.m. SGT (Aug 23)、削除 8:00 a.m. SGT (Aug 23) 〜 Aug 24、復元 8:00 a.m. SGT (Aug 25)、Apple ID / Facebook登録者はアプリ内通知を見ること、8月11〜23日(SGT)は課金しないこと、FAQの「Metaからの分離の一部」「セキュリティ事故ではない」「データは米国とシンガポールに保管」。日本時間への換算(SGT=UTC+8, JST=UTC+9)は筆者による計算です。</span>
+          <a href="https://manus.im/blog/a-note-to-our-users">https://manus.im/blog/a-note-to-our-users</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Sarah Perez「Microsoft kills off unsuccessful AI features while merging its separate Copilot apps」<i>TechCrunch</i>, 2026年8月13日.
+          <span class="note">Microsoft公式サポートページの本文には到達できていないため、報道としての扱いですが、"the right to exist" 引用の伝聞構造を確認するための出どころ本体として全文を取得しました。参照箇所: 8月18日までに失われる機能の列挙、"a simpler, more cohesive experience"、The Information経由のJacob Andreou発言、移行中の一時的な機能消失とOneDriveへのファイル移行。</span>
+          <a href="https://techcrunch.com/2026/08/13/microsoft-kills-off-unsuccessful-ai-features-while-merging-its-separate-copilot-apps/">https://techcrunch.com/2026/08/13/microsoft-kills-off-unsuccessful-ai-features-while-merging-its-separate-copilot-apps/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Reuters / AP / WSJ / Fortune / CNBC によるManus買収巻き戻しの各報道.
+          <span class="note">いずれも本文を取得できませんでした(CNBCはHTTP 403)。記事中のNDRC・買収額・2021年施行規則の記述は、これらを引いた二次まとめ <a href="https://letsdatascience.com/news/china-orders-unwinding-of-metas-manus-acquisition-01b797d6">Let's Data Science</a> 経由の孫引きです。初出時にあった「29億ドル」という数字はどの資料でも確認できず、削除しました。「テンセントが筆頭株主になる可能性」も出典に到達できず削除しています。</span>
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          OpenAI公式のレストラン予約に関する告知.
+          <span class="note">help.openai.com の該当記事と openai.com のリリースノートはいずれもHTTP 403で本文を取得できませんでした。したがってOpenTable・Resyとの提携、対象プラン、対応エリアはこの記事では断定していません。<a href="https://www.androidauthority.com/chatgpt-restaurant-reservations-and-waitlists-3696712/">Android Authority</a> は全文を読んだうえで、OpenTable・Resy提携の記述のみ報道として引用しています。</span>
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          basenor.com「xAI launches Grok 4.6…」<i>Shopifyストアのニュース欄</i>.
+          <span class="note">初出時に出典としていましたが、通販サイトのブログ欄であり一次資料ではないため、リンクごと外しました。同サイトにしか根拠がなかった「1.5兆パラメータ」「約22分の連続稼働」「Grok 4.7 / Grok 5の予定」も本文から削除しています。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          出典URLの生存確認とライセンス確認。2026年8月15日、<code>curl</code> で各URLを取得しHTTPステータスと本文を確認。
+          <span class="note">HTTP 200: claude.com / research.meta.ai / huggingface.co / docs.x.ai / x.ai / blog.google / techcrunch.com / 9to5google.com / blog.yelp.com / manus.im / docs.claude.com / platform.openai.com。HTTP 403で本文取得不可: cnbc.com / help.openai.com / openai.com。また <code>https://huggingface.co/api/models/Qwen/Qwen3.8-27B</code> を取得し、同時期の小型Qwenのライセンスが <code>apache-2.0</code> のままであることを確認しました。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「Manusの項目はこの記事で唯一、読者が期限までに手を動かす必要がある」という位置づけ、および各項目の確度タグの付け方。
+          <span class="note">標準や規格ではなく、編集上の判断です。「一次資料で裏が取れた主張だけに ✓ 公式確認済 を付ける」という基準で付け直しました。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
   <footer class="article-foot">
-    <div>生成: 2026年8月14日 JST</div>
+    <div>生成: 2026年8月14日 JST / 一次資料に当たり直して訂正: 2026年8月15日 JST</div>
     <div><a href="../../">← ホームに戻る</a></div>
   </footer>
 

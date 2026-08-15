@@ -21,5 +21,5 @@
   <rect x="160" y="208" width="400" height="18" rx="4" fill="var(--track)"/>
   <rect x="160" y="208" width="122" height="18" rx="4" fill="var(--new)"/>
   <text x="292" y="222" font-size="12.5" font-weight="700" fill="var(--fg)">30.4%</text>
-  <text x="8" y="246" font-size="12.5" fill="var(--sub)">バーは0〜100%スケール。3項目とも2桁ポイントの改善</text>
+  <text x="8" y="246" font-size="12.5" fill="var(--sub)">0〜100%スケール。DeepSWE +16.3pt / AutomationBench +13.4pt / FrontierCode +9.2pt</text>
 </svg>

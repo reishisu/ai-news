@@ -1,0 +1,917 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lockがあるのに揃わない。npmが固定していない4つ</title>
+<meta name="description" content="package-lock.json は何を固定して、何を固定していないのか。lockに registry.npmjs.org と書いてあるのに別のサーバーから取ってきた実測、npm ci が package.json を読んでいる証拠、npm 12 で壊れた前提まで。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="lockがあるのに揃わない。npmが固定していない4つ">
+<meta property="og:description" content="lockに書いてあるURLからは取ってこない。実測で確かめた「固定したつもり」の穴。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-14_lockfile/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=19bddda4">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">Web開発・インフラ ｜ 2026年8月14日(金)</div>
+    <h1>lockがあるのに揃わない。npmが固定していない4つ</h1>
+    <div class="range">package-lock.json を14通りの方法でいじめて、何が固定されて何が固定されていないかを測りました。ログは加工していません。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約11分</span>
+      <span class="tag">実測ログ全部載せ</span>
+      <span class="tag">npm 10 と npm 12 で比較</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <p class="lead">「自分の環境では動くのに、CI（自動でテストや公開をするサーバー）だと落ちる」。この定番の事故を、<mark>ロックファイルがあっても起きる形で再現しました。</mark></p>
+    <ol>
+      <li>
+        <b>lockは「中身のバイト列」を固定するが、「どこから取ってくるか」は固定しない</b>
+        <span>lockには <code>registry.npmjs.org</code> と書いてあるのに、7個すべてを手元の別サーバーから取ってきて、警告ゼロで成功しました。</span>
+      </li>
+      <li>
+        <b>「npm install は package.json を見る／npm ci は lock を見る」は嘘</b>
+        <span>npm ci は package.json を読んでいます。読んだ上で lock と答え合わせして、合わなければ落ちています。</span>
+      </li>
+      <li>
+        <b>2026年7月、npm 12 が前提を壊した</b>
+        <span>npm-shrinkwrap.json が黙って無視されるようになりました。<code>npm ci</code> なら止まりますが、<code>npm install</code> だと何も言わずに別のバージョンが入ります。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">同じ package.json から、別のツリーが生えた</a></li>
+      <li><a href="#s2">「installはpackage.json、ciはlock」は嘘</a></li>
+      <li><a href="#s3">lockに書いてあるURLからは取ってこない</a></li>
+      <li><a href="#s4">lockを揃えても、lockの外が揃っていない</a></li>
+      <li><a href="#s5">2026年7月、npm 12 が前提を壊した</a></li>
+      <li><a href="#s6">「全部ピン留めしろ」は査読論文に否定されている</a></li>
+      <li><a href="#s7">今日やること</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>同じ package.json から、別のツリーが生えた</h2>
+
+    <article class="item">
+      <h3>直接書いた依存は1個。勝手に変わったのは4箇所</h3>
+      <p class="lead"><code>package.json</code> は「このライブラリの、このくらいのバージョンなら何でもいい」という<mark>幅の宣言</mark>です。実際に何が入るかは、インストールした瞬間に決まります。</p>
+      <p class="lead">その「瞬間」の違いだけで結果がどう変わるか。<code>chalk: ^4.0.0</code> だけを書いた <code>package.json</code> で測りました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（2026年8月15日 UTC 実測 / npm 10.9.7）</div>
+        <pre>== A: 2020-05-01 時点 ==
+@types/color-name  1.1.1
+ansi-styles        4.2.1
+chalk              4.0.0
+color-convert      2.0.1
+color-name         1.1.4
+has-flag           4.0.0
+supports-color     7.1.0
+== B: 今日 ==
+ansi-styles        4.3.0
+chalk              4.1.2
+color-convert      2.0.1
+color-name         1.1.4
+has-flag           4.0.0
+supports-color     7.2.0</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>入る個数まで変わりました。</b>7個 → 6個。<code>@types/color-name</code> が消えたのは、<code>ansi-styles</code> が 4.3.0 で依存をやめたからです。</li>
+        <li><b>自分で書いた行は1行だけ。</b>なのに変わった箇所は4つ。<code>chalk</code>、<code>ansi-styles</code>、<code>supports-color</code>、そして消えた1個。</li>
+        <li><b>「時期の違い」は <code>--before</code> で作りました。</b><code>npm install --before=2020-05-01</code> は、その日以前に公開されたバージョンだけで解決します。別マシンを用意しなくても差を作れます。</li>
+      </ul>
+
+      <p class="lead">では lock があるとどうなるか。<mark>2020年5月時点で作った lock を、今日そのまま <code>npm ci</code> にかけました。</mark></p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（6年前のlockを今日 npm ci）</div>
+        <pre><span class="ok-line">@types/color-name  1.1.1</span>
+<span class="ok-line">ansi-styles        4.2.1</span>
+<span class="ok-line">chalk              4.0.0</span>
+<span class="ok-line">color-convert      2.0.1</span>
+<span class="ok-line">color-name         1.1.4</span>
+<span class="ok-line">has-flag           4.0.0</span>
+<span class="ok-line">supports-color     7.1.0</span></pre>
+      </div>
+
+      <p class="lead">上のAと1行も違いません。<code>npm ci</code> は「今が何年何月か」を一切見ていません。</p>
+
+      <details>
+        <summary>そもそも、なぜ lock が必要なのか</summary>
+        <div class="body">
+          <dl>
+            <dt>「同じ範囲なら同じ結果になる」わけではない</dt>
+            <dd>Yarn の公式ドキュメントは、インストールの Resolution 段階についてこう書いています。<code>The exact way a dependency version is privileged over another isn't standardized outside of the regular semver guarantees.</code>（どの依存バージョンが他より優先されるかの正確な方法は、通常の semver の保証を超えては標準化されていない）。つまり、同じ <code>package.json</code>・同じレジストリでも、解決するツールが違えば結果が変わりえます。</dd>
+            <dt>lock の目的は3つ</dt>
+            <dd>7つのパッケージマネージャを横断した論文（Gamage ほか、EMSE 2026）の抄録は、lock の役割を「ビルド時間の短縮」「取得したパッケージの完全性の検証」「環境と時間をまたいだ再現性の担保」と整理しています。<b>今回読めたのは抄録だけ</b>なので、本文の比較表の内容には触れません。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>「installはpackage.json、ciはlock」は嘘</h2>
+
+    <article class="item">
+      <h3>npm install も lock に従う。lockは1バイトも書き換わらなかった</h3>
+      <p class="lead">よく見る説明はこうです。「<code>npm install</code> は最新の適合バージョンを入れて lock を書き換える。<code>npm ci</code> は lock だけを見る」。</p>
+      <p class="lead"><mark>両方とも間違いです。</mark>まず前半から測ります。lock には <code>chalk 4.0.0</code>、<code>package.json</code> には <code>^4.0.0</code>。<code>chalk 4.1.2</code> がすでに公開されている状態で <code>npm install</code> しました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（lockが範囲を満たしている状態で npm install）</div>
+        <pre>@types/color-name  1.1.1
+ansi-styles        4.2.1
+<span class="ok-line">chalk              4.0.0</span>
+color-convert      2.0.1
+color-name         1.1.4
+has-flag           4.0.0
+supports-color     7.1.0
+package-lock.json は変化なし</pre>
+      </div>
+
+      <p class="lead">4.1.2 は入りませんでした。lock は1バイトも書き換わっていません。公式ドキュメントに、そう書いてあります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">npm Docs「npm-install」— How npm install uses package-lock.json</div>
+        <pre>In essence, package-lock.json locks your dependencies to
+specific versions, but package.json is the source of truth
+for acceptable version ranges. When the lockfile's versions
+satisfy the package.json ranges, the lockfile wins. When
+they conflict, package.json wins and the lockfile is
+updated.
+
+（要するに package-lock.json は依存を特定バージョンに固定
+　するが、「許容される範囲」の真実の源は package.json で
+　ある。lock のバージョンが範囲を満たしているときは lock
+　が勝つ。衝突するときは package.json が勝ち、lock が更新
+　される）</pre>
+      </div>
+
+      <figure>
+        <picture>
+          <source srcset="images/ci-branch-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/ci-branch.png" alt="lockが範囲を満たしていればinstallもciも同じ結果になり、両者が分かれるのはズレたときだけ。installは書き換えて進み、ciは落ちる。" loading="lazy">
+        </picture>
+        <figcaption>「installはpackage.json、ciはlock」ではなく、ズレたときに直すか落ちるかの差。</figcaption>
+      </figure>
+    </article>
+
+    <article class="item">
+      <h3>npm ci は package.json を読んでいる。読んだ上で落としている</h3>
+      <p class="lead">次に後半。lock は <code>chalk 4.0.0</code> のまま、<code>package.json</code> だけ <code>^4.0.0</code> → <code>^5.0.0</code> に変えて <code>npm ci</code> しました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（package.jsonだけ動かして npm ci / npm 10.9.7）</div>
+        <pre><span class="ng-line">npm error code EUSAGE</span>
+npm error `npm ci` can only install
+packages when your package.json and
+package-lock.json or
+npm-shrinkwrap.json are in sync.
+Please update your lock file with
+`npm install` before continuing.
+<span class="ng-line">npm error Invalid: lock file's </span>
+<span class="ng-line">chalk@4.0.0 does not satisfy </span>
+<span class="ng-line">chalk@5.6.2</span>
+落ちた後も node_modules は残る:
+4.0.0</pre>
+      </div>
+
+      <p class="lead"><code>chalk@5.6.2</code> という数字は、lock のどこにも書かれていません。<mark>npm ci が package.json の <code>^5.0.0</code> からいま解決した結果です。</mark></p>
+
+      <p class="lead">npm CLI 12.0.2 のソースに、何をしているかが書いてあります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">npm/cli — lib/utils/validate-lockfile.js（原文コメント）</div>
+        <pre>// compares the inventory of package items in the tree
+// that is about to be installed (idealTree) with the inventory
+// of items stored in the package-lock file (virtualTree)
+
+（これからインストールしようとしているツリー(idealTree)の
+　構成品目を、package-lock に保存されている品目
+　(virtualTree)と比較する）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>npm ci は package.json から「理想のツリー」を作り直します。</b>それを lock 由来のツリーと突き合わせ、食い違ったら落とす。バイパスではなく<mark>答え合わせ</mark>です。</li>
+        <li><b>エラー文言も同じファイルの中にあります。</b>バージョン違いは <code>Invalid:</code>、lockへの追加忘れは <code>Missing:</code> と分かれています。</li>
+      </ul>
+
+      <div class="code term">
+        <div class="code-head">実行結果（package.jsonに ms を足して lock を放置 / npm 10.9.7）</div>
+        <pre><span class="ng-line">npm error Missing: ms@2.1.3 from lock </span>
+<span class="ng-line">file</span></pre>
+      </div>
+
+      <p class="lead">では、この「lockだけを見る」という説明はどこから来たのか。<mark>npm 自身の告知が出どころです。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">npm Blog「Introducing `npm ci`」2018年3月5日 — 原文</div>
+        <pre>npm ci bypasses a package's package.json to install modules
+from a package's lockfile. This ensures reproducible builds
+—you are getting exactly what you expect on every install.
+
+（npm ci はパッケージの package.json をバイパスして、
+　lockfile からモジュールをインストールする）</pre>
+      </div>
+
+      <p class="lead">2018年の一文です。このページは<mark>今も HTTP 200 で生きています</mark>（2026年8月14日確認）。8年前の説明が、現在の実装と真逆のまま引用され続けています。</p>
+
+      <div class="quiz">
+        <p class="q">Q. <code>npm ci</code> が「lockとpackage.jsonがズレている」で落ちたとき、<code>node_modules</code> はどうなっている?</p>
+        <button class="opt" type="button" data-correct="false">先に全部消されているので空になっている</button>
+        <button class="opt" type="button" data-correct="true">消されずに、前の状態のまま残っている</button>
+        <button class="opt" type="button" data-correct="false">半分だけ消えた中途半端な状態になる</button>
+        <p class="ans" hidden>正解。公式ドキュメントは「node_modules があれば npm ci が始まる前に自動で削除される」と書いているので、「まず全消しする」と読んだ人は1番を選びます。ですが実装（lib/commands/ci.js）のコメントは <code>Only remove node_modules after we've successfully loaded the virtual tree and validated the lockfile</code>（仮想ツリーの読み込みとlockの検証に成功したあとでのみ node_modules を削除する）。上の実測でも、落ちた後に <code>node_modules/chalk</code> の 4.0.0 がそのまま残っていました。つまり <b>npm ci の失敗は、壊れかけの node_modules を作りません</b>。逆に、検証に通ったときは本当に消えます（node_modules に置いたマーカーファイルが消えることを確認済み）。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="section section-c" id="s3">
+    <h2><span class="step">3</span>lockに書いてあるURLからは取ってこない</h2>
+
+    <article class="item">
+      <h3>lockは registry.npmjs.org と言っている。実際は 127.0.0.1 から7個取ってきた</h3>
+      <p class="lead"><code>package-lock.json</code> を開くと、各パッケージに <code>resolved</code> という項目があります。<code>https://registry.npmjs.org/chalk/-/chalk-4.0.0.tgz</code> のようなURLです。<mark>ここから取ってくる、と思いますよね。</mark></p>
+      <p class="lead">手元にニセのレジストリを立てて、<code>.npmrc</code> の1行だけ差し替えて測りました。lock は<b>1文字も変えていません</b>。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（registry設定だけ 127.0.0.1:8871 に差し替え / npm 10.9.7）</div>
+        <pre><span class="ok-line">added 7 packages in 313ms</span>
+-- lock に書いてある取得元 --
+https://registry.npmjs.org/chalk/-/cha
+lk-4.0.0.tgz
+-- 実際に取りに来た先 --
+/@types/color-name/-/color-name-1.1.1.
+tgz
+/ansi-styles/-/ansi-styles-4.2.1.tgz
+/chalk/-/chalk-4.0.0.tgz
+/color-convert/-/color-convert-2.0.1.t
+gz
+/color-name/-/color-name-1.1.4.tgz
+/has-flag/-/has-flag-4.0.0.tgz
+/npm
+/supports-color/-/supports-color-7.1.0
+.tgz</pre>
+      </div>
+
+      <p class="lead">7個すべてが手元のサーバーから来ました。<mark>警告は1つも出ていません。</mark>（ログの <code>/npm</code> は npm 自身の更新チェックです。）</p>
+
+      <p class="lead">これは事故ではなく仕様です。公式ドキュメントが明言しています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">npm Docs「package-lock.json」File Format — 原文</div>
+        <pre>resolved: The place where the package was actually resolved
+from. In the case of packages fetched from the registry, this
+will be a url to a tarball. [...] registry.npmjs.org is a
+magic value meaning "the currently configured registry".
+
+（resolved はパッケージが実際に解決された場所。
+　[...] registry.npmjs.org は「現在設定されている
+　レジストリ」を意味するマジックバリューである）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>lockのURLは、取得先の固定ではありません。</b>「今の設定先」を指す合言葉です。社内ミラーやプロキシに向けたら、そちらから来ます。</li>
+        <li><b>npm には <code>omit-lockfile-registry-resolved</code> という設定まであります。</b>公式ドキュメントいわく、<code>resolved</code> キーを書かない lock を作る設定です。<code>resolved</code> がそもそも取り外し可能な情報だという裏付けになっています。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <h3>取得元は固定されないが、中身は固定される</h3>
+      <p class="lead">では取り放題かというと違います。同じミラーの <code>chalk</code> だけを、中身の違う自作 tarball にすり替えて測りました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（ミラーの中身をすり替えた）</div>
+        <pre><span class="ng-line">npm error code EINTEGRITY</span>
+npm error
+sha512-N9oWFcegS0sFr9oh1oz2d7Npos6vNoW
+W9HvtCg5N1KRFpUhaAhvTv5Y58g880fZaEYSNm
+3qDz8SU1UrGvp+n7A== integrity
+checksum failed when using sha512:
+wanted
+sha512-N9oWFcegS0sFr9oh1oz2d7Npos6vNoW
+W9HvtCg5N1KRFpUhaAhvTv5Y58g880fZaEYSNm
+3qDz8SU1UrGvp+n7A== but got
+sha512-3Buy+ma+qcv/chFRn/+dn4ns+4d0IU4
+Rg19Dn5ZnyOV9Wba3SjWEiJG9nYgdg2643O9lt
+pd+rAZB5NhIlNlb4w==. (291 bytes)</pre>
+      </div>
+
+      <p class="lead">lock の <code>integrity</code> が効きました。この <code>sha512-</code> という書式は npm 独自のものではありません。公式ドキュメントは <code>integrity</code> を「Standard Subresource Integrity string」と説明し、定義を W3C の規格に外注しています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">W3C「Subresource Integrity」Working Draft, 2026年3月20日 — 原文</div>
+        <pre>This specification defines a mechanism by which user agents
+may verify that a fetched resource has been delivered
+without unexpected manipulation.
+
+（この仕様は、取得したリソースが予期しない改変を受けずに
+　配送されたことをユーザエージェントが検証できる仕組みを
+　定義する）</pre>
+      </div>
+
+      <p class="lead">つまり <mark>lock が守っているのは「バイト列」であって、「どこから来たか」ではありません。</mark></p>
+
+      <figure>
+        <picture>
+          <source srcset="images/lock-scope-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/lock-scope.png" alt="lockが固定するのはツリーの形・バージョン・中身のバイト列だけで、取得元・スクリプトの実行・生成時のフラグ・npmのバージョンは固定していない。" loading="lazy">
+        </picture>
+        <figcaption>右の4つは、lockを1文字も変えずに結果が変わったもの。すべて本文で実測しています。</figcaption>
+      </figure>
+
+      <details>
+        <summary>この穴を、別の実装は明示的に塞いでいます</summary>
+        <div class="body">
+          <dl>
+            <dt>pnpm はレジストリ名込みでキーを書くようにした</dt>
+            <dd>pnpm の公式ドキュメントにこうあります。<code>Since v11.20.0, pnpm records those packages in the lockfile under registry-qualified keys (&lt;name&gt;@&lt;registryName&gt;:&lt;version&gt;), so a package cannot be quietly substituted by another registry that publishes the same name and version.</code>（v11.20.0 以降、pnpm はそれらのパッケージをレジストリ修飾キーで lock に記録する。これにより、同じ名前とバージョンを公開する別のレジストリによってパッケージが静かにすり替えられることがなくなる）。「lockがレジストリを固定していない」という認識が、別実装の設計変更として文書に残っています。</dd>
+            <dt>ただし npm でも中身のすり替えは検知されます</dt>
+            <dd>上の <code>EINTEGRITY</code> のとおりです。危ないのは「同じ名前・同じバージョンで、中身も含めて別物を正規に公開しているレジストリ」に向いてしまった場合です。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="section section-a" id="s4">
+    <h2><span class="step">4</span>lockを揃えても、lockの外が揃っていない</h2>
+
+    <article class="item">
+      <h3>同じlockで npm ci した2台。片方だけファイルが増えた</h3>
+      <p class="lead">インストール時にコードを走らせるパッケージがあります（<code>postinstall</code> など）。lock はこれを記録しています。ただし<mark>記録しているのは「持っている」という事実だけ</mark>です。</p>
+      <p class="lead"><code>postinstall</code> で <code>ran.txt</code> を作るだけの自作パッケージを依存にして、<b>まったく同じ lock</b> を npm 10 と npm 12 の両方で <code>npm ci</code> しました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（同じlock / npm 10.9.7 と npm 12.0.2）</div>
+        <pre>-- lock のエントリ --
+hasInstallScript: true
+-- npm 10 で ci --
+<span class="ok-line">ran.txt: できた</span>
+-- npm 12 で ci (同じ lock) --
+npm warn install-scripts 1 package
+had install scripts blocked because
+they are not covered by allowScripts:
+npm warn install-scripts
+hello-dep@1.0.0 (postinstall: node -e
+"require('fs').writeFileSync(process.e
+nv.INIT_CWD+'/ran.txt','ran')")
+<span class="ng-line">ran.txt: できない</span></pre>
+      </div>
+
+      <p class="lead">lock は同じ。入るパッケージも同じ。<mark>それでもディスクの中身が違います。</mark></p>
+
+      <p class="lead">これは npm 12.0.0（2026年7月8日）の破壊的変更です。</p>
+
+      <div class="code wrap">
+        <div class="code-head">npm/cli CHANGELOG v12.0.0 — BREAKING CHANGES</div>
+        <pre>Dependency lifecycle scripts are now blocked by default
+unless allowed by the root package's `allowScripts` policy.
+After installing, run `npm install-scripts approve` to record
+approvals and `npm rebuild` to execute newly approved
+scripts.
+
+（依存の lifecycle スクリプトは、ルートパッケージの
+　allowScripts ポリシーで許可されない限り既定でブロック
+　されるようになった）</pre>
+      </div>
+
+      <p class="lead">では、許可はどこに保存されるのか。<code>esbuild</code> で測りました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（npm 12 で install-scripts approve）</div>
+        <pre>-- approve --
+Approved esbuild:
+  added esbuild@0.21.5
+-- 許可は package.json に書かれる --
+<span class="ok-line">{"esbuild@0.21.5":true}</span>
+-- lock 側に allowScripts はあるか --
+<span class="ng-line">lock: false</span>
+-- 0.23.0 に上げると再びブロックされる --
+npm warn install-scripts
+esbuild@0.23.0 (postinstall: node
+install.js)</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>許可は lock ではなく <code>package.json</code> に書かれます。</b>しかも <code>esbuild@0.21.5</code> とバージョン込みのキーで。</li>
+        <li><b>バージョンを上げると許可が外れます。</b>公式ドキュメントいわく、既定は「あなたがレビューした特定バージョンに限定」する形。<code>--no-allow-scripts-pin</code> を付ければ名前だけのエントリになります。</li>
+        <li><b>これは「第二のロック」です。</b>バージョンの固定（lock）とは別に、実行許可の固定を <code>package.json</code> 側に置いた形になっています。</li>
+      </ul>
+
+      <details>
+        <summary>なぜ 2026年に npm がここまでやったのか</summary>
+        <div class="body">
+          <dl>
+            <dt>GitHub 自身の説明</dt>
+            <dd>GitHub Security Lab の記事（2025年9月22日）は、<code>On September 14, 2025, we were notified of the Shai-Hulud attack, a self-replicating worm that infiltrated the npm ecosystem via compromised maintainer accounts by injecting malicious post-install scripts into popular JavaScript packages.</code> と書き、対応として「500以上の侵害パッケージを npm レジストリから即時削除した」と述べています。攻撃の入口が post-install スクリプトだったという点が、上の既定ブロックとつながります。<b>この記事の技術的詳細を独立に検証してはいない</b>ので、ここでは「GitHub がそう説明している」以上のことは言いません。</dd>
+            <dt>pnpm が先行していた</dt>
+            <dd>pnpm の公式ドキュメントは <code>To mitigate this, pnpm v10 disables the automatic execution of postinstall scripts in dependencies.</code> と書いています。npm 12 はこの設計に追随した形です。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <h3>lockは「自分がどのフラグで作られたか」を覚えていない</h3>
+      <p class="lead">もう1つ、lock の外にある状態があります。<mark>lock を作ったときのコマンドのオプション</mark>です。</p>
+      <p class="lead">peer 依存が衝突する小さなパッケージを自作して、<code>--legacy-peer-deps</code> 付きで lock を作り、CIを想定してフラグ無しで <code>npm ci</code> しました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（フラグ付きで作ったlockを、フラグ無しでci / npm 10.9.7）</div>
+        <pre>-- 素の install --
+npm error code ERESOLVE
+-- --legacy-peer-deps 付き --
+
+added 2 packages in 268ms
+-- その lock でフラグ無し ci --
+<span class="ng-line">npm error code ETARGET</span>
+<span class="ng-line">npm error notarget No matching </span>
+<span class="ng-line">version found for libx@^1.0.0.</span>
+-- 同じフラグを付けた ci --
+<span class="ok-line">added 2 packages in 240ms</span></pre>
+      </div>
+
+      <p class="lead">エラーは <code>ETARGET</code>。<mark>「<code>libx@^1.0.0</code> が見つからない」という、まったく別件に見える文面です。</mark>ここから <code>--legacy-peer-deps</code> にたどり着ける人は少ないと思います。</p>
+
+      <p class="lead">公式ドキュメントには注意書きがあります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">npm Docs「npm-ci」— NOTE</div>
+        <pre>If you create your package-lock.json file by running npm
+install with flags that can affect the shape of your
+dependency tree, such as --legacy-peer-deps or
+--install-links, you must provide the same flags to npm ci
+or you are likely to encounter errors.
+
+（依存ツリーの形に影響するフラグ付きで npm install して
+　package-lock.json を作った場合、npm ci にも同じフラグを
+　渡さなければならない。さもないとエラーになる可能性が
+　高い）</pre>
+      </div>
+
+      <p class="lead">「自分の環境では動く」の正体が、ここにもあります。<b>手元のシェル履歴にだけ残っていて、リポジトリには残っていない情報。</b></p>
+    </article>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="section section-b" id="s5">
+    <h2><span class="step">5</span>2026年7月、npm 12 が前提を壊した</h2>
+
+    <article class="item">
+      <h3>npm-shrinkwrap.json が、警告なしで無視されるようになった</h3>
+      <p class="lead"><code>npm-shrinkwrap.json</code> は、lock をライブラリとして配布するときに使う仕組みでした。npm 12.0.0 で廃止されています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">npm/cli CHANGELOG v12.0.0（2026年7月8日）— BREAKING CHANGES</div>
+        <pre>`npm shrinkwrap` is removed, the `shrinkwrap` config alias is
+removed, and `npm-shrinkwrap.json` is no longer loaded or
+honored at the project root or from inside dependency
+tarballs. Rename project-root `npm-shrinkwrap.json` to
+`package-lock.json`; use `bundleDependencies` if you need to
+ship a locked dependency tree.
+
+（npm shrinkwrap は削除され、npm-shrinkwrap.json は
+　プロジェクトルートでも依存の tarball の中でも、
+　もはや読み込まれず尊重されない）</pre>
+      </div>
+
+      <p class="lead">エラーメッセージにも出ています。lock を置かずに <code>npm ci</code> したときの文面を、両方のバージョンで並べました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（lockが無い状態で npm ci）</div>
+        <pre>-- npm 10 --
+npm error The `npm ci` command can
+only install with an existing
+package-lock.json or
+<span class="ng-line">npm error npm-shrinkwrap.json with </span>
+<span class="ng-line">lockfileVersion &gt;= 1. Run an install </span>
+with npm@5 or
+npm error later to generate a
+package-lock.json file, then try
+again.
+-- npm 12 --
+npm error The `npm ci` command can
+only install with an existing
+npm error package-lock.json with
+lockfileVersion &gt;= 1. Run an install
+with npm@5
+npm error or later to generate a
+package-lock.json file, then try
+again.</pre>
+      </div>
+
+      <p class="lead">npm 12 から「<code>or npm-shrinkwrap.json</code>」が消えています。ここまでは分かりやすい。<mark>危ないのは install のほうです。</mark></p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（npm-shrinkwrap.jsonだけを置いたリポジトリ）</div>
+        <pre>-- npm 10 で ci --
+
+added 7 packages in 281ms
+<span class="ok-line">chalk 4.0.0</span>
+-- npm 12 で ci --
+npm error code EUSAGE
+npm error The `npm ci` command can
+only install with an existing
+-- npm 12 で install --
+
+added 6 packages in 388ms
+ansi-styles        4.3.0
+<span class="ng-line">chalk              4.1.2</span>
+color-convert      2.0.1
+color-name         1.1.4
+has-flag           4.0.0
+supports-color     7.2.0
+-- 置かれたファイル --
+npm-shrinkwrap.json
+package-lock.json
+package.json</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>npm 12 の install は、<code>npm-shrinkwrap.json</code> を無視して今日のバージョンを入れました。</b>警告はありません。</li>
+        <li><b>そのうえ、隣に新しい <code>package-lock.json</code> を作りました。</b>同じディレクトリに2つのlockが並びます。</li>
+        <li><b>npm 10 なら同じディレクトリが <code>chalk 4.0.0</code> になります。</b>これがまさに「自分の環境では動く」です。</li>
+      </ul>
+
+      <p class="lead">古い説明に着地しやすい構造も残っています。<code>docs.npmjs.com</code> の v11 系ドキュメントは今も 200 で生きており、<code>npm-shrinkwrap</code> のページも読めます。v12 の同じパスは 404 です（2026年8月14日確認）。<mark>検索から古い前提に着地し続けます。</mark></p>
+    </article>
+
+    <article class="item">
+      <h3>package.json を1文字も変えていないのに、installが通らなくなる</h3>
+      <p class="lead">もう1つの破壊的変更です。CHANGELOG にはこうあります。<code>allow-git and allow-remote now default to "none"</code>（git と remote の許可が既定で「なし」になった）。</p>
+      <p class="lead">依存を tarball の URL で直接指定した <code>package.json</code> を、両方のバージョンで <code>npm install</code> しました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（tarball URL 依存）</div>
+        <pre>-- npm 10 --
+
+<span class="ok-line">added 6 packages in 302ms</span>
+-- npm 12 --
+<span class="ng-line">npm error code EALLOWREMOTE</span>
+<span class="ng-line">npm error Fetching packages of type </span>
+<span class="ng-line">"remote" have been disabled</span>
+<span class="ng-line">npm error Refusing to fetch </span>
+<span class="ng-line">"chalk@https://registry.npmjs.org/chal</span>
+<span class="ng-line">k/-/chalk-4.0.0.tgz"</span>
+</pre>
+      </div>
+
+      <p class="lead">GitHub の URL で依存を書いているリポジトリは、npm を上げた日に止まります。</p>
+
+      <div class="quiz">
+        <p class="q">Q. CIで <code>npm install</code> ではなく <code>npm ci</code> を使えと言われるのは、なぜ?</p>
+        <button class="opt" type="button" data-correct="false">npm ci のほうが必ず2倍速いから</button>
+        <button class="opt" type="button" data-correct="true">npm が、明示的に別コマンドを打たない限り凍結しないから</button>
+        <button class="opt" type="button" data-correct="false">npm install は lock を読まないから</button>
+        <p class="ans" hidden>正解。これは npm 固有の既定値の話であって、lock 一般の性質ではありません。pnpm の公式ドキュメントは <code>When pnpm detects that it is running in CI, it switches to frozen-lockfile mode automatically.</code>、Yarn は <code>If the --immutable option is set (defaults to true on CI), Yarn will abort with an error exit code if the lockfile was to be modified</code> と書いています。どちらもCIでは既定で凍結し、人間に選ばせていません。<b>1番について</b>: 出所は2018年の npm 公式告知の <code>npm ci is fast—in some cases, twice as fast as using npm i</code> です。<code>in some cases</code> という留保が、引用の過程で落ちています。今回、速度は測っていません。<b>3番について</b>: 2章のとおり、npm install も lock を読みます。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="section section-c" id="s6">
+    <h2><span class="step">6</span>「全部ピン留めしろ」は査読論文に否定されている</h2>
+
+    <article class="item">
+      <h3>直接依存を固定すると、攻撃に晒されるリスクがむしろ上がる</h3>
+      <p class="lead">ここまで読むと「範囲指定をやめて全部固定すればいい」と思うはずです。<mark>これを定量的に否定した論文があります。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">He, Vasilescu, Kästner「Pinning Is Futile」FSE 2025 — 抄録</div>
+        <pre>By simulating dependency resolutions over historical time
+points, we find that pinning direct dependencies not only
+(as expected) increases the cost of maintaining vulnerable
+and outdated dependencies, but also (surprisingly) even
+increases the risk of exposure to malicious package updates
+in larger dependency graphs due to the specifics of npm's
+dependency resolution mechanism.
+
+（過去の時点における依存解決をシミュレートした結果、直接
+　依存のピン留めは、予想どおり脆弱で古い依存を保守する
+　コストを増やすだけでなく、驚くべきことに、npm の依存
+　解決機構の特性ゆえに、大きな依存グラフではむしろ悪意
+　あるパッケージ更新に晒されるリスクを増大させる）</pre>
+      </div>
+
+      <p class="lead">理由は、自分の直接依存を固定すると解決が重複して、<b>依存グラフ全体では浮動する依存がむしろ増える</b>から、と述べられています。</p>
+
+      <p class="lead">同じ論文は、lock の限界も書いています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">同論文 5.2節 — 原文</div>
+        <pre>A lock file ensures the reproducibility of npm builds, but it
+has two limitations: (1) it is restricted to applications
+(the root of the dependency graph) whereas components used
+as dependencies cannot pass their lock decisions to
+downstream applications; [...] (2) it is not designed (hence
+very difficult) to be manually maintained, so floating
+version constraints in package.json will still cause
+automatic updates every time a lock file is generated.
+
+（lock は npm ビルドの再現性を保証するが、二つの限界が
+　ある。(1) 依存グラフの根であるアプリケーションに限定
+　され、依存として使われるコンポーネントは自身のロック
+　判断を下流に渡せない。(2) 手作業での保守を想定して
+　いないため、package.json 中の浮動バージョン制約は、
+　lock が生成されるたびに自動更新を引き起こし続ける）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>lock はアプリのためのものです。</b>ライブラリを作っている人の lock は、それを使う側には届きません。</li>
+        <li><b>lock を commit しているのは半分以下。</b>同論文は、データセット中の GitHub リポジトリの <mark>44.21%</mark> が lock をリポジトリに入れていたと報告しています。</li>
+        <li><b>独立した別チームの研究も同じ方向です。</b>Rahman ほか（ASE 2025）の抄録は <code>floating-minor is the least likely to result in vulnerable dependencies</code>（<code>^1.2.3</code> 相当が最も脆弱になりにくい）と述べています。<b>こちらは抄録のみ読了</b>で、本文は読んでいません。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <h3>ただし <code>^</code> の意味は、パッチを書くかどうかで正反対になる</h3>
+      <p class="lead">範囲指定を使うなら、<code>^</code> が実際に何を許すかは知っておく必要があります。npm の解決に使われている <code>node-semver</code> の README に脱糖規則が書いてあります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">node-semver README — Caret Ranges</div>
+        <pre>* `^1.2.3` := `&gt;=1.2.3 &lt;2.0.0-0`
+* `^0.2.3` := `&gt;=0.2.3 &lt;0.3.0-0`
+* `^0.0.3` := `&gt;=0.0.3 &lt;0.0.4-0`
+
+When parsing caret ranges, a missing `patch` value desugars
+to the number `0`, but will allow flexibility within that
+value, even if the major and minor versions are both `0`.
+
+* `^1.2.x` := `&gt;=1.2.0 &lt;2.0.0-0`
+* `^0.0.x` := `&gt;=0.0.0 &lt;0.1.0-0`</pre>
+      </div>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>書き方</th><th>許す範囲</th><th>実質</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>^1.2.3</code></td><td data-label="許す範囲">&gt;=1.2.3 &lt;2.0.0-0</td><td data-label="実質">マイナーもパッチも上がる</td></tr>
+            <tr><td><code>^0.2.3</code></td><td data-label="許す範囲">&gt;=0.2.3 &lt;0.3.0-0</td><td data-label="実質">マイナーは上がらない</td></tr>
+            <tr><td><code>^0.0.3</code></td><td data-label="許す範囲">&gt;=0.0.3 &lt;0.0.4-0</td><td data-label="実質">一切上がらない</td></tr>
+            <tr><td><code>^0.0.x</code></td><td data-label="許す範囲">&gt;=0.0.0 &lt;0.1.0-0</td><td data-label="実質">0.1.0未満を全部許す</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">同じキャレットで、<code>^0.0.3</code> は<b>一切更新を許さない</b>のに <code>^0.0.x</code> は<b>0.1.0未満を全部許す</b>。パッチ値を書くか <code>x</code> にするかで正反対です。</p>
+
+      <p class="lead">そして、この <code>^</code> は<mark>自分で選んだものではないかもしれません。</mark>npm 公式ドキュメントいわく、<code>save-prefix</code> の既定値は <code>"^"</code>。<code>npm install なにか</code> と打つたびに、キャレットが自動で書き込まれています。</p>
+
+      <details>
+        <summary>時間で守るという別の考え方</summary>
+        <div class="body">
+          <dl>
+            <dt>npm の min-release-age</dt>
+            <dd>npm 11.10.0（2026年2月11日）で追加された設定です。公式ドキュメントいわく <code>If set, npm will build the npm tree such that only versions that were available more than the given number of days ago will be installed.</code>（設定すると、指定日数より前に公開されたバージョンだけを入れる）。既定は <code>null</code>（無効）です。<b>今回この設定は動かしていません。</b></dd>
+            <dt>pnpm は既定で1日</dt>
+            <dd>pnpm の公式ドキュメントは <code>In pnpm v11, this defaults to 1440 (1 day), meaning newly published packages will not be resolved until they are at least 1 day old.</code> と書いています。公開直後の悪意あるバージョンを踏みにくくする、という発想です。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section class="section section-a" id="s7">
+    <h2><span class="step">7</span>今日やること</h2>
+
+    <article class="item">
+      <h3>lockを置くだけでは足りない。揃えるものが4つある</h3>
+      <p class="lead">ここまでの実測から、リポジトリに残っていない状態を並べます。以下は<mark>標準や規格ではなく、この記事の実測から導いた筆者の運用上の目安</mark>です。</p>
+
+      <ul class="points">
+        <li><b>npm 自身のバージョンを揃える。</b>同じ lock でも npm 10 と npm 12 で結果が違いました（4章）。CIの設定ファイルにバージョンを書いてください。</li>
+        <li><b>lock を作ったときのフラグを揃える。</b><code>--legacy-peer-deps</code> を手元で使っているなら、CIにも同じものを渡す。エラー文面は原因を教えてくれません（4章）。</li>
+        <li><b>取得先レジストリを意識する。</b>lock の <code>resolved</code> は取得先の固定ではありません（3章）。社内ミラーを使っているなら、CIとの一致を確認してください。</li>
+        <li><b>CIでは <code>npm ci</code> を打つ。</b>pnpm と Yarn はCIを検知して自動で凍結しますが、npm は打たない限り凍結しません（5章のクイズ）。</li>
+      </ul>
+
+      <p class="lead">確認するところまでやり切るためのリストです。<span class="cl-count">0 / 5</span></p>
+      <ul class="checklist" data-key="lockfile-2026-08-14">
+        <li><label><input type="checkbox"><span><code>package-lock.json</code> をリポジトリに commit している</span></label></li>
+        <li><label><input type="checkbox"><span>CIの設定に npm のバージョンを固定して書いた</span></label></li>
+        <li><label><input type="checkbox"><span>CIのインストールコマンドが <code>npm ci</code> になっている</span></label></li>
+        <li><label><input type="checkbox"><span>手元で使っているフラグがCIにも渡っているか確認した</span></label></li>
+        <li><label><input type="checkbox"><span><code>npm-shrinkwrap.json</code> が残っていないか確認した</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 「自分の環境では動く」の穴が、だいぶ埋まりました</div>
+    </article>
+
+    <article class="item">
+      <h3>今回、測れなかったこと</h3>
+      <p class="lead">正直に書きます。<mark>この記事で扱えなかった論点があります。</mark></p>
+
+      <ul class="points">
+        <li><b>OS別のネイティブバイナリは測っていません。</b><code>rollup</code> や <code>esbuild</code> のような、プラットフォームごとに違う <code>optionalDependencies</code> を持つパッケージが lock でどう扱われるか。<code>package-lock.json</code> が <code>os</code> / <code>cpu</code> フィールドを持つことは公式ドキュメントで確認しましたが、<b>実際の分岐は一度も動かしていません</b>。関連する npm/cli の issue は、このセッションの通信制限で本文を1つも読めませんでした。</li>
+        <li><b>別マシン・別OSでの再現はしていません。</b>「時期の違い」は <code>--before</code>、「環境の違い」は npm のメジャーバージョン差で代用しました。Docker が動かない環境だったため、本物のCIコンテナとの比較もしていません。</li>
+        <li><b>速度は測っていません。</b>「npm ci は2倍速い」とは書けません。出所の2018年の告知にある <code>in some cases</code> 以上のことは言えません。</li>
+      </ul>
+
+      <p class="lead">ターミナル出力について1つ。npm が出す長い行を npm 側で40桁に折る方法が見つからなかったため、<mark>掲載したコマンドはすべて末尾に <code>fold -s -w 38</code> か <code>grep</code> を含めた形で実行しています。</mark>出力を手で書き換えた箇所は1つもありません。</p>
+
+      <p class="lead">作業中の失敗も2つ記録しておきます。<code>cut -c11-</code> で <code>npm error</code> の接頭辞を落とそうとしたら、<code>npm warn</code> は接頭辞が9文字なので <code>tarball</code> が <code>arball</code> に化けました。もう1つ、ミラー実験で前回のキャッシュとサーバーが残っていて、<b>ミラーに1度もアクセスしていないのに「added 7 packages」と出ました</b>。まさに「成功したように見えるが実は別の物を見ている」です。キャッシュを毎回作り直して測り直しました。</p>
+
+      <a class="next-up" href="../2026-08-14_cache-busting/">
+        <div class="label">NEXT →</div>
+        <div class="t">pushしたのに直らない。犯人は10分前のCSS</div>
+        <div class="d">「自分の画面では直っている」のもう1つの正体を、同じように実測で追い詰めます。</div>
+      </a>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          npm, Inc. / GitHub「package-lock.json — A manifestation of the manifest」<i>npm Docs (CLI v12.0.2)</i>.
+          <span class="note">参照箇所: File Format 節の <code>resolved</code>（registry.npmjs.org がマジックバリューである旨）、<code>integrity</code>、<code>hasInstallScript</code>、<code>os</code>。3章と4章の根拠。</span>
+          <a href="https://docs.npmjs.com/cli/v12/configuring-npm/package-lock-json/">https://docs.npmjs.com/cli/v12/configuring-npm/package-lock-json/</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          npm, Inc. / GitHub「npm-ci — Clean install a project」<i>npm Docs (CLI v12.0.2)</i>.
+          <span class="note">参照箇所: npm install との差の一覧、および <code>--legacy-peer-deps</code> / <code>--install-links</code> に関する NOTE。4章の引用は原文のまま。</span>
+          <a href="https://docs.npmjs.com/cli/v12/commands/npm-ci/">https://docs.npmjs.com/cli/v12/commands/npm-ci/</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          npm, Inc. / GitHub「npm-install」<i>npm Docs (CLI v12.0.2)</i>.
+          <span class="note">参照箇所: 「How npm install uses package-lock.json」節。2章の引用は原文のまま。v11 の同節も同文であることを確認。</span>
+          <a href="https://docs.npmjs.com/cli/v12/commands/npm-install/">https://docs.npmjs.com/cli/v12/commands/npm-install/</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          npm CLI contributors「lib/utils/validate-lockfile.js」<i>npm/cli, latest ブランチ（package.json の version = 12.0.2 を確認）</i>.
+          <span class="note">参照箇所: 冒頭コメント（idealTree と virtualTree の比較）、<code>Missing:</code> / <code>Invalid:</code> のエラー文言生成箇所。2章の根拠。</span>
+          <a href="https://raw.githubusercontent.com/npm/cli/latest/lib/utils/validate-lockfile.js">https://raw.githubusercontent.com/npm/cli/latest/lib/utils/validate-lockfile.js</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          npm CLI contributors「lib/commands/ci.js」<i>npm/cli, latest ブランチ</i>.
+          <span class="note">参照箇所: <code>in sync</code> エラーの文字列、および <code>// Only remove node_modules after we've successfully loaded the virtual tree and validated the lockfile</code> のコメント。2章のクイズの根拠。</span>
+          <a href="https://raw.githubusercontent.com/npm/cli/latest/lib/commands/ci.js">https://raw.githubusercontent.com/npm/cli/latest/lib/commands/ci.js</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          npm CLI contributors「CHANGELOG.md」<i>npm/cli</i>, v12.0.0（2026年7月8日）/ v11.10.0（2026年2月11日）.
+          <span class="note">参照箇所: v12.0.0 の BREAKING CHANGES（shrinkwrap の削除、依存の lifecycle script の既定ブロック、allow-git / allow-remote の既定 none）、v11.10.0 の min-release-age 追加。4章・5章・6章の根拠。</span>
+          <a href="https://raw.githubusercontent.com/npm/cli/latest/CHANGELOG.md">https://raw.githubusercontent.com/npm/cli/latest/CHANGELOG.md</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          npm, Inc. / GitHub「npm-install-scripts — Manage install-script approvals for dependencies」<i>npm Docs (CLI v12.0.2)</i>.
+          <span class="note">参照箇所: allowScripts の説明、既定でブロックされる旨、approve が既定でバージョン付きのピン留めエントリを書く旨。4章の根拠。</span>
+          <a href="https://docs.npmjs.com/cli/v12/commands/npm-install-scripts/">https://docs.npmjs.com/cli/v12/commands/npm-install-scripts/</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          npm, Inc. / GitHub「config」<i>npm Docs (CLI v11.19.0)</i>.
+          <span class="note">参照箇所: <code>save-prefix</code>（Default: "^"）、<code>min-release-age</code>（Default: null）、<code>omit-lockfile-registry-resolved</code>。3章・6章の根拠。</span>
+          <a href="https://docs.npmjs.com/cli/v11/using-npm/config/">https://docs.npmjs.com/cli/v11/using-npm/config/</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          npm / node-semver contributors「README — Advanced Range Syntax」<i>npm/node-semver, main ブランチ</i>.
+          <span class="note">参照箇所: Caret Ranges の脱糖規則。6章の表はこの記述をそのまま並べたもの。</span>
+          <a href="https://raw.githubusercontent.com/npm/node-semver/main/README.md">https://raw.githubusercontent.com/npm/node-semver/main/README.md</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          npm, Inc.「Introducing `npm ci` for faster, more reliable builds」<i>npm Blog Archive</i>, 2018年3月5日.
+          <span class="note">参照箇所: <code>npm ci bypasses a package's package.json ...</code> および <code>in some cases, twice as fast as using npm i</code>。2章・5章で「現在の実装と食い違う記述の出どころ」として引用。ページが 2026年8月14日時点で HTTP 200 であることを確認。</span>
+          <a href="https://blog.npmjs.org/post/171556855892/introducing-npm-ci-for-faster-more-reliable.html">https://blog.npmjs.org/post/171556855892/introducing-npm-ci-for-faster-more-reliable.html</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          pnpm contributors「Mitigating supply chain attacks」<i>pnpm Docs</i>.
+          <span class="note">参照箇所: pnpm v10 での postinstall 自動実行の無効化、pnpm v11 の minimumReleaseAge 既定 1440分、v11.20.0 のレジストリ修飾キー。3章・4章・6章の根拠。</span>
+          <a href="https://pnpm.io/supply-chain-security">https://pnpm.io/supply-chain-security</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          pnpm contributors「Continuous Integration — Lockfile behavior in CI」<i>pnpm Docs</i>.
+          <span class="note">参照箇所: CI を検知して frozen-lockfile モードへ自動で切り替わる旨。5章のクイズの根拠。</span>
+          <a href="https://pnpm.io/continuous-integration">https://pnpm.io/continuous-integration</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Yarn contributors「yarn install」<i>Yarn Docs (yarnpkg.com)</i>.
+          <span class="note">参照箇所: <code>--immutable</code> が CI で既定 true である旨、および Resolution 段階が semver の保証を超えて標準化されていない旨。1章・5章の根拠。</span>
+          <a href="https://yarnpkg.com/cli/install">https://yarnpkg.com/cli/install</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          W3C Web Application Security Working Group（Editor: Frederik Braun）「Subresource Integrity」<i>W3C Working Draft</i>, 2026年3月20日.
+          <span class="note">参照箇所: 冒頭の Abstract。npm 公式ドキュメントが <code>integrity</code> の定義を委ねている規格として3章で引用。</span>
+          <a href="https://www.w3.org/TR/sri/">https://www.w3.org/TR/sri/</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Hao He, Bogdan Vasilescu, Christian Kästner「Pinning Is Futile: You Need More Than Local Dependency Versioning to Defend against Supply Chain Attacks」<i>arXiv:2502.06662v1 [cs.SE]</i>, 2025年2月10日.
+          <span class="note">参照箇所: 抄録、および 5.2節。6章の引用と 44.21% の数値はこの arXiv 版の本文を読んで取っています。</span>
+          <a href="https://arxiv.org/html/2502.06662v1">https://arxiv.org/html/2502.06662v1</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          同論文の出版版。<i>Proceedings of the ACM on Software Engineering, Vol. 2, Issue FSE, ACM</i>, DOI 10.1145/3715728, 2025年6月19日.
+          <span class="note">Crossref API（api.crossref.org/works/10.1145/3715728）で著者・誌名・巻号・発行日を照合済み。ただし doi.org が 403 で本文に到達できず、<mark>出版版は未読</mark>。記事の引用はすべて arXiv v1 から取っており、査読を経て数値や表現が変わっている可能性は排除できません。</span>
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Imranur Rahman, Jill Marley, William Enck, Laurie Williams「Which Is Better For Reducing Outdated and Vulnerable Dependencies: Pinning or Floating?」<i>ASE 2025, IEEE / arXiv:2510.08609</i>, DOI 10.1109/ASE63991.2025.00229.
+          <span class="note">Crossref で書誌照合済み。<mark>抄録のみ読了、本文は未読</mark>です。6章で引いた <code>floating-minor is the least likely to result in vulnerable dependencies</code> は抄録の記述であり、その導出手続きは確認していません。</span>
+          <a href="https://arxiv.org/abs/2510.08609">https://arxiv.org/abs/2510.08609</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Yogya Gamage, Deepika Tiwari, Martin Monperrus, Benoit Baudry「The Design Space of Lockfiles Across Package Managers」<i>Empirical Software Engineering, Vol. 31, Issue 3, Springer / arXiv:2505.04834</i>, DOI 10.1007/s10664-025-10789-w, 2026年1月21日.
+          <span class="note">Crossref で書誌照合済み。<mark>抄録のみ読了、本文は未読</mark>。1章で触れた「lock の目的は3つ」は抄録の記述で、7パッケージマネージャの比較表やインタビューの内容には触れていません。</span>
+          <a href="https://arxiv.org/abs/2505.04834">https://arxiv.org/abs/2505.04834</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Xavier René-Corail「Our plan for a more secure npm supply chain」<i>The GitHub Blog</i>, 2025年9月22日.
+          <span class="note">本文は読了していますが、インシデントの技術的詳細を独立に検証していないため一次資料としては扱いません。4章では「GitHub がそう説明している」という形でのみ引用しています。</span>
+          <a href="https://github.blog/security/supply-chain-security/our-plan-for-a-more-secure-npm-supply-chain/">https://github.blog/security/supply-chain-security/our-plan-for-a-more-secure-npm-supply-chain/</a>（2026年8月14日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          npm/cli の GitHub Issue（#4828「Platform-specific optional dependencies not being included in package-lock.json」ほか）。
+          <span class="note">このセッションの通信制限で github.com の HTML ページが 403 となり、<mark>本文・状態・再現手順のいずれも読めていません</mark>。そのため「OS別の optional 依存が lock に入らない」という広く語られる挙動については、記事中で一切主張していません（7章に未検証として明記）。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          npm の依存固定に関する14件の再現実験。2026年8月15日（UTC）実施。環境: Linux 6.18.5 / Node.js v22.22.2 / npm 10.9.7 / npm 12.0.2（スクラッチに導入し <code>node .../npm-cli.js</code> で起動）/ Python 3.11.15。レジストリは <code>https://registry.npmjs.org/</code>（ミラー実験のみ <code>127.0.0.1:8871</code>）。
+          <span class="note">記事中のターミナル出力は加工せずそのまま貼っています。npm の折り返し幅を40桁に変える方法が見つからなかったため、掲載コマンドは末尾に <code>fold -s -w 38</code> または <code>grep</code> を含めた形で実行しています。<code>EINTEGRITY</code> の <code>but got</code> 側の sha512 は、偽 tarball を作り直すたびに変わる値です（<code>wanted</code> 側は本物の chalk 4.0.0 のもの）。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          7章の「揃えるものが4つある」と、そのチェックリスト。
+          <span class="note">標準や規格ではなく、この記事の実測から導いた筆者の運用上の目安です。プロジェクトの事情によって優先順位は変わります。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月14日時点の内容です。検証環境: Linux 6.18.5 / Node.js v22.22.2 / npm 10.9.7 / npm 12.0.2 / Python 3.11.15</div>
+    <div>公開: 2026年8月14日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

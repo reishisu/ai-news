@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 210">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 218">
   <text x="8" y="22" font-size="15" font-weight="700" fill="var(--fg)">Claude Code の承認フローが変わる(8月14日から)</text>
   <text x="8" y="58" font-size="13" font-weight="700" fill="var(--sub)">これまで</text>
   <rect x="8" y="70" width="130" height="44" rx="8" fill="var(--track)"/>
@@ -22,6 +22,7 @@
   <path d="M386 186 l-10 -6 M386 186 l-10 6" stroke="var(--sub)" stroke-width="3" stroke-linecap="round" fill="none"/>
   <rect x="396" y="164" width="110" height="44" rx="8" fill="var(--track)"/>
   <text x="451" y="191" text-anchor="middle" font-size="13" fill="var(--fg)">実行</text>
-  <text x="520" y="182" font-size="12.5" fill="var(--sub)">危険な操作は</text>
-  <text x="520" y="200" font-size="12.5" fill="var(--sub)">自動でブロック</text>
+  <text x="516" y="176" font-size="12" fill="var(--sub)">不可逆・破壊的・</text>
+  <text x="516" y="192" font-size="12" fill="var(--sub)">環境の外に向かう</text>
+  <text x="516" y="208" font-size="12" fill="var(--sub)">操作をブロック</text>
 </svg>

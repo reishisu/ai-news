@@ -19,7 +19,7 @@
   <text x="380" y="152" fill="var(--c)" font-size="12.5" font-weight="800" text-anchor="middle">1日も縮まない</text>
 
   <!-- 行3 -->
-  <text x="14" y="186" fill="var(--fg)" font-size="12.5" font-weight="700">余裕なしの E を</text>
+  <text x="14" y="186" fill="var(--fg)" font-size="12.5" font-weight="700">全余裕ゼロの E を</text>
   <text x="14" y="204" fill="var(--fg)" font-size="12.5" font-weight="700">1.5日 → 0.5日</text>
   <rect x="200" y="178" width="400" height="30" rx="6" fill="var(--track)"/>
   <rect x="200" y="178" width="320" height="30" rx="6" fill="var(--a)"/>

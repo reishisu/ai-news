@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 150">
   <text x="8" y="22" font-size="15" font-weight="700" fill="var(--fg)">今週公開されたオープンウェイトモデル(総パラメータ数)</text>
-  <text x="8" y="62" font-size="13" fill="var(--sub)">Qwen3.8-Max</text>
+  <text x="8" y="62" font-size="12" fill="var(--sub)">Qwen3.8-2.4T-A95B</text>
   <rect x="170" y="48" width="420" height="20" rx="5" fill="var(--track)"/>
   <rect x="170" y="48" width="420" height="20" rx="5" fill="var(--new)"/>
-  <text x="380" y="64" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">2.4兆(推論時は950億が動く)</text>
-  <text x="8" y="104" font-size="13" fill="var(--sub)">Meta Muse Glimmer</text>
+  <text x="380" y="64" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">2.4兆(1トークンあたり950億が動く)</text>
+  <text x="8" y="104" font-size="12" fill="var(--sub)">Meta Muse Glimmer</text>
   <rect x="170" y="90" width="420" height="20" rx="5" fill="var(--track)"/>
   <rect x="170" y="90" width="8" height="20" rx="4" fill="var(--old)"/>
-  <text x="190" y="106" font-size="13" font-weight="700" fill="var(--fg)">300億(ノートPCで動く)</text>
-  <text x="8" y="140" font-size="12.5" fill="var(--sub)">Qwen3.8-MaxはMoE構成で1トークンごとに一部だけ使う。単純な性能比ではない</text>
+  <text x="190" y="106" font-size="13" font-weight="700" fill="var(--fg)">300億(民生GPU 1枚・24〜32GB)</text>
+  <text x="8" y="140" font-size="12.5" fill="var(--sub)">上はMoE構成で1トークンごとに一部だけ使う。単純な性能比ではない</text>
 </svg>
