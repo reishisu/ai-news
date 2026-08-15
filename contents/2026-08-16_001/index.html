@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-news：2026/08/16 — DeepSeekの値上げとClaude Code権限修正の差し戻し</title>
+<meta name="description" content="DeepSeek APIが8月17日01:00 JSTから値上げ。ピーク帯はJSTの10-13時と15-19時で、日本の業務時間と重なる。Claude Code 2.1.233は前日の Bash 権限修正を明示的に差し戻し。GitHub OAuth Appは複数リダイレクトURIに対応し、既存アプリのワイルドカード照合が可視化された。8月16日朝までの主要ニュース。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI-news：2026/08/16 — DeepSeekの値上げとClaude Code権限修正の差し戻し">
+<meta property="og:description" content="DeepSeek APIの値上げとピーク帯の日本時間との一致、Claude Code 2.1.233による前日修正のRevert、GitHub OAuthのワイルドカード照合、Laravelのqueue:pauseを実機で検証。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-16_001/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-16_001/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">2026年8月16日(日)</div>
+    <h1>AI-news：2026/08/16 — DeepSeekの値上げとClaude Code権限修正の差し戻し</h1>
+    <div class="range">対象期間: 8月15日(土) 6:00 〜 8月16日(日) 6:00 JST(クライアント技術は直近1週間)</div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 今日の3行まとめ</h2>
+    <ol>
+      <li>
+        <b>DeepSeekが明日8月17日01:00 JSTからAPIを値上げ。しかも「ピーク帯」が日本の業務時間とほぼ一致する</b>
+        <span>公式が定義したピークは01:00-04:00と06:00-10:00 UTC。JSTに直すと10-13時と15-19時です。オフピーク価格ですら現行より高く、出力は現行比2.28〜2.36倍(本サイトの計算)。</span>
+      </li>
+      <li>
+        <b>Claude Code 2.1.233が、前日2.1.232の「直った」Bash権限修正を明示的にRevertした</b>
+        <span>理由は<code>cd &lt;dir&gt; &amp;&amp; &lt;command&gt; &gt; file</code>というごく普通のコマンドで、auto modeが毎回手動承認を求めるようになった回帰。あわせてTodoWrite等のタスク管理ツールが新しいモデルから消えました。<b>前回記事の訂正を兼ねます。</b></span>
+      </li>
+      <li>
+        <b>GitHubのOAuth Appが複数リダイレクトURIと更新トークンに対応。同時に「既存アプリはずっとワイルドカード照合が効いていた」ことが公開された</b>
+        <span>GitHub自身が「legacy behavior of GitHub that is now visible and controllable」と書いています。リダイレクトURIを1つしか登録していないアプリが対象で、これは今日から空いた穴ではありません。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#work">実務者向け(AI開発ツール)(4件)</a></li>
+      <li><a href="#dev">Web開発・インフラ(3件)</a></li>
+      <li><a href="#client">クライアント技術(2件)</a></li>
+      <li><a href="#research">技術・研究(2件)</a></li>
+      <li><a href="#industry">モデル・業界(2件)</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 実務者向け ============ -->
+  <section class="section section-b" id="work">
+    <h2>🧰 実務者向け(AI開発ツール)<span class="n">4件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude Code 2.1.233が、昨日「直った」と書いたBash権限修正をそのまま巻き戻した</h3>
+      <div class="tags">
+        <span class="tag">8/14</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">Claude Code</span>
+        <span class="tag">v2.1.233</span>
+        <span class="tag warn">⚠ 前回記事の訂正</span>
+      </div>
+      <p class="lead"><a href="../2026-08-15_001/">前回のダイジェスト</a>で、2.1.232の権限修正を「直った」と紹介しました。<mark>翌日の2.1.233が、その2つを明示的にRevertしています。</mark>原文は「Reverted the 2.1.232 Bash permission changes for Cygwin-style symlinks on Windows and for input redirections (<code>&lt; file</code>); a narrower version will return in a later release」。</p>
+
+      <p class="lead">巻き戻した理由もリリースノートに書かれています。Windowsで<code>cd &lt;dir&gt; &amp;&amp; &lt;command&gt; &gt; file</code>という<mark>ごく普通のコマンドを打つたびに、auto modeが手動承認を求めてくる</mark>ようになった、という回帰(regression)です。セキュリティ側に寄せた修正が実用性を壊し、1日で戻された形です。</p>
+
+      <ul class="points">
+        <li><b>TodoWriteが新しいモデルから消えた。</b>原文は「Todo/task-tracking tools (TaskCreate/Get/Update/List, TodoWrite) are no longer available on Opus 4.8, Sonnet 5, Fable 5, Mythos 5, and newer models」。復活させるには環境変数<code>CLAUDE_CODE_ENABLE_TODO_TOOLS=1</code>が要ります。TodoWriteを前提にした自動化やCLAUDE.mdの指示は、モデルを新しくした時点で黙って効かなくなります。</li>
+        <li><b>NTLM資格情報の漏洩経路が塞がれた。</b>Windowsのパスを<code>\??\</code>というNTデバイスプレフィックスで書くと、UNCパス(<code>\\サーバ名\共有名</code>形式のネットワークパス)の検証をすり抜けられた、という不具合です。原文は「closing an NTLM credential-leak vector」。</li>
+        <li><b>Linuxで「アイドルなのにファンが回り続ける」が直った。</b>原文は「Fixed idle sessions on Linux sometimes keeping one CPU core at 100% when sandboxing is enabled」。サンドボックスを有効にしている人が対象です。</li>
+        <li><b>暴走ビルドでセッションが固まるのを防ぐ上限を追加(オプトイン)。</b><code>CLAUDE_CODE_TOOL_MEMORY_LIMIT</code>で、Bashツールが使うメモリをLinuxのmemory cgroup(プロセス群のメモリ使用量に上限をかけるカーネル機能)で制限できます。既定では無効です。</li>
+      </ul>
+
+      <details>
+        <summary>そのほかの2.1.233の変更</summary>
+        <div class="body">
+          <dl>
+            <dt>MCP・スキル・診断</dt>
+            <dd>長時間ストリームを一定時間で切るサーバー(serverless hostなど)に対して、MCP v2の接続が<code>subscriptions/listen</code>ストリームを延々と開き直す問題を修正。<code>/checkup</code>や<code>/review</code>といった同梱スキルの別名が「Unknown command」になる問題も修正。<code>CLAUDE_CODE_WEBFETCH_CACHE_TTL_MS</code>でWebFetchのURLキャッシュTTLを設定できるようになりました(既定は15分のまま)。認識できないモデルIDにリクエストが飛ぶと、stderrに<code>[claude-code:unrecognized_model]</code>が出るようになっています。</dd>
+            <dt>この記事の位置づけ</dt>
+            <dd>前回記事(2026年8月15日)の「Claude Code 2.1.232で、サブエージェントの同時実行が『デフォルトで動く』ように変わった」の項で、Windowsのシンボリックリンク経由の書き込みと<code>&lt; file</code>の権限チェックを「修正された」と書きました。<mark>2.1.233時点では、この2つは有効ではありません。</mark>公式は「a narrower version will return in a later release」と書いており、どの版で戻るかは示されていません。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://code.claude.com/docs/en/changelog">Claude Code Changelog(公式)</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=github.blog&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">GitHub</div>
+      <h3>GitHub OAuth Appが更新トークンに対応 — ついでに「リダイレクトURIが1個のアプリはずっとワイルドカードだった」と公表された</h3>
+      <div class="tags">
+        <span class="tag">8/15 07:43 JST</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">OAuth</span>
+        <span class="tag">要棚卸し</span>
+      </div>
+      <p class="lead">機能追加は3つです。OAuth Appが期限付きアクセストークンと更新トークンを選べるようになり、リダイレクトURIを最大10個登録でき、GitHub App / OAuth Appの両方でワイルドカード照合を明示的にオン・オフできるようになりました。</p>
+
+      <p class="lead">ただし読者に効くのは最後の1文です。原文をそのまま引きます。<mark>「Apps with only one redirect URI have wildcard matching enabled. This is a legacy behavior of GitHub that is now visible and controllable.」</mark>つまり<b>今日穴が空いたのではなく、ずっと空いていたものが見えるようになった</b>ということです。</p>
+
+      <ul class="points">
+        <li><b>リダイレクトURIとは、認可コードの届け先。</b>ユーザーがGitHubで「許可」を押した後、GitHubがブラウザを飛ばす先のURLです。ここを乗っ取られると、認可コードごと他人のサイトに渡ります。ワイルドカード照合が有効だと、登録したURLの周辺(サブドメインや追加パス)にも飛べてしまいます。</li>
+        <li><b>GitHub自身が危険性を明記している。</b>「Wildcard matching can be abused if the site being redirected to does not have strong control over its routes (e.g., if it hosts user content).」ユーザー投稿をホストするサイトが対象になっている場合は特に危ない、ということです。</li>
+        <li><b>新規アプリは短命トークンが既定でON。</b><code>offline_access</code>スコープを付けると、有効期限8時間のアクセストークンと6か月の更新トークンが返ります。SDKが更新トークンのフローに未対応なら、SDKを直すまで無効化できると公式が案内しています。</li>
+        <li><b>GitHub Enterprise Server 3.23に入る。</b>「These improvements will all be included in GitHub Enterprise Server 3.23.」自社ホストのGHESを使っている場合の到達時期はここです。</li>
+      </ul>
+
+      <details>
+        <summary>今すぐやること</summary>
+        <div class="body">
+          <dl>
+            <dt>棚卸しの対象</dt>
+            <dd>GitHubの Settings → Developer settings → OAuth Apps / GitHub Apps を開き、リダイレクトURI(GitHubの画面では「callback URI」表記)が1つだけのアプリを探します。公式は「Please review your apps and disable wildcard matching if you do not need it. This applies to all OAuth apps and any GitHub App that had a single redirect URI registered.」と書いています。</dd>
+            <dt>この記事で確認していないこと</dt>
+            <dd>OAuth 2.0の仕様側(RFC 6749 / RFC 6819)がリダイレクトURIの完全一致をどう推奨しているかは、<mark>今回RFC本文を取得していないため書きません</mark>。GitHubの告知本文に書かれていることだけを扱っています。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://github.blog/changelog/2026-08-14-multiple-redirect-uris-and-token-refresh-for-oauth-apps">GitHub Changelog</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=ai.google.dev&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Google</div>
+      <h3>Gemini 3.7 FlashがGA。ただし表示価格は「2026年12月31日まで」で、2027年1月1日から入出力とも2倍と価格表に書いてある</h3>
+      <div class="tags">
+        <span class="tag">8/13</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">Gemini</span>
+        <span class="tag">価格</span>
+      </div>
+      <p class="lead">changelogの原文は「available at an <b>introductory price through December 31, 2026</b>」。<mark>値下げではなく、期限付きの導入価格</mark>です。しかも切り替え後の価格が、今の時点で価格表に併記されています。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>項目</th><th>2026/12/31まで</th><th>2027/1/1から</th></tr></thead>
+          <tbody>
+            <tr><td>入力</td><td data-label="2026/12/31まで">$0.75</td><td data-label="2027/1/1から">$1.50</td></tr>
+            <tr><td>出力(思考トークン込み)</td><td data-label="2026/12/31まで">$3.75</td><td data-label="2027/1/1から">$7.50</td></tr>
+            <tr><td>コンテキストキャッシュ</td><td data-label="2026/12/31まで">$0.075</td><td data-label="2027/1/1から">$0.15</td></tr>
+            <tr><td>キャッシュ保管(1時間あたり)</td><td data-label="2026/12/31まで">$0.50</td><td data-label="2027/1/1から">$1.00</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">単位はすべてUSD / 100万トークン。Google公式のGemini API pricingページ本文からの転記です。</p>
+
+      <ul class="points">
+        <li><b>年間予算を組むなら2027年分は2倍で計算する。</b>4項目すべてがきっかり2倍です。「今の単価で年間費用を出す」と、来年の見積もりが半分になります。</li>
+        <li><b>Google検索によるグラウンディングは月5,000リクエストまで無料。</b>それを超えると1,000リクエストあたり$14。この無料枠はGemini 3.x系の全モデルで共有です。</li>
+      </ul>
+
+      <details>
+        <summary>もう少し詳しく</summary>
+        <div class="body">
+          <dl>
+            <dt>出典</dt>
+            <dd><a href="https://ai.google.dev/gemini-api/docs/changelog">Gemini API changelog</a> / <a href="https://ai.google.dev/gemini-api/docs/pricing">Gemini API pricing</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=anthropic.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claudeの出力に透かしが入る — ただしコードにはほとんど入らず、入るのはコメントのほう</h3>
+      <div class="tags">
+        <span class="tag">8/14</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">EU AI Act</span>
+        <span class="tag">全世界適用</span>
+      </div>
+      <p class="lead">今後のClaudeは、生成テキストに透かし(watermark)を埋め込みます。目的はEU AI法への対応です。開発者にとっての本題は<mark>「コードには透かしがほとんど入らない。入りうるのはコード中のコメント」</mark>という点で、Anthropic自身がその理由まで説明しています。</p>
+
+      <p class="lead">仕組みは「次の単語をどれにしても同じくらい良い」場面で、乱数の代わりに鍵を使って単語を選ぶというもの。原文は「Instead of using an arbitrary random number generator to pick the next word, watermarking uses the key and a few words that come before to settle what word the model should pick.」だから、<b>正確さが要求される場所では透かしが使えません。</b></p>
+
+      <ul class="points">
+        <li><b>追加トークンも隠し文字も無い。</b>原文は「Nothing is added to the text and there are no hidden characters」「Watermarking doesn't require extra tokens, and will not be more expensive」。「ゼロ幅スペースが埋め込まれる」といった話は、公式が明確に否定しています。</li>
+        <li><b>事実の記述ほど透かしが薄い。</b>「Watermarking is sparser on factual passages where there are fewer choices」。コードも同じ理屈で、「a piece of code would break if a different term was chosen」場面には適用されません。ただし「such as comments within code」では使われうる、と明記されています。</li>
+        <li><b>EUの法律なのに全世界に適用される。</b>理由は「we don't yet have a durable way to scope it by region」。地域ごとに切り分ける確実な方法がまだ無いから、というのが公式の説明です。日本の読者も対象です。</li>
+        <li><b>検出APIは「近日」で、今は存在しない。</b>「We will soon be offering a watermark detection API. We're in the process of working out the details of its implementation.」現時点では読者側で検証できません。</li>
+        <li><b>透かしは「Claudeが関与した」しか言えない。</b>「It cannot distinguish "Claude wrote this" from "Claude heavily edited this."」軽い編集では消えないが、全単語を書き換える完全なリライトなら消える、とも書かれています。</li>
+      </ul>
+
+      <details>
+        <summary>背景と、画像の場合の違い</summary>
+        <div class="body">
+          <dl>
+            <dt>技術の出どころ</dt>
+            <dd>公式は「a version of the <b>SynthID-Text</b> approach published by Google DeepMind in a Nature paper in 2024」と書いています。参照先の書誌はCrossrefで照合しました(Dathathri ほか「Scalable watermarking for identifying large language model outputs」<i>Nature</i> 634, 818-823, 2024-10-23)。<mark>ただし論文本文は未取得</mark>なので、中身の主張はこの記事では扱いません。系譜としてはScott Aaronsonの2022年の提案まで遡る、とも書かれています。</dd>
+            <dt>画像・SVGは透かしではない</dt>
+            <dd>Claudeが.png / .jpg / .svgなどのファイルを生成するときは、テキストの透かしではなく<b>C2PA</b>という業界標準のメタデータ(暗号署名付きの注記)が付きます。ファイルのメタデータなので、再エンコードすれば消える性質のものです。公式が両者を区別して書いています。</dd>
+            <dt>EU側の一次資料</dt>
+            <dd>European Commissionの発表では、「Code of Practice on Transparency of AI-generated Content」に2026年7月末までに約190団体が署名、AI Actの表示義務の発効は2026年8月2日。Section 1の署名者は82、Section 2は152で、署名者の約半分は小規模・設立間もない企業と書かれています。Anthropicは移行期間について「The EU law includes a transition period for Anthropic models launched before August 2, 2026」と説明しています。</dd>
+            <dt>おまけ</dt>
+            <dd>同じページに「AI models appear to be fond of the construction "this isn't [X], it's [Y]", and use the word "quietly" a lot more than you might expect.」という記述があります。透かしと、文体からAIを見分ける方法との対比の文脈です。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://www.anthropic.com/news/claude-text-watermark">Anthropic公式</a> / <a href="https://digital-strategy.ec.europa.eu/en/news/strong-backing-code-practice-transparency-ai-generated-content">European Commission</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ Web開発・インフラ ============ -->
+  <section class="section section-c" id="dev">
+    <h2>🧑‍💻 Web開発・インフラ<span class="n">3件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=laravel.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Laravel</div>
+      <h3>Laravel 13.25の<code>queue:pause</code>を実機で動かした — <code>queue:continue</code>は誤記ではなく、正式な別名だった</h3>
+      <div class="tags">
+        <span class="tag">8/11</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag ok">✓ 実機検証済</span>
+        <span class="tag">Laravel 13.25.0</span>
+        <span class="tag">キュー</span>
+      </div>
+      <p class="lead">キューとは、時間のかかる処理(メール送信、画像変換など)を後回しにするための待ち行列です。ワーカー(<code>queue:work</code>)がそれを順番に取り出して実行します。13.25.0で入ったのは、<mark>ワーカーを止めずに、新しいジョブを拾うのだけを一時停止する</mark>スイッチです。</p>
+
+      <p class="lead">ところが公式ドキュメントは同じ節の中で、再開コマンドを<code>queue:continue</code>と<code>queue:resume</code>の2通りで書いています。誤記なのか。<b>この環境にLaravelを立てて確かめました。</b></p>
+
+      <div class="quiz">
+        <p class="q">Q. 公式ドキュメントが同じページで2つの名前を混在させている。実際はどれ?</p>
+        <button class="opt" type="button" data-correct="false"><code>queue:continue</code>が正式名で、<code>queue:resume</code>のほうが誤記</button>
+        <button class="opt" type="button" data-correct="true">どちらも動く。<code>queue:continue</code>は<code>queue:resume</code>の別名として登録されている</button>
+        <button class="opt" type="button" data-correct="false"><code>queue:resume</code>しか存在せず、<code>queue:continue</code>を打つとエラーになる</button>
+        <p class="ans" hidden>正解。ドキュメントは動作としては正しく、2つ別のコマンドがあるように読めるだけです。「表記ゆれ＝誤記」と考えると外します。以下、実出力です。</p>
+      </div>
+
+      <p class="lead">まず、実在するコマンドを一覧で確認しました。既定のテキスト形式は1行が約70桁で記事の幅に入らないため、<b>出力形式をJSONに変えて名前と別名だけを出しています</b>(手で書き換えてはいません)。</p>
+
+      <div class="code term">
+        <div class="code-head">php artisan list queue（正式名と別名だけを抜く）</div>
+<pre>$ php artisan list queue --format=json --no-ansi \
+  | jq -r '.commands[]
+    | select(.name|startswith("queue:"))
+    | "\(.name)\n  alias: \(if (.usage|length)&gt;1
+      then (.usage[1:]|join(",")) else "-" end)"'
+
+queue:clear
+  alias: -
+（中略）
+queue:pause
+  alias: -
+queue:prune-batches
+  alias: -
+queue:prune-failed
+  alias: -
+queue:restart
+  alias: -
+<span class="ok-line">queue:resume
+  alias: queue:continue</span>
+queue:retry
+  alias: -
+queue:work
+  alias: -</pre>
+      </div>
+
+      <p class="lead">JSON形式は正式名だけを列挙するので、<code>queue:continue</code>は独立した項目として出てきません。<mark>正式名は<code>queue:resume</code>、<code>queue:continue</code>はその別名</mark>です。ソースでも確定できました。</p>
+
+      <div class="code">
+        <div class="code-head">vendor/laravel/framework/src/Illuminate/Queue/Console/ResumeCommand.php</div>
+<pre>#[AsCommand(name: 'queue:resume', aliases: ['queue:continue'])]
+class ResumeCommand extends Command
+{
+    protected $signature = 'queue:resume
+                            {queue? : The name of the queue that should resume processing}
+                            {--all : Resume job processing for all queues on all connections}';
+
+    /**
+     * The console command name aliases.
+     *
+     * @var list&lt;string&gt;
+     */
+    protected $aliases = ['queue:continue'];</pre>
+      </div>
+
+      <p class="lead"><code>ContinueCommand.php</code>というファイルは存在しません。ディレクトリにあるのは<code>PauseCommand.php</code>と<code>ResumeCommand.php</code>の2つだけです。次に、止めて再開するまでを実際に流しました。</p>
+
+      <div class="code term">
+        <div class="code-head">pause → dispatch → 拾わない → continue → 処理された</div>
+<pre>$ php artisan queue:pause database:default
+
+ INFO Job processing on queue [database:default] has been paused.
+
+$ tinker (dispatch job A)
+dispatched
+
+$ queue:work --stop-when-empty (paused)
+[exit=0]
+
+$ cat storage/done.log
+<span class="ng-line">(空 = 未処理)</span>
+
+$ php artisan queue:continue database:default
+
+ INFO Job processing on queue [database:default] has been resumed.
+
+$ queue:work --stop-when-empty (resumed)
+ 2026-08-15 21:16:31 App\Jobs\RecordJob  RUNNING
+<span class="ok-line"> 2026-08-15 21:16:31 App\Jobs\RecordJob  3.68ms DONE</span>
+[exit=0]
+
+$ cat storage/done.log
+<span class="ok-line">A</span></pre>
+      </div>
+
+      <p class="lead">一時停止中はワーカーを起動しても<b>ジョブを拾わずに即終了</b>します(exit=0、ログは空のまま)。プロセス自体は生きているので、コンテナは落ちません。</p>
+
+      <p class="lead">そして、公式が書いている落とし穴も再現しました。原文は「<b>Resuming all queues does not resume queues that were paused individually.</b>」個別に止めたキューは<code>--all</code>では戻りません。</p>
+
+      <div class="code term">
+        <div class="code-head">--all で再開しても、個別に止めたキューは止まったまま</div>
+<pre>$ queue:pause database:default (個別)
+
+ INFO Job processing on queue [database:default] has been paused.
+
+$ tinker (dispatch job C)
+dispatched
+
+$ queue:resume --all (全体で再開)
+
+ INFO Job processing on all queues across all connections has been resumed.
+
+$ queue:work --stop-when-empty
+
+$ cat storage/done.log
+<span class="ng-line">(空 = 未処理)</span>
+
+$ queue:resume database:default (個別に再開)
+
+ INFO Job processing on queue [database:default] has been resumed.
+
+$ queue:work --stop-when-empty
+ 2026-08-15 21:18:16 App\Jobs\RecordJob  RUNNING
+<span class="ok-line"> 2026-08-15 21:18:17 App\Jobs\RecordJob  3.51ms DONE</span>
+
+$ cat storage/done.log
+<span class="ok-line">C</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>「全部再開したのに1本だけ動いていない」が起きる。</b>メンテナンス明けの事故として一番ありそうな形です。個別に止めたキューは、個別に<code>queue:resume &lt;キュー名&gt;</code>を打つまで止まったままでした。</li>
+        <li><b>ワーカーはジョブ1件ごとにキャッシュを見に行っている。</b>公式に「queue workers poll the cache driver for restart and pause signals on each job iteration」「it does introduce a small performance overhead」と書かれています。要らないなら<code>Queue::withoutInterruptionPolling()</code>で切れます。ECS on Fargateでワーカーを常駐させているなら、キャッシュ(Redis/DB)へのアクセス回数に直結します。</li>
+        <li><b>4通りの組み合わせが全部通った。</b><code>queue:continue --all</code>も<code>queue:resume &lt;キュー名&gt;</code>も動きます。名前と引数の組み合わせに制限はありませんでした。</li>
+      </ul>
+
+      <details>
+        <summary>実行環境と、出力幅について正直に書いておくこと</summary>
+        <div class="body">
+          <dl>
+            <dt>実行環境</dt>
+            <dd>PHP 8.4.19 (cli, NTS) / Composer 2.8.12 / Laravel Framework 13.25.0 / DB は SQLite の実ファイル / <code>QUEUE_CONNECTION=database</code> / <code>CACHE_STORE=database</code>。<code>composer create-project laravel/laravel laravel-queue-test "13.*"</code> で作った素のプロジェクトに、<code>storage/done.log</code>へ1行追記するだけのジョブを1つ足しただけです。<code>config/queue.php</code>は一切いじっていません。実測日は2026年8月15日。</dd>
+            <dt>出力幅を縮められなかったこと</dt>
+            <dd>本サイトの決まりでは、ターミナル出力は幅380pxに収まる長さにします。ところが<code>export COLUMNS=40</code>を付けても、Laravelの<code>INFO</code>バナーは折り返されませんでした。実測すると<mark>76桁</mark>あります(<code>queue:work</code>の進捗行は48〜52桁)。これはLaravel側の出力で、こちらでは縮められません。<b>手で短く書き換えるのは禁止</b>なので、そのまま貼っています。<code>.code</code>ブロックは中で横スクロールするので、ページ全体は崩れません。</dd>
+            <dt>確認できなかったこと</dt>
+            <dd><mark><code>queue:continue</code>という別名がいつ追加されたかは特定できませんでした。</mark>同梱の<code>CHANGELOG.md</code>(v13.0.0 〜 v13.24.0)に<code>queue:continue</code>への言及は1件もありません。よって「13.xのどの版で入ったか」は書きません。現行13.25.0に存在することだけが実測済みです。</dd>
+            <dt>筆者の意見</dt>
+            <dd>ドキュメントはバグではありませんが、書き方には改善の余地があります。同じページで正式名と別名を混ぜているのに、「<code>queue:continue</code>は<code>queue:resume</code>の別名です」という一文がどこにも無いためです。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://laravel.com/docs/13.x/queues">Laravel 13.x Queues(公式ドキュメント)</a> / <a href="https://raw.githubusercontent.com/laravel/framework/13.x/CHANGELOG.md">laravel/framework CHANGELOG</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=aws.amazon.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">AWS</div>
+      <h3>S3の403エラーに「どのポリシーで拒否されたか」のARNが載るようになった — ただし明示的Denyのときだけ</h3>
+      <div class="tags">
+        <span class="tag">8/13</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">S3</span>
+        <span class="tag">IAM</span>
+      </div>
+      <p class="lead">S3で403 Access Deniedが出たとき、原因のポリシーを名指しで教えてくれるようになりました。ARNとは、AWSのリソース1つ1つに付く一意の識別名のことです。<mark>同じ種類のポリシーが複数あるとき、これまでは1つずつ手で見比べるしかありませんでした。</mark></p>
+
+      <ul class="points">
+        <li><b>対象は「明示的Deny」だけ。</b>原文は「Now the error message includes the specific policy ARN <b>for explicit deny cases</b>」。<mark>「どこにもAllowが無いから落ちた」(暗黙のDeny)では、指し示すポリシーが存在しないのでARNは出ません。</mark>実務で多いのはむしろ後者です。</li>
+        <li><b>5種類のポリシーが対象。</b>SCP(組織全体にかける上限)、RCP(リソース側にかける上限)、アイデンティティベースポリシー(ユーザーやロールに付ける許可)、セッションポリシー、アクセス許可境界。403の原因究明が難しいのは、この5つが同時に効いているからです。</li>
+        <li><b>同一アカウント・同一Organization内のリクエストが対象。</b>クロスアカウントのアクセスは含まれません。</li>
+        <li><b>全リージョンで利用可能。</b>GovCloud(US)と中国リージョンを含む、と明記されています。</li>
+      </ul>
+
+      <details>
+        <summary>この記事で実行していないこと</summary>
+        <div class="body">
+          <dl>
+            <dt>注意</dt>
+            <dd>本サイトの検証環境には<mark>AWSの認証情報がなく、S3のAPIを呼べません</mark>。したがって、実際の403レスポンスの本文は載せていません。上記はすべてAWS公式のWhat's Newページ本文からの引用です。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://aws.amazon.com/about-aws/whats-new/2026/08/s3-additional-policy-details-access-denied-error-messages/">AWS What's New</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=terraform.io&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">HashiCorp</div>
+      <h3>terraform-provider-awsは3日で6.58→6.60。8/12に入った回帰を、翌日8/13のリリースが塞いでいる</h3>
+      <div class="tags">
+        <span class="tag">8/13</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">Terraform</span>
+        <span class="tag">バージョン固定</span>
+      </div>
+      <p class="lead">プロバイダとは、TerraformがAWSなどのAPIを叩くための部品です。AWSプロバイダは<mark>ほぼ毎日リリースされています</mark>。6.59.0が8月12日、6.60.0が8月13日。そして6.60.0のバグ修正の1行目がこれです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">CHANGELOG 6.60.0 (August 13, 2026) — BUG FIXES</div>
+<pre>resource/aws_network_acl_rule: Fix
+`Missing Resource Identity After Read`
+errors. This fixes a regression
+introduced in v6.59.0</pre>
+      </div>
+
+      <p class="lead">前日のリリースが入れた不具合を、翌日のリリースが直しています。これが<b><code>.terraform.lock.hcl</code>とバージョン制約が要る理由</b>そのものです。ロックファイルとは、実際に使ったプロバイダのバージョンとハッシュを記録して、次回以降も同じものを使わせるファイルです。</p>
+
+      <ul class="points">
+        <li><b>「常に最新に上げる」も「一度も上げない」も等しく危険。</b>最新に追随すると6.59.0のような1日だけの回帰を踏み、固定しすぎると修正が入らない。ロックファイルをコミットして、<b>上げるタイミングを自分で決める</b>のが折衷案です(これは筆者の運用上の意見です)。</li>
+        <li><b>ALBのリスナールール条件にIPアドレス種別が追加予定。</b>6.61.0(未リリース)のENHANCEMENTSに<code>aws_lb_listener_rule</code>の<code>condition.source_ip.ip_address_type</code>が挙がっています。<mark>まだリリースされていないので「予定」です。</mark></li>
+        <li><b>電話番号リソースの<code>terraform apply</code>タイムアウト対策も入る予定。</b><code>TEN_DLC</code>や<code>TOLL_FREE</code>など、キャリア審査待ちで数日〜数週間<code>PENDING</code>のままになる番号があり、これまで<code>apply</code>がタイムアウトしていた、と6.61.0のノートに書かれています。</li>
+      </ul>
+
+      <details>
+        <summary>この記事で実行していないこと</summary>
+        <div class="body">
+          <dl>
+            <dt>注意</dt>
+            <dd>本サイトの環境ではダミー認証情報で<code>terraform init / validate / plan</code>まで実行できますが、<mark>この項目については実行していません</mark>。バージョンと日付は、GitHub上のCHANGELOG本文とTerraform Registry APIの<code>published_at</code>(6.60.0 = 2026-08-13T18:12:29Z)で確認しています。<code>terraform apply</code>は行っていません。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/CHANGELOG.md">terraform-provider-aws CHANGELOG</a> / <a href="https://registry.terraform.io/v1/providers/hashicorp/aws">Terraform Registry API</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ クライアント技術 ============ -->
+  <section class="section section-a" id="client">
+    <h2>📱 クライアント技術<span class="n">2件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=webkit.org&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">WebKit</div>
+      <h3>Safari Technology Preview 250 — IndexedDBの<code>put()</code>が失敗すると新旧どちらのレコードも消えるバグが直った</h3>
+      <div class="tags">
+        <span class="tag">8/13(直近1週間)</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag warn">⚠ プレビュー版</span>
+        <span class="tag">WebAssembly</span>
+      </div>
+      <p class="lead">実害の大きい修正から。IndexedDBはブラウザ内のデータベースで、Unity WebやEmscriptenがアセットのキャッシュに使います。そこで<mark>ユニーク制約に違反する<code>put()</code>を出すと、上書きしようとした既存レコードまで消えて「新旧どちらも無い」状態</mark>になっていました。</p>
+
+      <div class="code wrap">
+        <div class="code-head">STP 250 リリースノート — Storage</div>
+<pre>Fixed an IndexedDB put() that fails a
+unique index constraint deleting the
+record it would have overwritten,
+leaving the object store with neither
+the old nor the new record.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>「iOS/macOSのSafariだけキャッシュが壊れる」の説明になりうる。</b>ただしこれは筆者の推測です。公式リリースノートはIndexedDBの挙動を書いているだけで、Unity Webへの影響には触れていません。</li>
+        <li><b>WebAssemblyにrelaxed SIMDが入った。</b>SIMDは1命令で複数データをまとめて計算する仕組み。relaxed SIMDはその拡張で、環境ごとに結果が微妙に変わるのを許す代わりに速度を取ります。EmscriptenやUnity Webのビルドオプションに直結します。</li>
+        <li><b>1つのWasmモジュールが複数のメモリを持てるようになった(multiple memories)。</b>Wasmの線形メモリを複数に分けられます。</li>
+        <li><b>fetch()で<code>ReadableStream</code>のアップロードに初期対応。</b>あわせて<code>Request</code>の<code>duplex</code>オプションにも対応しました(ストリームを送るときに必須のオプションです)。</li>
+        <li><b>Web InspectorのSourcesタブにWasmモジュールが出るようになった。</b>ブラウザ内でWasmを追える範囲が広がります。</li>
+      </ul>
+
+      <details>
+        <summary>注意点とその他</summary>
+        <div class="body">
+          <dl>
+            <dt>いつ出荷版に来るかは書かれていない</dt>
+            <dd>Safari Technology Previewは<mark>プレビュー版</mark>です。これらの変更が出荷版SafariやiOSのWKWebViewに入る時期は、リリースノート本文に書かれていません。この記事でも断定しません。対象コミット範囲は「317507@main…317934@main」と明記されています。</dd>
+            <dt>その他の変更</dt>
+            <dd>JavaScriptにExplicit Resource Management提案(<code>using</code> / <code>await using</code>宣言、<code>Symbol.dispose</code>、<code>DisposableStack</code>、<code>AsyncDisposableStack</code>)が入りました。CSSでは非標準の<code>text</code>色指定が削除され、<code>canvastext</code>を使うよう案内されています。Web Inspectorでリソースキャッシュを無効にすると、ページが設定済みの<code>Cache-Control</code>ヘッダーを上書きしてしまう問題も修正。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://webkit.org/blog/18191/release-notes-for-safari-technology-preview-250/">Release Notes for Safari Technology Preview 250(WebKit公式)</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=unity.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Unity</div>
+      <h3>Unityが「Webのコードサイズを28.50%削れる。代わりにフレーム時間が5.25%悪化する」と数字で書いた — これは1社では決められない設定</h3>
+      <div class="tags">
+        <span class="tag warn">⚠ 8/6リリース(10日前・直近1週間をやや超過)</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">Unity Web</span>
+        <span class="tag">6000.7.0a4(アルファ)</span>
+      </div>
+      <p class="lead">6000.7.0a4に「Maximum Size Reduction」と「Maximum Size Reduction with LTO」というコード最適化設定が追加されました。珍しいのは、<mark>Unity公式が削減量と性能悪化の両方を数字で出している</mark>ことです。既存の「Disk Size」設定も強化され、こちらも数字が併記されています。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/unity-tradeoff-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/unity-tradeoff.png" alt="Unity 6000.7.0a4のWebビルド設定。コードサイズ削減率が大きいほどフレーム時間の悪化も大きくなる" loading="lazy">
+        </picture>
+        <figcaption>削れる量と遅くなる量は比例している。どこで止めるかは、転送量とフレームレートのどちらを取るかの判断</figcaption>
+      </figure>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>Code Optimization設定</th><th>コードサイズ</th><th>フレーム時間</th></tr></thead>
+          <tbody>
+            <tr><td>Shorter Build Time(既定)</td><td data-label="コードサイズ">基準</td><td data-label="フレーム時間">基準</td></tr>
+            <tr><td>Disk Size(6000.7.0a4より前)</td><td data-label="コードサイズ">平均8.75%減</td><td data-label="フレーム時間">平均2.13%悪化</td></tr>
+            <tr><td>Disk Size(6000.7.0a4)</td><td data-label="コードサイズ">平均21.35%減</td><td data-label="フレーム時間">平均4.56%悪化</td></tr>
+            <tr><td>Maximum Size Reduction</td><td data-label="コードサイズ">平均28.50%減</td><td data-label="フレーム時間">平均5.25%悪化</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">いずれもUnity公式のリリースノート本文の数値で、既定の「Shorter Build Time」との比較です。LTO(リンク時最適化)を有効にすると性能悪化は小さくなる、とも書かれています。</p>
+
+      <ul class="points">
+        <li><b>これは会社をまたぐ判断になる。</b>コードサイズはCloudFrontの転送量と初回ロード時間、つまり<b>インフラ側の請求書とユーザーの離脱率</b>に効きます。フレーム時間はクライアント側の体感です。<mark>片方の会社だけでは決められません。</mark>依頼するなら「ビルド設定をMaximum Size Reductionにすると配信サイズが約28%減ります。代わりに描画が約5%遅くなります。どちらを取りますか」と、両方の数字を並べて出すのが早いです(これは筆者の運用上の意見です)。</li>
+        <li><b><code>Content-Length</code>を返さないサーバーでの不具合が直った。</b>原文は「Fixed streaming of response body in UnityWebRequest when server does not set "Content-Length" header. (UUM-146537)」。<mark>gzip/brotliをその場で圧縮する構成(CloudFront・ALB・nginx)では<code>Content-Length</code>が消えることがあります。</mark>「特定の環境だけダウンロードが進まない」の原因になりうる、クライアント側の症状とインフラ側の設定が対で説明できる典型例です。</li>
+        <li><b>2GB超のアセット出力が壊れていた。4GB超は非対応。</b>Webビルドの現実的な上限がはっきりしました。</li>
+        <li><b>WebGPUで<code>Texture2D.GetPixels</code>と<code>ComputeBuffer.GetData</code>が動くようになった(JSPI対応ブラウザ限定)。</b>JSPIはWasmからJavaScriptのPromiseを同期的に待つ仕組みです。GPUからの読み戻しは本質的に非同期なので、JSPIなしでは実装できませんでした。<mark>どのブラウザが対応しているかは、今回caniuseを取得していないため書きません。</mark></li>
+        <li><b>WebAssembly64ビルドでBurstが有効になった。</b>Burstは処理を高速化するUnityのコンパイラです。</li>
+      </ul>
+
+      <details>
+        <summary>日付について正直に</summary>
+        <div class="body">
+          <dl>
+            <dt>1週間を超えている</dt>
+            <dd>6000.7.0a4のリリース日は、Unity公式のReleases APIで<b>2026-08-06T10:54:56.557Z</b>と確認しました。本ダイジェストのクライアント技術枠は「直近1週間」ですが、<mark>これは10日前で、枠をやや超えています</mark>。8月9日〜16日に出たUnityのリリースは6000.6.0b8(8/12、前回記事で既出)と6000.3.22f1(8/13、Web関連の変更なし)だけだったため、あえて拾いました。</dd>
+            <dt>アルファ版であること</dt>
+            <dd>6000.7系はアルファ(a4)です。製品ビルドで使う段階ではありません。設定名や数値は正式版までに変わりうる、と考えてください。</dd>
+            <dt>その他のWeb関連修正</dt>
+            <dd>WebGLローダーの<code>hasJSPI</code>チェックで、<code>WebAssembly</code>が未定義のときにReferenceErrorが出る問題を修正。progressive asset loading使用時のシーン読み込み競合も修正されています。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://unity.com/releases/editor/alpha/6000.7.0a4">Unity 6000.7.0a4 Release Notes(公式)</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 技術・研究 ============ -->
+  <section class="section section-c" id="research">
+    <h2>🔬 技術・研究<span class="n">2件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">arXiv</div>
+      <h3>「同じスコア」がシェルのクォート事故を隠していた — 見かけ上の差-3.6ptの中身は、-64.3ptの被害と+60.7ptの補償</h3>
+      <div class="tags">
+        <span class="tag">8/13</span>
+        <span class="tag warn">⚠ 査読前(プレプリント)</span>
+        <span class="tag warn">⚠ 要旨のみ確認</span>
+        <span class="tag">Bash</span>
+      </div>
+      <p class="lead">この論文は、上のClaude Code 2.1.233の話とそのまま繋がります。2.1.233がRevertしたのは<code>&lt; file</code>の権限チェックとシンボリックリンクの扱い、つまり<mark>モデルが出した文字列を、ツール側がどう解釈し直すかの境界</mark>の問題でした。QuoteBenchは、その境界で何が壊れるかを測ったベンチマークです。</p>
+
+      <p class="lead">要旨の冒頭はこうです。「LLM coding agents issue Bash commands through interfaces that may serialize, wrap, and reparse model output. Matched execution scores alone cannot distinguish command-generation errors from failures introduced after generation.」<b>生成の誤りと、生成後に混入した失敗を、実行スコアだけでは区別できない</b>という主張です。</p>
+
+      <ul class="points">
+        <li><b>同じ返答を、追加のパース層に通し直すだけで成功率が55.4〜73.2ポイント落ちる。</b>8通りの同一条件設定で測った結果です。パース層の存在を事前に知らせる(disclosure)と、6設定で30.4〜60.7ポイント回復し、残り2設定ではゼロかわずかにマイナスでした。</li>
+        <li><b>見かけの同点が中身の違いを隠す。</b>要旨の原文は「GPT-5.6-sol's matched gap of -3.6 points hides -64.3 points of damage and +60.7 points of compensation.」<mark>-3.6ptという小さな差の内側で、64.3pt壊れて60.7pt取り返している</mark>ということです。</li>
+        <li><b>生成そのものはほぼ飽和している。</b>「Raw generation is nearly saturated at the frontier; boundary adaptation is what still separates models.」差が付くのは境界への適応力のほう、という結論です。</li>
+        <li><b>評価の報告方法への提言。</b>モデル構成・生成契約・実行経路・動作点・最終状態の検証器まで報告せよ、スコアをモデル固有の性質として扱うな、と書かれています。</li>
+      </ul>
+
+      <details>
+        <summary>この論文について確認できていること</summary>
+        <div class="body">
+          <dl>
+            <dt>査読前です</dt>
+            <dd>arXivのプレプリントで、<mark>査読を経ていません</mark>。またこの記事では<b>arXiv APIから取得した公式の書誌と要旨のみを読んでおり、本文(PDF/HTML全文)は未取得</b>です。上の数値はすべて著者自身が要旨に書いた自己申告値です。著者コメント欄に記載のプロジェクトページも取得していません。</dd>
+            <dt>規模</dt>
+            <dd>「56 one-shot tasks from 14 incident-derived families」— 実際のインシデントから作った14系統・56タスクを、最終状態の厳密な検証で採点しています。著者はShangao Li, Yao Zhang, Volker Tresp, Yuanyuan Yangの4名、登録は2026-08-13T17:57:20Z。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://arxiv.org/abs/2608.13547">arXiv:2608.13547</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">arXiv</div>
+      <h3>AIが直したパッチは、通っても開発者の約2.2倍太い — 「短く直して」と頼んでも効かない</h3>
+      <div class="tags">
+        <span class="tag">8/13</span>
+        <span class="tag warn">⚠ 査読前(プレプリント)</span>
+        <span class="tag warn">⚠ 要旨のみ確認</span>
+        <span class="tag">コードレビュー</span>
+      </div>
+      <p class="lead">SWE-bench Verifiedで28の最新手法を調べたところ、<mark>成功したパッチですら開発者のパッチより一貫して大きく複雑</mark>でした。中央値の手法で総変更量が121.78%多く、純変更量が80.91%多く、循環的複雑度(分岐の多さの指標)が43.99%高い、という数字が出ています。</p>
+
+      <ul class="points">
+        <li><b>プロンプトで削らせるのは効かない。</b>原文は「can hardly be reduced by surface-level controls such as output format or minimality prompts」。<mark>読者が日常的にやっている「短く直して」という指示が、実験では効かなかった</mark>という報告です。</li>
+        <li><b>肥大の原因は設計そのもの。</b>反復的な修正(iterative refinement)や広いコンテキストといった、<b>性能を上げるための設計選択</b>に根ざしている、と書かれています。つまり賢くするほど太る。</li>
+        <li><b>削ろうとすると通らなくなる。</b>4つのホストシステムで、プロンプト・コミット分解・最小性を意識したベースラインを試すと、解けるインスタンスが49〜217件減りました。</li>
+        <li><b>提案手法RECAPの数字。</b>総変更量を開発者比+242.14%から+4.24%へ、純変更量を+348.24%から-39.75%へ削りつつ、解決数は維持または最大42件改善したと報告されています。生成と最小化を切り離す、という設計論です。</li>
+      </ul>
+
+      <details>
+        <summary>この論文について確認できていること</summary>
+        <div class="body">
+          <dl>
+            <dt>査読前です</dt>
+            <dd>arXivのプレプリントで、<mark>査読を経ていません</mark>。この記事では<b>arXiv APIから取得した公式の書誌と要旨のみを読んでおり、本文は未取得</b>です。数値はすべて著者の自己申告です。著者はWenqiang Luo, Jacky Keung, Xiaoyu Shi, Yicheng Sun, Boyang Yang, Zhou Yang ほか計7名、登録は2026-08-13T14:25:50Z。</dd>
+            <dt>読み方の注意</dt>
+            <dd>「1.2倍〜2.4倍」という言い方は、+21.78%(総変更量が121.78%<b>多い</b>= 2.2倍)といった数字を丸めた表現になりがちです。要旨の原文は「the median approach producing 121.78% more total changes, 80.91% more net changes, and 43.99% higher cyclomatic complexity」で、<mark>いずれも「〜%多い」</mark>です。総変更量は約2.2倍、純変更量は約1.8倍、循環的複雑度は約1.44倍にあたります(この換算は本サイトの計算です)。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://arxiv.org/abs/2608.13292">arXiv:2608.13292</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ モデル・業界 ============ -->
+  <section class="section section-a" id="industry">
+    <h2>🏢 モデル・業界<span class="n">2件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=deepseek.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">DeepSeek</div>
+      <h3>DeepSeekが明日01:00 JSTから値上げ。「ピーク帯」を日本時間に直すと、10-13時と15-19時だった</h3>
+      <div class="tags">
+        <span class="tag">8/13発表 / 8/17 01:00 JST発効</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">API価格</span>
+        <span class="tag warn">⚠ 全時間帯で値上げ</span>
+      </div>
+      <p class="lead">DeepSeekがV4ファミリーの正式リリースに合わせて価格を改定します。発効はChange Logの原文で「16:00 (UTC Time) on August 16, 2026」、<mark>日本時間では2026年8月17日(月) 01:00</mark>です。ピーク・オフピークの2段階になり、オフピークはピークの半額と説明されています。</p>
+
+      <p class="lead">ただし、<b>オフピーク価格ですら現行より高い。</b>「安い時間に投げれば今より安い」ではありません。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/deepseek-peak-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/deepseek-peak.png" alt="DeepSeekのピーク帯01:00-04:00と06:00-10:00 UTCを日本時間に直すと10-13時と15-19時になり、日本の業務時間と重なる" loading="lazy">
+        </picture>
+        <figcaption>ピークは1日24時間のうち7時間だけ。その7時間が、日本の勤務時間にほぼ収まっている</figcaption>
+      </figure>
+
+      <div class="quiz">
+        <p class="q">Q. 新料金でオフピーク帯(日本時間の夜間など)を狙って投げれば、今より安くなる?</p>
+        <button class="opt" type="button" data-correct="false">安くなる。オフピークはピークの半額だと公式が書いている</button>
+        <button class="opt" type="button" data-correct="false">変わらない。値上げと値下げが相殺される</button>
+        <button class="opt" type="button" data-correct="true">高くなる。オフピーク価格そのものが現行より上に設定されている</button>
+        <p class="ans" hidden>正解。「オフピークはピークの半額」は<b>新価格どうしの比較</b>であって、現行価格との比較ではありません。v4-proの出力は現行$0.87に対しオフピークで$1.98、ピークで$3.96。どの時間に投げても値上げです(倍率は本サイトの計算)。</p>
+      </div>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>項目(USD / 1Mトークン)</th><th>現行</th><th>改定後オフピーク</th><th>改定後ピーク</th></tr></thead>
+          <tbody>
+            <tr><td>v4-flash 出力</td><td data-label="現行">$0.28</td><td data-label="オフピーク">$0.66</td><td data-label="ピーク">$1.32</td></tr>
+            <tr><td>v4-flash 入力(cache miss)</td><td data-label="現行">$0.14</td><td data-label="オフピーク">$0.22</td><td data-label="ピーク">$0.44</td></tr>
+            <tr><td>v4-flash 入力(cache hit)</td><td data-label="現行">$0.0028</td><td data-label="オフピーク">$0.007</td><td data-label="ピーク">$0.014</td></tr>
+            <tr><td>v4-pro 出力</td><td data-label="現行">$0.87</td><td data-label="オフピーク">$1.98</td><td data-label="ピーク">$3.96</td></tr>
+            <tr><td>v4-pro 入力(cache miss)</td><td data-label="現行">$0.435</td><td data-label="オフピーク">$0.66</td><td data-label="ピーク">$1.32</td></tr>
+            <tr><td>v4-pro 入力(cache hit)</td><td data-label="現行">$0.003625</td><td data-label="オフピーク">$0.022</td><td data-label="ピーク">$0.044</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">価格そのものはDeepSeek公式のPricingページからの転記です。<mark>以下の倍率は、この表から本サイトが計算した値</mark>で、公式が出している数字ではありません。</p>
+
+      <ul class="points">
+        <li><b>出力はオフピークで2.28〜2.36倍、ピークで4.55〜4.71倍。</b>v4-proが2.28倍 / 4.55倍、v4-flashが2.36倍 / 4.71倍です(本サイトの計算)。</li>
+        <li><b>キャッシュヒットの上げ幅が突出している。</b>v4-proのcache hitは$0.003625 → ピーク$0.044で<mark>約12.1倍</mark>、オフピークでも約6.07倍。<b>プロンプトキャッシュ前提でコストを組んでいた構成ほど、影響が大きくなります</b>(本サイトの計算)。</li>
+        <li><b>入力(cache miss)は比較的おとなしい。</b>オフピークで約1.52〜1.57倍、ピークで約3.03〜3.14倍(本サイトの計算)。値上げ幅は「出力 &gt; キャッシュヒット入力」ではなく、「キャッシュヒット入力 &gt; 出力 &gt; キャッシュミス入力」の順です。</li>
+        <li><b>ピーク帯は7時間だけ。なのに日本のユーザーはほぼ全部踏む。</b>公式脚注の原文は「Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC (all other hours are off-peak)」。<mark>UTC+9で直すと10:00-13:00と15:00-19:00 JST</mark>です(この換算は本サイトが行いました)。</li>
+      </ul>
+
+      <p class="lead"><b>今日できる対応はひとつ。</b>バッチ処理・評価ジョブ・夜間の一括生成を、JSTの13:00-15:00か19:00以降に寄せることです。対話的な利用は業務時間に張り付くので動かせませんが、バッチなら動かせます(これは筆者の運用上の判断で、公式の推奨ではありません)。</p>
+
+      <details>
+        <summary>二次情報と食い違っていたこと / そのほかの変更</summary>
+        <div class="body">
+          <dl>
+            <dt>集約サイトの数字が公式と合わない</dt>
+            <dd>検索で見つかる集約系サイトには「DeepSeek raised V4 Flash 93% ($0.14→$0.27/M, Aug 14)」という記述がありました。<mark>公式の価格表と一致しません。</mark>正しくはv4-flashのcache miss入力が$0.14 → オフピーク$0.22 / ピーク$0.44で、発効は8月16日16:00 UTCです。この種の集約サイトは根拠にしないでください。</dd>
+            <dt>価格以外の変更</dt>
+            <dd>Responses API(OpenAIの形式)にネイティブ対応し、Codex向けに調整されたと書かれています。Anthropic形式のベースURL(<code>https://api.deepseek.com/anthropic</code>)も提供。V4-ProとV4-Flashの思考モードは low / high / max の3段階になりました。コンテキスト長は1M、最大出力は384K、同時実行数の上限はflashが2500、proが500です。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://api-docs.deepseek.com/updates">DeepSeek API Change Log</a> / <a href="https://api-docs.deepseek.com/quick_start/pricing">DeepSeek Models &amp; Pricing</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=huggingface.co&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Qwen</div>
+      <h3>Qwen3.8-27BはApache-2.0で今すぐ落とせる27Bモデル — ただし「Opus超え」の表には自社ベンチが2つ混ざっている</h3>
+      <div class="tags">
+        <span class="tag">8/15 00:00 JST更新</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">オープンウェイト</span>
+        <span class="tag warn">⚠ 自己申告ベンチ</span>
+      </div>
+      <p class="lead">前回記事で扱ったGLM-5.3は約753Bで、重みの公開が2週間先送りされていました。今回のQwen3.8-27Bはその真逆です。<mark>約27.78BのパラメータをApache-2.0で、今すぐダウンロードできます</mark>(Hugging FaceのAPIメタデータで<code>safetensors.parameters.BF16 = 27,781,427,952</code>を確認)。MoEではない密モデルです。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>ベンチマーク</th><th>Qwen3.8-27B</th><th>Opus4.6 Max</th></tr></thead>
+          <tbody>
+            <tr><td>SWE-bench Pro</td><td data-label="Qwen3.8-27B">61.7</td><td data-label="Opus4.6 Max">53.4</td></tr>
+            <tr><td>IFBench</td><td data-label="Qwen3.8-27B">79.5</td><td data-label="Opus4.6 Max">62.5</td></tr>
+            <tr><td>LiveCodeBench v6</td><td data-label="Qwen3.8-27B">90.3</td><td data-label="Opus4.6 Max">88.8</td></tr>
+            <tr><td>Terminal Bench 2.1 (Terminus)</td><td data-label="Qwen3.8-27B">73.0</td><td data-label="Opus4.6 Max">78.2</td></tr>
+            <tr><td>NL2Repo-Bench</td><td data-label="Qwen3.8-27B">42.3</td><td data-label="Opus4.6 Max">47.6</td></tr>
+            <tr><td>GPQA Diamond</td><td data-label="Qwen3.8-27B">89.2</td><td data-label="Opus4.6 Max">91.3</td></tr>
+            <tr><td>HLE</td><td data-label="Qwen3.8-27B">30.8</td><td data-label="Opus4.6 Max">40.0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">数値はQwen公式のREADMEに掲載された表からの転記です。<mark>勝ち負けが割れています。</mark>そして、READMEに書かれた評価条件の但し書きを読まないと、この表は正しく読めません。</p>
+
+      <ul class="points">
+        <li><b>SWE-bench ProはOpus側だけ条件が違う。</b>READMEの原文は「Except for Opus4.6 Max, which uses the officially reported score, all models are evaluated with the Claude Code harness」。<mark>他モデルはQwenがClaude Codeのハーネスで測り直し、Opusだけは公表値をそのまま持ってきています。</mark>さらに「Problematic tasks were corrected」とあり、ベンチマーク自体にも手が入っています。</li>
+        <li><b>自社ベンチが2つ混ざっている。</b>QwenSWEBenchは「In-house coding benchmark」、CoWorkBenchは「In-house cowork benchmark」とREADME自身が書いています。第三者が同じ条件で再現できるものではありません。</li>
+        <li><b>HLEの採点者はGPT-4o。</b>「HLE: Judged by GPT-4o.」と明記されています。採点がモデルである以上、絶対値の比較には注意が要ります。</li>
+        <li><b>コンテキスト長は262,144トークンで、100万まで拡張可能。</b>思考モードは既定でオンで、リクエストごとに切れます。<code>reasoning_effort</code>で深さを調整でき、<code>preserve_thinking</code>で過去メッセージの推論文脈を保持できます。</li>
+        <li><b>画面操作系のスコアが目立つ。</b>OSWorld-Verifiedが84.3、AndroidWorldが81.9。いずれも比較列の中で最高値です(READMEの表より)。</li>
+      </ul>
+
+      <details>
+        <summary>公開状況とアーキテクチャ</summary>
+        <div class="body">
+          <dl>
+            <dt>Hugging Face上の実測メタデータ</dt>
+            <dd>リポジトリ作成 <code>createdAt = 2026-08-05T08:22:59Z</code>、最終更新 <code>lastModified = 2026-08-14T15:00:01Z</code>(= 8月15日00:00 JST)。調査時点で likes 9,727 / downloads 91,917。タグは<code>license:apache-2.0</code>、アーキテクチャは<code>Qwen3_5ForConditionalGeneration</code>で、ビジョンエンコーダ付きの因果言語モデルです。派生モデル(GGUF / MLX / AWQ / 量子化など)が8月15日の1日だけで数十件作られていることも、APIで作成日時の降順に取得して確認しました。</dd>
+            <dt>構造</dt>
+            <dd>READMEの記載は「Hidden Dimension: 5120 / Number of Layers: 64 / Hidden Layout: 16 × (3 × (Gated DeltaNet → FFN) → 1 × (Gated Attention → FFN))」。Multi-Token Predictionを複数ステップで学習した、とも書かれています。</dd>
+            <dt>読み方についての筆者の意見</dt>
+            <dd>27Bで重みがApache-2.0という点は、自社インフラで動かす選択肢として意味があります。ただし「Opus4.6 Maxを上回った」という部分は、評価条件を揃えた比較ではありません。<mark>ベンチの数値ではなく、ライセンスとサイズで評価するのが実務的</mark>だと考えます。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://huggingface.co/Qwen/Qwen3.8-27B">Qwen/Qwen3.8-27B(Hugging Face)</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark>本文を取得できなかったもの・要旨しか読んでいないものは「未確認」として、その理由も書いています。</p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Claude Code Changelog」<i>Claude Code Docs</i>（GitHubのCHANGELOG.mdから生成）, 2.1.233（2026年8月14日）.
+          <span class="note">参照箇所: 「2.1.233 August 14, 2026」節の以下の行。「Todo/task-tracking tools (TaskCreate/Get/Update/List, TodoWrite) are no longer available on Opus 4.8, Sonnet 5, Fable 5, Mythos 5, and newer models; set <code>CLAUDE_CODE_ENABLE_TODO_TOOLS=1</code> to bring them back」、「Reverted the 2.1.232 Bash permission changes for Cygwin-style symlinks on Windows and for input redirections (<code>&lt; file</code>); a narrower version will return in a later release」、「Windows: fixed auto mode repeatedly stopping for manual approval on ordinary <code>cd &lt;dir&gt; &amp;&amp; &lt;command&gt; &gt; file</code> Bash commands (a 2.1.232 regression)」、「Fixed Windows paths spelled with the NT <code>\??\</code> device prefix bypassing UNC path validation, closing an NTLM credential-leak vector」、「Added opt-in memory cgroup support for Bash tool commands on Linux (<code>CLAUDE_CODE_TOOL_MEMORY_LIMIT</code>) so a runaway build can't stall the session」、「Fixed idle sessions on Linux sometimes keeping one CPU core at 100% when sandboxing is enabled」、「Added <code>CLAUDE_CODE_WEBFETCH_CACHE_TTL_MS</code> environment variable to configure the WebFetch session URL cache TTL (default unchanged: 15 minutes)」、「Fixed MCP v2 connections endlessly reopening the subscriptions/listen stream against servers that terminate long-held streams on a fixed timeout (e.g. serverless hosts)」、「Fixed bundled skill aliases like <code>/checkup</code> and <code>/review</code> reporting "Unknown command" in <code>-p</code> mode or with plugins/MCP loaded when a user or project skill shadows the bundled skill」、「Improved print mode diagnostics: a <code>[claude-code:unrecognized_model]</code> line is written to stderr when a request goes out for a model ID Claude Code doesn't recognize」。前回記事（2026-08-15_001）が2.1.232の成果として紹介した2項目が、この版でRevertされたことの根拠です。</span>
+          <a href="https://code.claude.com/docs/en/changelog">https://code.claude.com/docs/en/changelog</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          GitHub「Multiple redirect URIs and token refresh for OAuth apps」<i>GitHub Changelog</i>, 2026年8月14日（RSSのpubDateは Fri, 14 Aug 2026 22:43:44 +0000）.
+          <span class="note">参照箇所: 冒頭の箇条書き3項目（「OAuth apps can opt in to expiring access tokens and refresh tokens.」「OAuth apps can have multiple redirect URIs.」「Both GitHub Apps and OAuth apps can enable wildcard matching for redirect URIs if needed.」）、「If an app opts in, they get an access token that lives for <b>eight hours</b> and a refresh token that's valid for <b>six months</b>」、「Include the <code>offline_access</code> scope in their authentication request」、「Short-lived tokens are enabled by default for all new applications. If your authentication SDK doesn't support the refresh token flow, you can disable this while updating the SDK.」、「OAuth apps can now register up to <b>10 redirect URIs</b> (called "callback URIs" on GitHub)」、「Wildcard matching can be abused if the site being redirected to does not have strong control over its routes (e.g., if it hosts user content). Review your app architecture before enabling this.」、「<b>Apps with only one redirect URI have wildcard matching enabled. This is a legacy behavior of GitHub that is now visible and controllable.</b> Please review your apps and disable wildcard matching if you do not need it. This applies to all OAuth apps and any GitHub App that had a single redirect URI registered.」、「These improvements will all be included in GitHub Enterprise Server 3.23.」</span>
+          <a href="https://github.blog/changelog/2026-08-14-multiple-redirect-uris-and-token-refresh-for-oauth-apps">https://github.blog/changelog/2026-08-14-multiple-redirect-uris-and-token-refresh-for-oauth-apps</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag unverified">未確認</span>
+          IETF「RFC 6749 (The OAuth 2.0 Authorization Framework) / RFC 6819 (OAuth 2.0 Threat Model and Security Considerations)」.
+          <span class="note">なぜ未確認か: リダイレクトURIの完全一致に関する仕様側の推奨と、GitHubの今回の変更を突き合わせたい箇所でしたが、<b>今回RFC本文を取得していません</b>。よって本文中でも仕様側の記述には一切言及していません。次回このテーマを扱うときに取得すること。</span>
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Gemini API changelog」<i>Google AI for Developers</i>, 2026年8月13日.
+          <span class="note">参照箇所: 「August 13, 2026」節の「<b>Gemini 3.7 Flash generally available (GA)</b>: Released our most intelligent workhorse model yet for coding and agents: Gemini 3.7 Flash (<code>gemini-3.7-flash</code>): Substantial improvements across software engineering, web development, and agentic workflows, available at an <b>introductory price through December 31, 2026</b>.」（「導入価格」であることの根拠）。</span>
+          <a href="https://ai.google.dev/gemini-api/docs/changelog">https://ai.google.dev/gemini-api/docs/changelog</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Gemini Developer API Pricing」<i>Google AI for Developers</i>.
+          <span class="note">参照箇所: Gemini 3.7 Flash の有料ティア欄。「Input price … <b>$0.75 through December 31, 2026. $1.50 starting January 1, 2027.</b>」「Output price (including thinking tokens) … <b>$3.75 through December 31, 2026. $7.50 starting January 1, 2027.</b>」「Context caching price … <b>$0.075 through December 31, 2026. $0.15 starting January 1, 2027.</b> $0.50 / 1,000,000 tokens per hour (storage price) through December 31, 2026. $1.00 / 1,000,000 tokens per hour (storage price) starting January 1, 2027.」「Grounding with Google Search … 5,000 free search requests per month (shared across all Gemini 3.x models), then $14 per 1,000 requests.」記事の表はこの4行の転記です。単位はUSD / 100万トークン。</span>
+          <a href="https://ai.google.dev/gemini-api/docs/pricing">https://ai.google.dev/gemini-api/docs/pricing</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「How Claude's text watermark works」<i>Anthropic News</i>, 2026年8月14日.
+          <span class="note">参照箇所: 「Future Claude models will generate text that contains a watermark … we, along with several other major AI providers, are implementing this change <b>to comply with the EU AI Act</b>.」、箇条書きの「<b>Nothing is added to the text and there are no hidden characters;</b>」「Watermarking doesn't require extra tokens, and will not be more expensive;」「Watermarking carries no identifying information and can't be traced to a specific person, organization, or chat;」、「Instead of using an arbitrary random number generator to pick the next word, watermarking uses the key and a few words that come before to settle what word the model should pick.」、「Claude's text watermark is a version of the <b>SynthID-Text</b> approach published by Google DeepMind in a <b>Nature paper in 2024</b> … goes back to a proposal by Scott Aaronson in 2022」、「<b>Watermarking is sparser on factual passages</b>」、「<b>For the same reason, code—which in very many cases has to be exact—has generally less watermarking than some other forms of text.</b>」「in areas where there is an arbitrary choice between particular words or terms within the code, the watermark can be used, <b>such as comments within code</b>」、「<b>We're applying watermarking globally at launch because we don't yet have a durable way to scope it by region.</b>」、「<b>We will soon be offering a watermark detection API.</b> We're in the process of working out the details of its implementation.」、「When Claude produces a file of a supported type (such as a .png, .jpg, or .svg), it will attach a content credential … an open industry standard called <b>C2PA</b>」、「Light editing probably won't remove the watermark completely; a complete rewrite where every word is replaced will.」、「<b>It cannot distinguish "Claude wrote this" from "Claude heavily edited this."</b>」、「The EU law includes a transition period for Anthropic models launched before <b>August 2, 2026</b>」、「AI models appear to be fond of the construction "this isn't [X], it's [Y]", and use the word "<b>quietly</b>" a lot more than you might expect.」。なおニュース一覧の表示タイトルは「How Claude's text watermark works」、ページ内の<code>&lt;title&gt;</code>は「How Claude's text watermarking works」で表記が揺れています。</span>
+          <a href="https://www.anthropic.com/news/claude-text-watermark">https://www.anthropic.com/news/claude-text-watermark</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          European Commission「Strong backing for the Code of Practice on Transparency of AI-generated Content」<i>Shaping Europe's digital future</i>.
+          <span class="note">参照箇所: 「By the end of July 2026, <b>about 190 organisations</b> across various sectors - including IT, telecom, education, and retail - have signed the code. This preceded the <b>entry into force of the AI Act's marking obligations on August 2, 2026</b>. <b>About half of the signatories are small and recent companies</b>」、「Examples for Section 1 include: Aleph Alpha, <b>Anthropic</b>, Black Forest Labs, Cohere, Google, Meta, Microsoft, Mistral, Open AI, Synthesia.」、「<b>Section 1 signatories: 82</b> / <b>Section 2 signatories: 152</b>」、「Signatories will also be invited to collaborate in the two task forces, to be launched in September 2026.」</span>
+          <a href="https://digital-strategy.ec.europa.eu/en/news/strong-backing-code-practice-transparency-ai-generated-content">https://digital-strategy.ec.europa.eu/en/news/strong-backing-code-practice-transparency-ai-generated-content</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag unverified">未確認(書誌のみ照合)</span>
+          Sumanth Dathathri, Abigail See, Sumedh Ghaisas, Po-Sen Huang, Rob McAdam, Johannes Welbl ほか「Scalable watermarking for identifying large language model outputs」<i>Nature</i> 634, 818-823, 2024年10月23日. DOI: 10.1038/s41586-024-08025-4.
+          <span class="note">なぜ未確認か: Anthropicが「SynthID-TextのNature論文(2024)」として参照している先です。<code>https://api.crossref.org/works/10.1038/s41586-024-08025-4</code> で著者・誌名・巻・ページ・発行日を照合しました（HTTP 200）。<b>ただし論文本文は未取得</b>のため、記事では書誌情報の言及にとどめ、論文の主張は引用していません。</span>
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「Queues — Pausing and Resuming Queue Workers」<i>Laravel Documentation 13.x</i>.
+          <span class="note">参照箇所: 「Laravel provides the <code>queue:pause</code> and <code>queue:continue</code> Artisan commands to pause and resume queue workers.」、「Once a queue is paused, any workers processing jobs from that queue will continue to finish their current job, but will not pick up any new jobs until the queue is resumed.」、「To resume processing jobs on a paused queue, use the <code>queue:continue</code> command: <code>php artisan queue:continue database:default</code>」、「To resume job processing for every queue on every connection, use the <code>--all</code> option with the <b><code>queue:resume</code></b> command: <code>php artisan queue:resume --all</code>」、「<b>Resuming all queues does not resume queues that were paused individually.</b> Note that pausing a queue does not stop the worker process itself - it only prevents the worker from processing new jobs from the specified queue.」、「By default, queue workers poll the cache driver for restart and pause signals on each job iteration … it does introduce a small performance overhead. If you need to optimize performance and don't require these interruption features, you may disable this polling globally by calling the <code>withoutInterruptionPolling</code> method on the <code>Queue</code> facade.」。この節の中で再開コマンド名が2通りに割れていることが、実測の出発点です。</span>
+          <a href="https://laravel.com/docs/13.x/queues">https://laravel.com/docs/13.x/queues</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「laravel/framework CHANGELOG」<i>GitHub (raw.githubusercontent.com, 13.xブランチ)</i>.
+          <span class="note">参照箇所: 見出し「## [v13.25.0](...) - 2026-08-11」と、その配下の「* [13.x] Add a global pause switch for queues by @jackbayliss in https://github.com/laravel/framework/pull/61126」。リリース日は Packagist の <code>https://repo.packagist.org/p2/laravel/framework.json</code> にある <code>v13.25.0</code> の <code>time = 2026-08-11T13:56:22+00:00</code> で照合しました。<b>あわせて、同梱のCHANGELOG（v13.0.0 〜 v13.24.0）に <code>queue:continue</code> への言及が1件も無い</b>ことも確認しています（記事中で「別名がいつ追加されたかは特定できない」と書いた根拠）。</span>
+          <a href="https://raw.githubusercontent.com/laravel/framework/13.x/CHANGELOG.md">https://raw.githubusercontent.com/laravel/framework/13.x/CHANGELOG.md</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Amazon S3 adds policy details to Access Denied error messages」<i>AWS What's New</i>, 2026年8月13日（ページ本文の「Posted on: Aug 13, 2026」）.
+          <span class="note">参照箇所: 「Amazon S3 now includes the specific AWS Identity and Access Management (IAM) and AWS Organizations policy Amazon Resource Name (ARN) in HTTP 403 Access Denied error messages for same-account and same-organization requests.」、「Previously, S3 access denied error messages included the policy type and reason for denial, but when multiple policies of the same type existed, you still had to manually inspect each one to pinpoint the root cause. Now the error message includes the specific policy ARN <b>for explicit deny cases</b>, covering Service Control Policies (SCPs), Resource Control Policies (RCPs), identity-based policies, session policies, and permission boundaries.」（「明示的Denyのみ」「5種類のポリシー」の根拠）、「This capability is available in all AWS Regions, including the AWS GovCloud (US) Regions and the AWS China Regions.」</span>
+          <a href="https://aws.amazon.com/about-aws/whats-new/2026/08/s3-additional-policy-details-access-denied-error-messages/">https://aws.amazon.com/about-aws/whats-new/2026/08/s3-additional-policy-details-access-denied-error-messages/</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「terraform-provider-aws CHANGELOG」<i>GitHub (raw.githubusercontent.com, mainブランチ)</i>.
+          <span class="note">参照箇所: 見出し「## 6.60.0 (August 13, 2026)」「## 6.59.0 (August 12, 2026)」と、6.60.0 の BUG FIXES 冒頭「* resource/aws_network_acl_rule: Fix <code>Missing Resource Identity After Read</code> errors. This fixes a regression introduced in v6.59.0」。「6.61.0 (Unreleased)」の ENHANCEMENTS より「* data-source/aws_lb_listener_rule: Add <code>condition.source_ip.ip_address_type</code> attribute」「* resource/aws_lb_listener_rule: Add <code>condition.source_ip.ip_address_type</code> argument」「* resource/aws_pinpointsmsvoicev2_phone_number: Add <code>wait_for_active</code> argument … Number types gated on carrier or registration approval (for example <code>TEN_DLC</code>, <code>TOLL_FREE</code>, or any number submitted with <code>registration_id</code>) can remain <code>PENDING</code> for days to weeks, which previously caused <code>terraform apply</code> to time out」。6.60.0の公開日時は Terraform Registry API（<code>https://registry.terraform.io/v1/providers/hashicorp/aws</code>）の <code>published_at = 2026-08-13T18:12:29Z</code> で照合しました。</span>
+          <a href="https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/CHANGELOG.md">https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/CHANGELOG.md</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Jon Davis「Release Notes for Safari Technology Preview 250」<i>WebKit Blog</i>, 2026年8月13日.
+          <span class="note">参照箇所: 冒頭の対象コミット範囲「This release includes WebKit changes between: 317507@main…317934@main」。Storage 節の「Fixed an IndexedDB <code>put()</code> that fails a unique index constraint <b>deleting the record it would have overwritten, leaving the object store with neither the old nor the new record.</b> (317632@main)」。WebAssembly 節の「Added support for <b>relaxed SIMD instructions</b>. (317549@main)」「Added support for <b>multiple memories in a single WebAssembly module</b>. (317636@main)」。Networking 節の「Added initial support for uploading a <code>ReadableStream</code> body with <code>fetch()</code>.」「Added support for the <code>duplex</code> option on <code>Request</code>, which is required when uploading a <code>ReadableStream</code> body.」。JavaScript 節の Explicit Resource Management（<code>using</code> / <code>await using</code> / <code>Symbol.dispose</code> / <code>DisposableStack</code> / <code>AsyncDisposableStack</code>）。Web Inspector 節の「Added support for showing <b>WebAssembly modules in the Sources tab</b>.」「Fixed disabling the resource cache overwriting a <code>Cache-Control</code> header already set by the page.」。CSS Deprecations 節の「Removed support for the non-standard <code>text</code> color value; use <code>canvastext</code> instead.」。<b>出荷版SafariやiOSのWKWebViewへの到達時期は本文に記載がありません。</b></span>
+          <a href="https://webkit.org/blog/18191/release-notes-for-safari-technology-preview-250/">https://webkit.org/blog/18191/release-notes-for-safari-technology-preview-250/</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Unity Technologies「Unity 6000.7.0a4 Release Notes」<i>unity.com/releases</i>（リリース日 2026年8月6日）.
+          <span class="note">参照箇所: 「New 6000.7.0a4 Entries since 6000.7.0a3」節の「Web: Added: Added new "Maximum Size Reduction" and "Maximum Size Reduction with LTO" Code Optimization settings … <b>Testing across multiple projects and devices showed that compared to the default "Shorter Build Time" setting, "Maximum Size Reduction" reduces code size by an average of 28.50% at the cost of 5.25% frame time performance regression.</b>」、「Web: Further reduce the code size of Web builds using the "Disk Size" Code Optimization settings … <b>"Disk Size" reduced code size by an average of 8.75%, with this change the reduction is now an average of 21.35%</b> … <b>the average frame time performance regression grows from 2.13% to 4.56%</b> with the performance regression being reduced when LTO is enabled」、「Web: Enabled Burst for builds using WebAssembly64.」。「Preview of Final 6000.7.0a4 Release Notes」節の「WebGL: <b>Texture2D.GetPixels and ComputeBuffer.GetData will now work with WebGPU for browsers that support WebAssembly JSPI.</b> (UUM-144696)」「Web: Fixed a ReferenceError in the WebGL loader <code>hasJSPI</code> check that occurred when WebAssembly is undefined.」「Web: Fixed Web platform build when output asset sizes are larger than 2 GB, and the build error message if output asset sizes are larger than 4 GB (unsupported).」「Web: Fixed streaming of response body in UnityWebRequest when server does not set "Content-Length" header. (UUM-146537)」「Web: Fixed scene loading race conditions when using progressive asset loading.」。リリース日は Unity Editor Release API（<code>services.api.unity.com/unity/editor/release/v1/releases?stream=ALPHA</code>）の <code>releaseDate = 2026-08-06T10:54:56.557Z</code> で照合しました。<b>JSPI対応ブラウザの一覧は、Unity公式がリンクしているcaniuseを今回取得していないため書いていません。</b></span>
+          <a href="https://unity.com/releases/editor/alpha/6000.7.0a4">https://unity.com/releases/editor/alpha/6000.7.0a4</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Shangao Li, Yao Zhang, Volker Tresp, Yuanyuan Yang「QuoteBench」<i>arXiv:2608.13547v1</i>, 2026年8月13日登録（<code>&lt;published&gt; = 2026-08-13T17:57:20Z</code>）.
+          <span class="note">参照箇所（<b>要旨のみ。全文は未取得</b>）: 「LLM coding agents issue Bash commands through interfaces that may serialize, wrap, and reparse model output. Matched execution scores alone cannot distinguish command-generation errors from failures introduced after generation. QuoteBench measures this boundary with exact final-state validation on <b>56 one-shot tasks from 14 incident-derived families</b>」、「Across eight same-window configurations, replaying the same reply through the added parser <b>lowers success by 55.4 to 73.2 percentage points</b>; disclosure recovers <b>30.4 to 60.7 points</b> for six configurations, and zero or slightly negative for the other two.」、「Raw generation is nearly saturated at the frontier; boundary adaptation is what still separates models. <b>GPT-5.6-sol's matched gap of -3.6 points hides -64.3 points of damage and +60.7 points of compensation.</b>」、「Evaluations of command-issuing agents should report the model configuration, generation contract, execution path, operating point, and final-state validator rather than treat a matched score as an intrinsic model property.」。書誌・要旨はarXiv APIから取得しました。<b>査読前のプレプリントであり、数値は著者の自己申告値です。</b>著者コメント欄に記載のプロジェクトページ（quotebench.lsamc.website）は未取得です。</span>
+          <a href="https://arxiv.org/abs/2608.13547">https://arxiv.org/abs/2608.13547</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Wenqiang Luo, Jacky Keung, Xiaoyu Shi, Yicheng Sun, Boyang Yang, Zhou Yang ほか計7名「(LLMベースAPRにおけるパッチ肥大化の研究)」<i>arXiv:2608.13292v1</i>, 2026年8月13日登録（<code>&lt;published&gt; = 2026-08-13T14:25:50Z</code>）.
+          <span class="note">参照箇所（<b>要旨のみ。全文は未取得</b>）: 「we identify patch verbosity as a major yet overlooked concern in LLM-based APR. <b>Characterizing 28 state-of-the-art approaches on SWE-bench Verified, we find that even successful patches are consistently larger and more complex than developer patches, with the median approach producing 121.78% more total changes, 80.91% more net changes, and 43.99% higher cyclomatic complexity.</b>」、「this verbosity is rooted in capability-oriented design choices such as iterative refinement and broad context, and <b>can hardly be reduced by surface-level controls such as output format or minimality prompts.</b>」、「Across four host systems, prompting, commit-untangling, and minimality-aware baselines reduce patch size only by sacrificing 49 to 217 resolved instances. In contrast, RECAP achieves a substantially better size-correctness tradeoff, <b>cutting average total changes from +242.14% to +4.24% and net changes from +348.24% to -39.75% relative to developer patches</b> while preserving or improving resolution by up to 42 instances.」、「minimality cannot be simply reduced to syntactic compression, and … decoupling minimization from generation offers a practical path to more reviewable repairs.」。<b>査読前のプレプリントであり、数値は著者の自己申告値です。</b>タイトルはarXiv APIで取得した書誌に基づきますが、本記事の見出しでは邦訳せずに内容で表現しています。</span>
+          <a href="https://arxiv.org/abs/2608.13292">https://arxiv.org/abs/2608.13292</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          DeepSeek「Change Log」<i>DeepSeek API Docs</i>, 2026年8月13日.
+          <span class="note">参照箇所: 「<b>API Pricing Adjustment</b> — With the official release of the DeepSeek V4 model family, we will update and adjust API pricing. To allocate resources more reasonably, we will adopt <b>peak/off-peak pricing, with off-peak prices set at half of the peak-hour prices</b>, encouraging users to schedule their tasks based on actual usage. <b>The new prices will take effect at 16:00 (UTC Time) on August 16, 2026.</b>」、「<b>Native support for the Responses API</b> — The DeepSeek API now natively supports the OpenAI Responses API format and is specifically adapted for Codex.」、「<b>More flexible thinking effort control</b> — The thinking modes of V4-Pro and V4-Flash now support three thinking effort levels: low / high / max.」</span>
+          <a href="https://api-docs.deepseek.com/updates">https://api-docs.deepseek.com/updates</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          DeepSeek「Models &amp; Pricing」<i>DeepSeek API Docs</i>.
+          <span class="note">参照箇所: 脚注(1)の「DeepSeek API pricing will be updated to peak / off-peak billing, with off-peak rates at half the peak rates. <b>Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC</b> (all other hours are off-peak). The new prices take effect at 16:00 UTC on August 16, 2026, as follows:」と、その直後の価格表。現行価格（deepseek-v4-flash: cache hit $0.0028 / cache miss $0.14 / 出力 $0.28、deepseek-v4-pro: $0.003625 / $0.435 / $0.87）および改定後（v4-flash OFF-PEAK $0.007 / $0.22 / $0.66、PEAK $0.014 / $0.44 / $1.32、v4-pro OFF-PEAK $0.022 / $0.66 / $1.98、PEAK $0.044 / $1.32 / $3.96）。単位はUSD / 100万トークン。あわせて本文の「CONTEXT LENGTH 1M」「MAX OUTPUT MAXIMUM: 384K」「MODEL VERSION DeepSeek-V4-Flash-0731 / DeepSeek-V4-Pro-0813」「Concurrency Limit 2500（flash）/ 500（pro）」「BASE URL (Anthropic Format) https://api.deepseek.com/anthropic」。記事の価格表はこのページからの転記で、<b>倍率は公式には書かれていません</b>。</span>
+          <a href="https://api-docs.deepseek.com/quick_start/pricing">https://api-docs.deepseek.com/quick_start/pricing</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag unverified">未確認(二次情報。矛盾の報告のみに使用)</span>
+          集約系サイト（llm-stats.com 系）の検索スニペット「DeepSeek raised V4 Flash 93% ($0.14→$0.27/M, Aug 14)」.
+          <span class="note">なぜ未確認か: 検索結果のスニペットとして観測したもので、<b>ページ本文は取得していません</b>。DeepSeek公式の価格表（上記）と数値も発効日も一致しないため、本記事では「二次情報が公式と食い違っていた」という事実の報告にのみ使い、価格の根拠としては使用していません。</span>
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Qwen「Qwen/Qwen3.8-27B」<i>Hugging Face モデルリポジトリ（README および Hub API メタデータ）</i>.
+          <span class="note">参照箇所: READMEの「Number of Parameters: 27B」「Hidden Dimension: 5120」「Number of Layers: 64」「Hidden Layout: 16 × (3 × (Gated DeltaNet → FFN) → 1 × (Gated Attention → FFN))」「MTP (Multi-Token Prediction): trained with multiple steps」「<b>Context Length: 262,144 natively and extensible up to 1,000,000 tokens.</b>」「<b>Flexible Thinking Control</b>: Thinking mode is on by default and can be disabled per request; reasoning depth can be tuned with <code>reasoning_effort</code>, and reasoning context from historical messages is retained via <code>preserve_thinking</code>.」。Text Performance 表から Terminal Bench 2.1 (Terminus) 73.0 / 78.2、SWE-bench Pro 61.7 / 53.4、NL2Repo-Bench 42.3 / 47.6、IFBench 79.5 / 62.5、GPQA Diamond 89.2 / 91.3、HLE 30.8 / 40.0、LiveCodeBench v6 90.3 / 88.8（左がQwen3.8-27B、右がOpus4.6 Max）。VL Performance から OSWorld-Verified 84.3、AndroidWorld 81.9。評価条件の注記「SWE-bench Pro: Except for Opus4.6 Max, which uses the officially reported score, <b>all models are evaluated with the Claude Code harness</b> at temp=1.0, top_p=0.95, and a 256K context window. Problematic tasks were corrected, and all baseline models were re-evaluated on the refined benchmark.」「QwenSWEBench: <b>In-house coding benchmark</b>」「CoWorkBench: <b>In-house cowork benchmark</b>」「HLE: <b>Judged by GPT-4o.</b>」。Hub APIメタデータ（<code>https://huggingface.co/api/models/Qwen/Qwen3.8-27B</code>）から <code>createdAt = 2026-08-05T08:22:59.000Z</code>、<code>lastModified = 2026-08-14T15:00:01.000Z</code>、<code>likes = 9727</code>、<code>downloads = 91917</code>、<code>safetensors.parameters.BF16 = 27,781,427,952</code>、タグ <code>license:apache-2.0</code>、<code>config.architectures = Qwen3_5ForConditionalGeneration</code>。派生モデルの数は、API で作成日時の降順に取得して確認しました。<b>ベンチマークの数値はすべてQwenによる自己申告です。</b></span>
+          <a href="https://huggingface.co/Qwen/Qwen3.8-27B">https://huggingface.co/Qwen/Qwen3.8-27B</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag self">自分の実測</span>
+          Laravel 13.25.0 の <code>queue:pause</code> / <code>queue:continue</code> / <code>queue:resume</code> を、本サイトの検証環境で実際に動かしました（2026年8月15日実施）。
+          <span class="note">環境: PHP 8.4.19 (cli, NTS) / Composer 2.8.12 / Laravel Framework 13.25.0（<code>php artisan --version</code> の出力で確認）/ DBはSQLiteの実ファイル / <code>QUEUE_CONNECTION=database</code> / <code>CACHE_STORE=database</code> / Linux 6.18.5。<code>composer create-project laravel/laravel laravel-queue-test "13.*"</code> で作った素のプロジェクトに、<code>storage/done.log</code> へ1行追記するだけのジョブを1つ追加しただけで、<code>config/queue.php</code> と <code>.env</code> は生成されたままです。<b>確かめたこと</b>: (1) <code>php artisan list queue --format=json</code> で <code>queue:resume</code> に <code>queue:continue</code> という別名が付いていること、(2) <code>vendor/.../Queue/Console/</code> に存在するのは <code>PauseCommand.php</code> と <code>ResumeCommand.php</code> の2つだけで <code>ContinueCommand.php</code> は存在しないこと、(3) <code>ResumeCommand.php</code> の <code>#[AsCommand(name: 'queue:resume', aliases: ['queue:continue'])]</code> と <code>protected $aliases = ['queue:continue'];</code>、(4) pause → dispatch → <code>queue:work --stop-when-empty</code> でジョブが処理されない → continue → 処理される、の一連、(5) <code>--all</code> で再開しても個別に止めたキューは再開しないこと、(6) <code>queue:continue --all</code> と <code>queue:resume &lt;キュー名&gt;</code> を含む4通りの組み合わせがすべて動くこと。記事に貼ったターミナル出力は<b>加工せずそのまま</b>です。<code>export COLUMNS=40</code> を付けても Laravel の <code>INFO</code> バナーは折り返されず、実測で76桁（<code>queue:work</code> の進捗行は48〜52桁）でした。手で短く書き換えるのは禁止のため、そのまま残しています。<b>特定できなかったこと</b>: <code>queue:continue</code> という別名がどのバージョンで追加されたか。同梱CHANGELOG（v13.0.0 〜 v13.24.0）に言及が1件も無いため、記事でも書いていません。</span>
+        </li>
+
+        <li>
+          <span class="flag self">自分の計算</span>
+          DeepSeekの値上げ倍率は、公式Pricingページの現行価格と改定後価格から本サイトが割り算した値です。<mark>公式はこの倍率を公表していません。</mark>
+          <span class="note">計算内容: 出力は v4-pro が $0.87 → $1.98（2.28倍）/ $3.96（4.55倍）、v4-flash が $0.28 → $0.66（2.36倍）/ $1.32（4.71倍）。cache hit入力は v4-pro が $0.003625 → $0.022（6.07倍）/ $0.044（12.1倍）、v4-flash が $0.0028 → $0.007（2.5倍）/ $0.014（5.0倍）。cache miss入力は v4-pro が $0.435 → $0.66（1.52倍）/ $1.32（3.03倍）、v4-flash が $0.14 → $0.22（1.57倍）/ $0.44（3.14倍）。小数第3位を四捨五入しています。またarXiv:2608.13292 の「121.78% more / 80.91% more / 43.99% higher」を倍率（約2.2倍 / 約1.8倍 / 約1.44倍）に言い換えた箇所も本サイトの換算です。</span>
+        </li>
+
+        <li>
+          <span class="flag self">自分の計算</span>
+          DeepSeekのピーク帯をUTCから日本標準時（JST）に換算したのは本サイトです。
+          <span class="note">公式が書いているのは「Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC」というピーク帯の定義と、発効時刻「16:00 UTC on August 16, 2026」までです。JST = UTC+9 なので、それぞれ 10:00-13:00 JST / 15:00-19:00 JST、発効は 2026年8月17日(月) 01:00 JST になります。「日本の業務時間と重なる」「ピークは7時間だけ」という指摘は、この換算に基づく本サイトの記述です。</span>
+        </li>
+
+        <li>
+          <span class="flag self">自分の意見</span>
+          「バッチはJSTの13-15時か19時以降に寄せる」「Unityのビルド設定は両社で数字を並べて決める」「Terraformはロックファイルをコミットして上げる時期を自分で決める」「Qwen3.8-27Bはベンチではなくライセンスとサイズで評価する」といった<mark>優先度づけと運用指針は、公式が言っていることではなく筆者の判断</mark>です。
+          <span class="note">公式が示しているのは価格・仕様・変更内容そのものまでです。また、Safari STP 250 のIndexedDB修正が「Unity Webのキャッシュ破損の説明になりうる」というのも筆者の推測で、WebKitのリリースノートはUnityに言及していません。<b>この記事の執筆にあたり、AWS上でのリソース作成・API呼び出しは一切行っていません。</b>Terraformの <code>init</code> / <code>validate</code> / <code>plan</code> も、terraform-provider-aws の項目については実行していません。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>生成: 2026年8月16日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+</main>
+</body>
+</html>
