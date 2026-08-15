@@ -1,0 +1,14 @@
+{
+  "category": "Web開発・インフラ",
+  "tags": [
+    "TiDB",
+    "Laravel",
+    "MySQL",
+    "実測",
+    "入門"
+  ],
+  "featured": true,
+  "title": "TiDBを最初に触る — MySQLと同じところ、違うところ",
+  "summary": "TiDB v8.5.7とMySQL 8.0.46を同じマシンで同時に起動し、同じSQLを両方に流しました。繋がる理由はMySQLプロトコル、ポートは3306ではなく4000。データを持つのはTiKV、時刻と配置はPDです。照合順序で結果が0件と1件に割れる様子、通るのに効かないDDL、Laravelのmigrateがエラー8256で落ちた全ログまで載せています。",
+  "thumbnail": "images/thumb.png"
+}

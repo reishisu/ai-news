@@ -1,0 +1,14 @@
+-- TiDB  4000 --------------------------
+CREATE TABLE : OK
+INSERT 1000  : OK
+COUNT(*): 1000
+user_id=7 件数: 20
+  id=7 user=7 amount=107
+  id=57 user=7 amount=157
+-- MySQL 3306 --------------------------
+CREATE TABLE : OK
+INSERT 1000  : OK
+COUNT(*): 1000
+user_id=7 件数: 20
+  id=7 user=7 amount=107
+  id=57 user=7 amount=157

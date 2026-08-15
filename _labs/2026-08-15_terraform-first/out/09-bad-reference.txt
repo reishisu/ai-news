@@ -1,0 +1,9 @@
+
+Error: Reference to undeclared resource
+
+  on main.tf line 28, in resource "aws_ecs_cluster" "app":
+  28:     Env = aws_ecs_cluster.nope.id
+
+A managed resource "aws_ecs_cluster"
+"nope" has not been declared in the
+root module.

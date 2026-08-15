@@ -1,0 +1,14 @@
+main.tf
+--- old/main.tf
++++ new/main.tf
+@@ -21,8 +21,8 @@
+   skip_region_validation      = true
+ }
+ 
+-resource "aws_ecs_cluster"   "app" {
+-      name="tf-hello"
++resource "aws_ecs_cluster" "app" {
++  name = "tf-hello"
+ 
+   tags = {
+     Env = "sandbox"

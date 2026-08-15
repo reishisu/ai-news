@@ -1,0 +1,45 @@
+<svg viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="320" y="24" fill="var(--fg)" font-size="14" font-weight="800" text-anchor="middle">URL が来てから HTML が返るまで、どこを通るか</text>
+
+  <!-- 1 -->
+  <rect x="40" y="44" width="560" height="48" rx="10" fill="var(--track)" stroke="var(--b)" stroke-width="2"/>
+  <circle cx="64" cy="68" r="12" fill="none" stroke="var(--b)" stroke-width="1.8"/>
+  <text x="64" y="73" fill="var(--b)" font-size="13" font-weight="800" text-anchor="middle">1</text>
+  <text x="86" y="73" fill="var(--fg)" font-size="13" font-weight="800" font-family="ui-monospace, monospace">routes/web.php</text>
+  <text x="300" y="73" fill="var(--sub)" font-size="12.5">どのURLが来たら何をするかを決める</text>
+
+  <path d="M64 92 L64 104" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#arS)"/>
+
+  <!-- 2 -->
+  <rect x="40" y="106" width="560" height="48" rx="10" fill="none" stroke="var(--sub)" stroke-width="1.5"/>
+  <circle cx="64" cy="130" r="12" fill="none" stroke="var(--sub)" stroke-width="1.8"/>
+  <text x="64" y="135" fill="var(--sub)" font-size="13" font-weight="800" text-anchor="middle">2</text>
+  <text x="86" y="135" fill="var(--fg)" font-size="13" font-weight="800" font-family="ui-monospace, monospace">app/Http/Controllers/</text>
+  <text x="300" y="135" fill="var(--sub)" font-size="12.5">呼ばれたときの処理の本体</text>
+
+  <path d="M64 154 L64 166" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#arS)"/>
+
+  <!-- 3 -->
+  <rect x="40" y="168" width="560" height="48" rx="10" fill="none" stroke="var(--sub)" stroke-width="1.5"/>
+  <circle cx="64" cy="192" r="12" fill="none" stroke="var(--sub)" stroke-width="1.8"/>
+  <text x="64" y="197" fill="var(--sub)" font-size="13" font-weight="800" text-anchor="middle">3</text>
+  <text x="86" y="197" fill="var(--fg)" font-size="13" font-weight="800" font-family="ui-monospace, monospace">app/Models/</text>
+  <text x="300" y="197" fill="var(--sub)" font-size="12.5">DBのテーブルを読み書きする</text>
+
+  <path d="M64 216 L64 228" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#arS)"/>
+
+  <!-- 4 -->
+  <rect x="40" y="230" width="560" height="48" rx="10" fill="var(--track)" stroke="var(--a)" stroke-width="2"/>
+  <circle cx="64" cy="254" r="12" fill="none" stroke="var(--a)" stroke-width="1.8"/>
+  <text x="64" y="259" fill="var(--a)" font-size="13" font-weight="800" text-anchor="middle">4</text>
+  <text x="86" y="259" fill="var(--fg)" font-size="13" font-weight="800" font-family="ui-monospace, monospace">resources/views/</text>
+  <text x="300" y="259" fill="var(--sub)" font-size="12.5">返すHTMLを組み立てる</text>
+
+  <text x="320" y="302" fill="var(--sub)" font-size="12.5" text-anchor="middle">app/ の中は App\ 名前空間。置き場所は好みではなく PSR-4 で決まっている</text>
+
+  <defs>
+    <marker id="arS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--sub)"/>
+    </marker>
+  </defs>
+</svg>

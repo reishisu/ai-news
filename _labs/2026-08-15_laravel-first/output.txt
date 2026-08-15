@@ -1,0 +1,105 @@
+
+===== 0. 環境 =====
+PHP 8.4.19 (cli) (built: Mar 30 2026
+19:28:35) (NTS)
+
+Composer version 2.8.12 2025-09-19
+13:41:59
+
+
+===== 1. composer create-project =====
+exit=0
+--- ログ末尾(post-create-project) ---
+> @php artisan key:generate --ansi
+   INFO  Application key set
+successfully.
+> @php artisan migrate --graceful --ansi
+
+
+===== 2. .env の APP_KEY を見る =====
+APP_KEY=base64:8RstfD+dGxT8zb1spGiPxxEq+
+^ create-project が自動生成済み
+APP_KEY=
+^ .env.example は空のまま
+
+===== 3. ここで php artisan test =====
+
+   PASS  Tests\Unit\ExampleTest
+  ✓ that true is true
+
+   PASS  Tests\Feature\ExampleTest
+  ✓ the application returns a s… 0.12s
+
+  Tests:    2 passed (2 assertions)
+  Duration: 0.21s
+
+
+exit=0
+
+===== 4. git clone 直後を再現 =====
+(.env.example をコピー = APP_KEY 空)
+APP_KEY=
+
+===== 5. APP_KEY 空で test =====
+exit=2
+
+   PASS  Tests\Unit\ExampleTest
+  ✓ that true is true
+
+   FAIL  Tests\Feature\ExampleTest
+  ⨯ the application returns a s… 0.30s
+  ────────────────────────────────────
+   FAILED  T…  MissingAppKeyException
+  No application encryption key has
+been specified.
+
+
+===== 6. php artisan key:generate =====
+
+   INFO  Application key set
+successfully.
+
+
+
+===== 7. もう一度 php artisan test =====
+
+   PASS  Tests\Unit\ExampleTest
+  ✓ that true is true
+
+   PASS  Tests\Feature\ExampleTest
+  ✓ the application returns a s… 0.11s
+
+  Tests:    2 passed (2 assertions)
+  Duration: 0.20s
+
+
+exit=0
+
+===== 8. ルートを1本足す =====
+
+Route::get('/hello', function () {
+    return ['message' => 'hello',
+'laravel' => app()->version()];
+});
+
+
+===== 9. serve して確認 =====
+GET /      HTTP 200
+GET /hello HTTP 200
+{"message":"hello","laravel":"13.25.0"}
+
+
+===== 10. APP_KEY を空に戻す =====
+GET /      HTTP 500
+GET /hello HTTP 500
+
+===== 11. key:generate で復旧 =====
+
+   INFO  Application key set
+successfully.
+
+
+GET /      HTTP 200
+GET /hello HTTP 200
+
+===== 終了 =====

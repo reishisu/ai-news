@@ -1,0 +1,51 @@
+-- ANALYZE 実行 ------------------------
+ANALYZE: OK
+warn:
+  Analyze use auto adjusted sample rate 
+  1.000000 for table shop.orders, reason
+   to use this rate is "use min(1, 11000
+  0/1000) as the sample-rate=1"
+warn:
+  skip prepared plan-cache: not a SELECT
+  /UPDATE/INSERT/DELETE/SET statement
+warn:
+  skip prepared plan-cache: not a SELECT
+  /UPDATE/INSERT/DELETE/SET statement
+-- SHOW STATS_HEALTHY ------------------
+table: users_t
+healthy: 0
+table: tx_t
+healthy: 0
+table: seq_t
+healthy: 0
+table: orders_big
+healthy: 100
+table: orders
+healthy: 100
+table: my_t
+healthy: 0
+table: gap_t
+healthy: 0
+table: ft_t
+healthy: 0
+table: coll_t
+healthy: 0
+-- 再 EXPLAIN (user_id=7) --------------
+id: Projection_7
+ est: 3.00
+ task: root
+id: └─TopN_8
+ est: 3.00
+ task: root
+id:   └─TableReader_17
+ est: 3.00
+ task: root
+id:     └─TopN_16
+ est: 3.00
+ task: cop[tikv]
+id:       └─Selection_15
+ est: 20.00
+ task: cop[tikv]
+id:         └─TableFullScan_14
+ est: 1000.00
+ task: cop[tikv]

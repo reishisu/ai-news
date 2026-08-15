@@ -1,0 +1,28 @@
+-- TiDB EXPLAIN ANALYZE ----------------
+列: id, estRows, actRows, task, access o
+bject, execution info, operator info, me
+mory, disk
+----------------------------------------
+id: StreamAgg_17
+ estRows: 1.00
+ actRows: 1
+id: └─IndexReader_18
+ estRows: 1.00
+ actRows: 1
+id:   └─StreamAgg_9
+ estRows: 1.00
+ actRows: 1
+id:     └─IndexRangeScan_16
+ estRows: 20.00
+ actRows: 20
+-- MySQL EXPLAIN ANALYZE ---------------
+列: EXPLAIN
+----------------------------------------
+-> Aggregate: count(0)  (cost=4.26 rows=
+1) (actual time=0.0308..0.0308 rows=1 lo
+ops=1)
+    -> Covering index lookup on orders_b
+ig using idx_user (user_id=7)  (cost=2.2
+6 rows=20) (actual time=0.0211..0.0272 r
+ows=20 loops=1)
+

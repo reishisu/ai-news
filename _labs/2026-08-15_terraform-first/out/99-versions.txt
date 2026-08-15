@@ -1,0 +1,6 @@
+terraform : 1.14.3
+platform  : linux_amd64
+provider  : hashicorp/aws
+            6.60.0
+python3   : Python 3.11.15
+date(UTC) : 2026-08-15T05:42:25Z

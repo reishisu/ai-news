@@ -1,0 +1,32 @@
+-- transaction_isolation ---------------
+TiDB : REPEATABLE-READ
+MySQL: REPEATABLE-READ
+-- autocommit --------------------------
+TiDB : 1
+MySQL: 1
+-- sql_mode ----------------------------
+TiDB :
+  ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES
+  ,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FO
+  R_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER
+  ,NO_ENGINE_SUBSTITUTION
+MySQL:
+  ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES
+  ,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FO
+  R_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUT
+  ION
+-- lower_case_table_names --------------
+TiDB : 2
+MySQL: 0
+-- max_allowed_packet ------------------
+TiDB : 67108864
+MySQL: 67108864
+-- character_set_server ----------------
+TiDB : utf8mb4
+MySQL: utf8mb4
+-- collation_server --------------------
+TiDB : utf8mb4_bin
+MySQL: utf8mb4_0900_ai_ci
+-- foreign_key_checks ------------------
+TiDB : 1
+MySQL: 1

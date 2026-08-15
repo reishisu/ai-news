@@ -1,0 +1,32 @@
+===== 0. .env に鍵がある状態 =====
+.env の鍵の行数: 1
+key: あり
+
+
+===== 1. config:cache を打つ =====
+
+   INFO  Configuration cached
+successfully.
+
+
+
+===== 2. .env の APP_KEY を空に =====
+APP_KEY=
+key: あり
+
+
+===== 3. config:clear を打つ =====
+
+   INFO  Configuration cache cleared
+successfully.
+
+
+key: なし
+
+
+===== 4. 鍵を作り直して後片付け =====
+
+   INFO  Application key set
+successfully.
+
+

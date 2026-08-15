@@ -1,0 +1,1504 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terraform を最初に動かす — init / validate / plan の役割と、plan の読み方</title>
+<meta name="description" content="Terraform を触ったことがない前提で、init / validate / plan を実際に動かしました。plan は何も作りません。認証情報がダミーでも差分が出ます。plan の記号 + / ~ / -/+ の読み方まで。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Terraform を最初に動かす — init / validate / plan の役割と、plan の読み方">
+<meta property="og:description" content="plan は何も作らない。ダミーの認証情報でも差分は出る。実出力を加工せず全部載せます。apply は実行していません。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-15_terraform-first/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=87fa5662">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">Web開発・インフラ ｜ 2026年8月15日(土)</div>
+    <h1>Terraform を最初に動かす — init / validate / plan の役割と、plan の読み方</h1>
+    <div class="range">Terraform を一度も触ったことがない前提で書きます。実行ログは加工せずそのまま載せます。<b>ただし apply は一度も実行していません。</b>その理由も本文に書きました。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約13分</span>
+      <span class="tag">実測ログ全部載せ</span>
+      <span class="tag">超基礎から</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <p class="lead"><b>Terraform</b>（テラフォーム）は、サーバーやネットワークの構成を<b>テキストファイルに書いて、そのファイルから実物を作る</b>ツールです。クラウドの管理画面をクリックして作る代わりに、設定を書きます。<mark>この記事は、その最初の1ファイルと最初の3コマンドの話です。</mark></p>
+    <ol>
+      <li>
+        <b>覚えるコマンドは3つ。init → plan → apply</b>
+        <span>公式が「中核ワークフローは Write / Plan / Apply の3段階」と定義しています。この3語は Terraform 1.x のあいだ変わらないと明文で約束されています。</span>
+      </li>
+      <li>
+        <b>plan は何も作らない。AWSに1回も届かないアドレスを指定しても「1個作ります」と出た</b>
+        <span>プロバイダの接続先を <code>http://127.0.0.1:1</code>（誰も待ち受けていない場所）に向けても <code>Plan: 1 to add</code> が出ます。実出力を5章に貼りました。</span>
+      </li>
+      <li>
+        <b>最初の山は plan の記号3つ。<code>+</code> 作る / <code>~</code> 直す / <code>-/+</code> 壊して作り直す</b>
+        <span><code>-/+</code> が出たら手を止めてください。そのリソースは一度消えます。読み方は6章です。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">IaCが解決するのは「1回目」ではなく「2回目」</a></li>
+      <li><a href="#s2">.tf ファイルには「ブロック」と「引数」しかない</a></li>
+      <li><a href="#s3">init を忘れると validate すら動かない</a></li>
+      <li><a href="#s4">4つのコマンドは、触るものが全部違う</a></li>
+      <li><a href="#s5">plan はAWSに1回も繋がなかった。data を1行足すと繋がった</a></li>
+      <li><a href="#s6">plan の記号は3つ。-/+ が出たら手を止める</a></li>
+      <li><a href="#s7">わざと壊すと、Terraform は行番号まで教えてくれる</a></li>
+      <li><a href="#s8">この記事が確かめていないこと（apply）</a></li>
+      <li><a href="#s9">最初の30分でやること</a></li>
+      <li><a href="#more">もっと知りたい人へ</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>IaCが解決するのは「1回目」ではなく「2回目」</h2>
+
+    <article class="item">
+      <h3>管理画面でポチポチ作るほうが、1回目は速い</h3>
+      <p class="lead">AWSの管理画面でサーバーを1台作るのに、Terraformは要りません。画面を開いてボタンを押すほうが速いです。</p>
+      <p class="lead">問題は<mark>2回目</mark>です。「本番と同じものを検証環境にもう1組」と言われた瞬間に詰みます。何をどう押したか、誰も正確には覚えていません。</p>
+
+      <ul class="points">
+        <li><b>IaC（Infrastructure as Code）とは。</b>サーバーやネットワークの構成を、画面をクリックして作るのではなく<b>テキストファイルに書き、そのファイルから作る</b>考え方です。</li>
+        <li><b>プロビジョニングとは。</b>サーバーやファイルなどの実体を、実際に用意することです。Terraformがやるのはこれです。</li>
+        <li><b>Terraform とは。</b>設定ファイルに書いた内容を、クラウドのAPIを叩いて実際に作る・変える・消すツールです。</li>
+      </ul>
+
+      <p class="lead">ここで大事なのは、Terraformに書くのが<mark>手順書ではない</mark>ことです。公式の説明がそのまま答えになっています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">HashiCorp「What is Terraform?」— 原文</div>
+        <pre>Terraform configuration files are
+declarative, meaning that they describe
+the end state of your infrastructure.
+You do not need to write step-by-step
+instructions to create resources
+because Terraform handles the
+underlying logic.
+
+（Terraform の設定ファイルは宣言的で、
+　インフラの最終状態を記述する。
+　リソースを作る手順を1つずつ書く必要は
+　ない。裏側のロジックは Terraform が
+　引き受けるから）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>宣言的（declarative）とは。</b>「こういう手順で作れ」ではなく「<b>最終的にこうなっていてほしい</b>」を書く書き方です。今の状態との差分は Terraform が計算します。</li>
+        <li><b>だから同じファイルを何度実行しても増えません。</b>「3台ほしい」と書いてあれば、3台あるときは何もしません。2台なら1台足します。</li>
+      </ul>
+
+      <figure>
+        <picture>
+          <source srcset="images/declarative-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/declarative.png" alt="手順を書く方式は実行するたびにサーバーが増えるが、最終形を書く方式は何度実行しても3台のまま変わらない" loading="lazy">
+        </picture>
+        <figcaption>宣言的な設定は、実行回数で結果が変わらない。足りない分だけが作られる。</figcaption>
+      </figure>
+
+      <details>
+        <summary>「Terraform はオープンソース」は、いま正確ではありません</summary>
+        <div class="body">
+          <p class="lead">古い入門記事はだいたいそう書いていますが、リポジトリの <code>LICENSE</code> を読むと今は違います。</p>
+          <div class="code wrap">
+            <div class="code-head">hashicorp/terraform の LICENSE（main ブランチ）</div>
+            <pre>Licensor: International Business
+          Machines Corporation (IBM)
+Licensed Work: Terraform Version 1.6.0
+          or later.
+
+Additional Use Grant: You may make
+production use of the Licensed Work,
+provided Your use does not include
+offering the Licensed Work to third
+parties on a hosted or embedded basis
+in order to compete with IBM Corp.'s
+paid version(s) of the Licensed Work.</pre>
+          </div>
+          <dl>
+            <dt>BUSL-1.1 とは</dt>
+            <dd>Business Source License 1.1。<b>競合サービスとして第三者に提供すること</b>は禁じますが、通常の本番利用は許す条件付きのライセンスです。個人の学習も、自社のインフラを作るのも、上の追加使用許諾の範囲内です。</dd>
+            <dt>ライセンサが IBM になっている</dt>
+            <dd>LICENSE ファイルにそう書かれています。ソースコード先頭のコメントも <code>// Copyright IBM Corp. 2014, 2026</code> でした。</dd>
+            <dt>OpenTofu とは</dt>
+            <dd>ライセンス変更前の Terraform から分かれた、Linux Foundation 傘下の互換ツールです。<b>Write / Plan / Apply の3段階も、<code>.tf</code> の書き方も同じ</b>なので、この記事で覚えることは両方で通用します。OpenTofu 公式の「What is OpenTofu?」は、Terraform 公式の intro とほぼ同じ文面です（フォークなので当然です）。</dd>
+          </dl>
+          <p class="lead">なお、ライセンス変更そのものを告知した HashiCorp 公式ブログは<mark>本文を取得できませんでした</mark>（HTTP 429 が返る）。読んでいないので引用しません。時系列は別の資料で確認しています（参考文献を参照）。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>.tf ファイルには「ブロック」と「引数」しかない</h2>
+
+    <article class="item">
+      <h3>最初の1ファイル。これを丸ごと読みます</h3>
+      <p class="lead">この記事の実測に使った設定ファイルの<mark>全文</mark>です。ECSクラスター（AWSでコンテナを動かすための入れ物）を1つ作る、という内容です。</p>
+
+      <div class="code">
+        <div class="code-head">main.tf — 実際に動かしたファイルの全文</div>
+        <pre>terraform {
+  required_version = "&gt;= 1.5.0"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~&gt; 6.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = "ap-northeast-1"
+
+  # 認証情報なしで plan まで進めるためのダミー。
+  # 本番の設定には絶対に書かない。
+  access_key                  = "dummy"
+  secret_key                  = "dummy"
+  skip_credentials_validation = true
+  skip_requesting_account_id  = true
+  skip_metadata_api_check     = true
+  skip_region_validation      = true
+}
+
+resource "aws_ecs_cluster" "app" {
+  name = "tf-hello"
+
+  tags = {
+    Env = "sandbox"
+  }
+}</pre>
+      </div>
+
+      <p class="lead">初見だと記号だらけに見えますが、<mark>登場する文法は2種類だけ</mark>です。Terraform の設定は <b>HCL</b>（HashiCorp Configuration Language）という書式で、その仕様書にはこう書いてあります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">HCL Native Syntax Specification — 原文</div>
+        <pre>The structural language consists of
+syntax representing the following
+constructs:
+
+- Attributes, which assign a value to a
+  specified name.
+- Blocks, which create a child body
+  annotated by a type and optional
+  labels.
+- Body Content, which consists of a
+  collection of attributes and blocks.
+
+（構造言語は次を表す構文からなる。
+　属性: 名前に値を割り当てる。
+　ブロック: 型と任意のラベルで注釈された
+　　子ボディを作る。
+　ボディ内容: 属性とブロックの集合）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>引数（argument）とは。</b><code>name = "tf-hello"</code> のような <b>名前 = 値</b> の1行です。HCLの仕様では <b>attribute（属性）</b>と呼ばれます。Terraform公式も「HCLのドキュメントでは argument ではなく attribute という語を使うのが普通」と注記しています。同じものです。</li>
+        <li><b>ブロック（block）とは。</b><code>resource "aws_ecs_cluster" "app" { … }</code> のように、波かっこで囲まれた設定のかたまりです。</li>
+        <li><b>ラベル（label）とは。</b>ブロック名の後ろに続く引用符付きの文字列です。<code>resource</code> なら1つ目が<b>型</b>、2つ目が<b>自分で付ける名前</b>です。</li>
+      </ul>
+
+      <p class="lead">この3語で、さっきのファイルは全部読めます。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>書いてあるもの</th><th>種類</th><th>意味</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>terraform { }</code></td>
+              <td data-label="種類">ブロック（ラベル無し）</td>
+              <td data-label="意味">Terraform 自体への設定。どのプロバイダが要るかをここで宣言する</td>
+            </tr>
+            <tr>
+              <td><code>required_providers { }</code></td>
+              <td data-label="種類">ブロック（入れ子）</td>
+              <td data-label="意味">必要なプロバイダの一覧。<b>terraform ブロックの中にしか置けない</b></td>
+            </tr>
+            <tr>
+              <td><code>source = "hashicorp/aws"</code></td>
+              <td data-label="種類">引数</td>
+              <td data-label="意味">ソースアドレス。プロバイダの入手元（Terraform Registry 上の場所）</td>
+            </tr>
+            <tr>
+              <td><code>version = "~&gt; 6.0"</code></td>
+              <td data-label="種類">引数</td>
+              <td data-label="意味">バージョン制約。使ってよい範囲の指定であって、具体的な版は <code>init</code> が決める</td>
+            </tr>
+            <tr>
+              <td><code>provider "aws" { }</code></td>
+              <td data-label="種類">ブロック（ラベル1つ）</td>
+              <td data-label="意味">相手先ごとの設定。リージョンや認証をここに書く</td>
+            </tr>
+            <tr>
+              <td><code>resource "aws_ecs_cluster" "app" { }</code></td>
+              <td data-label="種類">ブロック（ラベル2つ）</td>
+              <td data-label="意味">作る対象そのもの。1ブロック＝1つの実体</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="points">
+        <li><b>プロバイダ（provider）とは。</b>AWS や Docker など、相手先ごとの通信を担当するプラグインです。<b>Terraform 本体には入っていません。</b>別にダウンロードされます。ここが3章の話に繋がります。</li>
+        <li><b>リソース（resource）とは。</b>Terraform が作る対象そのものです。公式は「Terraform言語の主目的はリソースを宣言すること。他の言語機能はすべて、リソース定義を柔軟で便利にするためだけに存在する」と書いています。</li>
+        <li><b>引数の一覧は Terraform ではなくプロバイダのドキュメントを見ます。</b>公式リファレンスにも「個々のリソースがどの引数をサポートするかはプロバイダが決める」とあります。<code>aws_ecs_cluster</code> に何が書けるかは AWSプロバイダのページで調べます。</li>
+      </ul>
+
+      <div class="quiz">
+        <p class="q">Q. <code>resource "aws_ecs_cluster" "app"</code> の2つ目の <code>"app"</code> は何?</p>
+        <button class="opt" type="button" data-correct="false">AWS上に作られるクラスターの名前</button>
+        <button class="opt" type="button" data-correct="true">Terraform の設定の中で、このリソースを指すための名前</button>
+        <button class="opt" type="button" data-correct="false">プロバイダの名前</button>
+        <p class="ans" hidden>正解。<mark>AWS側に付く名前は <code>name = "tf-hello"</code> のほう</mark>です。<code>"app"</code> はTerraformの中だけの呼び名で、この2つは完全に別物です。この「型.名前」の組（<code>aws_ecs_cluster.app</code>）を<b>リソースアドレス</b>と呼び、6章で見る plan の出力にもこの形で出てきます。混同すると、plan の <code># aws_ecs_cluster.app will be created</code> を見て「app という名前のクラスターができる」と誤読します。</p>
+      </div>
+
+      <details>
+        <summary>ファイル名と、書く順番について（先に知らないと必ずハマります）</summary>
+        <div class="body">
+          <dl>
+            <dt><code>main.tf</code> という名前に意味はない</dt>
+            <dd>公式は「Terraform言語のコードは <code>.tf</code> 拡張子のプレーンテキストファイルに保存される」とだけ定めています。<b>拡張子が <code>.tf</code> なら名前は何でも構いません。</b>慣習で <code>main.tf</code> / <code>variables.tf</code> / <code>outputs.tf</code> に分ける人が多いだけです。</dd>
+            <dt>ファイルを分けても分けなくても動作は同じ</dt>
+            <dd>公式の原文はこうです。<code>Terraform evaluates all of the configuration files in a module, effectively treating the entire module as a single document.</code>（モジュール内の全設定ファイルを評価し、実質的にモジュール全体を1つの文書として扱う）。分けるのは読み手の都合であって、動作には影響しません。</dd>
+            <dt>書いた順に実行されるわけではない</dt>
+            <dd>これが最大の誤解ポイントです。公式は <code>The ordering of blocks and the files they are organized into are generally not significant</code>（ブロックの順番も、どのファイルにあるかも、一般に意味を持たない）と書いています。実行順は<b>依存関係から自動で決まります</b>。</dd>
+            <dt>サブディレクトリは読まれない</dt>
+            <dd><b>モジュール</b>とは、1つのディレクトリにある <code>.tf</code> ファイル群のことです。公式は「モジュールはそのディレクトリの最上位の設定ファイルだけで構成され、入れ子のディレクトリは完全に別のモジュールとして扱われる」と明記しています。<code>terraform</code> コマンドを実行したディレクトリが<b>ルートモジュール</b>で、読まれるのはそこの <code>.tf</code> だけです。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="section section-a" id="s3">
+    <h2><span class="step">3</span>init を忘れると validate すら動かない</h2>
+
+    <article class="item">
+      <h3>まず、書いた直後にいきなり検査してみます</h3>
+      <p class="lead">ファイルを書いたら、まず文法チェックしたくなります。やってみました。<b>ターミナルを開いて、<code>main.tf</code> があるディレクトリに <code>cd</code> してから</b>打ちます。</p>
+
+      <div class="code term">
+        <div class="code-head">$ terraform validate （init する前）— exit=1</div>
+        <pre><span class="ng-line">Error: Missing required provider</span>
+
+This configuration requires provider
+registry.terraform.io/hashicorp/aws,
+but that provider isn't available. You
+may be able to install it automatically
+by running:
+  terraform init</pre>
+      </div>
+
+      <p class="lead">落ちます。しかも<mark>親切に次の手を教えてくれます</mark>。これは不具合ではなく仕様で、公式にそう書かれています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">HashiCorp「terraform validate」— 原文</div>
+        <pre>Validation requires an initialized
+working directory with any referenced
+plugins and modules installed.
+
+（validate には、参照しているプラグインと
+　モジュールがインストール済みの、
+　初期化された作業ディレクトリが必要）</pre>
+      </div>
+
+      <p class="lead">理由は2章で触れたとおりです。<mark>AWSプロバイダは Terraform 本体に入っていません。</mark><code>aws_ecs_cluster</code> にどんな引数があるのかを知っているのはプロバイダなので、それが無いと検査のしようがありません。</p>
+
+      <h3>init は「この作業ディレクトリを使える状態にする」コマンド</h3>
+
+      <div class="code term">
+        <div class="code-head">$ terraform init — exit=0（実行に約12秒）</div>
+        <pre>Initializing the backend...
+Initializing provider plugins...
+- Finding hashicorp/aws versions
+matching "~&gt; 6.0"...
+- Installing hashicorp/aws v6.60.0...
+- Installed hashicorp/aws v6.60.0
+(signed by HashiCorp)
+Terraform has created a lock file
+.terraform.lock.hcl to record the
+provider
+selections it made above. Include this
+file in your version control repository
+so that Terraform can guarantee to make
+the same selections by default when
+you run "terraform init" in the future.
+
+<span class="ok-line">Terraform has been successfully
+initialized!</span>
+
+You may now begin working with
+Terraform. Try running "terraform plan"
+to see
+any changes that are required for your
+infrastructure. All Terraform commands
+should now work.
+
+（後略。このあと「モジュールやバックエンドの
+　設定を変えたら init し直せ」という案内が
+　6行続きます）</pre>
+      </div>
+
+      <p class="lead">ここで起きたことを、設定ファイルと突き合わせます。</p>
+
+      <ul class="points">
+        <li><b>制約 <code>~&gt; 6.0</code> を見て、具体的な版 6.60.0 を選んだ。</b>設定に書いたのは範囲だけです。実際の版を決めるのは <code>init</code> です。</li>
+        <li><b>選んだ版を <code>.terraform.lock.hcl</code> に記録した。</b>公式は「このファイルはバージョン管理にコミットすべき」と明言しています。<b>gitに入れます。</b></li>
+        <li><b>約12秒かかり、<code>.terraform</code> は 840MB になった。</b>AWSプロバイダが大きいためです（実測）。</li>
+      </ul>
+
+      <div class="code term">
+        <div class="code-head">$ ls -a と du -sh — init が作ったもの</div>
+        <pre>$ ls -a
+  .
+  ..
+  .terraform
+  .terraform.lock.hcl
+  main.tf
+
+$ du -sh .terraform
+<span class="ng-line">840M	.terraform</span>
+
+$ head -7 .terraform.lock.hcl
+# This file is maintained automatically
+by "terraform init".
+# Manual edits may be lost in future
+updates.
+
+provider
+"registry.terraform.io/hashicorp/aws" {
+  version     = "6.60.0"
+  constraints = "~&gt; 6.0"
+  hashes = [</pre>
+      </div>
+
+      <p class="lead">ロックファイルの中に <code>version = "6.60.0"</code> と <code>constraints = "~&gt; 6.0"</code> の<mark>両方</mark>が残っている点に注目してください。「範囲」と「実際に選んだ版」が別々に記録されています。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>init 後に増えるもの</th><th>正体</th><th>git に入れる?</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>.terraform/</code></td>
+              <td data-label="正体">プロバイダなどのキャッシュ置き場（隠しディレクトリ）</td>
+              <td data-label="git に入れる?"><b>入れない</b>。840MBあります</td>
+            </tr>
+            <tr>
+              <td><code>.terraform.lock.hcl</code></td>
+              <td data-label="正体">選んだプロバイダの具体的な版の記録</td>
+              <td data-label="git に入れる?"><b>入れる</b>（公式が明言）</td>
+            </tr>
+            <tr>
+              <td><code>terraform.tfstate</code></td>
+              <td data-label="正体">apply 後にできる。設定と現実の対応表（8章）</td>
+              <td data-label="git に入れる?"><b>入れない</b>（公式が明言）</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">この状態でもう一度 <code>validate</code> を打つと、今度は通ります。</p>
+
+      <div class="code term">
+        <div class="code-head">$ terraform validate — exit=0</div>
+        <pre><span class="ok-line">Success! The configuration is valid.</span></pre>
+      </div>
+
+      <details>
+        <summary>init は何度打っても壊れません（初心者がいちばん怖がるところ）</summary>
+        <div class="body">
+          <p class="lead">「もう1回 init したら作ったサーバーが消えるのでは」という不安は、公式が正面から否定しています。</p>
+          <div class="code wrap">
+            <div class="code-head">HashiCorp「terraform init」— 原文</div>
+            <pre>This command is always safe to run
+multiple times, to bring the working
+directory up to date with changes in
+the configuration. Though subsequent
+runs may give errors, this command will
+never delete your existing
+configuration or state.
+
+（設定の変更に追従させるため、何度でも
+　安全に実行できる。以降の実行でエラーが
+　出ることはあっても、既存の設定や state
+　を消すことは決してない）</pre>
+          </div>
+          <p class="lead">同じページに <code>It is safe to run this command multiple times.</code> とも書かれています。<mark>迷ったら init</mark>で構いません。</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Terraform をまだ入れていない人へ（インストールと版の確認）</summary>
+        <div class="body">
+          <dl>
+            <dt>macOS</dt>
+            <dd>公式ページに載っている2行そのままです。<code>brew tap hashicorp/tap</code> → <code>brew install hashicorp/tap/terraform</code></dd>
+            <dt>Ubuntu / Debian</dt>
+            <dd>HashiCorp の apt リポジトリを登録してから <code>sudo apt update &amp;&amp; sudo apt install terraform</code> です。登録手順（GPG鍵の取得など）は公式ページに全文が載っているので、そこからコピーしてください。</dd>
+            <dt>それ以外</dt>
+            <dd>公式ページからバイナリを直接ダウンロードできます。<code>terraform</code> は<b>実行ファイル1個</b>なので、パスの通った場所に置くだけです。</dd>
+            <dt>版について</dt>
+            <dd>公式のダウンロードページと HashiCorp の Checkpoint API を2026年8月15日に確認したところ、最新安定版は <b>1.15.8</b>（リリースは2026年7月8日 UTC）でした。<mark>この記事の実測は 1.14.3 で取っています。</mark>手元の版は <code>terraform version</code> で確認できます。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="section section-b" id="s4">
+    <h2><span class="step">4</span>4つのコマンドは、触るものが全部違う</h2>
+
+    <article class="item">
+      <h3>「クラウドに繋ぐか」「変更するか」で見ると、役割分担がはっきりします</h3>
+
+      <figure>
+        <picture>
+          <source srcset="images/commands-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/commands.png" alt="init は プロバイダを取得し、validate と plan は読むだけ。state と現実のクラウドに書き込むのは apply だけ" loading="lazy">
+        </picture>
+        <figcaption>plan は state もクラウドも読むが書かない。書き込むのは apply の行だけ。</figcaption>
+      </figure>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>コマンド</th><th>やること</th><th>クラウドに繋ぐ</th><th>変更する</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>init</code></td>
+              <td data-label="やること">作業ディレクトリを使える状態にする。プロバイダを取得しロックファイルを作る</td>
+              <td data-label="クラウドに繋ぐ">配布元には繋ぐ</td>
+              <td data-label="変更する">しない</td>
+            </tr>
+            <tr>
+              <td><code>validate</code></td>
+              <td data-label="やること">文法と、設定の内部的なつじつまだけを検査する</td>
+              <td data-label="クラウドに繋ぐ"><b>繋がない</b></td>
+              <td data-label="変更する">しない</td>
+            </tr>
+            <tr>
+              <td><code>plan</code></td>
+              <td data-label="やること">「今 apply したら何が起きるか」を作って見せる</td>
+              <td data-label="クラウドに繋ぐ">読むために繋ぐ</td>
+              <td data-label="変更する"><b>しない</b></td>
+            </tr>
+            <tr>
+              <td><code>apply</code></td>
+              <td data-label="やること">計画を実際に実行する</td>
+              <td data-label="クラウドに繋ぐ">繋ぐ</td>
+              <td data-label="変更する"><b>する</b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">validate が「繋がない」ことは公式が明言しています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">HashiCorp「terraform validate」— 原文</div>
+        <pre>The terraform validate command
+validates the configuration files in a
+directory. It does not validate remote
+services, such as remote state or
+provider APIs.
+
+（ディレクトリ内の設定ファイルを検証する。
+　リモート state やプロバイダAPIのような
+　リモートサービスは検証しない）</pre>
+      </div>
+
+      <h3>実は validate も plan も、必須の手順ではありません</h3>
+      <p class="lead">ここは知っておくと楽になります。<mark>validate は plan に含まれています。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">HashiCorp「terraform validate」— 原文（続き）</div>
+        <pre>To verify the configuration in the
+context of a particular run ... use the
+terraform plan command instead, which
+includes an implied validation check.
+
+（特定の実行の文脈で設定を確かめたいなら、
+　代わりに terraform plan を使う。
+　plan には暗黙の検証チェックが含まれる）</pre>
+      </div>
+
+      <p class="lead">そして <code>plan</code> も、<code>apply</code> の中でやり直されます。</p>
+
+      <div class="code wrap">
+        <div class="code-head">HashiCorp「terraform apply」— 原文</div>
+        <pre>When you run terraform apply without
+passing a saved plan file, Terraform
+automatically creates a new execution
+plan as if you had run terraform plan,
+prompts you to approve that plan, and
+performs the indicated operations.
+
+（保存済みプランを渡さずに apply すると、
+　terraform plan を実行したのと同じように
+　新しい実行計画を自動生成し、承認を求めた
+　うえで、示された操作を実行する）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>それでも plan を打つ理由は「読むため」です。</b>apply の確認プロンプトは「yes と打つか打たないか」の一瞬です。落ち着いて読むには、先に plan を単体で回すほうが確実です。</li>
+        <li><b>公式も plan を「書きながら何度も回す道具」と位置づけています。</b>原文は <code>As you make progress on authoring your config, repeatedly running plans can help flush out syntax errors</code>（設定を書き進める間、plan を繰り返し実行すると構文エラーを洗い出せる）。</li>
+        <li><b>この3段階はループです。</b>公式の原文は <code>This core workflow is a loop; the next time you want to make changes, you start the process over from the beginning.</code></li>
+      </ul>
+
+      <details>
+        <summary>もう1つだけ覚えると得なコマンド: terraform fmt</summary>
+        <div class="body">
+          <p class="lead">インデントを公式の形に揃えるコマンドです。わざと崩したファイルに <code>fmt -check -diff</code> を掛けた実出力です。</p>
+          <div class="code term">
+            <div class="code-head">$ terraform fmt -check -diff — exit=3</div>
+            <pre>main.tf
+--- old/main.tf
++++ new/main.tf
+@@ -21,8 +21,8 @@
+   skip_region_validation      = true
+ }
+
+<span class="ng-line">-resource "aws_ecs_cluster"   "app" {</span>
+<span class="ng-line">-      name="tf-hello"</span>
+<span class="ok-line">+resource "aws_ecs_cluster" "app" {</span>
+<span class="ok-line">+  name = "tf-hello"</span>
+
+   tags = {
+     Env = "sandbox"</pre>
+          </div>
+          <p class="lead"><code>-check</code> を付けると<b>書き換えずに差分だけ</b>出します。付けなければその場で整形されます。公式はこう説明しています。</p>
+          <div class="code wrap">
+            <div class="code-head">HashiCorp「terraform fmt」— 原文</div>
+            <pre>This command is intentionally
+opinionated and has no customization
+options because its primary goal is to
+encourage consistency of style between
+different Terraform codebases
+
+（意図的に主張が強く、カスタマイズ項目を
+　持たない。主目的は、異なるコードベース間
+　でスタイルの一貫性を促すことだから）</pre>
+          </div>
+          <p class="lead">設定項目がゼロなので、<mark>スタイルで悩む時間が発生しません</mark>。なお上の終了コード <code>3</code> は自分の実測値です。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="section section-c" id="s5">
+    <h2><span class="step">5</span>plan はAWSに1回も繋がなかった。data を1行足すと繋がった</h2>
+
+    <article class="item">
+      <h3>接続先を「誰も待ち受けていないアドレス」に向けても、plan は通ります</h3>
+      <p class="lead">2章の設定には <code>access_key = "dummy"</code> と書いてありました。<mark>デタラメの認証情報です。</mark>それでも plan は成功します。</p>
+      <p class="lead">本当にAWSへ行っていないのか、意地悪をして確かめました。プロバイダの接続先を <code>http://127.0.0.1:1</code>（自分のPCの、誰も待ち受けていないポート）に向けます。</p>
+
+      <div class="code">
+        <div class="code-head">main.tf の provider ブロックに足したもの</div>
+        <pre>  # どこにも繋がらないアドレスに向ける
+  endpoints {
+    ecs = "http://127.0.0.1:1"
+    sts = "http://127.0.0.1:1"
+  }</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">$ terraform plan （接続先が届かない状態）— exit=0</div>
+        <pre>（前略。冒頭に出る記号の凡例は
+　6章に全文を載せています）
+
+Terraform will perform the following
+actions:
+
+  # aws_ecs_cluster.app will be created
+  + resource "aws_ecs_cluster" "app" {
+      + arn      = (known after apply)
+      + id       = (known after apply)
+      + name     = "tf-hello"
+      + region   = "ap-northeast-1"
+      + tags     = {
+          + "Env" = "sandbox"
+        }
+      + tags_all = {
+          + "Env" = "sandbox"
+        }
+
+      + setting (known after apply)
+    }
+
+<span class="ok-line">Plan: 1 to add, 0 to change, 0 to
+destroy.</span>
+
+（後略。区切り線と、-out を付けていない
+　という注意4行が続きます。6章に全文あり）</pre>
+      </div>
+
+      <p class="lead">通ります。<mark>1つも繋がらないのに「1個作ります」と言い切っています。</mark></p>
+
+      <h3>なぜ繋がなくて済んだのか。公式の説明と矛盾していないか</h3>
+      <p class="lead">公式は plan について、こう書いています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">HashiCorp「terraform plan」— 原文</div>
+        <pre>By default, Terraform performs the
+following operations when it creates a
+plan:
+
+- Reads the current state of any
+  already-existing remote objects to
+  make sure that the Terraform state is
+  up-to-date.
+- Compares the current configuration to
+  the prior state and noting any
+  differences.
+- Proposes a set of change actions ...
+
+（既定では、1) 既存のリモートオブジェクトの
+　現在状態を読み、state を最新にする。
+　2) 現在の設定と直前の state を比較して
+　差分を洗い出す。3) 変更アクションを提案）</pre>
+      </div>
+
+      <p class="lead">1番目に「既存のリモートオブジェクトを読む」とあります。矛盾していません。理由は単純で、<mark>この時点では「既存のリモートオブジェクト」が1つも無い</mark>からです。まだ何も作っていないので、読みに行く対象がありません。</p>
+
+      <p class="lead">この推測が正しいことは、逆方向の実験で確かめられます。<b>既存のものを読むブロックを1つ足す</b>と、その瞬間に本物のAWSへ飛びます。</p>
+
+      <div class="code">
+        <div class="code-head">main.tf の末尾に足した1行</div>
+        <pre>data "aws_caller_identity" "me" {}</pre>
+      </div>
+
+      <p class="lead"><code>data</code> ブロックは「<b>既にあるものを読む</b>」ための宣言です。これは「今このAWSアカウントで自分は誰か」を問い合わせます。</p>
+
+      <div class="code term">
+        <div class="code-head">$ terraform plan （data を1つ足した）— exit=1</div>
+        <pre><span class="ng-line">data.aws_caller_identity.me: Reading...</span>
+
+Terraform used the selected providers
+to generate the following execution
+plan. Resource actions are indicated
+with the following symbols:
+  + create
+
+Terraform planned the following
+actions, but then encountered a problem:
+
+  # aws_ecs_cluster.app will be created
+  + resource "aws_ecs_cluster" "app" {
+      + arn      = (known after apply)
+      + id       = (known after apply)
+      + name     = "tf-hello"
+      + region   = "ap-northeast-1"
+      + tags     = {
+          + "Env" = "sandbox"
+        }
+      + tags_all = {
+          + "Env" = "sandbox"
+        }
+
+      + setting (known after apply)
+    }
+
+Plan: 1 to add, 0 to change, 0 to
+destroy.
+
+<span class="ng-line">Error: reading STS Caller Identity</span>
+
+  with data.aws_caller_identity.me,
+  on main.tf line 32, in data
+  "aws_caller_identity" "me":
+  32: data "aws_caller_identity" "me" {}
+
+operation error STS: GetCallerIdentity,
+https response error StatusCode: 403,
+RequestID:
+aecef423-a705-4639-9b34-0b868f50a579,
+api error InvalidClientTokenId: The
+security token included in the request
+is invalid.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>本物のAWSに届いています。</b><code>RequestID</code> が返ってきています。これはAWS側が採番した値で、ダミーでは作れません。</li>
+        <li><b>作るほうの差分は出ています。</b><code>Plan: 1 to add</code> は出たうえで、<code>data</code> の読み取りだけが 403 で落ちています。</li>
+        <li><b>plan 全体は失敗（exit=1）です。</b>差分が出ていても、読めないものがあれば計画は完成しません。</li>
+      </ul>
+
+      <p class="lead">ちなみに、ダミー認証情報も <code>skip_*</code> も全部消すと、リソースを1つ書いただけでも落ちます。</p>
+
+      <div class="code term">
+        <div class="code-head">$ terraform plan （認証情報を何も書かない）— exit=1</div>
+        <pre><span class="ng-line">Planning failed. Terraform encountered
+an error while generating this plan.</span>
+
+<span class="ng-line">Error: No valid credential sources found</span>
+
+  with
+  provider["registry.terraform.io/hashic
+  orp/aws"],
+  on main.tf line 11, in provider "aws":
+  11: provider "aws" {
+
+Error: failed to refresh cached
+credentials, no EC2 IMDS role found,
+operation error ec2imds: GetMetadata,
+http response error StatusCode: 403,
+request to EC2 IMDS failed</pre>
+      </div>
+
+      <div class="quiz">
+        <p class="q">Q. <code>terraform plan</code> を実行すると、クラウド側に何が起きる?</p>
+        <button class="opt" type="button" data-correct="false">完全にローカルで完結し、通信は一切発生しない</button>
+        <button class="opt" type="button" data-correct="true">何も作られない。ただし「今どうなっているか」を読む通信は発生しうる</button>
+        <button class="opt" type="button" data-correct="false">plan の内容がそのまま作られる</button>
+        <p class="ans" hidden>正解。<mark>plan は書き込みませんが、読み込みはします。</mark>「ローカルで完結する」と思い込むと、CI で plan を回そうとしたときに認証情報が無くて落ちる理由が分かりません。公式も「既定では、既存のリモートオブジェクトの現在状態を読む」と明記しています。この読み取り動作を<b>リフレッシュ</b>と呼びます。上の実測で 403 が返ってきたのは、まさにこの読み取りが本物のAWSに届いた証拠です。</p>
+      </div>
+
+      <details>
+        <summary>plan は「壊さない」と公式が明言しています</summary>
+        <div class="body">
+          <div class="code wrap">
+            <div class="code-head">HashiCorp「terraform plan」— 原文</div>
+            <pre>The plan command alone does not
+actually carry out the proposed changes
+
+（plan コマンド単体では、提案された変更を
+　実際には実行しない）</pre>
+          </div>
+          <p class="lead">実測でも、plan を何度回しても state は空のままでした。</p>
+          <div class="code term">
+            <div class="code-head">$ terraform state list — exit=1</div>
+            <pre><span class="ng-line">No state file was found!</span>
+
+State management commands require a
+state file. Run this command
+in a directory where Terraform has been
+run or use the -state flag
+to point the command to a specific
+state location.</pre>
+          </div>
+          <p class="lead">つまり、<mark>plan は何回打っても安全</mark>です。分からなくなったら plan を打ってください。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="section section-a" id="s6">
+    <h2><span class="step">6</span>plan の記号は3つ。-/+ が出たら手を止める</h2>
+
+    <article class="item">
+      <h3>凡例は、出力の中に毎回書いてあります</h3>
+      <p class="lead">plan の出力を、今度は先頭から全部載せます。<mark>読み方は出力自身が説明しています。</mark></p>
+
+      <div class="code term">
+        <div class="code-head">$ terraform plan — exit=0（全文）</div>
+        <pre>Terraform used the selected providers
+to generate the following execution
+plan. Resource actions are indicated
+with the following symbols:
+<span class="ok-line">  + create</span>
+
+Terraform will perform the following
+actions:
+
+  # aws_ecs_cluster.app will be created
+  + resource "aws_ecs_cluster" "app" {
+      + arn      = (known after apply)
+      + id       = (known after apply)
+      + name     = "tf-hello"
+      + region   = "ap-northeast-1"
+      + tags     = {
+          + "Env" = "sandbox"
+        }
+      + tags_all = {
+          + "Env" = "sandbox"
+        }
+
+      + setting (known after apply)
+    }
+
+<span class="ok-line">Plan: 1 to add, 0 to change, 0 to
+destroy.</span>
+
+───────────────────────────────────────
+
+Note: You didn't use the -out option to
+save this plan, so Terraform can't
+guarantee to take exactly these actions
+if you run "terraform apply" now.</pre>
+      </div>
+
+      <p class="lead">公式チュートリアルは、この形式をこう説明しています。<code>The output format is similar to the diff format generated by tools such as Git.</code>（出力の形式は Git のようなツールが生成する diff に似ている）。<mark>git diff だと思って読んで構いません。</mark></p>
+
+      <h3>最初に見るのは、いちばん下の1行</h3>
+      <p class="lead">長い出力を上から読む必要はありません。<b><code>Plan: 1 to add, 0 to change, 0 to destroy.</code></b> を先に見ます。</p>
+
+      <ul class="points">
+        <li><b>destroy の数が0以外なら、そこで止まる。</b>何かが消えます。意図したものか確認するまで進みません。</li>
+        <li><b>数が想定と違ったら、それ以上読まない。</b>1個作るつもりが12個なら、設定を間違えています。</li>
+        <li><b>0 to add, 0 to change, 0 to destroy なら差分なし。</b>設定と現実が一致しています。</li>
+      </ul>
+
+      <h3>(known after apply) は、まだ決まっていないという意味</h3>
+      <p class="lead"><code>arn</code> と <code>id</code> にこれが付いています。公式チュートリアルの説明はこうです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">HashiCorp Tutorials「Build infrastructure」— 原文</div>
+        <pre>When the value displayed is
+(known after apply), it means that the
+value will not be known until the
+resource is created.
+
+（(known after apply) と表示される値は、
+　リソースが作られるまで分からない
+　という意味）</pre>
+      </div>
+
+      <p class="lead">IDのように<mark>クラウド側が採番するもの</mark>に付きます。エラーではありません。機械可読な形式でも同じ情報が取れます。</p>
+
+      <div class="code term">
+        <div class="code-head">$ terraform show -json tfplan を要約したもの</div>
+        <pre>format_version : 1.2
+terraform_ver  : 1.14.3
+resource_count : 1
+
+addr    : aws_ecs_cluster.app
+actions : create
+known   : configuration, name, region,
+          service_connect_defaults,
+          tags, tags_all
+unknown : arn, id, setting</pre>
+      </div>
+
+      <h3>記号は3つ覚えれば足ります</h3>
+
+      <figure>
+        <picture>
+          <source srcset="images/plan-symbols-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/plan-symbols.png" alt="+ と ~ はリソースが途切れないが、-/+ だけは apply の途中でリソースが存在しない時間ができる" loading="lazy">
+        </picture>
+        <figcaption><code>-/+</code> だけ、作り直しの間そのリソースが存在しない時間ができる。</figcaption>
+      </figure>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>記号</th><th>意味</th><th>そのリソースは消えるか</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>+</code></td>
+              <td data-label="意味">新しく作る（create）</td>
+              <td data-label="そのリソースは消えるか">元々無い</td>
+            </tr>
+            <tr>
+              <td><code>~</code></td>
+              <td data-label="意味">その場で更新する（update in-place）</td>
+              <td data-label="そのリソースは消えるか">消えない</td>
+            </tr>
+            <tr>
+              <td><code>-/+</code></td>
+              <td data-label="意味">壊してから作り直す（destroy and then create replacement）</td>
+              <td data-label="そのリソースは消えるか"><b>一度消える</b></td>
+            </tr>
+            <tr>
+              <td><code>-</code></td>
+              <td data-label="意味">消す（destroy）</td>
+              <td data-label="そのリソースは消えるか"><b>消える</b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">危ないのは <code>-/+</code> です。公式チュートリアルには、Dockerコンテナのポート番号を変えたときの実物が載っています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">HashiCorp Tutorials「Change infrastructure」の出力例（幅に合わせて折り返しています）</div>
+        <pre>Resource actions are indicated with
+the following symbols:
+  -/+ destroy and then create
+  replacement
+
+  # docker_container.nginx must be
+  replaced
+  -/+ resource "docker_container"
+  "nginx" {
+      ~ ports {
+          ~ external = 8000 -&gt; 8080
+          # forces replacement
+        }
+    }
+
+Plan: 1 to add, 0 to change,
+1 to destroy.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code># forces replacement</code> が原因の場所を教えてくれます。</b>この注記が付いている行が、作り直しを引き起こした項目です。</li>
+        <li><b>集計行が <code>1 to add, 1 to destroy</code> になります。</b>1個のリソースを置き換えるだけでも、add と destroy の両方が1ずつ増えます。</li>
+        <li><b>公式の説明はこうです。</b><code>Terraform can update some attributes in-place (indicated with the ~ prefix), but changing the port for a Docker container requires recreating it.</code>（一部の属性はその場で更新できるが、Dockerコンテナのポート変更は作り直しが必要）。</li>
+      </ul>
+
+      <div class="quiz">
+        <p class="q">Q. 本番のデータベースの plan に <code>-/+</code> と <code># forces replacement</code> が出た。何が起きる?</p>
+        <button class="opt" type="button" data-correct="false">設定がその場で書き換わるだけ。停止は無い</button>
+        <button class="opt" type="button" data-correct="true">一度削除されてから作り直される。その間そのリソースは存在しない</button>
+        <button class="opt" type="button" data-correct="false">plan が失敗しているので、apply しても何も起きない</button>
+        <p class="ans" hidden>正解。<mark><code>-/+</code> は「その場で直せない変更」を意味します。</mark>「設定を1文字変えただけ」でも、変えた項目によっては作り直しになります。<code>~</code>（その場で更新）と見た目が似ているので、慌てて読むと取り違えます。<b>本番で <code>-/+</code> を見たら、まず <code># forces replacement</code> が付いている行を探してください。</b>そこが原因です。その項目の変更を諦めるか、別の手順（新しく作ってから切り替える）を検討することになります。</p>
+      </div>
+
+      <details>
+        <summary>記号の裏側にある正式な一覧は7通りしかありません</summary>
+        <div class="body">
+          <p class="lead">Terraform の内部仕様（JSON出力形式）に、取りうるアクションが全部書いてあります。</p>
+          <div class="code wrap">
+            <div class="code-head">HashiCorp「JSON Output Format」— 原文</div>
+            <pre>// Valid actions values are:
+//    ["no-op"]
+//    ["create"]
+//    ["read"]
+//    ["update"]
+//    ["delete", "create"]
+//    ["create", "delete"]
+//    ["delete"]</pre>
+          </div>
+          <dl>
+            <dt><code>["delete","create"]</code> と <code>["create","delete"]</code> は別物</dt>
+            <dd>前者が <code>-/+</code>（壊してから作る）、後者は先に作ってから消す形です。後者は <code>create_before_destroy</code> という設定を使ったときに現れます。<b>順番が逆なので、止まる時間の有無が変わります。</b></dd>
+            <dt>なぜ2つに分けて表現しているのか</dt>
+            <dd>仕様書のコメントに理由が書かれています。<code>to allow callers to e.g. just scan the list for "delete" to recognize all three situations where the object will be deleted</code>（呼び出し側が <code>delete</code> を探すだけで、オブジェクトが削除される3つの状況すべてを認識できるようにするため）。<mark>「delete が含まれるか」だけ見れば危険を検出できる</mark>設計です。</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details>
+        <summary>-out を付けた plan と、付けない plan は別物です</summary>
+        <div class="body">
+          <p class="lead">上の出力の末尾に <code>Note: You didn't use the -out option</code> という注意が出ていました。<code>-out</code> を付けると表示が変わります。</p>
+          <div class="code term">
+            <div class="code-head">$ terraform plan -out=tfplan — exit=0（末尾のみ）</div>
+            <pre>Plan: 1 to add, 0 to change, 0 to
+destroy.
+
+───────────────────────────────────────
+
+<span class="ok-line">Saved the plan to: tfplan</span>
+
+To perform exactly these actions, run
+the following command to apply:
+    terraform apply "tfplan"</pre>
+          </div>
+          <dl>
+            <dt>投機的プラン（speculative plan）</dt>
+            <dd><code>-out</code> を付けない plan のことです。公式の原文は <code>a description of the effect of the plan but without any intent to actually apply it</code>（効果の説明であって、実際に適用する意図はない）。<b>見るためだけのもの</b>です。</dd>
+            <dt>保存したプランを apply に渡すと、確認が出ない</dt>
+            <dd>公式にこうあります。<code>When you pass a saved plan file to terraform apply, Terraform performs the operations in the saved plan without prompting you for confirmation.</code> 「見た内容と、実行される内容が一致する」代わりに、<mark>yes を打つ機会が無くなります</mark>。</dd>
+            <dt>プランファイルには機密が入ります</dt>
+            <dd>公式は「state ファイルと plan ファイルには、初期データベースパスワードやAPIトークンのような機密値を含みうる属性やメタデータが入っている」と警告しています。<b><code>tfplan</code> を git に入れたり、チャットに貼ったりしないでください。</b></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section class="section section-b" id="s7">
+    <h2><span class="step">7</span>わざと壊すと、Terraform は行番号まで教えてくれる</h2>
+
+    <article class="item">
+      <h3>初心者がやるミスを5通り仕込んで、全部 validate に掛けました</h3>
+      <p class="lead">エラーメッセージが読めるかどうかで、詰まる時間が10倍変わります。先に見ておきます。</p>
+
+      <div class="code term">
+        <div class="code-head">① 引数名を打ち間違えた（name → nmae）— exit=1</div>
+        <pre><span class="ng-line">Error: Missing required argument</span>
+
+  on main.tf line 24, in resource
+  "aws_ecs_cluster" "app":
+  24: resource "aws_ecs_cluster" "app" {
+
+The argument "name" is required, but no
+definition was found.
+
+<span class="ng-line">Error: Unsupported argument</span>
+
+  on main.tf line 25, in resource
+  "aws_ecs_cluster" "app":
+  25:   nmae = "tf-hello"
+
+An argument named "nmae" is not
+<span class="ok-line">expected here. Did you mean "name"?</span></pre>
+      </div>
+
+      <p class="lead"><mark>「Did you mean "name"?」まで出ます。</mark>1文字のtypoで2件エラーが出るのは、「必須の name が無い」と「知らない nmae がある」が別々に検出されるからです。</p>
+
+      <div class="code term">
+        <div class="code-head">② 閉じかっこを忘れた — exit=1</div>
+        <pre><span class="ng-line">Error: Unclosed configuration block</span>
+
+  on main.tf line 24, in resource
+  "aws_ecs_cluster" "app":
+  24: resource "aws_ecs_cluster" "app" {
+
+There is no closing brace for this
+block before the end of the file. This
+may be caused by incorrect brace
+nesting elsewhere in this file.</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">③ = を忘れた（name "tf-hello"）— exit=1</div>
+        <pre><span class="ng-line">Error: Invalid block definition</span>
+
+  on main.tf line 25, in resource
+  "aws_ecs_cluster" "app":
+  25:   name "tf-hello"
+
+A block definition must have block
+content delimited by "{" and "}",
+starting on the same line as the block
+header.</pre>
+      </div>
+
+      <p class="lead">③ の言い分が分かりにくいですが、2章の文法を思い出すと納得できます。<code>=</code> が無いと引数ではなく<b>ブロック</b>に見えます。<code>name</code> という型のブロックに <code>"tf-hello"</code> というラベルが付いた形だと解釈され、「じゃあ <code>{ }</code> はどこ?」と聞かれています。</p>
+
+      <div class="code term">
+        <div class="code-head">④ 存在しないリソースを参照した — exit=1</div>
+        <pre><span class="ng-line">Error: Reference to undeclared resource</span>
+
+  on main.tf line 28, in resource
+  "aws_ecs_cluster" "app":
+  28:     Env = aws_ecs_cluster.nope.id
+
+A managed resource "aws_ecs_cluster"
+"nope" has not been declared in the
+root module.</pre>
+      </div>
+
+      <p class="lead">2章で出てきた<b>ルートモジュール</b>という言葉がここに出てきます。「このディレクトリの中に <code>nope</code> なんて宣言されていない」という意味です。</p>
+
+      <div class="code term">
+        <div class="code-head">⑤ required_version を満たさない — exit=1</div>
+        <pre><span class="ng-line">Error: Unsupported Terraform Core
+version</span>
+
+  on main.tf line 2, in terraform:
+   2:   required_version = "&gt;= 99.0.0"
+
+This configuration does not support
+Terraform version 1.14.3. To proceed,
+either choose another supported
+Terraform version or update this
+version constraint. Version constraints
+are normally set for good reason, so
+updating the constraint may lead to
+other errors or unexpected behavior.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>全部に <code>on main.tf line NN</code> が付きます。</b>ファイル名と行番号と、その行の中身まで出ます。</li>
+        <li><b>①②③⑤ はクラウドに繋がずに検出されました。</b>4章の表のとおり、validate は文法と内部的なつじつまだけを見ます。</li>
+        <li><b>④ も同じです。</b>「参照先が宣言されているか」は設定ファイルの中だけで判定できます。</li>
+      </ul>
+
+      <p class="lead">終了コードもまとめて測りました。CI（自動でテストを回す仕組み）に組み込むときはこれを見ます。</p>
+
+      <div class="code term">
+        <div class="code-head">実測した終了コード一覧（0 = 成功）</div>
+        <pre>command                   exit
+------------------------------
+validate (init前)            1
+init                         0
+validate                     0
+plan                         0
+plan -out=tfplan             0
+plan -detailed-exitcode      2
+fmt -check                   3
+state list (state無)         1
+validate (閉じ}無)           1
+validate (名前typo)          1
+validate (版不一致)          1
+plan (認証情報無)            1
+plan (dataあり)              1</pre>
+      </div>
+
+      <p class="lead"><code>plan -detailed-exitcode</code> だけ <b>2</b> が返っています。差分があるときの値です。<mark>普通の plan は、差分があっても成功（0）</mark>なので、CIで「差分があったら止める」をやりたいときはこのオプションが要ります。</p>
+    </article>
+  </section>
+
+  <!-- ============ 8 ============ -->
+  <section class="section section-c" id="s8">
+    <h2><span class="step">8</span>この記事が確かめていないこと（apply）</h2>
+
+    <article class="item">
+      <h3>apply は一度も実行していません。証拠を置きます</h3>
+      <p class="lead">この記事のタイトルは「最初に動かす」ですが、<mark>実際に作るところまでは行っていません。</mark>本物のAWS認証情報が無く、実行すれば課金が発生するためです。</p>
+
+      <div class="code term">
+        <div class="code-head">apply していないことの確認</div>
+        <pre># apply は一度も実行していない
+$ terraform state list
+<span class="ng-line">  No state file was found!</span>
+$ ls terraform.tfstate
+<span class="ng-line">  ls: cannot access
+  'terraform.tfstate': No such file or
+  directory</span></pre>
+      </div>
+
+      <p class="lead">つまり<b>「plan に出た内容が、本当にそのとおり作られるか」は、この記事では検証できていません。</b>そこは公式ドキュメントの記述として紹介するにとどめます。</p>
+
+      <h3>それでも、apply の前に知っておくべき3つ</h3>
+
+      <ul class="points">
+        <li><b>ステート（state）とは。</b>「設定のどの行が、現実のどのモノに対応するか」を記録したJSONファイルです。既定では <code>terraform.tfstate</code> という名前で、apply したディレクトリにできます。</li>
+        <li><b>手で編集しないし、git にも入れません。</b>公式は <code>Do not directly edit this file.</code> と <code>Avoid storing your state in a version control system</code> の両方を書いています。理由の1つは、機密値が平文で入るためです。</li>
+        <li><b>なぜ state が要るのか。</b>公式に歴史が書かれています。<mark>初期のプロトタイプには state ファイルが無かった</mark>そうです。タグでリソースを識別しようとしたが「すべてのリソースがタグをサポートするわけではなく、すべてのクラウドがタグをサポートするわけでもない」という問題にすぐぶつかった、と説明されています。</li>
+      </ul>
+
+      <p class="lead">この対応表があるおかげで、Terraform は <code>resource "aws_instance" "foo"</code> と書かれた行が、AWS上の <code>i-abcd1234</code> という実体を指すと分かります（公式の例）。</p>
+
+      <div class="code wrap">
+        <div class="code-head">最初に書く .gitignore（この記事の内容から導いた最低限）</div>
+        <pre>.terraform/
+*.tfstate
+*.tfstate.backup
+tfplan</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>.terraform.lock.hcl</code> は除外しません。</b>これだけは<b>コミットします</b>（3章）。</li>
+        <li><b><code>-auto-approve</code> は最初は使いません。</b>確認プロンプトを飛ばすオプションで、破壊的な操作も無言で通ります。公式も「使うなら、Terraformのワークフロー外で誰もインフラを変更できない状態にしておくことを推奨する」と警告しています。</li>
+        <li><b>後片付けは <code>terraform destroy</code> です。</b>その設定が管理しているものを全部消します。公式によれば <code>terraform apply -destroy</code> の<b>ただの別名</b>なので、新しい概念ではありません。</li>
+      </ul>
+
+      <details>
+        <summary>ドリフト（configuration drift）という言葉が出てきたら</summary>
+        <div class="body">
+          <p class="lead">Terraform を通さず、管理画面から手で設定を変えてしまった状態のことです。設定ファイルと現実がずれます。</p>
+          <p class="lead">5章で見たとおり、plan は既定でリモートの現在状態を読みます。だから<mark>次の plan で差分として現れます</mark>。ずれたまま気づかないのではなく、「戻す」差分が提案される形になります。</p>
+          <p class="lead">なお、この挙動は<b>この記事では実測していません</b>（apply していないので、ずらす対象がありません）。公式の plan の説明から導いた読みです。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 9 ============ -->
+  <section class="section section-a" id="s9">
+    <h2><span class="step">9</span>最初の30分でやること</h2>
+
+    <article class="item">
+      <h3>クラウドのアカウントが無くても、ここまでは今日できます</h3>
+      <p class="lead">この記事の実測は AWSプロバイダで取りましたが、<mark>ファイルを1つ作るだけのプロバイダ</mark>もあります。<code>hashicorp/local</code> の <code>local_file</code> です。公式リポジトリのドキュメントに載っている例そのものを引きます。</p>
+
+      <div class="code">
+        <div class="code-head">terraform-provider-local の docs にある Example Usage</div>
+        <pre>resource "local_file" "foo" {
+  content  = "foo!"
+  filename = "${path.module}/foo.bar"
+}</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>クレジットカードも認証情報も要りません。</b>ローカルにファイルを1つ作るだけです。<code>apply</code> まで通せます。</li>
+        <li><b><code>filename</code> は必須です。</b>公式ドキュメントには「親ディレクトリが無ければ作られる。すでに存在する場合は与えられた内容で上書きされる」と書かれています。<b>既存ファイルを指定しないでください。</b></li>
+        <li><b>この記事では <code>local_file</code> を実行していません。</b>実測は AWSプロバイダのみです。引用は公式リポジトリのドキュメントから。</li>
+      </ul>
+
+      <p class="lead">手順に落とすと、こうなります。<span class="cl-count">0 / 6</span></p>
+      <ul class="checklist" data-key="terraform-first-2026-08-15">
+        <li><label><input type="checkbox"><span><code>terraform version</code> が動く（インストール済み）</span></label></li>
+        <li><label><input type="checkbox"><span>空のディレクトリを作り、そこに <code>main.tf</code> を1つ置いた</span></label></li>
+        <li><label><input type="checkbox"><span><code>terraform init</code> を実行し、<code>.terraform.lock.hcl</code> ができた</span></label></li>
+        <li><label><input type="checkbox"><span><code>terraform plan</code> の末尾 <code>Plan: N to add, N to change, N to destroy</code> を読んだ</span></label></li>
+        <li><label><input type="checkbox"><span><code>.gitignore</code> に <code>.terraform/</code> と <code>*.tfstate</code> を書いた</span></label></li>
+        <li><label><input type="checkbox"><span>わざと引数名を1文字打ち間違えて、エラーの行番号を確認した</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 ここまで来れば、plan は読めます</div>
+
+      <p class="lead">最後に1つ安心材料を。<mark>いま覚えた3語は、しばらく変わりません。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">HashiCorp「Terraform v1.x Compatibility Promises」— 原文</div>
+        <pre>In this release we're defining a number
+of Terraform behaviors that we intend
+to remain compatible with throughout
+the 1.x releases:
+- A large subset of Terraform language
+  features.
+- A more conservative subset of the
+  Terraform CLI workflow commands.
+
+（1.x を通じて互換を保つつもりの挙動として、
+　言語機能の大きな部分集合と、CLIワーク
+　フローコマンドのより保守的な部分集合を
+　定めた）</pre>
+      </div>
+
+      <a class="next-up" href="../2026-08-15_laravel-first/">
+        <div class="label">NEXT →</div>
+        <div class="t">Laravel を最初に動かすまで — composer、artisan、最初のテストが落ちる理由</div>
+        <div class="d">同じ「最初に動かす」シリーズ。インストールから画面が出るまで、実行ログを加工せず全部載せています。</div>
+      </a>
+    </article>
+  </section>
+
+  <!-- ============ もっと知りたい人へ ============ -->
+  <section class="section section-d" id="more">
+    <h2>もっと知りたい人へ</h2>
+    <article class="item">
+      <p class="lead">この記事の根拠ではありませんが、<mark>同じテーマを分かりやすく扱っている資料</mark>です。すべて自分で本文を読み、この記事の一次資料と照らして誤りが無いことを確認しました。</p>
+      <ul class="reads">
+        <li>
+          <span class="kind">公式</span>
+          <a href="https://developer.hashicorp.com/terraform/tutorials/docker-get-started/docker-build">Build infrastructure（Terraform: Get Started - Docker）</a>
+          <span class="by">HashiCorp Developer / 公式チュートリアル</span>
+          <span class="why">この記事の6章で引用した plan 出力の元ページです。<b>Docker が動く環境なら、AWSアカウント無しで apply まで通せます。</b>この記事が実行できなかった「本当に作られるか」を、自分の手で確かめられます。</span>
+        </li>
+        <li>
+          <span class="kind">公式</span>
+          <a href="https://developer.hashicorp.com/terraform/tutorials/docker-get-started/docker-change">Change infrastructure（Terraform: Get Started - Docker）</a>
+          <span class="by">HashiCorp Developer / 公式チュートリアル</span>
+          <span class="why">6章の山場、<code>-/+</code> と <code># forces replacement</code> の実物が出てくるページです。ポート番号を 8000 から 8080 に変えるだけで作り直しになる、という具体例が効きます。</span>
+        </li>
+        <li>
+          <span class="kind">公式</span>
+          <a href="https://developer.hashicorp.com/terraform/language/state/purpose">Purpose of Terraform State</a>
+          <span class="by">HashiCorp Developer / Terraform Docs</span>
+          <span class="why">「毎回クラウドを見に行けばいいのでは?」という当然の疑問に、開発の歴史から答えているページです。初期は state ファイルが無く、タグで識別しようとして失敗した経緯が書かれています。</span>
+        </li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「What is Terraform?」<i>HashiCorp Developer / Terraform Docs</i>.
+          <span class="note">参照箇所: 冒頭の定義、Terraform workflow（Write / Plan / Apply の3段階）、宣言的であることの説明、state が環境の正であること。1章の引用は原文のまま。</span>
+          <a href="https://developer.hashicorp.com/terraform/intro">https://developer.hashicorp.com/terraform/intro</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「The Core Terraform Workflow」<i>HashiCorp Developer / Terraform Docs</i>.
+          <span class="note">参照箇所: plan を繰り返し回す使い方、apply が最終レビューを兼ねること、ワークフローがループであること。4章の引用元。</span>
+          <a href="https://developer.hashicorp.com/terraform/intro/core-workflow">https://developer.hashicorp.com/terraform/intro/core-workflow</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「terraform init command」<i>HashiCorp Developer / Terraform CLI Docs</i>.
+          <span class="note">参照箇所: init の役割、「何度実行しても安全」「既存の設定や state を決して消さない」、プロバイダの探索とインストール、ロックファイルをバージョン管理にコミットすべきこと。3章の引用元。</span>
+          <a href="https://developer.hashicorp.com/terraform/cli/commands/init">https://developer.hashicorp.com/terraform/cli/commands/init</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「terraform validate command」<i>HashiCorp Developer / Terraform CLI Docs</i>.
+          <span class="note">参照箇所: リモートサービスを検証しないこと、構文と内部整合性のみ検査すること、初期化済みディレクトリが必要なこと、plan に暗黙の検証が含まれること。3章・4章の引用元。原文中のインラインコード前後の空白は正規化して引用した。</span>
+          <a href="https://developer.hashicorp.com/terraform/cli/commands/validate">https://developer.hashicorp.com/terraform/cli/commands/validate</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「terraform plan command」<i>HashiCorp Developer / Terraform CLI Docs</i>.
+          <span class="note">参照箇所: plan が既定で行う3工程（リモート状態の読み取り / 直前 state との比較 / 変更アクションの提案）、plan 単体では変更を実行しないこと、-out を付けない場合が投機的プランであること。5章・6章の引用元。</span>
+          <a href="https://developer.hashicorp.com/terraform/cli/commands/plan">https://developer.hashicorp.com/terraform/cli/commands/plan</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「terraform apply command」<i>HashiCorp Developer / Terraform CLI Docs</i>.
+          <span class="note">参照箇所: 保存済みプランを渡さない場合は計画を作り直して承認を求めること、保存済みプランを渡すと確認しないこと、-auto-approve に関する警告。4章・6章・8章の引用元。</span>
+          <a href="https://developer.hashicorp.com/terraform/cli/commands/apply">https://developer.hashicorp.com/terraform/cli/commands/apply</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「terraform destroy command」「terraform fmt command」<i>HashiCorp Developer / Terraform CLI Docs</i>.
+          <span class="note">参照箇所: destroy が管理下の全オブジェクトを破棄すること、<code>terraform apply -destroy</code> の別名であること（8章）。fmt が正規のスタイルに整形すること、カスタマイズ項目を持たない理由（4章）。</span>
+          <a href="https://developer.hashicorp.com/terraform/cli/commands/destroy">https://developer.hashicorp.com/terraform/cli/commands/destroy</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「Terraform Language Documentation」「Configuration Syntax」「Files and configuration structure」「resource block reference」「Provider Requirements」<i>HashiCorp Developer / Terraform Docs</i>.
+          <span class="note">参照箇所: 言語の主目的がリソース宣言であること、ブロック / 引数の定義、argument と attribute が同義であること、ブロックの順番とファイル分割に意味が無いこと、モジュールとルートモジュールの定義（入れ子ディレクトリは別モジュール）、resource の引数一覧はプロバイダが決めること、required_providers が terraform ブロック内にしか置けないこと。2章の表と折りたたみの根拠。</span>
+          <a href="https://developer.hashicorp.com/terraform/language">https://developer.hashicorp.com/terraform/language</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「HCL Native Syntax Specification」<i>hashicorp/hcl リポジトリ（main ブランチ、hclsyntax/spec.md）</i>.
+          <span class="note">参照箇所: Structural Elements の節。「属性 / ブロック / ボディ内容」の3つで構造言語が定義されること。2章の引用は原文のまま（Markdownの強調記号 <code>_</code> のみ除去）。</span>
+          <a href="https://raw.githubusercontent.com/hashicorp/hcl/main/hclsyntax/spec.md">https://raw.githubusercontent.com/hashicorp/hcl/main/hclsyntax/spec.md</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「Dependency Lock File」「State」「Purpose of Terraform State」「Manage sensitive data in your configuration」<i>HashiCorp Developer / Terraform Docs</i>.
+          <span class="note">参照箇所: ロックファイルの名前と役割、追跡対象がプロバイダのみであること（3章）。state の既定ファイル名、直接編集しないこと、バージョン管理に置かないこと、state と plan ファイルに機密値が含まれること、state が必要になった歴史的経緯（6章・8章）。</span>
+          <a href="https://developer.hashicorp.com/terraform/language/state">https://developer.hashicorp.com/terraform/language/state</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「Build infrastructure」「Change infrastructure」「Create a Terraform plan」<i>HashiCorp Developer / Terraform Tutorials</i>.
+          <span class="note">参照箇所: plan 出力が git の diff に似ていること、(known after apply) の意味、<code>-/+</code> と <code># forces replacement</code> の実例（ポート 8000→8080 で作り直しになる Docker の例）、保存済みプランの適用方法。6章で引用した Docker の出力例は、これらのページに掲載されているもので、<mark>自分で実行したものではありません</mark>。幅380pxで読めるように改行位置だけ変えており、文字は足していません。</span>
+          <a href="https://developer.hashicorp.com/terraform/tutorials/docker-get-started/docker-change">https://developer.hashicorp.com/terraform/tutorials/docker-get-started/docker-change</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「JSON Output Format」<i>HashiCorp Developer / Terraform Internals Docs</i>.
+          <span class="note">参照箇所: Change Representation の actions 一覧（7通り）と、2種類の置き換えを分けて表現している理由。6章の折りたたみの引用元。</span>
+          <a href="https://developer.hashicorp.com/terraform/internals/json-format">https://developer.hashicorp.com/terraform/internals/json-format</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「Terraform v1.x Compatibility Promises」<i>HashiCorp Developer / Terraform Docs</i>.
+          <span class="note">参照箇所: 1.x を通じて互換を保つ対象として、言語機能とCLIワークフローコマンドを挙げている段落。9章の引用元。</span>
+          <a href="https://developer.hashicorp.com/terraform/language/v1-compatibility-promises">https://developer.hashicorp.com/terraform/language/v1-compatibility-promises</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「Install Terraform」<i>HashiCorp Developer</i> / HashiCorp Checkpoint API <i>(JSON)</i>.
+          <span class="note">参照箇所: Homebrew の2行（<code>brew tap hashicorp/tap</code> / <code>brew install hashicorp/tap/terraform</code>）と Ubuntu/Debian の <code>sudo apt update &amp;&amp; sudo apt install terraform</code>、バイナリ直接ダウンロードの選択肢。最新版は Install ページの表示と Checkpoint API の <code>current_version</code> の両方が <b>1.15.8</b>、<code>current_release</code> は UTC で 2026年7月8日。2026年8月15日に取得して確認。</span>
+          <a href="https://checkpoint-api.hashicorp.com/v1/check/terraform">https://checkpoint-api.hashicorp.com/v1/check/terraform</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          IBM / HashiCorp「LICENSE」<i>hashicorp/terraform リポジトリ main ブランチ</i>.
+          <span class="note">参照箇所: Licensor / Licensed Work / Additional Use Grant の各行。1章の折りたたみの引用は原文のまま（幅に合わせて改行位置のみ変更）。<code>internal/command/views/plan.go</code> 先頭の <code>// Copyright IBM Corp. 2014, 2026</code> と <code>SPDX-License-Identifier: BUSL-1.1</code> も併せて確認した。</span>
+          <a href="https://raw.githubusercontent.com/hashicorp/terraform/main/LICENSE">https://raw.githubusercontent.com/hashicorp/terraform/main/LICENSE</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          OpenTofu「Getting started — What is OpenTofu?」<i>OpenTofu 公式ドキュメント（Linux Foundation プロジェクト）</i>.
+          <span class="note">参照箇所: 冒頭の定義と「The core OpenTofu workflow consists of three stages: Write / Plan / Apply」。Terraform 公式 intro とほぼ同一の文面であることを確認した（フォークであるため）。ページ上部に「OpenTofu 1.12.0 is released!」の告知があった（2026年8月15日時点）。</span>
+          <a href="https://opentofu.org/docs/intro/">https://opentofu.org/docs/intro/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「local_file (Resource)」<i>hashicorp/terraform-provider-local リポジトリ（main ブランチ、docs/resources/file.md）</i>.
+          <span class="note">参照箇所: Example Usage のコードブロック（9章に引用したもの）と、Required 節の <code>filename</code> の説明（親ディレクトリは作られる / 既存ファイルは上書きされる）。<mark>Terraform Registry の同ページは JavaScript が必須で本文を取得できなかった</mark>ため、同内容が置かれている公式リポジトリのドキュメントを読んだ。</span>
+          <a href="https://raw.githubusercontent.com/hashicorp/terraform-provider-local/main/docs/resources/file.md">https://raw.githubusercontent.com/hashicorp/terraform-provider-local/main/docs/resources/file.md</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          HashiCorp「HashiCorp adopts Business Source License」<i>HashiCorp 公式ブログ</i>.
+          <span class="note">ライセンス変更の一次発表とされるページ。<code>/blog/</code> と <code>/en/blog/</code> の両方を curl で2回取得したが、いずれも <b>HTTP 429 Too Many Requests</b> が返り本文に到達できなかった。<mark>読めていないので、この記事では引用も要約もしていません。</mark>ライセンスの現状は上記 LICENSE ファイルで確認し、変更の時系列は次の記事で補いました。</span>
+          <a href="https://www.hashicorp.com/en/blog/hashicorp-adopts-business-source-license">https://www.hashicorp.com/en/blog/hashicorp-adopts-business-source-license</a>（2026年8月15日にアクセス試行）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          新野淳一「Terraformのフォークが「OpenTofu」としてLinux Foundation傘下で正式ローンチ。OpenTFから改名」<i>Publickey</i>, 2023年9月21日.
+          <span class="note">本文は取得して読んだが、<b>一次資料ではなく業界メディア</b>のため未確認扱いにしています。使ったのは時系列（2023年8月にライセンス変更が発表され、9月初旬にフォークが立ち上がった）のみで、この記事の本文では具体的な日付を主張していません。ライセンスの現状はすべて LICENSE ファイルで確認した内容です。</span>
+          <a href="https://www.publickey1.jp/blog/23/terraformopentofulinux_foundationopentf.html">https://www.publickey1.jp/blog/23/terraformopentofulinux_foundationopentf.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Terraform の init / validate / plan / fmt の実行。Terraform 1.14.3（linux_amd64）/ hashicorp/aws プロバイダ 6.60.0 / Python 3.11.15、2026年8月15日 05:39〜05:42 UTC 実施。
+          <span class="note">3章・5章・6章・7章のターミナル出力は、<mark>実行結果をそのまま貼っています</mark>。行の削除・並べ替え・値の書き換えはしていません。長さの都合で前後を落とした箇所は、<code>（前略）</code><code>（後略）</code>と本文中に明示し、何行落としたかも書いています。実行は幅40桁の擬似端末（<code>stty cols 40</code>）の中で行い、Terraform 自身に折り返させています。Terraform が78桁固定で出す行（init の案内文、エラーの位置表示）だけは、空白位置に改行を足すスクリプトを通しました。空白を除去した文字列が元と完全一致することを22ファイルすべてで検算済みです。各コマンドは <code>-no-color</code> を付けて実行しました（色制御文字が混ざらないようにするため）。コードブロックの見出しに書いた <code>$ …</code> は、実際に実行したコマンドです。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          終了コードとファイルサイズの測定。同上の環境。
+          <span class="note">7章の終了コード表は、各コマンドの終了コードを記録したファイルから自動生成したものです。<code>fmt -check</code> の <b>3</b> と <code>plan -detailed-exitcode</code> の <b>2</b> は、公式ドキュメントで確認した値ではなく<mark>この環境での実測値</mark>です。<code>.terraform</code> の 840MB と init の約12秒も実測値で、プロバイダの種類とバージョンによって変わります。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          <b>apply / destroy は一度も実行していません。</b>
+          <span class="note">AWS の本物の認証情報を持たず、実行すれば課金対象になるためです。8章に <code>terraform state list</code> が <code>No state file was found!</code> を返すこと、<code>terraform.tfstate</code> が存在しないことを記録しました。したがって「plan に出た内容が本当にそのとおり作られるか」「ドリフトが次の plan で差分として現れるか」は、<mark>この記事では検証できていません</mark>。リモートバックエンド（S3 など）も未検証で、ローカル state のみです。9章の <code>local_file</code> も実行していません（公式リポジトリのドキュメントからの引用です）。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「plan の集計行を最初に見る」「<code>-/+</code> が出たら手を止める」「<code>-auto-approve</code> は最初は使わない」という運用は、規格や公式の定めではなく筆者の目安です。
+          <span class="note">記号の意味と <code>-auto-approve</code> の警告は公式ドキュメントに基づきますが、「どの順で読むか」は筆者の運用上の提案です。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月15日時点の内容です。検証環境: Terraform 1.14.3 (linux_amd64) / hashicorp/aws 6.60.0 / Python 3.11.15</div>
+    <div>検証に使ったスクリプトと実行結果は、このリポジトリの <code>_labs/2026-08-15_terraform-first/</code> に置いています。</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

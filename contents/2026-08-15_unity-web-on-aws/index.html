@@ -1,0 +1,1079 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unity WebのビルドをAWSで配ってもらう — COOP/COEP/CORPの依頼先</title>
+<meta name="description" content="クライアント側(自社)がUnity Webを作り、インフラ側(別会社)がAWSで配る構成。マルチスレッドに要るCOOP/COEP/CORPは、ALBでは原理的に付けられません。CloudFrontのどこに何を書いてもらうか、両社で付けたときに起きる無言の事故まで。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity WebのビルドをAWSで配ってもらう — COOP/COEP/CORPの依頼先">
+<meta property="og:description" content="ALBでは付けられません。CloudFrontのレスポンスヘッダーポリシーです。両社で付けると仕様どおり無言で解除されます。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-15_unity-web-on-aws/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=87fa5662">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">クライアント技術 ｜ 2026年8月15日(金)</div>
+    <h1>Unity WebのビルドをAWSで配ってもらう — COOP/COEP/CORPの依頼先</h1>
+    <div class="range">自社がUnity Webを作り、別会社がAWSで配る構成の話です。「ヘッダーを付けてください」をどこの誰に、何と言って頼むか。AWS公式ドキュメントの原文と、手元の実測で詰めます。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約12分</span>
+      <span class="tag">会社をまたぐ連携</span>
+      <span class="tag">そのまま送れる依頼票つき</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <p class="lead">Unity Webのマルチスレッドには、<mark>配信サーバーが返す3本のHTTPヘッダー</mark>が要ります。ヘッダーはビルド成果物の中には入りません。<mark>自社ではどうやっても付けられない</mark>ので、インフラ会社に頼むしかありません。</p>
+    <ol>
+      <li>
+        <b>ALBには、その3本を足す機能がありません</b>
+        <span>ALBが追加できるレスポンスヘッダーは、属性名で決められた10種だけ。公式ドキュメントを取得して数えました。COOP/COEP/CORPは0件です。</span>
+      </li>
+      <li>
+        <b>正解はCloudFrontの「レスポンスヘッダーポリシー」のカスタムヘッダー</b>
+        <span>AWS既製のマネージドポリシー5種には入っていません。新規に作ってもらう必要があります。</span>
+      </li>
+      <li>
+        <b>一番怖いのは、両社が親切心で付けたとき</b>
+        <span>COEPが2つ並ぶと、HTML仕様の処理モデルは <code>unsafe-none</code> に落ちます。エラーは1件も出ず、ただ動かなくなります。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">依頼を出す前に — 公式は「無効推奨」と書いています</a></li>
+      <li><a href="#s2">ALBには「そのヘッダーを足す」機能が無い</a></li>
+      <li><a href="#s3">正解はCloudFrontのレスポンスヘッダーポリシー</a></li>
+      <li><a href="#s4">両社で付けると、無言で解除される</a></li>
+      <li><a href="#s5">同じ依頼票に書く、圧縮とContent-Type</a></li>
+      <li><a href="#s6">検証環境で必ず踏む2つの罠</a></li>
+      <li><a href="#s7">そのまま送れる依頼票と、責任分界点</a></li>
+      <li><a href="#more">もっと知りたい人へ</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>依頼を出す前に — 公式は「無効推奨」と書いています</h2>
+
+    <article class="item">
+      <h3>まず用語。ヘッダーが要るのは「あるトグルをONにしたビルド」だけです</h3>
+
+      <p class="lead">先に言葉を揃えます。全部1行で説明します。</p>
+
+      <ul class="points">
+        <li><b>Unity Web ビルド（旧称 WebGLビルド）。</b>Unityで作ったゲームを、ブラウザでそのまま遊べる形（HTML＋JavaScript＋WebAssembly＋データファイル）に書き出したもの。</li>
+        <li><b>WebAssembly（Wasm）。</b>ブラウザが高速に実行できる、機械語に近い形式のプログラム。C/C++やC#で書いたコードをこの形に変換して動かします。</li>
+        <li><b>スレッド。</b>プログラムの処理の流れのこと。複数同時に走らせて速くするのがマルチスレッドです。</li>
+        <li><b>HTTPレスポンスヘッダー。</b>サーバーがファイル本体と一緒に返す短い指示書き。「これはWasmです」「この方針で扱ってください」などを伝えます。<mark>ファイルの中身ではないので、Unity側からは付けられません。</mark></li>
+      </ul>
+
+      <p class="lead">この記事のヘッダー3本が必要になるのは、<mark>Unityの Player 設定で「Enable Native C/C++ Multithreading」をONにしたビルド</mark>だけです。Player 設定は Unity の <b>Edit → Project Settings → Player</b> にあります。</p>
+
+      <p class="lead">そして、そのトグルの説明文はこうです。原文をそのまま貼ります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Unity Manual 6.3 LTS「Web Player settings」— 原文</div>
+        <pre>Enable this option to use the native Unity C/C++
+engine code that targets WebAssembly/SharedArrayBuffer
+multithreading (experimental). If this setting is
+enabled, the server configuration needs to set
+Cross-Origin Opener Policy (COOP), Cross-Origin
+Embedded Policy (COEP), and Cross-Origin Resource
+Policy (CORP) headers.
+...
+It's recommended to disable this option and use it
+only for evaluating future web features.
+
+（この設定を有効にすると、WebAssembly/SharedArrayBuffer
+　マルチスレッドを対象とするネイティブUnity C/C++
+　エンジンコードを使う（実験的）。有効にした場合、
+　サーバー設定でCOOP/COEP/CORPヘッダーを
+　設定する必要がある。……このオプションは無効にし、
+　将来のWeb機能の評価目的にのみ使うことを推奨する）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>(experimental)</code> と書いてあります。</b>さらに <code>It's recommended to disable this option</code>（無効にすることを推奨）とまで書かれています。</li>
+        <li><b>だから依頼の前に、社内の合意が要ります。</b>「本番で実験的な設定をONにする」という判断です。インフラ会社に作業を頼んだあとで「やっぱりOFFで」となると、相手の工数が丸ごと無駄になります。</li>
+        <li><b>C#のスレッドは、ヘッダーを付けても動きません。</b>同じマニュアルの Technical limitations に <code>Managed (C#) threads aren't supported due to the lack of a multithreaded garbage collection feature in WebAssembly.</code> とあります。速くなるのはUnityエンジン内部のC/C++処理だけです。</li>
+      </ul>
+
+      <div class="quiz">
+        <p class="q">Q. このヘッダー3本を付けてもらうと、ゲーム内の <code>System.Threading.Thread</code> は動くようになる?</p>
+        <button class="opt" type="button" data-correct="false">動くようになる。そのためのヘッダーだから</button>
+        <button class="opt" type="button" data-correct="true">動かない。動くのはUnityエンジン内部のC/C++処理だけ</button>
+        <button class="opt" type="button" data-correct="false">ブラウザによって動いたり動かなかったりする</button>
+        <p class="ans" hidden>正解。「そのためのヘッダーだから」と思うのは自然ですが、Unityマニュアルは managed (C#) threads は非対応と明記しています。理由はWebAssemblyにマルチスレッド対応のガベージコレクション機能が無いためです。<mark>「マルチスレッドを有効にしたのにゲームロジックが速くならない」は仕様どおり</mark>で、インフラ会社の設定ミスではありません。ここを取り違えると、無実の相手を疑うことになります。</p>
+      </div>
+
+      <details>
+        <summary>そもそも、なぜヘッダーなんて面倒なものが要るのか</summary>
+        <div class="body">
+          <dl>
+            <dt>SharedArrayBuffer が封じられた経緯</dt>
+            <dd>複数のスレッドが「同じメモリ」を直接読み書きするための入れ物が <code>SharedArrayBuffer</code> です。Wasmのマルチスレッドはこれが無いと成立しません。MDNの SharedArrayBuffer のページには <code>Shared memory and high-resolution timers were effectively disabled at the start of 2018 in light of Spectre. In 2020, a new, secure approach has been standardized to re-enable shared memory.</code> とあります。Spectre は2018年に公表されたCPUの脆弱性で、同じプロセスにある他サイトのデータを盗み見できる恐れがありました。</dd>
+            <dt>復活の条件が、あの3本</dt>
+            <dd>同ページは <code>To use shared memory your document must be in a secure context and cross-origin isolated.</code> と続けます。「セキュアコンテキスト（HTTPSまたはlocalhost）」かつ「クロスオリジン分離」の2条件です。この2条件目に入るための宣言が COOP と COEP、そして分離状態のページから読み込まれる素材側の許可表明が CORP です。</dd>
+            <dt>だから配信側の仕事になる</dt>
+            <dd>ヘッダーは「ファイルと一緒に返す指示書き」なので、返す側＝配信サーバーにしか書けません。<mark>Unityのビルド設定をいくらいじっても、この3本は付きません。</mark></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>ALBには「そのヘッダーを足す」機能が無い</h2>
+
+    <article class="item">
+      <h3>「ALBで足しておいてください」は、原理的に通らない依頼です</h3>
+
+      <p class="lead"><b>ALB（Application Load Balancer）</b>は、AWSの負荷分散装置です。届いたリクエストを複数のサーバーに振り分けます。</p>
+
+      <p class="lead">ALBは<mark>レスポンスヘッダーを足す機能を持っています</mark>。持っているのですが、足せる種類が<mark>あらかじめ決まっています</mark>。任意の名前のヘッダーは指定できません。</p>
+
+      <p class="lead">ALBの設定は「リスナー属性」という名前と値の組で行い、<mark>属性名そのものがヘッダー名に対応しています</mark>。つまり属性名が用意されていないヘッダーは、存在しないのと同じです。</p>
+
+      <p class="lead">推測はやめて、AWS公式ドキュメントから属性名を全部抜き出します。AWSのドキュメントは末尾を <code>.md</code> にすると、装飾なしのテキストで取得できます。</p>
+
+      <div class="code">
+        <div class="code-head">alb_attrs.sh — ALBのレスポンス側リスナー属性を全部抜く</div>
+        <pre>#!/bin/bash
+U=https://docs.aws.amazon.com\
+/elasticloadbalancing/latest/application
+
+curl -sS "$U/load-balancer-listeners.md" \
+  | grep -o 'routing\.http\.response\.[a-z_]*' \
+  | sed 's/routing.http.response.//'
+
+echo "--- COOP/COEP/CORP の出現回数 ---"
+curl -sS "$U/load-balancer-listeners.md" \
+  | grep -ci 'cross-origin-'</pre>
+      </div>
+
+      <p class="lead"><code>curl</code> はURLを叩いて中身を表示するコマンド、<code>grep -o</code> は一致した部分だけを抜き出す道具、<code>sed</code> は文字列を置き換える道具です。長い接頭辞 <code>routing.http.response.</code> は全部同じなので消しています。ターミナル（WindowsならWSLやGit Bash）で実行します。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（2026年8月15日 実測）</div>
+        <pre>$ ./alb_attrs.sh
+server
+strict_transport_security
+access_control_allow_origin
+access_control_allow_methods
+access_control_allow_headers
+access_control_allow_credentials
+access_control_expose_headers
+access_control_max_age
+content_security_policy
+x_content_type_options
+x_frame_options
+--- COOP/COEP/CORP の出現回数 ---
+<span class="ng-line">0</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>11個のうち10個が <code>.header_value</code>、つまり値を指定して足せるヘッダーです。</b>残る <code>server</code> はALB自身が名乗る <code>server</code> ヘッダーを消すかどうかのスイッチで、値は足せません。</li>
+        <li><b>COOP / COEP / CORP はこの一覧にありません。</b><code>cross-origin-</code> という文字列の出現回数は0でした。</li>
+        <li><b>紛らわしいのは <code>access_control_*</code> の6個です。</b>これはCORS（JavaScriptから別オリジンのAPIを呼ぶための仕組み）用のヘッダーで、名前は似ていますが<mark>まったくの別物</mark>。ここを「CORS対応があるからCOOPも行けるはず」と読むと詰まります。</li>
+      </ul>
+
+      <p class="lead">AWSの説明文も、足せるものを列挙する書き方になっています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">AWS「HTTP header modification」— 原文</div>
+        <pre>Using insert headers, you can configure your Application
+Load Balancer to add security-related headers to responses.
+With these attributes, you can insert headers including
+HSTS, CORS, and CSP.
+
+（挿入ヘッダーを使うと、ALBにセキュリティ関連の
+　ヘッダーを応答へ追加させられる。これらの属性で
+　HSTS・CORS・CSPを含むヘッダーを挿入できる）</pre>
+      </div>
+
+      <p class="lead">HSTS・CORS・CSP。<mark>そこにクロスオリジン分離の3本は含まれていません。</mark></p>
+
+      <figure>
+        <picture>
+          <source srcset="images/where-headers-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/where-headers.png" alt="COOP/COEP/CORPを付けられるのは経路上でCloudFrontだけで、ALBには付ける機能自体が無い" loading="lazy">
+        </picture>
+        <figcaption>ALBは「付け忘れ」ではなく「付ける手段が無い」。依頼先はCloudFront一択になる。</figcaption>
+      </figure>
+
+      <details>
+        <summary>ALBの後ろがnginxやApacheなら、そこで付けられます</summary>
+        <div class="body">
+          <p class="lead">ALB自体は無理でも、ALBが振り分けた先（EC2やECS上のnginx / Apache）でなら付けられます。Unity公式が設定例を出しています。</p>
+          <div class="code">
+            <div class="code-head">Unity Manual「Set up your Nginx server configuration for Web builds」— 原文</div>
+            <pre>location ~ .+\.(htm|html|js|js\.gz|js\.br)$ {
+    add_header Cross-Origin-Opener-Policy same-origin;
+    add_header Cross-Origin-Embedder-Policy require-corp;
+    add_header Cross-Origin-Resource-Policy cross-origin;
+}</pre>
+          </div>
+          <p class="lead">Apache版も同じ3本を <code>&lt;FilesMatch "\.(htm|html|js|js.gz|js.br)$"&gt;</code> の中で <code>Header add</code> しています。<mark>どちらも <code>.wasm</code> や <code>.data</code> には付けていない</mark>点に注意してください。COOPとCOEPは「読み込む側のドキュメント」に効くヘッダーなので、HTMLとJSに付けば足ります。</p>
+          <p class="lead">ただし前段にCloudFrontを置くなら、<b>ここで付けてはいけません。</b>理由は4章です。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="section section-a" id="s3">
+    <h2><span class="step">3</span>正解はCloudFrontのレスポンスヘッダーポリシー</h2>
+
+    <article class="item">
+      <h3>依頼先はここ。画面の場所も、Terraformの差分も特定できます</h3>
+
+      <p class="lead"><b>CloudFront</b>はAWSのCDNです。CDN（コンテンツ配信ネットワーク）は、世界中の拠点に配信サーバーを置いて、利用者に近い場所からファイルを返す仕組みのこと。Unity Webの成果物を <b>S3</b>（AWSのファイル置き場）に置き、CloudFrontから配るのが定番の構成です。</p>
+
+      <p class="lead"><b>ここで言葉が1つ衝突します。</b>AWSは「CDNから見た配信元（S3やALBなど）」のことを<b>オリジン</b>と呼びます。6章で出てくるブラウザ用語の「オリジン」（<code>https://example.com:443</code> のような組）とは<mark>まったく別の意味</mark>です。以下、この章と4章の「オリジン」はAWS側の意味、つまり<b>配信元</b>のことだと思って読んでください。</p>
+
+      <p class="lead">CloudFrontには<mark>返すときにヘッダーを足す・消すをまとめた設定</mark>があります。これが<b>レスポンスヘッダーポリシー</b>です。AWSの説明文が、そのまま責任分界点の説明になっています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">AWS「Add or remove HTTP headers in CloudFront responses with a policy」— 原文</div>
+        <pre>CloudFront can remove headers that it received from the
+origin, or add headers to the response, before sending
+the response to viewers. Making these changes doesn't
+require writing code or changing the origin.
+
+（CloudFrontは、配信元から受け取ったヘッダーを消したり、
+　応答にヘッダーを足したりしてから閲覧者に送れる。
+　この変更にコードを書く必要も、配信元を変える必要もない）</pre>
+      </div>
+
+      <p class="lead"><mark>コードを書く必要も、配信元を変える必要もない</mark>。裏を返すと、<mark>こちらがビルドを作り直しても1ミリも変わらない</mark>領域だということです。「ビルドし直したのに直りません」は、この構成では起こるべくして起こります。</p>
+
+      <h3>AWS既製のポリシーには入っていません。ここが一番の落とし穴です</h3>
+
+      <p class="lead">CloudFrontには<b>マネージドポリシー</b>（AWSがあらかじめ用意した既製の設定）があります。「セキュリティヘッダーのポリシーを当てておけば入るのでは」と考えたくなりますが、<mark>入っていません。</mark></p>
+
+      <p class="lead">AWS CLI（AWSをコマンドで操作する道具）には、<code>--generate-cli-skeleton</code> という「入力JSONの雛形だけ出す」オプションがあります。<mark>AWSに接続しないので、認証情報が無くても実行できます。</mark>これでポリシーの枠組みを見ます。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（2026年8月15日 実測 / aws-cli 1.46.0）</div>
+        <pre>■ SecurityHeadersConfig の中身
+ContentSecurityPolicy
+ContentTypeOptions
+FrameOptions
+ReferrerPolicy
+StrictTransportSecurity
+XSSProtection
+
+■ 雛形に Cross-Origin という語が出る回数
+<span class="ng-line">0</span>
+
+■ 自由に足せる枠
+<span class="ok-line">Header</span>
+<span class="ok-line">Override</span>
+<span class="ok-line">Value</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>セキュリティヘッダーの枠は6種類だけ。</b>CSP・X-Content-Type-Options・X-Frame-Options・Referrer-Policy・HSTS・X-XSS-Protection。ここに COOP/COEP/CORP の席はありません。</li>
+        <li><b>マネージドポリシーは5種類あります。</b>AWS公式ドキュメントを取得して確認したところ、<code>CORS-and-SecurityHeadersPolicy</code> / <code>CORS-With-Preflight</code> / <code>CORS-with-preflight-and-SecurityHeadersPolicy</code> / <code>SecurityHeadersPolicy</code> / <code>SimpleCORS</code> の5つで、<mark>COOP・COEP・CORPの記述は1件もありません</mark>（<code>grep -ci</code> で0件）。</li>
+        <li><b>だから <code>Header</code> / <code>Value</code> / <code>Override</code> の3項目からなる「カスタムヘッダー」の枠に、自分で書いてもらいます。</b>依頼の要点は、まさにこの3項目です。</li>
+      </ul>
+
+      <h3>画面ならこの順。コンソールの場所まで書きます</h3>
+
+      <p class="lead">相手会社がコンソール（ブラウザで操作するAWSの管理画面）で作業する場合の手順です。AWS公式の手順に沿っています。</p>
+
+      <ul class="points">
+        <li><b>① CloudFrontコンソールの「Policies」ページ → 「Response headers」タブ。</b>ここで <b>Create response headers policy</b> を押します。</li>
+        <li><b>② Details パネルで名前を入力。</b>あとで探せるように <code>unity-web-coi</code> のような名前を決めておくと、両社の会話が速くなります。</li>
+        <li><b>③ Custom headers パネルに3本を追加。</b>Security headers パネルではありません。ここが間違えやすいところです。</li>
+        <li><b>④ Create を押したあと、Distributions → 対象 → Behaviors タブ → 対象のビヘイビアを Edit → Response headers policy で選ぶ。</b>作っただけでは何も起きません。<mark>キャッシュビヘイビアに紐づけて初めて効きます。</mark></li>
+      </ul>
+
+      <p class="lead"><b>キャッシュビヘイビア</b>とは、「<code>/game/*</code> はこの設定で配る」のようにパスごとに挙動を決める設定単位のことです。ポリシーはこの単位に紐づくので、<mark>ゲームを置いたパスだけに限定して依頼できます</mark>。サイト全体を巻き込まずに済むので、相手会社の心理的な抵抗もかなり下がります。</p>
+
+      <h3>Terraformで管理しているなら、差分は3ブロックです</h3>
+
+      <p class="lead"><b>Terraform</b>は、サーバー設定をコードで書いて管理する道具です（IaC＝Infrastructure as Code）。相手会社がこれで管理しているなら、依頼はコードの差分として渡すのが一番速い。実際に書いて動かしたものを載せます。</p>
+
+      <div class="code">
+        <div class="code-head">main.tf（抜粋）— CloudFrontのレスポンスヘッダーポリシー</div>
+        <pre>resource "aws_cloudfront_response_headers_policy" "unity_web" {
+  name    = "unity-web-coi"
+  comment = "COOP/COEP/CORP for Unity Web multithreading"
+
+  custom_headers_config {
+    items {
+      header   = "Cross-Origin-Opener-Policy"
+      value    = "same-origin"
+      override = true
+    }
+    items {
+      header   = "Cross-Origin-Embedder-Policy"
+      value    = "require-corp"
+      override = true
+    }
+    items {
+      header   = "Cross-Origin-Resource-Policy"
+      value    = "cross-origin"
+      override = true
+    }
+  }
+}</pre>
+      </div>
+
+      <p class="lead"><code>terraform plan</code> は「何が作られるか」の差分を出すコマンドです。<mark>作りはしません</mark>。ダミーの認証情報でも実行できるので、依頼前にこちらで書式を確かめられます。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（terraform plan の要約 / Terraform v1.14.3）</div>
+        <pre>Terraform v1.14.3
+Success! The configuration is valid.
+
+Plan: 1 to add, 0 to change, 0 to
+destroy.
+apply は実行していない
+
+■ 変更の件数
+create : 1件
+
+■ 作られるもの
+aws_cloudfront_response_headers_policy
+
+■ 付けるヘッダー
+<span class="ok-line">  Cross-Origin-Embedder-Policy</span>
+<span class="ok-line">      require-corp</span>
+<span class="ok-line">  Cross-Origin-Opener-Policy</span>
+<span class="ok-line">      same-origin</span>
+<span class="ok-line">  Cross-Origin-Resource-Policy</span>
+<span class="ok-line">      cross-origin</span></pre>
+      </div>
+
+      <p class="lead"><b><code>terraform apply</code> は実行していません。</b>この環境に有効なAWS認証情報が無く、実際のリソース作成は一切していません。<mark>「AWS上でヘッダーが実際に付いたこと」は、この記事では確認できていません。</mark></p>
+
+      <details>
+        <summary>依頼するとき、先に確認しておくと親切なこと（クォータ）</summary>
+        <div class="body">
+          <p class="lead">CloudFrontには上限（クォータ）があります。AWS公式のQuotasページを取得して確認した値です。</p>
+          <div class="table">
+            <table>
+              <thead><tr><th>項目</th><th>上限</th><th>この依頼での消費</th></tr></thead>
+              <tbody>
+                <tr><td>カスタムのレスポンスヘッダーポリシー（AWSアカウントあたり）</td><td data-label="上限">20</td><td data-label="この依頼での消費">新規に作るなら1</td></tr>
+                <tr><td>1ポリシーあたりのカスタムヘッダー数</td><td data-label="上限">10</td><td data-label="この依頼での消費">3</td></tr>
+                <tr><td>同じポリシーを紐づけられるディストリビューション数</td><td data-label="上限">100</td><td data-label="この依頼での消費">1</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="lead">どちらも引き上げ申請は可能です。ただし<mark>「新規に作るか、既存ポリシーに3行足すか」は相手会社に決めてもらう</mark>のが筋です。既存ポリシーが別のディストリビューションでも使われていると、こちらの都合で書き換えるわけにいきません。依頼文には「新規作成でも既存への追加でも構いません」と一言添えると話が早くなります。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="section section-b" id="s4">
+    <h2><span class="step">4</span>両社で付けると、無言で解除される</h2>
+
+    <article class="item">
+      <h3>会社をまたぐ構成で一番起きやすい事故。しかもエラーが出ません</h3>
+
+      <p class="lead">こういう流れです。</p>
+
+      <ul class="points">
+        <li><b>① こちらが「COOP/COEP/CORPを付けてください」と依頼する。</b></li>
+        <li><b>② インフラ会社が、オリジン（ECS上のnginxなど）に3本を追加する。</b>Unity公式のnginx設定例を見つけて、素直にその通りにやってくれた。</li>
+        <li><b>③ 動かない。もう一度依頼する。</b></li>
+        <li><b>④ 別の担当者が、今度はCloudFrontのポリシーにも3本を追加する。</b>「念のため両方に入れておきました」</li>
+        <li><b>⑤ さらに動かなくなる。</b></li>
+      </ul>
+
+      <p class="lead">両方から返るので、レスポンスには <code>Cross-Origin-Embedder-Policy</code> が2つ並びます。ブラウザはこれを <code>require-corp, require-corp</code> という<mark>1つのリスト値</mark>として読み、そして<mark>効力を捨てます</mark>。</p>
+
+      <p class="lead">推測ではありません。HTML仕様が、まさにこの事故を表にして載せています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">WHATWG HTML Living Standard §7.1.4.1 — 原文</div>
+        <pre>The processing model fails open (by defaulting to
+"unsafe-none") in the presence of a header that cannot
+be parsed as a token. This includes inadvertent lists
+created by combining multiple instances of the
+`Cross-Origin-Embedder-Policy` header present in a
+given response:
+
+  No header delivered        → "unsafe-none"
+  require-corp               → "require-corp"
+  unknown-value              → "unsafe-none"
+  require-corp, unknown-value→ "unsafe-none"
+  unknown-value, require-corp→ "unsafe-none"
+  require-corp, require-corp → "unsafe-none"
+
+（トークンとして解釈できないヘッダーがある場合、
+　処理モデルは "unsafe-none" にフォールバックして
+　「開く」方向に倒れる。これには、同一レスポンスに
+　COEPヘッダーが複数存在して意図せずリストに
+　なった場合も含む）</pre>
+      </div>
+
+      <p class="lead">表の最終行を見てください。<mark><code>require-corp, require-corp</code> → <code>unsafe-none</code></mark>。正しい値を2回付けると、1回も付けなかったのと同じになります。</p>
+
+      <p class="lead">これは<b>fail open（フェイルオープン）</b>と呼ばれる挙動です。設定が壊れていたときに、安全側ではなく「制限なし」の側に倒れます。MDNも独立に同じことを1文で書いています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">MDN Web Docs「Cross-Origin-Embedder-Policy」— 原文</div>
+        <pre>The header should only be set with just one token and an
+optional report-to endpoint. Setting the header more than
+once or with multiple tokens is equivalent to setting
+unsafe-none.
+
+（このヘッダーは1つのトークンと任意のreport-toだけで
+　設定すべき。複数回設定したり複数トークンを与えたり
+　すると unsafe-none を設定したのと同じになる）</pre>
+      </div>
+
+      <figure>
+        <picture>
+          <source srcset="images/coep-double-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/coep-double.png" alt="COEPを1箇所だけで付ければ分離できるが、両社が付けると値が2本になりunsafe-noneに落ちてエラーも出ない" loading="lazy">
+        </picture>
+        <figcaption>親切心で二重に付けた瞬間に、1回も付けなかったのと同じ状態になる。</figcaption>
+      </figure>
+
+      <div class="quiz">
+        <p class="q">Q. 両社が正しい値を付けた結果、ゲームが起動しなくなった。ブラウザのコンソールには何が出る?</p>
+        <button class="opt" type="button" data-correct="false">COEPヘッダーが重複しているという警告</button>
+        <button class="opt" type="button" data-correct="false">CORSエラー</button>
+        <button class="opt" type="button" data-correct="true">ヘッダーについては何も出ない。SharedArrayBufferが未定義だという別のエラーだけ</button>
+        <p class="ans" hidden>正解。仕様は「unsafe-none にフォールバックする」としか定めておらず、重複を咎める仕組みがありません。<mark>ヘッダーは確かに返っているのに、効いていない</mark>状態です。だから両社とも「うちは正しく設定した」と主張でき、原因究明が長引きます。切り分けの第一手は、ヘッダーが「付いているか」ではなく<mark>「何個付いているか」</mark>を見ることです。</p>
+      </div>
+
+      <h3>だから、付ける場所は1箇所に決めて文書に残す</h3>
+
+      <p class="lead">CloudFrontを挟む構成なら、<mark>CloudFrontのカスタムヘッダーだけで付ける</mark>。オリジン側では付けない。これを決めて、依頼票に明記します。</p>
+
+      <p class="lead">それでもオリジン側で付いてしまう可能性がある場合（既存の設定が残っている、Laravelのミドルウェアが付けている等）に備えて、<b>Origin override</b> を <code>true</code> にしてもらいます。AWSの説明はこうです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">AWS「Understand response headers policies」Custom headers — 原文</div>
+        <pre>When this setting is set to `true` and the origin response
+contains the custom header that's in the policy, CloudFront
+adds the custom header in the policy to the response that
+it sends to the viewer. It ignores the header that it
+received from the origin.
+
+（この設定が true で、配信元の応答にポリシー内の
+　カスタムヘッダーが含まれている場合、CloudFrontは
+　ポリシー側のヘッダーを応答に足し、配信元から
+　受け取ったヘッダーは無視する）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>「無視する」であって「並べる」ではありません。</b>だから <code>override = true</code> にしておけば、オリジン側の付け忘れ・付けすぎの両方から守れます。</li>
+        <li><b><code>false</code> だと、オリジン側の値が優先されます。</b>オリジンが付けていない場合はポリシー側が使われるので、一見どちらでも動きます。<mark>あとからオリジン側に設定が増えた瞬間に壊れる</mark>のが <code>false</code> の怖いところです。</li>
+        <li><b>3章のTerraformで <code>override = true</code> を3本とも書いているのは、この理由です。</b></li>
+      </ul>
+
+      <h3>切り分けのコマンド。1行で「何個付いているか」が分かります</h3>
+
+      <div class="code wrap">
+        <div class="code-head">ターミナルに貼る（URLは自分のゲームのHTMLに置き換える）</div>
+        <pre>curl -sSI "https://例.com/game/index.html" | grep -ci "^cross-origin-embedder-policy:"</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>-I</code> はヘッダーだけ取るオプション。</b>本体をダウンロードしないので一瞬で終わります。</li>
+        <li><b>結果が <code>1</code> なら正常。<code>2</code> 以上なら、この章の事故です。</b><code>0</code> なら、そもそも付いていません。</li>
+        <li><b>ブラウザ側では <code>crossOriginIsolated</code> で見ます。</b>ページを開いてDevTools（Chromeなら F12）の Console タブに <code>crossOriginIsolated</code> と打ち、<code>true</code> が返れば分離できています。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="section section-c" id="s5">
+    <h2><span class="step">5</span>同じ依頼票に書く、圧縮とContent-Type</h2>
+
+    <article class="item">
+      <h3>COOP/COEP/CORPだけ直しても、たぶんまだ起動しません</h3>
+
+      <p class="lead">Unity Webの配信には、もう2種類のヘッダーが要ります。<mark>依頼を分けると往復が増えるだけ</mark>なので、同じ票に書いてしまいます。Unity公式の記述です。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Unity Manual「Deploy a Web application」— 原文</div>
+        <pre>To make the browser perform decompression natively while
+it downloads your application, append a Content-Encoding
+header to the server response. This header must correspond
+to the type of compression Unity uses at build time.
+...
+For WebAssembly streaming compilation to work, the server
+needs to return WebAssembly files with an application/wasm
+MIME type.
+
+（ダウンロード中にブラウザ側で解凍させるには、
+　サーバー応答に Content-Encoding ヘッダーを足す。
+　ビルド時にUnityが使った圧縮方式と一致させること。
+　……WebAssemblyストリーミングコンパイルを働かせるには、
+　サーバーがWasmファイルを application/wasm という
+　MIMEタイプで返す必要がある）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>Content-Encoding。</b>「この中身はgzip（または br）で圧縮してあります」と伝えるヘッダー。Unityは <code>.gz</code> / <code>.br</code> という拡張子でビルド成果物を出しますが、<mark>拡張子はブラウザには何の意味も持ちません。</mark></li>
+        <li><b>Content-Type（MIMEタイプ）。</b>「これはWasmです」という中身の種別表示。Wasmは <code>application/wasm</code>。これが無いと、ダウンロードしながら同時にコンパイルする高速化（ストリーミングコンパイル）が働きません。</li>
+        <li><b>Brotli（<code>.br</code>）とgzip（<code>.gz</code>）。</b>どちらもファイルを小さくする圧縮方式で、Brotliのほうが小さくなります。</li>
+      </ul>
+
+      <h3>間違えたときにブラウザが出すエラーを、全部並べました</h3>
+
+      <p class="lead">言葉より、エラー文そのものを見たほうが速い。<mark>41バイトの最小Wasm</mark>（<code>add(i32, i32)</code> だけの関数）を作り、配信側のヘッダーだけを変えてChromiumで読み込ませました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（Chromium 141.0.7390.37 / 2026年8月15日 実測・そのまま）</div>
+        <pre>■ .wasm の配信ヘッダー
+<span class="ok-line">  OK 無圧縮</span>
+     Content-Type: application/wasm
+     add(2,3) = 5
+<span class="ng-line">  NG 型が違う</span>
+     Content-Type: application/octet-str
+     eam
+     TypeError: Failed to execute 'compi
+     le' on 'WebAssembly': Incorrect res
+     ponse MIME type. Expected 'applicat
+     ion/wasm'.
+<span class="ng-line">  NG br 素のまま</span>
+     Content-Encoding なし
+     CompileError: WebAssembly.instantia
+     teStreaming(): expected magic word
+     00 61 73 6d, found 1b 28 00 f8 @+0
+<span class="ok-line">  OK br 申告あり</span>
+     Content-Encoding: br
+     add(2,3) = 5
+<span class="ng-line">  NG br 申告だけ</span>
+     中身は無圧縮なのに br と申告
+     TypeError: WebAssembly compilation
+     aborted: Network error: Response bo
+     dy loading was aborted
+     Failed to load resource: net::ERR_C
+     ONTENT_DECODING_FAILED
+<span class="ng-line">  NG gz 素のまま</span>
+     Content-Encoding なし
+     CompileError: WebAssembly.instantia
+     teStreaming(): expected magic word
+     00 61 73 6d, found 1f 8b 08 00 @+0
+<span class="ok-line">  OK gz 申告あり</span>
+     Content-Encoding: gzip
+     add(2,3) = 5</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>expected magic word 00 61 73 6d</code> が出たら、圧縮の申告漏れです。</b><code>00 61 73 6d</code> はWasmファイルの先頭4バイト（<code>\0asm</code>）。そこにBrotliの <code>1b 28 00 f8</code> やgzipの <code>1f 8b 08 00</code> が見えている＝<mark>圧縮されたままの中身が、圧縮だと伝えられずにWasmとして渡された</mark>ということです。</li>
+        <li><b><code>ERR_CONTENT_DECODING_FAILED</code> が出たら、申告が嘘です。</b>圧縮していないファイルに <code>Content-Encoding: br</code> を付けた場合に出ます。「とりあえず全部に付ける」をやると、これを踏みます。</li>
+        <li><b><code>Incorrect response MIME type</code> は、Content-Typeの付け忘れです。</b>Unityマニュアルは、この型が無いとストリーミングコンパイル（ダウンロードしながら同時にコンパイルする高速化）が使えないと書いています。<mark>圧縮の申告と違って、起動そのものは通ってしまう場合があります</mark>。「動くけれど遅い」を疑うときは、まずここを見てください。</li>
+      </ul>
+
+      <h3><code>aws s3 cp</code> は Content-Encoding を絶対に付けません</h3>
+
+      <p class="lead">「S3に上げるだけならヘッダーは勝手に付くのでは」と思うところですが、<mark>片方しか付きません。</mark>AWS CLI（1.46.0）のソースコード <code>awscli/customizations/s3/utils.py</code> の338〜344行を開いて確認しました。</p>
+
+      <div class="code">
+        <div class="code-head">utils.py:338-344</div>
+        <pre>def guess_content_type(filename):
+    """Given a filename, guess it's content type.
+
+    If the type cannot be guessed, a value of None is returned.
+    """
+    try:
+        return mimetypes.guess_type(filename)[0]</pre>
+      </div>
+
+      <p class="lead">Pythonの <code>mimetypes.guess_type()</code> は <mark>(種別, 符号化) の2つ組</mark>を返します。<code>app.wasm.br</code> なら <code>('application/wasm', 'br')</code> のように、圧縮方式まで分かっています。<mark>ところがAWS CLIは <code>[0]</code> しか使わず、<code>[1]</code> を捨てています。</mark></p>
+
+      <p class="lead"><code>ContentEncoding</code> が設定されるのは、同ファイル579行目の変換表に沿って <code>--content-encoding</code> を明示したときだけです。同じ関数をローカルで呼んで確かめました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（S3には上げていません。CLIの関数をローカルで呼んだだけ）</div>
+        <pre>■ aws s3 cp が載せる値(推定)
+app.wasm.br
+<span class="ok-line">  type application/wasm</span>
+<span class="ng-line">  enc  (付かない)</span>
+  ※mimetypesの符号化推測: br
+app.data.br
+<span class="ng-line">  type (付かない→S3既定)</span>
+<span class="ng-line">  enc  (付かない)</span>
+  ※mimetypesの符号化推測: br
+app.wasm.gz
+<span class="ok-line">  type application/wasm</span>
+<span class="ng-line">  enc  (付かない)</span>
+  ※mimetypesの符号化推測: gzip
+
+--content-encoding br を付けた場合
+<span class="ok-line">  enc  br</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>Content-Type は付きます。</b><code>.wasm.br</code> でも <code>application/wasm</code> になりました。ここは助かります。</li>
+        <li><b>Content-Encoding は付きません。</b>「符号化推測: br」と分かっているのに、捨てられています。<mark>そのままS3に上げると、5章の <code>expected magic word</code> エラーになります。</mark></li>
+        <li><b><code>.data.br</code> は Content-Type すら付きません。</b>Pythonが <code>.data</code> を知らないため、S3の既定値（<code>binary/octet-stream</code>）になります。</li>
+        <li><b>これは「アップロード手順の話」なので、依頼票に書く価値があります。</b>相手会社が <code>aws s3 sync</code> でデプロイしているなら、<code>--content-encoding</code> を指定するか、拡張子ごとに分けて上げてもらう必要があります。</li>
+      </ul>
+
+      <p class="lead">なおCloudFront側で自動圧縮を有効にしていても、二重圧縮にはなりません。AWSの説明です。</p>
+
+      <div class="code wrap">
+        <div class="code-head">AWS「Serving compressed files」— 原文</div>
+        <pre>When a response from an origin includes the
+Content-Encoding header, CloudFront doesn't compress the
+object, regardless of the header's value.
+
+（配信元からの応答に Content-Encoding ヘッダーが
+　含まれる場合、CloudFrontはその値にかかわらず
+　オブジェクトを圧縮しない）</pre>
+      </div>
+
+      <p class="lead">つまり<mark>オリジン（S3のメタデータ）で正しく申告できていれば、CloudFrontは手を出しません</mark>。逆に言えば、申告漏れのファイルはCloudFrontが勝手に圧縮しようとして、話がさらにややこしくなります。</p>
+    </article>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="section section-a" id="s6">
+    <h2><span class="step">6</span>検証環境で必ず踏む2つの罠</h2>
+
+    <article class="item">
+      <h3>罠1: <code>http://</code> のIP直打ちだと、ヘッダーが完璧でも <code>false</code></h3>
+
+      <p class="lead">インフラ会社が「まず検証環境で試しましょう」と、証明書なしの <code>http://203.0.113.10/</code> のようなURLを用意してくれることがあります。<mark>ここでは絶対に再現しません。</mark></p>
+
+      <p class="lead">同じHTML・同じ3本のヘッダーで、<b>localhost</b> と <b>IP直打ちのhttp</b> を比べた実測です。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（Chromium 141.0.7390.37 / 2026年8月15日 実測・そのまま）</div>
+        <pre>■ COOP+COEP 付きのページ
+  isSecureContext       true
+<span class="ok-line">  crossOriginIsolated   true</span>
+<span class="ok-line">  SharedArrayBuffer     あり</span>
+  共有メモリ
+      作れる (SharedArrayBuffer)
+  Workerへ渡す          渡せる
+
+■ COOP+COEP 付き / IP直打ちの http
+  isSecureContext       false
+<span class="ng-line">  crossOriginIsolated   false</span>
+<span class="ng-line">  SharedArrayBuffer     なし</span>
+  共有メモリ
+      作れる (SharedArrayBuffer)
+<span class="ng-line">  Workerへ渡す</span>
+<span class="ng-line">      渡せない (DataCloneError)</span></pre>
+      </div>
+
+      <p class="lead">ヘッダーは同じです。違うのはURLだけ。仕様がそう定めています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">WHATWG HTML Living Standard §7.1.3.1 — 原文</div>
+        <pre>To obtain an opener policy given a response response and
+an environment reservedEnvironment:
+  1. Let policy be a new opener policy.
+  2. If reservedEnvironment is a non-secure context, then
+     return policy.
+
+（非セキュアコンテキストなら、初期値のポリシーを
+　そのまま返す＝COOPヘッダーは読まれない）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>「セキュアコンテキスト」はHTTPS、または <code>localhost</code>。</b>平文HTTPのIPアドレスやドメインは該当しません。<mark>だから検証環境にも証明書を用意してもらう必要があります。</mark></li>
+        <li><b><code>SharedArrayBuffer</code> という名前自体が消えます。</b>上の実測で「なし」と出ているのは、グローバルにコンストラクタが現れないためです。MDNも <code>the constructor on the global object is hidden, unless the two headers mentioned above are set</code> と書いています。</li>
+        <li><b>「共有メモリ: 作れる」と出ているのに <code>Workerへ渡す: 渡せない</code> なのは、実測どおりの挙動です。</b>この環境のChromiumでは <code>new WebAssembly.Memory({shared:true})</code> 経由でオブジェクト自体は得られますが、<mark>Web Worker（ブラウザで裏側の別スレッドとしてJavaScriptを動かす仕組み）へ <code>postMessage</code> しようとすると <code>DataCloneError</code> になります</mark>。HTML仕様 §2.7 が <code>If the current settings object's cross-origin isolated capability is false, then throw a "DataCloneError" DOMException.</code> と定めているとおりです。<b>「メモリは作れる」で安心してはいけません。</b>他のスレッドと共有できなければ、共有メモリとしての意味がありません。</li>
+      </ul>
+
+      <p class="lead">ついでに、平文HTTPではBrotliすら要求されないことも実測できました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（ブラウザが送る Accept-Encoding）</div>
+        <pre>■ Accept-Encoding (localhost, http)
+  gzip, deflate, br, zstd
+■ Accept-Encoding (IP直打ち, http)
+<span class="ng-line">  gzip, deflate</span>
+
+■ IP直打ちで br を配ると
+<span class="ng-line">  NG br 申告あり</span>
+     Content-Encoding: br
+     TypeError: Failed to fetch
+     Failed to load resource: net::ERR_C
+     ONTENT_DECODING_FAILED
+<span class="ok-line">  OK 無圧縮</span>
+     Content-Encoding なし
+     add(2,3) = 5</pre>
+      </div>
+
+      <p class="lead">Unityのドキュメントの記述と一致します。<code>Chrome and Firefox only natively support Brotli compression over HTTPS.</code>（ChromeとFirefoxはHTTPS上でのみBrotli圧縮をネイティブに扱う）。<mark>平文HTTPの検証環境では、Brotliビルドもマルチスレッドも、両方とも試せません。</mark></p>
+
+      <h3>罠2: 資産を別ドメインのCDNに置くと、<code>fetch</code> だけ落ちます</h3>
+
+      <p class="lead">COEPを有効にしたページは、<mark>許可を明示していない別オリジンの素材を読み込めなくなります</mark>。ここでの許可の出し方が、取得方法によって違いました。</p>
+
+      <p class="lead">用語の整理です。<b>オリジン</b>とは <code>https://example.com:443</code> のようなスキーム＋ホスト＋ポートの組。ブラウザはこの単位でサイトを別物として扱います。ページと素材でオリジンが違えば<b>クロスオリジン</b>です。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（COEP有効ページから、別オリジンの素材を読む）</div>
+        <pre>■ COEPページ→別オリジンをfetch
+<span class="ng-line">  NG CORPのみ</span>
+     CORP: cross-origin
+     TypeError: Failed to fetch
+     Access to fetch at 'http://127.0.0.
+     1:8822/corp/app.wasm' from origin '
+     http://127.0.0.1:8821' has been blo
+     cked by CORS policy: No 'Access-Con
+     trol-Allow-Origin' header is presen
+     t on the requested resource.
+<span class="ok-line">  OK CORSあり</span>
+     ACAO: *
+     add(2,3) = 5
+
+■ COEPページ→別オリジンのscript
+<span class="ng-line">  NG ヘッダーなし</span>
+     配信元が何も付けていない
+     Failed to load resource: net::ERR_B
+     LOCKED_BY_RESPONSE.NotSameOriginAft
+     erDefaultedToSameOriginByCoep
+<span class="ok-line">  OK CORPのみ</span>
+     CORP: cross-origin
+     読み込めた</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>&lt;script src&gt;</code> は CORP だけで通ります。</b>CORP（Cross-Origin-Resource-Policy）は、読み込まれる側のファイルに付けて「別オリジンから読み込まれてもよい」と表明するヘッダー。値は <code>cross-origin</code>。</li>
+        <li><b><code>fetch()</code> は CORP だけでは通りません。</b>CORSの <code>Access-Control-Allow-Origin</code> が別途要ります。<mark>CORPとCORSは名前が似ているだけで別物</mark>です。</li>
+        <li><b><code>NotSameOriginAfterDefaultedToSameOriginByCoep</code> というエラー名を覚えてください。</b>これが出たら「COEPを付けたせいで別オリジンの素材が落ちた」というサインです。</li>
+      </ul>
+
+      <p class="lead">つまり、<mark>ゲームのページと同じCloudFrontディストリビューションから全部配るのが一番安全</mark>です。別ドメインの広告タグ・アクセス解析・フォントを埋めている場合は、COEPを入れた瞬間にそれらが落ちる可能性があります。<mark>これはインフラ会社ではなく、こちら側が事前に洗い出すべきリストです。</mark></p>
+
+      <details>
+        <summary>いきなり本番に入れず、影響だけ先に測る方法</summary>
+        <div class="body">
+          <p class="lead">COOPとCOEPには <code>-Report-Only</code> 版のヘッダーがあります。<b>Report-Only ヘッダー</b>とは、本番の挙動は変えず「もし有効にしたら何が壊れるか」だけを報告させるお試しモードのことです。</p>
+          <div class="code">
+            <div class="code-head">先に付けてもらうヘッダー（挙動は変わりません）</div>
+            <pre>Cross-Origin-Opener-Policy-Report-Only: same-origin
+Cross-Origin-Embedder-Policy-Report-Only: require-corp</pre>
+          </div>
+          <p class="lead">会社をまたぐ変更では、これを<mark>1段目の依頼</mark>にすると話が通りやすくなります。「本番の挙動は変わりません、レポートを取るだけです」と言えるからです。壊れる箇所が0だと確認できてから、本番のヘッダーに切り替えます。</p>
+          <p class="lead">なお、この段階的な進め方はweb.devの解説（2021年2月更新）で紹介されているもので、<mark>この記事では実際にレポートを収集していません</mark>。レポート送信先の設定まで含めた動作は未確認です。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section class="section section-b" id="s7">
+    <h2><span class="step">7</span>そのまま送れる依頼票と、責任分界点</h2>
+
+    <article class="item">
+      <h3>まず線を引く。ここから先は、こちらでは絶対に直せません</h3>
+
+      <figure>
+        <picture>
+          <source srcset="images/boundary-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/boundary.png" alt="ビルド成果物の受け渡しを境に、ヘッダー・メタデータ・HTTPSはすべてインフラ会社側にあり自社では直せない" loading="lazy">
+        </picture>
+        <figcaption>境界の右側は、自社がビルドをやり直しても1ミリも変わらない領域。</figcaption>
+      </figure>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>やること</th><th>担当</th><th>根拠・注意</th></tr></thead>
+          <tbody>
+            <tr><td>Player設定のマルチスレッドON/OFFの判断</td><td data-label="担当">自社</td><td data-label="根拠・注意">公式は無効推奨。ONにする合意を先に取る</td></tr>
+            <tr><td>ビルド成果物（.wasm / .data / .js）の作成</td><td data-label="担当">自社</td><td data-label="根拠・注意">拡張子で圧縮方式を示すところまで</td></tr>
+            <tr><td>外部ドメインの素材の洗い出し</td><td data-label="担当">自社</td><td data-label="根拠・注意">COEPで落ちる。相手会社は把握していない</td></tr>
+            <tr><td>COOP / COEP / CORP を返す</td><td data-label="担当">インフラ会社</td><td data-label="根拠・注意">CloudFrontのカスタムヘッダー。自社では不可能</td></tr>
+            <tr><td>Content-Type / Content-Encoding を返す</td><td data-label="担当">インフラ会社</td><td data-label="根拠・注意">S3のメタデータ。<code>aws s3 cp</code> は encoding を付けない</td></tr>
+            <tr><td>HTTPS化（検証環境も含む）</td><td data-label="担当">インフラ会社</td><td data-label="根拠・注意">平文HTTPだとCOOPは仕様上無視される</td></tr>
+            <tr><td>ポリシーをキャッシュビヘイビアに紐づける</td><td data-label="担当">インフラ会社</td><td data-label="根拠・注意">作っただけでは効かない</td></tr>
+            <tr><td><code>crossOriginIsolated</code> の確認と報告</td><td data-label="担当">自社</td><td data-label="根拠・注意">ブラウザ側でしか確認できない</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">この表の意味は1つです。<mark>「ビルドし直して直る問題」と「配信設定を変えないと直らない問題」を、症状の段階で切り分ける。</mark>AWS自身が「コードを書く必要も、配信元を変える必要もない」と書いている領域は、こちらが手を出せない領域でもあります。</p>
+
+      <h3>依頼票。ここから下をそのままコピーして送れます</h3>
+
+      <div class="code wrap">
+        <div class="code-head">依頼文（&lt;&gt; の箇所だけ埋めてください）</div>
+        <pre>【依頼】Unity Web(マルチスレッド有効)の配信ヘッダー
+
+対象: CloudFront ディストリビューション &lt;ID&gt;
+      キャッシュビヘイビア &lt;/game/*&gt;
+
+1) レスポンスヘッダーポリシーの「カスタムヘッダー」に
+   次の3本を追加してください。
+   新規作成でも既存ポリシーへの追加でも構いません。
+   3本とも Origin override = true でお願いします。
+
+   Cross-Origin-Opener-Policy: same-origin
+   Cross-Origin-Embedder-Policy: require-corp
+   Cross-Origin-Resource-Policy: cross-origin
+
+   値は大文字小文字を区別します。そのまま貼ってください。
+   ※AWS既製の SecurityHeadersPolicy には
+     この3本は含まれていません(確認済み)。
+
+2) オリジン(S3 / nginx / Laravel)側では
+   この3本を付けないでください。
+   両方から返ると COEP が2つ並び、ブラウザは
+   unsafe-none として扱います(HTML仕様 7.1.4.1)。
+   エラーは出ず、ただ機能が無効になります。
+
+3) 同じビヘイビアで、次のヘッダーも揃えてください。
+   .wasm / .wasm.br / .wasm.gz
+       Content-Type: application/wasm
+   .br で終わるファイル
+       Content-Encoding: br
+   .gz で終わるファイル
+       Content-Encoding: gzip
+   ※aws s3 cp は Content-Type は付けますが
+     Content-Encoding は付けません。
+     --content-encoding の指定が要ります。
+
+4) 検証環境も HTTPS でお願いします。
+   平文HTTPだと、ヘッダーが正しくても
+   ブラウザ側で無視されます(HTML仕様 7.1.3.1)。
+
+5) 反映後、こちらでブラウザのコンソールに
+   crossOriginIsolated と打って true を確認し、
+   結果をご連絡します。
+
+段階的に進めたい場合は、先に Report-Only 版
+(Cross-Origin-Opener-Policy-Report-Only /
+ Cross-Origin-Embedder-Policy-Report-Only)
+だけ入れていただく形でも構いません。
+本番の挙動は変わりません。</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>「なぜ」を1行だけ添えてあります。</b>理由が無い依頼は後回しにされます。逆に長い説明も読まれません。</li>
+        <li><b>「AWS既製のポリシーには入っていません」を先に書くのが効きます。</b>相手が最初に思いつく手を潰しておくと、往復が1回減ります。</li>
+        <li><b>自分がやることも書く。</b>確認は自社の担当だと明示すると、相手は「どこで終わりか」が分かります。</li>
+      </ul>
+
+      <h3>送る前の確認</h3>
+
+      <p class="lead">送ってから気づくと、往復が増えます。<span class="cl-count">0 / 6</span></p>
+      <ul class="checklist" data-key="unity-web-on-aws-2026-08-15">
+        <li><label><input type="checkbox"><span>Player設定のマルチスレッドを本番でONにする合意を社内で取った（公式は無効推奨）</span></label></li>
+        <li><label><input type="checkbox"><span>ゲームページが読み込む<b>別ドメインの素材</b>を全部書き出した（広告・解析・フォント）</span></label></li>
+        <li><label><input type="checkbox"><span>依頼票に「オリジン側では付けないでください」を書いた</span></label></li>
+        <li><label><input type="checkbox"><span>対象のキャッシュビヘイビア（パス）を specific に指定した</span></label></li>
+        <li><label><input type="checkbox"><span>検証環境がHTTPSであることを確認した（<code>http://</code> のIP直打ちではない）</span></label></li>
+        <li><label><input type="checkbox"><span>反映後に <code>curl -sSI ... | grep -ci</code> で「1個であること」を見ると決めた</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 これで往復は1回で済みます</div>
+
+      <a class="next-up" href="../2026-08-14_unity-web-threads/">
+        <div class="label">NEXT →</div>
+        <div class="t">Unity Webのマルチスレッドに必要なHTTPヘッダー</div>
+        <div class="d">ヘッダーの有無だけを変えて、SharedArrayBufferが存在ごと消えるところを実測した回です。ブラウザ側で何が起きるかを先に押さえたい人はこちらから。</div>
+      </a>
+    </article>
+  </section>
+
+  <!-- ============ もっと知りたい人へ ============ -->
+  <section class="section section-d" id="more">
+    <h2>もっと知りたい人へ</h2>
+    <article class="item">
+      <p class="lead">この記事の根拠ではありませんが、<mark>同じテーマを分かりやすく扱っている資料</mark>です。本文を読み、HTML仕様およびFetch仕様と突き合わせて、引用範囲に誤りが無いことを確認しました。</p>
+      <ul class="reads">
+        <li>
+          <span class="kind">記事</span>
+          <a href="https://web.dev/articles/coop-coep">Making your website "cross-origin isolated" using COOP and COEP</a>
+          <span class="by">Eiji Kitamura（Google / Chrome DevRel）・2020年4月13日公開、2022年6月21日更新</span>
+          <span class="why">COOP / COEP / CORP / CORS / CORB という<b>紛らわしい5つの略語を1画面で区別</b>してくれます。この記事の2章で「CORSがあるからCOOPも行けるはず」と誤読しやすい、と書いた部分の解毒剤になります。日本語版（URL末尾に <code>?hl=ja</code>）もあります。ただし本文には「Chrome 92から」といった2021年時点の将来形の記述が残っているので、時制はそのつもりで読んでください。</span>
+        </li>
+        <li>
+          <span class="kind">記事</span>
+          <a href="https://web.dev/articles/cross-origin-isolation-guide">A guide to enable cross-origin isolation</a>
+          <span class="by">Eiji Kitamura（Google / Chrome DevRel）・2021年2月9日更新</span>
+          <span class="why">6章の折りたたみで触れた <code>-Report-Only</code> による段階導入の出どころです。<b>「有効にする前に、何が壊れるかを測る」</b>という順番が具体的に書かれています。会社をまたぐ変更でいきなり本番に入れられないときの、現実的な進め方として役立ちます。</span>
+        </li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Unity Technologies「Web Player settings（class-PlayerSettingsWebGL）」<i>Unity Manual 6.3 LTS (6000.3)</i>.
+          <span class="note">参照箇所: Enable Native C/C++ Multithreading の項。<code>(experimental)</code> の表記、COOP/COEP/CORPの必要性、<code>It's recommended to disable this option and use it only for evaluating future web features.</code> の1文。1章の引用は原文のまま。ページ下部の表示は Built on: 2026-08-14。</span>
+          <a href="https://docs.unity3d.com/6000.3/Documentation/Manual/class-PlayerSettingsWebGL.html">https://docs.unity3d.com/6000.3/Documentation/Manual/class-PlayerSettingsWebGL.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Unity Technologies「Technical limitations」<i>Unity Manual 6.3 LTS (6000.3)</i>.
+          <span class="note">参照箇所: Notes の3行（Native C/C++ サポートを有効にした場合のみC/C++マルチスレッドに対応 / セキュアコンテキスト内であること / サーバーが設定すべき3ヘッダーとその値）、および Lack of managed threading support の <code>Managed (C#) threads aren't supported due to the lack of a multithreaded garbage collection feature in WebAssembly.</code>。1章のクイズの根拠。</span>
+          <a href="https://docs.unity3d.com/6000.3/Documentation/Manual/webgl-technical-overview.html">https://docs.unity3d.com/6000.3/Documentation/Manual/webgl-technical-overview.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Unity Technologies「Set up your Nginx server configuration for Web builds」「Set up your Apache server configuration for Web builds」<i>Unity Manual 6.3 LTS (6000.3)</i>.
+          <span class="note">参照箇所: Add C/C++ multithreading support の設定例。2章の折りたたみに貼った <code>location ~ .+\.(htm|html|js|js\.gz|js\.br)$</code> ブロックは原文のまま。Apache版も同じ拡張子集合に <code>Header add</code> しており、<code>.wasm</code> / <code>.data</code> は対象外である点を確認しました。</span>
+          <a href="https://docs.unity3d.com/6000.3/Documentation/Manual/web-server-config-nginx.html">https://docs.unity3d.com/6000.3/Documentation/Manual/web-server-config-nginx.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Unity Technologies「Deploy a Web application」<i>Unity Manual 6.3 LTS (6000.3)</i>.
+          <span class="note">参照箇所: Content-Encoding をビルド時の圧縮方式に一致させること、WebAssemblyストリーミングコンパイルには <code>Content-Type: application/wasm</code> が要ること、および <code>Chrome and Firefox only natively support Brotli compression over HTTPS.</code>。5章・6章の引用は原文のまま。</span>
+          <a href="https://docs.unity3d.com/6000.3/Documentation/Manual/webgl-deploying.html">https://docs.unity3d.com/6000.3/Documentation/Manual/webgl-deploying.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          WHATWG「HTML Living Standard」§7.1.3.1 / §7.1.4.1 The headers、§2.7 Safe passing of structured data.
+          <span class="note">参照箇所: (1) §7.1.4.1 の <code>The processing model fails open (by defaulting to "unsafe-none")…</code> と、その直後の embedder policy 値の表（4章に貼った表はこの原文の抜粋。<code>require-corp, require-corp</code> → <code>"unsafe-none"</code> の行を含む）。(2) §7.1.3.1 の <code>If reservedEnvironment is a non-secure context, then return policy.</code>（6章）。(3) §2.7 の <code>If the current settings object's cross-origin isolated capability is false, then throw a "DataCloneError" DOMException.</code>（6章のDataCloneErrorの説明）。Living Standard のため常時更新されます。</span>
+          <a href="https://html.spec.whatwg.org/multipage/browsers.html">https://html.spec.whatwg.org/multipage/browsers.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          MDN Web Docs「Cross-Origin-Embedder-Policy」「SharedArrayBuffer」<i>Mozilla</i>.
+          <span class="note">参照箇所: COEPページの <code>Setting the header more than once or with multiple tokens is equivalent to setting unsafe-none.</code>（4章。HTML仕様のfail-open表と独立した二重確認として使用）。SharedArrayBufferページの Security requirements 節（Spectreによる2018年の無効化、2020年の再有効化、<code>the constructor on the global object is hidden</code>）。</span>
+          <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Embedder-Policy">https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Embedder-Policy</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Load balancer listeners」「HTTP header modification」「Enable HTTP header modification for your Application Load Balancer」<i>Application Load Balancers User Guide</i>.
+          <span class="note">参照箇所: Listener attributes のレスポンス側属性一覧（2章の実行結果は、このページのMarkdown版から抜き出したものです）、および <code>With these attributes, you can insert headers including HSTS, CORS, and CSP.</code>。追加できるレスポンスヘッダーが表で閉じており、COOP/COEP/CORPが含まれないことを確認しました。</span>
+          <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html">https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Add or remove HTTP headers in CloudFront responses with a policy」「Understand response headers policies」「Create response headers policies」<i>Amazon CloudFront Developer Guide</i>.
+          <span class="note">参照箇所: <code>Making these changes doesn't require writing code or changing the origin.</code> とポリシーがキャッシュビヘイビアに紐づくという記述（3章）、Custom headers 節の Origin override の3つの挙動（4章の引用は原文のまま）、Console 手順（Policies → Response headers タブ → Create response headers policy、および Distributions → Behaviors → Edit → Response headers policy）。</span>
+          <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/modifying-response-headers.html">https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/modifying-response-headers.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Use managed response headers policies」「Quotas」「Serving compressed files」<i>Amazon CloudFront Developer Guide</i>.
+          <span class="note">参照箇所: マネージドポリシー5種（CORS-and-SecurityHeadersPolicy / CORS-With-Preflight / CORS-with-preflight-and-SecurityHeadersPolicy / SecurityHeadersPolicy / SimpleCORS）の全文。Quotas の「Custom response headers policies per AWS account: 20」「Custom headers per response headers policy: 10」「Distributions associated with the same response headers policy: 100」。Serving compressed files の <code>When a response from an origin includes the Content-Encoding header, CloudFront doesn't compress the object, regardless of the header's value.</code>（5章の引用は原文のまま）。</span>
+          <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-response-headers-policies.html">https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-response-headers-policies.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          WHATWG「Fetch Living Standard」§3.7 `Cross-Origin-Resource-Policy` header.
+          <span class="note">参照箇所: CORPが <code>request's mode is "no-cors"</code> のときに働くという定義と、値のABNF（<code>same-origin</code> / <code>same-site</code> / <code>cross-origin</code>、case-sensitive）。6章の「CORPとCORSは別物」および依頼票の「値は大文字小文字を区別します」の根拠。</span>
+          <a href="https://fetch.spec.whatwg.org/">https://fetch.spec.whatwg.org/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp / terraform-provider-aws「<code>aws_cloudfront_response_headers_policy</code>」<i>プロバイダリポジトリ website/docs（main ブランチ）</i>.
+          <span class="note">参照箇所: <code>custom_headers_config</code> の <code>items</code> が <code>header</code> / <code>value</code> / <code>override</code> の3項目からなること。3章の <code>main.tf</code> はこの形式に従って自分で書いたものです。Terraform Registry のページ（<code>registry.terraform.io</code>）はJavaScriptで描画されるため取得したHTMLに本文が含まれておらず、<mark>読んだのはプロバイダリポジトリ側の原稿</mark>です。</span>
+          <a href="https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/website/docs/r/cloudfront_response_headers_policy.html.markdown">https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/website/docs/r/cloudfront_response_headers_policy.html.markdown</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          <b>実際のS3バケット / CloudFrontディストリビューションでの動作は、一切確認していません。</b>
+          <span class="note">この記事の執筆環境に有効なAWS認証情報が無いためです（<code>aws cloudfront list-distributions</code> は <code>An error occurred (InvalidClientTokenId)</code> で失敗しました）。<mark>ヘッダーが実際にCloudFrontから返ること、S3のメタデータがどう記録されるかは未検証</mark>です。3章のTerraformも <code>init</code> / <code>validate</code> / <code>plan</code> までで、<code>apply</code> は実行していません。本文の構成は、上記のAWS公式ドキュメントの記述に基づく設計であり、実機での確認は読者の環境で行ってください。</span>
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          <b>Report-Only ヘッダーによるレポート収集は動かしていません。</b>
+          <span class="note">6章の折りたたみで紹介した段階導入は、web.dev の解説（2021年2月9日更新、本文を取得して読了）に基づく手順の紹介です。レポート送信先（<code>report-to</code>）の設定を含む実際のレポート受信は、この環境では試していません。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          ブラウザ側の挙動。Chromium 141.0.7390.37 / Python 3.11.15 / Node.js v22.22.2、2026年8月15日実施。
+          <span class="note">配信側のヘッダーだけを変えて、同じHTMLとWasmを読ませました。5章・6章のターミナル出力は、この実行結果を<mark>行の削除・並べ替え・合成をせずにそのまま貼った</mark>ものです（章ごとに該当ブロックを抜き出しています）。使用したWasmは手書きの41バイト（<code>add(i32, i32)</code> のみ）で、<b>本物のUnityビルド出力ではありません</b>。したがって圧縮率・転送量・起動時間の数値は一切測っておらず、記事にも書いていません。HTTPSでの実測は証明書を用意していないため行っておらず、「セキュアコンテキスト」の比較は localhost（true）と <code>http://</code> のIP直打ち（false）で代用しています。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          公式ドキュメントの機械的な検索。2026年8月15日、<code>curl</code> でAWS公式ドキュメントのMarkdown版（URL末尾を <code>.md</code> にしたもの）を取得して集計。
+          <span class="note">2章の実行結果は <code>alb_attrs.sh</code>（本文に全文を掲載）の出力そのままです。マネージドポリシーのページに対する <code>grep -ci 'cross-origin-opener|embedder|resource'</code> 相当の検索は0件でした。<mark>「無いことの確認」なので、AWSがドキュメントを更新すれば結果は変わります。</mark></span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          AWS CLI のソースコード読解と、雛形・plan の実行。aws-cli 1.46.0 (botocore 1.43.62) / Terraform v1.14.3、2026年8月15日実施。
+          <span class="note">5章の <code>guess_content_type()</code> は、この環境にインストールされた <code>awscli/customizations/s3/utils.py</code> の338〜344行を開いて読んだものです。<code>ContentEncoding</code> が同ファイル579行の変換表経由（<code>--content-encoding</code> 指定時のみ）で設定されることも確認しました。3章の <code>--generate-cli-skeleton</code> と <code>terraform plan</code> は、いずれもAWSへの接続を伴わない操作です。<mark>S3へのアップロードは行っていないため、5章の「aws s3 cp が載せる値」は関数の戻り値から導いた推定です</mark>（出力にもそう明記しています）。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「付ける場所を1箇所に決めて依頼票に明記する」「対象をキャッシュビヘイビア単位に限定して依頼する」「Report-Onlyを1段目の依頼にする」は、標準や規格ではなく<b>筆者の運用上の目安</b>です。
+          <span class="note">4章のfail-openは仕様で確定していますが、それを避けるための組織的な手順は仕様の範囲外です。7章の依頼票と責任分界点の表も、同様に筆者が組み立てたものです。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月15日時点の内容です。検証環境: Chromium 141.0.7390.37 / Python 3.11.15 / Node.js v22.22.2 / Terraform v1.14.3 / aws-cli 1.46.0</div>
+    <div>公開: 2026年8月15日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

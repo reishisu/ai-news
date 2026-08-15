@@ -1,0 +1,52 @@
+
+ INFO Preparing database. 
+
+ Creating migration table .. 53.40ms DON
+E
+
+ INFO Running migrations. 
+
+ 0001_01_01_000000_create_users_table ..
+ 66.45ms FAIL
+
+   Illuminate\Database\QueryException 
+
+  SQLSTATE[HY000]: General error: 8256 C
+heck ingest environment failed: no enoug
+h space in /tmp/tidb/tmp_ddl-4000 (Conne
+ction: mysql, Host: 127.0.0.1, Port: 400
+0, Database: laravel_tidb, SQL: alter ta
+ble `users` add unique `users_email_uniq
+ue`(`email`))
+
+  at vendor/laravel/framework/src/Illumi
+nate/Database/Connection.php:857
+    853▕             $exceptionType = 
+($isUniqueConstraintError = $this->isUni
+queConstraintError($e))
+    854▕                 ? UniqueConst
+raintViolationException::class
+    855▕                 : QueryExcept
+ion::class;
+    856▕ 
+  ➜ 857▕             $exception = ne
+w $exceptionType(
+    858▕                 $this->getNam
+eWithReadWriteType(),
+    859▕                 $query,
+    860▕                 $this->prepar
+eBindings($bindings),
+    861▕                 $e,
+
+      [2m+9 vendor frames [22m
+
+  10  database/migrations/0001_01_01_000
+000_create_users_table.php:14
+      Illuminate\Support\Facades\Facade:
+:__callStatic()
+      [2m+26 vendor frames [22m
+
+  37  artisan:16
+      Illuminate\Foundation\Application:
+:handleCommand()
+

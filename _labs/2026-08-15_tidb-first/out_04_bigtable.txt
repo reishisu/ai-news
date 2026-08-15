@@ -1,0 +1,30 @@
+-- TiDB  4000 --------------------------
+INSERT 100000 秒: 2.5
+COUNT(*): 100000
+-- MySQL 3306 --------------------------
+INSERT 100000 秒: 0.8
+COUNT(*): 100000
+-- TiDB  EXPLAIN -----------------------
+id: Projection_4
+estRows: 20.00
+task: root
+access object: (空)
+id: └─IndexLookUp_11
+estRows: 20.00
+task: root
+access object: (空)
+id:   ├─IndexRangeScan_9(Build)
+estRows: 20.00
+task: cop[tikv]
+access object:
+  table:orders_big, index:idx_user(user_
+  id)
+id:   └─TableRowIDScan_10(Probe)
+estRows: 20.00
+task: cop[tikv]
+access object: table:orders_big
+-- MySQL EXPLAIN -----------------------
+table: orders_big
+type: ref
+key: idx_user
+rows: 20

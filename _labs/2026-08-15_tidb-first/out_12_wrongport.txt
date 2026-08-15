@@ -1,0 +1,6 @@
+-- port 3306 (MySQL の既定) ------------
+NG
+  SQLSTATE[HY000] [2002] Connection refu
+  sed
+-- port 4000 (TiDB の既定) -------------
+OK version: 8.0.11-TiDB-v8.5.7

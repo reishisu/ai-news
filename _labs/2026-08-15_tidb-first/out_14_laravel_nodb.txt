@@ -1,0 +1,5 @@
+
+ INFO Preparing database. 
+
+ Creating migration table .. 50.89ms DON
+E

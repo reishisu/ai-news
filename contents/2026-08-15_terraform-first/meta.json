@@ -1,0 +1,8 @@
+{
+  "category": "Web開発・インフラ",
+  "tags": ["Terraform", "IaC", "AWS", "実測", "入門", "公式ドキュメント"],
+  "featured": true,
+  "title": "Terraform を最初に動かす — init / validate / plan の役割と、plan の読み方",
+  "summary": "Terraform を触ったことがない前提で、init / validate / plan を実際に動かしました。plan は何も作りません。接続先を誰も待ち受けていないアドレスに向けても「1個作ります」と出ます。plan の記号 + / ~ / -/+ の読み方まで実出力で追いました。apply は課金が発生するため実行していません。",
+  "thumbnail": "images/thumb.png"
+}

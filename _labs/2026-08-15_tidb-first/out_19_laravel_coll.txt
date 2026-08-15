@@ -1,0 +1,8 @@
+-- Laravel が作った users.email --------
+照合順序: utf8mb4_unicode_ci
+登録済み: taro@example.com
+大文字で検索: 1 件
+-- 照合順序を書かない手書きDDL ---------
+照合順序: utf8mb4_bin
+登録済み: taro@example.com
+大文字で検索: 0 件

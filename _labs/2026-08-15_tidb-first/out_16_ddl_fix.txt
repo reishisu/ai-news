@@ -1,0 +1,62 @@
+== 出荷時の設定に戻す ==
+tidb_enable_dist_task      1
+tidb_ddl_enable_fast_reorg 1
+-- migrate
+ Creating migration table .. 53.55ms DON
+E
+ 0001_01_01_000000_create_users_table ..
+ 61.26ms FAIL
+  SQLSTATE[HY000]: General error: 8256 C
+heck ingest environment failed: no enoug
+h space in /tmp/tidb/tmp_ddl-4000 (Conne
+ction: mysql, Host: 127.0.0.1, Port: 400
+0, Database: laravel_tidb, SQL: alter ta
+ble `users` add unique `users_email_uniq
+ue`(`email`))
+
+== 手1: fast_reorg を切る ==
+tidb_ddl_enable_fast_reorg 0
+-- migrate
+ Creating migration table .. 52.01ms DON
+E
+ 0001_01_01_000000_create_users_table ..
+ 44.17ms FAIL
+  SQLSTATE[HY000]: General error: 8200 U
+nsupported tidb_enable_dist_task setting
+. To utilize distributed task execution,
+ please enable tidb_ddl_enable_fast_reor
+g first. (Connection: mysql, Host: 127.0
+.0.1, Port: 4000, Database: laravel_tidb
+, SQL: alter table `users` add unique `u
+sers_email_unique`(`email`))
+
+== 手2: disk_quota を 1GiB に下げる ==
+tidb_ddl_enable_fast_reorg 1
+tidb_ddl_disk_quota        107374182400
+  ! Truncated incorrect tidb_ddl_disk_qu
+  ! ota value: '1073741824'
+-- migrate
+ Creating migration table .. 51.36ms DON
+E
+ 0001_01_01_000000_create_users_table ..
+ 62.83ms FAIL
+  SQLSTATE[HY000]: General error: 8256 C
+heck ingest environment failed: no enoug
+h space in /tmp/tidb/tmp_ddl-4000 (Conne
+ction: mysql, Host: 127.0.0.1, Port: 400
+0, Database: laravel_tidb, SQL: alter ta
+ble `users` add unique `users_email_uniq
+ue`(`email`))
+
+== 手3: dist_task も一緒に切る ==
+tidb_enable_dist_task      0
+tidb_ddl_enable_fast_reorg 0
+-- migrate
+ Creating migration table .. 51.20ms DON
+E
+ 0001_01_01_000000_create_users_table ..
+ 467.57ms DONE
+ 0001_01_01_000001_create_cache_table ..
+ 314.03ms DONE
+ 0001_01_01_000002_create_jobs_table .. 
+467.57ms DONE

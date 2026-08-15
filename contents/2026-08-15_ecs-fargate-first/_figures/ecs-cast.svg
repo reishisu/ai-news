@@ -1,0 +1,59 @@
+<svg viewBox="0 0 640 404" xmlns="http://www.w3.org/2000/svg" role="img">
+  <!-- 上段: クラスタの外にいる2人 -->
+  <rect x="14" y="20" width="286" height="64" rx="8" fill="var(--track)"/>
+  <rect x="14" y="20" width="6" height="64" rx="3" fill="var(--b)"/>
+  <text x="36" y="46" fill="var(--fg)" font-size="13.5" font-weight="800">タスク定義 — 設計図</text>
+  <text x="36" y="68" fill="var(--sub)" font-size="11.5">JSON のテキスト。動かない</text>
+
+  <rect x="316" y="20" width="310" height="64" rx="8" fill="var(--track)"/>
+  <rect x="316" y="20" width="6" height="64" rx="3" fill="var(--d)"/>
+  <text x="338" y="46" fill="var(--fg)" font-size="13.5" font-weight="800">ALB — ECSの外側の別サービス</text>
+  <text x="338" y="68" fill="var(--sub)" font-size="11.5">HTTPをタスクへ振り分ける</text>
+
+  <!-- クラスタ -->
+  <text x="118" y="104" fill="var(--sub)" font-size="12" font-weight="800">クラスタ（サーバーではなく、ただの区切り）</text>
+  <rect x="110" y="112" width="516" height="252" rx="12" fill="none" stroke="var(--sub)" stroke-dasharray="5 5" opacity="0.55"/>
+
+  <!-- タスク定義 → タスク（実体化） -->
+  <path d="M60 88 L60 196 L202 196" fill="none" stroke="var(--b)" stroke-width="1.8" marker-end="url(#ar-b)"/>
+  <text x="68" y="182" fill="var(--b)" font-size="11.5" font-weight="700">起動</text>
+
+  <!-- ALB → 各タスク -->
+  <path d="M446 88 L322 142" fill="none" stroke="var(--d)" stroke-width="1.8" marker-end="url(#ar-d)"/>
+  <path d="M470 88 L484 142" fill="none" stroke="var(--d)" stroke-width="1.8" marker-end="url(#ar-d)"/>
+  <text x="522" y="134" fill="var(--d)" font-size="11.5" font-weight="700">HTTP</text>
+
+  <!-- タスク2つ -->
+  <rect x="210" y="150" width="170" height="92" rx="8" fill="var(--track)"/>
+  <text x="228" y="178" fill="var(--fg)" font-size="13" font-weight="800">タスク #1</text>
+  <text x="228" y="202" fill="var(--sub)" font-size="11.5">動いているコンテナ</text>
+  <text x="228" y="226" fill="var(--fg)" font-size="11.5">ENI + 専用IP</text>
+
+  <rect x="400" y="150" width="170" height="92" rx="8" fill="var(--track)"/>
+  <text x="418" y="178" fill="var(--fg)" font-size="13" font-weight="800">タスク #2</text>
+  <text x="418" y="202" fill="var(--sub)" font-size="11.5">動いているコンテナ</text>
+  <text x="418" y="226" fill="var(--fg)" font-size="11.5">ENI + 専用IP</text>
+
+  <!-- サービス → タスク（数を保つ） -->
+  <path d="M295 268 L295 246" fill="none" stroke="var(--a)" stroke-width="1.8" marker-end="url(#ar-a)"/>
+  <path d="M485 268 L485 246" fill="none" stroke="var(--a)" stroke-width="1.8" marker-end="url(#ar-a)"/>
+
+  <rect x="210" y="272" width="360" height="76" rx="8" fill="var(--track)"/>
+  <rect x="210" y="272" width="6" height="76" rx="3" fill="var(--a)"/>
+  <text x="232" y="302" fill="var(--fg)" font-size="13.5" font-weight="800">サービス — 見張り役</text>
+  <text x="232" y="326" fill="var(--sub)" font-size="11.5">desiredCount = 2 を維持。落ちたら作り直す</text>
+
+  <text x="320" y="392" fill="var(--new)" font-size="12.5" font-weight="800" text-anchor="middle">作る順は クラスタ → タスク定義 → ALB → サービス</text>
+
+  <defs>
+    <marker id="ar-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--b)"/>
+    </marker>
+    <marker id="ar-d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--d)"/>
+    </marker>
+    <marker id="ar-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--a)"/>
+    </marker>
+  </defs>
+</svg>

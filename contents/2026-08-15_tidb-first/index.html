@@ -1,0 +1,1352 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TiDBを最初に触る — MySQLと同じところ、違うところ</title>
+<meta name="description" content="TiDB v8.5.7とMySQL 8.0.46を同じマシンで並べ、同じSQLを両方に流して差を測りました。ポート4000で繋がる理由、TiKV/PDの役割、Laravelのmigrateが落ちた実ログまで。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TiDBを最初に触る — MySQLと同じところ、違うところ">
+<meta property="og:description" content="TiDB v8.5.7とMySQL 8.0.46を並べて同じSQLを流しました。同じ結果と違う結果を、実ログで全部出します。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-15_tidb-first/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=87fa5662">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">Web開発・インフラ ｜ 2026年8月15日(土)</div>
+    <h1>TiDBを最初に触る — MySQLと同じところ、違うところ</h1>
+    <div class="range">TiDB v8.5.7 と MySQL 8.0.46 を同じマシンで同時に起動し、同じSQLを両方に流しました。出力は加工していません。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約12分</span>
+      <span class="tag">TiDBを触ったことがない人向け</span>
+      <span class="tag">実測ログ全部載せ</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <p class="lead">TiDBは<mark>「MySQLの顔をした、データを何台にも分けて持つデータベース」</mark>です。だから既存のMySQLクライアントでそのまま繋がります。<mark>ここで結論は割ります。</mark>面白いのは、繋がったあとに出る差のほうです。</p>
+    <ol>
+      <li>
+        <b>ポートは3306ではなく4000。ここだけ変えれば <code>mysql</code> もPHPもそのまま繋がる</b>
+        <span>TiDBがMySQLのプロトコル（通信の約束事）を実装しているからです。<code>SELECT version()</code> の答えも実測で載せます。</span>
+      </li>
+      <li>
+        <b>SQLを受けるプログラムはデータを1バイトも持っていない</b>
+        <span>実データはTiKV、配置と時刻はPDという別のプログラムが持ちます（3章で説明します）。この3階建てが、MySQLとの差の大半を説明します。</span>
+      </li>
+      <li>
+        <b>Laravelを繋ぐには <code>.env</code> のDB設定6行を書き換える。それでも最初の <code>migrate</code> はエラー8256で落ちました</b>
+        <span>原因と、試した3通りの直し方の全ログを出します（この環境固有の条件も明記します）。</span>
+      </li>
+    </ol>
+
+    <details>
+      <summary>先に言葉だけ — SQL / ポート / テーブル</summary>
+      <div class="body">
+        <dl>
+          <dt>SQL</dt>
+          <dd>データベースに「この条件のデータを出せ」「この表を作れ」と指示するための言語です。<code>SELECT</code> や <code>CREATE TABLE</code> で始まる文がそれです。この記事は<mark>同じSQLをTiDBとMySQLの両方に流して、返ってきた答えを比べます</mark>。</dd>
+          <dt>ポート</dt>
+          <dd>1台のコンピュータが持つ「通信の窓口番号」です。1台の上で何個ものプログラムが待ち受けられるように、番号で区別します。MySQLは3306番、TiDBは4000番で待ちます。</dd>
+          <dt>テーブル（表）</dt>
+          <dd>データベースの中の1つの表のこと。この記事では「テーブル」と「表」を同じ意味で使います。</dd>
+          <dt>PHP / Laravel</dt>
+          <dd>PHPはWebアプリでよく使われるプログラミング言語、LaravelはそのPHPで作られたWebアプリの土台（フレームワーク）です。5章で実際にTiDBへ繋ぎます。</dd>
+        </dl>
+      </div>
+    </details>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">TiDBは何のためのDBか</a></li>
+      <li><a href="#s2">なぜMySQLクライアントでそのまま繋がるのか</a></li>
+      <li><a href="#s3">中身は3階建て — TiDB server / TiKV / PD</a></li>
+      <li><a href="#s4">同じSQLが違う答えを返す場所</a></li>
+      <li><a href="#s5">Laravelから繋ぐ</a></li>
+      <li><a href="#s6">最初の30分でやること</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>TiDBは何のためのDBか</h2>
+
+    <article class="item">
+      <h3>「1台に収まらない量」を、SQLのまま扱うための道具です</h3>
+      <p class="lead">MySQLでデータが増えたとき、普通は困り方が2段階で来ます。<mark>①ディスクが足りない ②書き込みが1台では捌けない</mark>。</p>
+      <p class="lead">従来はアプリ側でテーブルを何台にも切り分けて（シャーディング）逃げます。TiDBは、その切り分けをデータベース側でやります。</p>
+
+      <ul class="points">
+        <li><b>分散SQLデータベース。</b>1台に収まらないデータを複数台へ自動で分けて置きながら、利用者からは1つのSQLデータベースに見えるようにしたものです。</li>
+        <li><b>MySQL互換。</b>MySQL向けに書かれたSQL・ドライバ・GUIツールが、ほぼそのまま使えるように作られています（ほぼ、です。4章で差を全部出します）。</li>
+        <li><b>HTAP。</b>Hybrid Transactional and Analytical Processing の略。注文登録のような小さく速い処理（OLTP）と、売上集計のような重い読み取り（OLAP）を1つのDBで受けることを指します。</li>
+      </ul>
+
+      <p class="lead">公式ドキュメントの1行目が、そのまま定義になっています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">TiDB Docs「What is TiDB Self-Managed」— 原文</div>
+        <pre>TiDB (/'taɪdiːbi:/, "Ti" stands for Titanium)
+is an open-source distributed SQL database
+that supports Hybrid Transactional and
+Analytical Processing (HTAP) workloads. It is
+MySQL compatible and features horizontal
+scalability, strong consistency, and high
+availability.
+
+（TiDBは、HTAPワークロードに対応する
+　オープンソースの分散SQLデータベース。
+　MySQL互換で、水平スケーラビリティ・
+　強い一貫性・高可用性を備える）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>読み方は「タイ・ディー・ビー」。</b>発音記号が公式に書かれています。<b>Ti</b> は元素のチタン（Titanium）です。</li>
+        <li><b>「水平スケーラビリティ」とは、台数を足して処理量を増やせること。</b>1台を強いマシンに買い替える（垂直）の反対です。</li>
+      </ul>
+
+      <details>
+        <summary>バージョンの確認は「索引」ではなく「個別のリリースノート」で</summary>
+        <div class="body">
+          <p class="lead">2026年8月15日時点で、公式ドキュメントの <code>stable</code>（＝そのとき安定版として案内されている版のこと。URLの一部になっています）は v8.5系です。ただし<mark>公式サイトの中でも食い違いがあります</mark>。</p>
+          <dl>
+            <dt>実際に確認したこと</dt>
+            <dd>リリースノートの索引ページは 8.5.5（2026-01-15）を最新として並べています。しかし個別ページ <code>release-8.5.7</code> は存在し（ページ取得が成功を意味する <code>HTTP 200</code> で返る）、冒頭に <code>Release date: July 9, 2026</code> と書かれています。8.5.8 は「ページなし」を意味する404でした。</dd>
+            <dt>教訓</dt>
+            <dd>索引ページは遅れることがあります。バージョンを記事や設計書に書くときは、個別のリリースノートを開いて日付を見てください。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>なぜMySQLクライアントでそのまま繋がるのか</h2>
+
+    <article class="item">
+      <h3>TiDBが「MySQLプロトコル」を喋っているからです</h3>
+      <p class="lead">プロトコルとは<mark>通信の約束事</mark>です。クライアントとサーバーが、どんな順番で何のバイト列をやり取りするかを決めた仕様のこと。</p>
+      <p class="lead">MySQLの場合、その約束事は「MySQL Client/Server Protocol」という名前で公開されています。Oracleの開発者向けドキュメントに、2段構えだと書かれています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">MySQL Source Code Documentation「MySQL Client/Server Protocol」— 原文</div>
+        <pre>The protocol supports these features:
+（中略：1・2番目はTLSとcompression）
+A Connection Phase where capabilities and
+authentication data are exchanged
+A Command Phase which accepts commands from
+the client and executes them
+
+（能力と認証情報を交換する接続フェーズと、
+　クライアントからのコマンドを受けて
+　実行するコマンドフェーズ）</pre>
+      </div>
+
+      <p class="lead">TiDBはこの約束事をそのまま実装しています。だから相手がMySQLかどうかを、クライアント側は気にしません。</p>
+
+      <div class="code wrap">
+        <div class="code-head">TiDB Docs「Connect to TiDB with MySQL Tools」— 原文</div>
+        <pre>TiDB supports the MySQL Client/Server
+Protocol, which allows most client drivers
+and ORM frameworks to connect to TiDB just as
+they connect to MySQL.
+
+（TiDBはMySQL Client/Server Protocolに
+　対応しており、ほとんどのクライアント
+　ドライバとORMがMySQLと同じように
+　TiDBへ接続できる）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>ORMとは、プログラムのオブジェクトとDBのテーブルを対応づける仕組み。</b>LaravelのEloquentがこれにあたります。</li>
+        <li><b>そのまま使えるGUIツールも名指しされています。</b>ただし出どころは別ページの「MySQL Compatibility」で、<code>PHPMyAdmin, Navicat, MySQL Workbench, DBeaver and more</code> と並んでいます（表記も原文のまま）。</li>
+      </ul>
+
+      <h3>詰まるのは1箇所だけ。ポートが3306ではなく4000</h3>
+      <p class="lead">MySQLの既定ポートは3306、TiDBは4000です。ここを変え忘れるのが最初の関門です。実際にやってみました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（TiDBだけ起動、MySQLは停止した状態）</div>
+        <pre>-- port 3306 (MySQL の既定) ------------
+<span class="ng-line">NG</span>
+  SQLSTATE[HY000] [2002] Connection refu
+  sed
+-- port 4000 (TiDB の既定) -------------
+<span class="ok-line">OK version: 8.0.11-TiDB-v8.5.7</span></pre>
+      </div>
+
+      <p class="lead">この <code>Connection refused</code>（接続を拒否された）は<mark>「そのポート＝窓口番号で誰も待っていない」</mark>という意味です。認証エラーでもファイアウォールでもありません。ポート番号を疑ってください。<code>SQLSTATE</code> はエラーの種類を表す5桁の標準コードで、<code>HY000</code> は「その他」を意味します。</p>
+
+      <div class="quiz">
+        <p class="q">Q. TiDB v8.5.7 に繋いで <code>SELECT version()</code> を実行すると、何が返る?</p>
+        <button class="opt" type="button" data-correct="false">v8.5.7</button>
+        <button class="opt" type="button" data-correct="true">8.0.11-TiDB-v8.5.7</button>
+        <button class="opt" type="button" data-correct="false">TiDB-v8.5.7-Community</button>
+        <p class="ans" hidden>正解は2番目。製品の版が8.5.7なので「v8.5.7」と答えたくなりますが、実測では先頭にMySQL側の版番号が付いた文字列が返ります（上の実行結果の最終行がそれです）。TiDB固有の情報が欲しいときは <code>SELECT tidb_version()</code> を使います。こちらは Release Version / Edition / Git Commit Hash / Store などを返しました。</p>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">実行結果（01_versions.php／両方を同時起動して取得）</div>
+        <pre>-- TiDB 127.0.0.1:4000 -----------------
+version(): 8.0.11-TiDB-v8.5.7
+tidb_version():
+  Release Version: v8.5.7
+  Edition: Community
+  Git Commit Hash: 202b7f47286a1109b5c95
+  7401d34c9358d130ae0
+  Git Branch: HEAD
+  UTC Build Time: 2026-07-24 02:11:17
+  GoVersion: go1.25.10
+  Race Enabled: false
+  Check Table Before Drop: false
+  Store: tikv
+-- MySQL 127.0.0.1:3306 ----------------
+version(): 8.0.46-0ubuntu0.24.04.3
+comment: (Ubuntu)</pre>
+      </div>
+
+      <p class="lead">最終行の <code>Store: tikv</code> が、この記事の3章の話です。<mark>SQLを受けている相手と、データを持っている相手が別</mark>だと、ここで白状しています。</p>
+
+      <h3>手元に立てる。1コマンドです</h3>
+      <p class="lead">TiUPはTiDBのインストーラ兼管理ツール、<code>tiup playground</code> はお試し用の<b>クラスタ</b>（＝複数のプログラムが集まって1つのDBとして働く一式）をローカルに立てるコマンドです。ターミナル（黒い画面）に、そのまま1行打ちます。</p>
+
+      <div class="code">
+        <div class="code-head">TiDB Docs の例（Quick Start）</div>
+        <pre>tiup playground v8.5.7 --db 2 --pd 3 --kv 3</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>--db</code> がSQLを受けるプログラム、<code>--kv</code> がデータを持つプログラム、<code>--pd</code> が司令塔の台数です。</b><code>--名前 値</code> という書き方をコマンドラインオプションと呼びます。</li>
+        <li><b>この <code>2 / 3 / 3</code> に意味はありません。</b>公式ではこれは<mark>「版と台数を指定する書き方の例」</mark>として出てくるだけです。オプションを何も付けない <code>tiup playground</code> の既定は、TiDB・TiKV・PD・TiFlash が<b>各1</b>と書かれています。</li>
+        <li><b>起動すると接続方法が画面に出ます。</b>公式ドキュメントの案内は <code>mysql --comments --host 127.0.0.1 --port 4000 -u root</code>。</li>
+        <li><b>既定では <code>127.0.0.1</code> でしか受けません。</b>外から繋ぎたいときは <code>--host</code> を指定する、と公式に書かれています。</li>
+      </ul>
+
+      <p class="lead">この記事の実測は、<mark>PHPの <code>pdo_mysql</code>（PHPからMySQL系DBへ繋ぐための標準の部品）から接続して取りました</mark>（<code>mysql</code> コマンドは使っていません）。使ったのは1台構成の <code>--db 1 --kv 1 --pd 1</code> です。手順は <code>_labs/2026-08-15_tidb-first/README.md</code> に全部書いてあります。</p>
+
+      <details>
+        <summary>macOSで <code>ERROR 2059</code> が出たときは</summary>
+        <div class="body">
+          <p class="lead">公式ドキュメント「Connect to TiDB with MySQL Tools」に注意書きがあります。<mark>macOSのMySQL v9.0クライアントは <code>mysql_native_password</code> プラグインを正しく読み込めず</mark>、TiDBへの接続時に <code>ERROR 2059 (HY000): Authentication plugin 'mysql_native_password' cannot be loaded</code> が出る、と書かれています。公式の推奨はMySQL v8.0クライアントを入れて使うこと。<b>この事象は手元では再現していません</b>（Linux環境のため）。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="section section-c" id="s3">
+    <h2><span class="step">3</span>中身は3階建て — TiDB server / TiKV / PD</h2>
+
+    <article class="item">
+      <h3>SQLを受けているプロセスは、データを1バイトも持っていない</h3>
+      <p class="lead">MySQLは1つのプロセスがSQLの解釈もディスクへの書き込みも全部やります。TiDBは役割ごとに別プロセスです。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/arch-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/arch.png" alt="MySQLはmysqld 1プロセスがSQLの解釈もデータの保持も担うが、TiDBはSQLを受けるTiDB server・実データを持つTiKV・時刻と配置を配るPDに分かれている" loading="lazy">
+        </picture>
+        <figcaption>ポート4000で受けているのはTiDB serverだけ。実データはその先のTiKVにある。</figcaption>
+      </figure>
+
+      <div class="code wrap">
+        <div class="code-head">TiDB Docs「TiDB Architecture」— 原文</div>
+        <pre>The TiDB server is a stateless SQL layer that
+exposes the connection endpoint of the MySQL
+protocol to the outside. ... It does not store
+data and is only for computing and SQL
+analyzing, transmitting actual data read
+request to TiKV nodes (or TiFlash nodes).
+
+（TiDB serverはステートレスなSQL層で、
+　MySQLプロトコルの接続口を外に出す。
+　データは保存せず、計算とSQL解析だけを行い、
+　実際の読み取り要求はTiKV（またはTiFlash）へ
+　転送する）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>ステートレス＝そのプロセス自身が状態（データ）を持たないこと。</b>持たないので、台数を増やす・減らす・落ちたら差し替える、が簡単になります。</li>
+        <li><b>だから2章の <code>Store: tikv</code> が出ます。</b>「私の保存先はTiKVです」と名乗っています。</li>
+      </ul>
+
+      <h3>TiKV — テーブルも索引も、最後は巨大なキーと値の並び</h3>
+      <p class="lead">TiKVはTiDBの実データを持つ保存層です。キーバリュー（鍵と値の組）で持ちます。しかも<mark>キー順に並べて</mark>持ちます。</p>
+
+      <div class="code wrap">
+        <div class="code-head">TiDB Docs「TiDB Storage」— 原文</div>
+        <pre>This is a huge Map (similar to std::Map in
+C++), which stores Key-Value pairs. ...
+The Key-Value pair in the Map is ordered
+according to Keys' binary order
+
+（これはキーと値の組を保存する巨大なMapで、
+　組はキーのバイナリ順に並んでいる）
+
+TiKV does not write data directly on the disk,
+but stores data in RocksDB, which is
+responsible for the data storage.
+
+（TiKVはディスクへ直接書かず、
+　RocksDBに保存を任せる）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>RocksDBは、1台のマシン用の高速なキーバリュー保存エンジン。</b>Facebook製です。TiKVはディスクへの実書き込みをこれに任せています。</li>
+        <li><b>「キー順に並んでいる」は、あとで効いてきます。</b>連番の主キーを使うと書き込みが一箇所に集中する理由が、これです（5章）。</li>
+      </ul>
+
+      <h3>Region — 256MiBで区切り、3つに複製し、過半数に書けたら成功</h3>
+      <p class="lead">TiKVは、この巨大な並びをキーの範囲で切り分けます。この単位が<b>Region</b>です。数字は公式に明記されています。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>項目</th><th>既定値</th><th>意味</th></tr></thead>
+          <tbody>
+            <tr><td>Regionのサイズ</td><td data-label="既定値">256 MiB</td><td data-label="意味">データを分ける単位</td></tr>
+            <tr><td>分割される閾値</td><td data-label="既定値">384 MiB</td><td data-label="意味">超えると2つ以上に割れる</td></tr>
+            <tr><td>併合される閾値</td><td data-label="既定値">54 MiB</td><td data-label="意味">下回ると隣とくっつく</td></tr>
+            <tr><td>複製の数</td><td data-label="既定値">3</td><td data-label="意味">同じRegionを3台に置く</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <figure>
+        <picture>
+          <source srcset="images/region-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/region.png" alt="同じRegionが3つのStoreに複製され、読み書きを受けるのはLeaderだけ。3つのうち2つに書けた時点で書き込みは成功する" loading="lazy">
+        </picture>
+        <figcaption>1台が遅れても、残り2台に書けていれば書き込みは返ってくる。</figcaption>
+      </figure>
+
+      <div class="code wrap">
+        <div class="code-head">TiDB Docs「TiKV Overview」/「TiDB Storage」— 原文</div>
+        <pre>These multiple replicas form a Raft group.
+A replica of a Region is called a Peer.
+Typically there are 3 peers in a Region.
+One of them is the leader, which provides
+the read and write services.
+
+（複数の複製がRaftグループを作る。
+　Regionの複製1つをPeerと呼ぶ。
+　通常は3つで、うち1つがLeaderとなり
+　読み書きを担当する）
+
+However, according to Raft protocol,
+successful writes only need that data is
+replicated to the majority of nodes.
+
+（Raftでは、過半数のノードに複製できれば
+　書き込み成功とする）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>Raftとは、複数台に同じ内容を同じ順番で書かせるための合意アルゴリズム。</b>原論文はStanfordのOngaroとOusterhoutによるもので、アブストラクトでは合意の主要素を<mark>「リーダー選出・ログ複製・安全性<b>といった</b>要素」</mark>に分けて整理した、と書かれています（<code>such as</code> なので、この3つで全部という断定ではありません）。</li>
+        <li><b>過半数＝3台なら2台。</b>1台落ちても書き込みは成功し続けます。これが「高可用性」の中身です。</li>
+        <li><b>Store と Region は別物。</b>Storeは保存ノード1つ（<code>tikv-server</code> プロセス1つ分）、Regionはデータの範囲です。混同しやすいので注意。</li>
+        <li><b>Learnerは投票しないFollower。</b>Raftは「誰がLeaderか」を残りのノードの多数決（投票）で決めます。Learnerはその投票に参加せず、複製だけを受け取る見習い、と考えてください。</li>
+      </ul>
+
+      <h3>PD — できることは3つだけ。しかも命令ではなく「提案」</h3>
+      <p class="lead">PD（Placement Driver）はクラスタの司令塔です。公式は "the brain" と書いています。担当は3つ。</p>
+
+      <ul class="points">
+        <li><b>メタデータの保管。</b>メタデータとは「どのデータがどこにあるか」を書いた管理情報のこと。</li>
+        <li><b>トランザクション用の時刻（TSO）の払い出し。</b>次の節で説明します。</li>
+        <li><b>データ配置の指示。</b>偏ったら動かす、壊れたら作り直す。</li>
+      </ul>
+
+      <p class="lead">最低3台、奇数台推奨と公式に書かれています。ここまでは想像どおりです。<mark>意外なのは、PDが出せる指示の種類です。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">TiDB Docs「TiDB Scheduling」— 原文</div>
+        <pre>All scheduling plans contain three basic
+operators:
+* Add a new replica
+* Remove a replica
+* Transfer a Region leader between replicas
+  in a Raft group
+
+（すべてのスケジューリング計画は
+　3つの基本操作からなる:
+　レプリカの追加／レプリカの削除／
+　Raftグループ内でのリーダー移動）
+
+Note that here "operators" are only
+suggestions to the Region leader, which can
+be skipped by Regions.
+
+（これらの操作はRegionのリーダーに対する
+　「提案」にすぎず、Region側が
+　無視することもできる）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>司令塔ができるのは、複製を足す・減らす・リーダーを移す。それだけ。</b>この3つの組み合わせで、負荷の偏りも故障も直します。</li>
+        <li><b>しかも強制ではありません。</b>PDはTiKVから定期的に届くハートビート（生存報告）で状態を知り、提案を返します。Region側は従わないこともできます。</li>
+        <li><b>だから運用の勘所が変わります。</b>「PDに命じたのにすぐ動かない」は異常とは限りません。</li>
+      </ul>
+
+      <h3>PDはもう1つ、時計係でもある</h3>
+      <p class="lead">複数台に分かれたデータで「どちらの更新が先か」を決めるには、全員が同じ時計を見る必要があります。各サーバーのOS時刻はズレるので使えません。そこでPDが番号を配ります。これが<b>TSO（Timestamp Oracle）</b>です。</p>
+
+      <div class="code wrap">
+        <div class="code-head">TiDB Docs「TimeStamp Oracle (TSO) in TiDB」— 原文</div>
+        <pre>There are two parts in a TSO timestamp:
+- The physical timestamp: a UNIX timestamp in
+  milliseconds since 1 January 1970.
+- The logical timestamp: an incrementing
+  counter, used in scenarios requiring
+  multiple timestamps within the same
+  millisecond
+
+（TSOは2つの部分からなる。
+　物理時刻＝1970年1月1日からのミリ秒、
+　論理時刻＝同一ミリ秒内で複数必要なときに
+　使う増加カウンタ）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>1つの64bit整数に、時刻と連番が詰まっています。</b>bitは数字を2進数で表したときの1桁のこと。公式ドキュメントによれば上位46bitが物理時刻（ミリ秒）、下位18bitが論理カウンタです。</li>
+        <li><b>これがトランザクションの前後関係を決めます。</b>TiDBのトランザクションはGoogleのPercolatorというモデルを土台にしており、TSOはその要として説明されています。</li>
+      </ul>
+
+      <div class="code">
+        <div class="code-head">公式ドキュメントに載っているTSOの覗き方（この記事では実行していません）</div>
+        <pre>BEGIN;
+SET @ts := @@tidb_current_ts;
+ROLLBACK;
+SELECT TIDB_PARSE_TSO(@ts);</pre>
+      </div>
+
+      <p class="lead"><mark>この4行は手元で実行していないので、出力は載せません。</mark>公式ドキュメントには、<code>TIDB_PARSE_TSO(443852055297916932)</code> が <code>2023-08-27 20:33:41.687000</code> を返す例が載っています。</p>
+
+      <details>
+        <summary>TiFlash — 集計を速くするためのもう1つの保存層</summary>
+        <div class="body">
+          <p class="lead">TiKVは<b>行指向</b>です。1件分（1行分）の項目をまとめて並べます。更新に向いています。</p>
+          <p class="lead">TiFlashは<b>列指向</b>です。同じ項目だけを縦に並べます。「金額の合計」のような集計で、要らない列を読まずに済みます。</p>
+          <dl>
+            <dt>どうやって同期しているのか</dt>
+            <dd>TiDBの原論文（VLDB 2020）のアブストラクトに書かれています。<code>it asynchronously replicates Raft logs to learners which transform row format to column format for tuples, forming a real-time updatable column store</code>（Raftログをlearnerへ非同期に複製し、learnerが行形式を列形式に変換して、リアルタイムに更新される列ストアを作る）。3章で出てきた「投票しないFollower＝Learner」が、ここで効いてきます。</dd>
+            <dt>今回は使っていません</dt>
+            <dd>実測は <code>--tiflash 0</code>（TiFlashなし）で行いました。列ストアの性能は測っていません。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="section section-a" id="s4">
+    <h2><span class="step">4</span>同じSQLが違う答えを返す場所</h2>
+
+    <article class="item">
+      <h3>まず「同じだったもの」から。ここは安心していい</h3>
+      <p class="lead">TiDB v8.5.7 と MySQL 8.0.46 を同じマシンで同時に起動し、同じSQLを両方に流しました。以下は<mark>1文字も違わなかった</mark>ものです。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（02_ddl_dml.php／同じCREATE TABLE・INSERT 1000件・SELECT）</div>
+        <pre>-- TiDB  4000 --------------------------
+<span class="ok-line">CREATE TABLE : OK</span>
+<span class="ok-line">INSERT 1000  : OK</span>
+COUNT(*): 1000
+user_id=7 件数: 20
+  id=7 user=7 amount=107
+  id=57 user=7 amount=157
+-- MySQL 3306 --------------------------
+<span class="ok-line">CREATE TABLE : OK</span>
+<span class="ok-line">INSERT 1000  : OK</span>
+COUNT(*): 1000
+user_id=7 件数: 20
+  id=7 user=7 amount=107
+  id=57 user=7 amount=157</pre>
+      </div>
+
+      <p class="lead">既定のシステム変数（DBの動きを決める設定値）も比べました。<mark>測った8個をそのまま並べます。</mark>「揃っているもの」だけを選んで見せると、判断を誤らせるからです。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>変数（何を決めるか）</th><th>TiDB v8.5.7</th><th>MySQL 8.0.46</th></tr></thead>
+          <tbody>
+            <tr><td>transaction_isolation<br><span class="note">同時に走る処理から、途中経過をどこまで見せるか</span></td><td data-label="TiDB v8.5.7">REPEATABLE-READ</td><td data-label="MySQL 8.0.46">REPEATABLE-READ</td></tr>
+            <tr><td>autocommit<br><span class="note">1文ごとに自動で確定するか</span></td><td data-label="TiDB v8.5.7">1</td><td data-label="MySQL 8.0.46">1</td></tr>
+            <tr><td>max_allowed_packet<br><span class="note">1回に送れるデータの上限バイト数</span></td><td data-label="TiDB v8.5.7">67108864</td><td data-label="MySQL 8.0.46">67108864</td></tr>
+            <tr><td>character_set_server<br><span class="note">既定の文字コード</span></td><td data-label="TiDB v8.5.7">utf8mb4</td><td data-label="MySQL 8.0.46">utf8mb4</td></tr>
+            <tr><td>foreign_key_checks<br><span class="note">外部キーの検査をするか</span></td><td data-label="TiDB v8.5.7">1</td><td data-label="MySQL 8.0.46">1</td></tr>
+            <tr><td><b>sql_mode</b><br><span class="note">文法と型の厳しさ</span></td><td data-label="TiDB v8.5.7">…ERROR_FOR_DIVISION_BY_ZERO,<b>NO_AUTO_CREATE_USER</b>,NO_ENGINE_SUBSTITUTION</td><td data-label="MySQL 8.0.46">…ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION</td></tr>
+            <tr><td><b>collation_server</b><br><span class="note">既定の文字列比較規則</span></td><td data-label="TiDB v8.5.7">utf8mb4_bin</td><td data-label="MySQL 8.0.46">utf8mb4_0900_ai_ci</td></tr>
+            <tr><td><b>lower_case_table_names</b><br><span class="note">表名の大文字小文字の扱い</span></td><td data-label="TiDB v8.5.7">2</td><td data-label="MySQL 8.0.46">0</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="points">
+        <li><b>揃っていたのは上の5つ。</b>ここは安心してよい部分です。</li>
+        <li><b><code>sql_mode</code> の差は <code>NO_AUTO_CREATE_USER</code> 1個だけ。</b>TiDB側にだけ入っています。これは<mark>MySQL 8.0で廃止されたモード</mark>で、TiDBがMySQL 5.7側の既定を引き継いでいるためです。公式も「MySQL 5.7の既定はTiDBと同じ」と書いています。日常の書き込みには効きませんが、<code>sql_mode</code> を文字列比較して分岐しているツールは引っかかります。</li>
+        <li><b>残る2つ（照合順序と表名）は、そのまま事故になります。</b>次で実測を出します。</li>
+      </ul>
+
+      <h3>照合順序 — 同じSELECTが「0件」と「1件」に割れる</h3>
+      <p class="lead">コレーション（照合順序）とは、文字列を比較・並べ替えするときの規則です。大文字と小文字を同じとみなすかどうかが、ここで決まります。</p>
+      <p class="lead">TiDBの既定は <code>utf8mb4_bin</code>（バイト列として厳密に比較）、MySQL 8.0の既定は <code>utf8mb4_0900_ai_ci</code>（<code>ci</code> は case-insensitive ＝大文字小文字を区別しない）。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（09_collation.php／照合順序を書かずにCREATE TABLEした場合）</div>
+        <pre>-- TiDB  8.5.7 -------------------------
+大文字で検索: 0 件
+<span class="ng-line">OK   大文字を重複挿入</span>
+<span class="ng-line">OK   表名 USERS_T で参照</span>
+-- MySQL 8.0.46 ------------------------
+大文字で検索: 1 件
+<span class="ok-line">NG   大文字を重複挿入</span>
+    SQLSTATE[23000]: Integrity constrain
+    t violation: 1062 Duplicate entry 'T
+    ARO@EXAMPLE.COM' for key 'users_t.em
+    ail'
+<span class="ok-line">NG   表名 USERS_T で参照</span>
+    SQLSTATE[42S02]: Base table or view
+    not found: 1146 Table 'shop.USERS_T'
+     doesn't exist</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>taro@example.com</code> が入っている表に <code>TARO@EXAMPLE.COM</code> で検索すると、TiDBは0件、MySQLは1件。</b>同じSQLです。</li>
+        <li><b>UNIQUE制約も割れます。</b>MySQLは重複として1062で弾き、TiDBはそのまま2件入ります。<mark>メールアドレスの一意性を大文字小文字込みで担保していたアプリは、ここで壊れます。</mark></li>
+        <li><b>表名の大小も違います。</b>TiDBは <code>lower_case_table_names=2</code> で、公式ドキュメントによれば<b>2以外は現状サポートされていません</b>。上の実測では <code>USERS_T</code> で参照できました。</li>
+      </ul>
+
+      <p class="lead">「TiDBは大文字小文字を区別しない指定に対応していないのか」というと、そうではありません。v4.0以降の<b>新コレーションフレームワーク</b>があります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">TiDB Docs「Character Set and Collation」— 原文</div>
+        <pre>Since v4.0, TiDB supports a new framework for
+collations. In this framework, TiDB
+semantically parses different collations and
+strictly follows the collations when comparing
+strings. ... TiDB enables the new framework by
+default when a cluster is first initialized.
+
+（v4.0以降、TiDBは新しい照合順序の枠組みに
+　対応した。照合順序を意味的に解釈し、
+　文字列比較の際に厳密に従う。
+　クラスタの初期化時に既定で有効になる）</pre>
+      </div>
+
+      <p class="lead">手元のクラスタでも有効でした。つまり<mark>差が出たのは「既定値が違う」からであって、機能が無いからではありません。</mark></p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（09b_coll_meta.php）</div>
+        <pre>-- 新照合フレームワーク(TiDB) ----------
+<span class="ok-line">new_collation_enabled: True</span>
+-- users_t.email の照合順序 ------------
+TiDB : utf8mb4_bin
+MySQL: utf8mb4_0900_ai_ci</pre>
+      </div>
+
+      <p class="lead"><b>そしてLaravelを使う人には朗報があります。</b>この差は、Laravelが作った表では出ません。理由は5章で実測とともに出します。</p>
+
+      <h3>通らないもの — ストアド・トリガー・イベント</h3>
+      <p class="lead">11種類の構文を両方に投げました。左がTiDB、右がMySQLの結果です。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（06_compat.php）</div>
+        <pre>-- T=TiDB8.5.7 M=MySQL8.0.46 -----------
+<span class="ok-line">OK OK  ビュー作成</span>
+<span class="ok-line">OK OK  外部キー</span>
+<span class="ok-line">OK OK  生成列</span>
+<span class="ok-line">OK OK  CHECK制約</span>
+<span class="ok-line">OK OK  SAVEPOINT</span>
+<span class="ng-line">NG OK  ストアド</span>
+<span class="ng-line">NG OK  トリガー</span>
+<span class="ng-line">NG OK  イベント</span>
+OK OK  全文索引
+OK OK  ENGINE=MyISAM
+<span class="ok-line">OK OK  GET_LOCK</span>
+-- NG の中身 ---------------------------
+TiDB / ストアド
+  SQLSTATE[HY000]: General error: 8108 U
+  nsupported type *resolve.NodeW
+（中略：トリガーとイベントは 1064）</pre>
+      </div>
+
+      <p class="lead">公式ドキュメントの「未対応機能」一覧と一致します。原文はこう並んでいます。</p>
+
+      <div class="code wrap">
+        <div class="code-head">TiDB Docs「MySQL Compatibility」— 未対応一覧（抜粋、原文）</div>
+        <pre>+ Stored procedures and functions
++ Triggers
++ Events
++ User-defined functions
++ FULLTEXT syntax and indexes
++ SPATIAL (also known as GIS/GEOMETRY)
+  functions, data types and indexes
++ XA syntax (TiDB uses a two-phase commit
+  internally, but this is not exposed via
+  an SQL interface)
++ Descending Index
++ SKIP LOCKED syntax</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>エラー文の言い回しにも注目。</b>TiDBの1064は "check the manual that corresponds to your <b>TiDB</b> version" と返します。MySQLのメッセージ体系をなぞりつつ、製品名だけ差し替わっています。</li>
+        <li><b>2フェーズコミットは内部で使っていますが、<code>XA</code> 構文としては公開していません。</b>上の原文の括弧がそう言っています。</li>
+        <li><b>降順インデックスと <code>SKIP LOCKED</code> も未対応。</b>キュー処理を <code>SKIP LOCKED</code> で書いている人は、移行前に確認してください。</li>
+      </ul>
+
+      <h3>いちばん危ないのは「通るのに効かない」DDL</h3>
+      <p class="lead">上の表で <code>全文索引</code> と <code>ENGINE=MyISAM</code> が <code>OK OK</code> になっているのに気づいたでしょうか。<mark>CREATE TABLEは成功します。</mark>問題はそのあとです。</p>
+
+      <div class="quiz">
+        <p class="q">Q. TiDBで <code>FULLTEXT KEY</code> 付きの <code>CREATE TABLE</code> を実行するとどうなる?</p>
+        <button class="opt" type="button" data-correct="false">構文エラーで弾かれる</button>
+        <button class="opt" type="button" data-correct="true">エラーなく作れるが索引は登録されず、MATCHが実行時に落ちる</button>
+        <button class="opt" type="button" data-correct="false">索引が作られてMATCHも動く</button>
+        <p class="ans" hidden>正解は2番目。公式の未対応一覧に <code>FULLTEXT syntax and indexes</code> と書いてあるので「弾かれる」と思うのが自然です。しかし実測では <code>CREATE TABLE</code> は通り、<code>information_schema.statistics</code> に索引が0件しか登録されず、<code>MATCH ... AGAINST</code> を実行した瞬間に <code>1105 UnknownType: *ast.MatchAgainst</code> で落ちました。<b>DDLが通ることは「使える」を意味しません。</b></p>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">実行結果（07_silent.php）</div>
+        <pre>-- TiDB  8.5.7 -------------------------
+<span class="ng-line">ft_idx の行数: 0</span>
+<span class="ng-line">MATCH: NG</span>
+  SQLSTATE[HY000]: General error: 1105 U
+  nknownType: *ast.MatchAgainst
+<span class="ng-line">MyISAM 指定の実体: InnoDB</span>
+-- MySQL 8.0.46 ------------------------
+<span class="ok-line">ft_idx の行数: 1</span>
+<span class="ok-line">MATCH 結果: 1</span>
+MyISAM 指定の実体: MyISAM</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>ENGINE=MyISAM</code> も同じ。</b>指定は受け付けますが、<code>information_schema</code> 上の実体は <code>InnoDB</code> でした。MySQLは本当にMyISAMになります。</li>
+        <li><b>移行チェックを「DDLが流れるか」でやると見逃します。</b>作ったあとに <code>SHOW CREATE TABLE</code> と <code>information_schema</code> を見て、意図どおりか確認してください。</li>
+      </ul>
+
+      <h3>EXPLAIN は列の顔ぶれから違う</h3>
+      <p class="lead">実行計画（DBがどうやってデータを取りに行くつもりか）の見方も変わります。列名から違います。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（03_explain.php／1000行のテーブル、中略あり）</div>
+        <pre>-- TiDB  EXPLAIN -----------------------
+列: id, estRows, task, access object, op
+erator info
+（中略）
+id:         └─TableFullScan_14
+estRows: 1000.00
+task: cop[tikv]
+access object: table:orders
+-- MySQL EXPLAIN -----------------------
+列: id, select_type, table, partitions,
+type, possible_keys, key, key_len, ref,
+rows, filtered, Extra
+（中略）
+type: ref
+possible_keys: idx_user
+key: idx_user
+rows: 20</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>TiDBの <code>task</code> 列が肝。</b><code>root</code> はTiDB serverで、<code>cop[tikv]</code> はTiKV側で実行される処理です。<mark>3章の3階建てが、実行計画にそのまま出てきます。</mark></li>
+        <li><b>同じ条件で、TiDBは全表スキャン、MySQLは索引を使いました。</b>ここで「TiDBは索引を無視するのか」と早合点しがちです。違います。</li>
+      </ul>
+
+      <p class="lead">統計情報が足りないのかを確かめました。<code>ANALYZE</code>（統計を取り直すコマンド）実行後、<code>STATS_HEALTHY</code> は100、<code>Selection</code> の見積もり行数は <code>20.00</code> で正確。<mark>それでも全表スキャンを選びました。</mark></p>
+      <p class="lead">10万行に増やすと、TiDBも索引を使います。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（04_bigtable.php／10万行、中略あり）</div>
+        <pre>-- TiDB  EXPLAIN -----------------------
+（中略）
+id: └─IndexLookUp_11
+estRows: 20.00
+task: root
+（中略）
+id:   ├─IndexRangeScan_9(Build)
+estRows: 20.00
+task: cop[tikv]
+access object:
+  table:orders_big, index:idx_user(user_
+  id)
+-- MySQL EXPLAIN -----------------------
+table: orders_big
+type: ref
+key: idx_user
+rows: 20</pre>
+      </div>
+
+      <p class="lead">つまり<mark>コストモデルの判断</mark>です。1000行なら全部読んだほうが速い、と見積もっただけ。ここを取り違えて「TiDBは索引が効かない」と結論すると、無駄なチューニングに時間を溶かします。</p>
+
+      <details>
+        <summary>ギャップロックが無い（公式ドキュメントの記述。この記事では未実測）</summary>
+        <div class="body">
+          <p class="lead">MySQL InnoDBには<b>ギャップロック</b>という仕組みがあります。「まだ存在しない行の隙間」にも掛かるロックです。範囲を <code>SELECT ... FOR UPDATE</code> で押さえると、その範囲への他のINSERTも待たされます。</p>
+          <p class="lead">TiDBの公式ドキュメント「TiDB Pessimistic Transaction Mode」には、MySQL InnoDBとの差として次のように書かれています。</p>
+          <div class="code wrap">
+            <div class="code-head">TiDB Docs「Pessimistic Transaction Mode」— 原文</div>
+            <pre>When TiDB executes DML or SELECT FOR UPDATE
+statements that use range in the WHERE clause,
+concurrent DML statements within the range are
+not blocked.
+...
+This behavior is because TiDB does not
+currently support gap locking.</pre>
+          </div>
+          <dl>
+            <dt>何に効くか</dt>
+            <dd>Laravelの <code>lockForUpdate()</code> は <code>SELECT ... FOR UPDATE</code> を発行します。範囲条件で使って「この範囲に他から挿入されない」ことを前提にしているコードは、TiDBでは前提が崩れます。</dd>
+            <dt>ただし</dt>
+            <dd><b>この挙動差は今回測っていません。</b>公式ドキュメントの記述として紹介するに留めます。実際の移行前には自分で並行トランザクションを流して確かめてください。なお同ドキュメントには「悲観トランザクションが既定なのは v3.0.8 以降に<b>新規作成した</b>クラスタだけ」という但し書きもあります。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="section section-b" id="s5">
+    <h2><span class="step">5</span>Laravelから繋ぐ</h2>
+
+    <article class="item">
+      <h3>先に警告。PingCAP公式のLaravelガイドは、もう中身がありません</h3>
+      <p class="lead">「TiDB Laravel」で検索すると <code>docs.pingcap.com/tidb/stable/dev-guide-outdated-for-laravel/</code> が上位に出ます。<mark>取得すると本文は81バイトしかありません。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">curlで取得した本文の全内容（これで全部）</div>
+        <pre>&lt;meta http-equiv="refresh" content="0;
+URL='/ja/tidb/v6.1/dev-guide-overview'" /&gt;</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>v6.1（アーカイブ済み）の概要ページへ飛ばすだけの転送用ファイルです。</b>URLのスラッグ自体に <code>outdated</code> が入っています。</li>
+        <li><b>それでも検索結果の要約には設定内容が並びます。</b>スニペットだけ見て「公式にこう書いてある」と書くと、それは嘘になります。</li>
+        <li><b>結論: 現行のPingCAP公式Laravelガイドは存在しません。</b>以下は公式ドキュメント（TiDB側・Laravel側）と、自分の実測だけで組み立てます。</li>
+      </ul>
+
+      <h3>.env は2行変えるだけ</h3>
+      <p class="lead">Laravel 13の <code>.env.example</code> は、DBの既定がSQLiteです。MySQL用の行は<b>コメントアウトされています</b>。</p>
+
+      <div class="code">
+        <div class="code-head">laravel/laravel 13.x の .env.example（原文）</div>
+        <pre>DB_CONNECTION=sqlite
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_DATABASE=laravel
+# DB_USERNAME=root
+# DB_PASSWORD=</pre>
+      </div>
+
+      <p class="lead">TiDBに繋ぐなら、<code>DB_CONNECTION</code> を <code>mysql</code> にして、コメントを外し、ポートを4000にします。<mark><code>tidb</code> という接続名は作りません。</mark>MySQLプロトコルで喋る相手なので、MySQLドライバのままでいいのです。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（17_laravel.sh／実際に動かした .env）</div>
+        <pre>-- .env の DB 設定
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+<span class="ok-line">DB_PORT=4000</span>
+DB_DATABASE=laravel_tidb
+DB_USERNAME=root
+DB_PASSWORD=</pre>
+      </div>
+
+      <p class="lead">ポートを変え忘れると、Laravelはこう落ちます。2章のPHPの実測と同じ <code>2002</code> です。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（DB_PORT=3306 のまま php artisan migrate）</div>
+        <pre><span class="ng-line">   Illuminate\Database\QueryException </span>
+
+  SQLSTATE[HY000] [2002] Connection refu
+sed (Connection: mysql, Host: 127.0.0.1,
+ Port: 3306, Database: laravel_tidb, SQL
+: select exists (select 1 from informati
+on_schema.tables where table_schema = sc
+hema() and table_name = 'migrations' and
+ table_type in ('BASE TABLE', 'SYSTEM VE
+RSIONED')) as `exists`)</pre>
+      </div>
+
+      <p class="lead"><code>config/database.php</code> の <code>mysql</code> 接続定義を見ると、既定値がどこから来ているか分かります。</p>
+
+      <div class="code">
+        <div class="code-head">laravel/laravel 13.x の config/database.php（抜粋、原文）</div>
+        <pre>'port' =&gt; env('DB_PORT', '3306'),
+'charset' =&gt; env('DB_CHARSET', 'utf8mb4'),
+'collation' =&gt; env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+'strict' =&gt; true,</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>既定ポートは3306。</b>だから <code>DB_PORT=4000</code> を明示する必要があります。</li>
+        <li><b>既定の照合順序は <code>utf8mb4_unicode_ci</code>。</b>TiDBの既定 <code>utf8mb4_bin</code> とは違います。<mark>これが4章の差を打ち消します。</mark></li>
+        <li><b>Laravelが公式に一次対応しているDBにTiDBの名前はありません。</b>公式ドキュメントの一覧は MariaDB 10.3+ / MySQL 5.7+ / PostgreSQL 10.0+ / SQLite 3.26.0+ / SQL Server 2017+ の5つです。TiDBは「MySQL 5.7と8.0の一般的な構文に高い互換性がある」と自ら述べている側なので、<code>mysql</code> ドライバで繋がります。</li>
+      </ul>
+
+      <h3>Laravelが作った表では、照合順序の差は出ない</h3>
+      <p class="lead">4章の「大文字で検索したら0件」は、照合順序を<b>書かずに</b>CREATE TABLEしたときの話です。Laravelは書きます。だから結果が変わります。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（19_laravel_coll.php／どちらもTiDB v8.5.7）</div>
+        <pre>-- Laravel が作った users.email --------
+照合順序: utf8mb4_unicode_ci
+登録済み: taro@example.com
+<span class="ok-line">大文字で検索: 1 件</span>
+-- 照合順序を書かない手書きDDL ---------
+照合順序: utf8mb4_bin
+登録済み: taro@example.com
+<span class="ng-line">大文字で検索: 0 件</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>同じTiDB、同じSQL、違う答え。</b>差はテーブルの照合順序だけです。</li>
+        <li><b>Laravelのマイグレーションで作った表なら、MySQLと同じ感覚で使えます。</b>新コレーションフレームワークが効いているためです。</li>
+        <li><b>危ないのは、手書きのDDLやレガシーな移行スクリプトで作った表。</b>照合順序を明示していない表を先に洗ってください。</li>
+      </ul>
+
+      <h3>そして最初の <code>migrate</code> が落ちました。エラー8256</h3>
+      <p class="lead">ここからが本題です。ポートを直して <code>php artisan migrate</code> を打ったら、1本目で止まりました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（php artisan migrate／TiDBの設定は出荷時のまま）</div>
+        <pre> INFO Running migrations.
+
+<span class="ng-line"> 0001_01_01_000000_create_users_table ..
+ 66.45ms FAIL</span>
+
+  SQLSTATE[HY000]: General error: 8256 C
+heck ingest environment failed: no enoug
+h space in /tmp/tidb/tmp_ddl-4000 (Conne
+ction: mysql, Host: 127.0.0.1, Port: 400
+0, Database: laravel_tidb, SQL: alter ta
+ble `users` add unique `users_email_uniq
+ue`(`email`))</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>落ちたのは <code>CREATE TABLE</code> ではなく <code>ADD UNIQUE</code>。</b>索引を作る処理です。</li>
+        <li><b>「ディスクに空きが無い」と言われています。</b>TiDBは索引作成を高速化するため、一時ファイルの置き場を使います。その空き容量チェックに落ちました。</li>
+        <li><b>この環境の条件: <code>/tmp</code> の空きが7.7GBに対して、<code>tidb_ddl_disk_quota</code> が100GiB。</b><mark>空きが十分ある環境では起きません。</mark>条件を必ずセットで覚えてください。</li>
+      </ul>
+
+      <p class="lead">直し方を4通り試しました。全部の出力を出します。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（16_ddl_fix.sh／4通り、エラー文は中略）</div>
+        <pre>== 出荷時の設定に戻す ==
+tidb_enable_dist_task      1
+tidb_ddl_enable_fast_reorg 1
+<span class="ng-line"> 0001_01_01_000000_create_users_table ..
+ 61.26ms FAIL</span>
+  SQLSTATE[HY000]: General error: 8256 C
+heck ingest environment failed: no enoug
+h space in /tmp/tidb/tmp_ddl-4000
+（中略）
+
+== 手1: fast_reorg を切る ==
+tidb_ddl_enable_fast_reorg 0
+<span class="ng-line"> 0001_01_01_000000_create_users_table ..
+ 44.17ms FAIL</span>
+  SQLSTATE[HY000]: General error: 8200 U
+nsupported tidb_enable_dist_task setting
+. To utilize distributed task execution,
+ please enable tidb_ddl_enable_fast_reor
+g first.
+（中略）
+
+== 手2: disk_quota を 1GiB に下げる ==
+tidb_ddl_enable_fast_reorg 1
+tidb_ddl_disk_quota        107374182400
+  ! Truncated incorrect tidb_ddl_disk_qu
+  ! ota value: '1073741824'
+<span class="ng-line"> 0001_01_01_000000_create_users_table ..
+ 62.83ms FAIL</span>
+  SQLSTATE[HY000]: General error: 8256 C
+heck ingest environment failed: no enoug
+h space in /tmp/tidb/tmp_ddl-4000
+（中略）
+
+== 手3: dist_task も一緒に切る ==
+tidb_enable_dist_task      0
+tidb_ddl_enable_fast_reorg 0
+<span class="ok-line"> 0001_01_01_000000_create_users_table ..
+ 467.57ms DONE</span>
+<span class="ok-line"> 0001_01_01_000001_create_cache_table ..
+ 314.03ms DONE</span>
+<span class="ok-line"> 0001_01_01_000002_create_jobs_table ..
+467.57ms DONE</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>手1（片方だけ切る）は別のエラーに化けます。</b>8200 が「分散タスクを使うならまず fast_reorg を有効にしろ」と言ってきます。<mark>2つの設定は連動しています。</mark></li>
+        <li><b>手2（枠を小さくする）は通りません。</b><code>1073741824</code>（1GiB）を入れたのに <code>Truncated incorrect</code> の警告が出て、値は <code>107374182400</code> のままでした。<b>この変数は下げられませんでした。</b></li>
+        <li><b>効いたのは手3。</b>両方をOFFにすると全マイグレーションが <code>DONE</code>（314〜467ms）。<mark>失敗した回の44〜66msは途中で中断した時間なので、速度の比較にはなりません。</mark>OFFにしたことで実際に遅くなるかどうかは測っていません。</li>
+      </ul>
+
+      <div class="code">
+        <div class="code-head">手3でやったこと（TiDBに接続して実行）</div>
+        <pre>SET GLOBAL tidb_enable_dist_task = OFF;
+SET GLOBAL tidb_ddl_enable_fast_reorg = OFF;</pre>
+      </div>
+
+      <p class="lead"><b>これは本番向けの推奨設定ではありません。</b>「開発機の <code>/tmp</code> が狭くて詰まったときに前に進む手」です。本番では一時ディレクトリに十分な空きを用意するほうが筋が良い、というのが筆者の判断です（公式にそう書かれているわけではありません）。</p>
+
+      <p class="lead">通ったあとは、普通のLaravelです。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（17_laravel.sh／マイグレーション後）</div>
+        <pre>-- できた表
+  cache
+  cache_locks
+  failed_jobs
+  job_batches
+  jobs
+  migrations
+  password_reset_tokens
+  sessions
+  users
+
+-- Eloquent で1件入れて読む
+<span class="ok-line">id=1</span>
+<span class="ok-line">count=1</span>
+engine=8.0.11-TiDB-v8.5.7</pre>
+      </div>
+
+      <h3>できた <code>users</code> テーブルに、TiDB固有のものが混ざっている</h3>
+
+      <div class="code term">
+        <div class="code-head">実行結果（SHOW CREATE TABLE users の末尾、中略あり）</div>
+        <pre>（中略）
+  PRIMARY KEY (`id`) /*T![clustered_inde
+x] CLUSTERED */,
+  UNIQUE KEY `users_email_unique` (`emai
+l`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci AUTO_INCREMEN
+T=171649</pre>
+      </div>
+
+      <div class="quiz">
+        <p class="q">Q. この <code>users</code> テーブルに入っているのは<b>1行だけ</b>です。<code>AUTO_INCREMENT</code> が171649なのはなぜ?</p>
+        <button class="opt" type="button" data-correct="false">マイグレーションが17万回リトライされたから</button>
+        <button class="opt" type="button" data-correct="true">TiDBが採番用の番号をまとめて確保していて、その先頭が表示されているから</button>
+        <button class="opt" type="button" data-correct="false">バグ。実データと不整合を起こしている</button>
+        <p class="ans" hidden>正解は2番目。実データの <code>MAX(id)</code> は1でした。実測で裏を取っています: 同じ表に <code>AUTO_ID_CACHE 1</code> を付けると、<code>SHOW CREATE TABLE</code> の値はMySQLと同じ <code>5</code> になりました（4行入れた直後）。既定ではまとめ買いしているので大きな数字になります。<b>不整合ではありません。</b>ただし「連番が詰まっている前提」で採番や表示を組んでいると壊れます。</p>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">実行結果（05_autoinc.php／4行入れた直後の値）</div>
+        <pre>-- TiDB  既定 --------------------------
+連番 4件: 1,2,3,4
+<span class="ng-line">SHOW CREATE の値: 30001</span>
+-- MySQL 既定 --------------------------
+連番 4件: 1,2,3,4
+<span class="ok-line">SHOW CREATE の値: 5</span>
+-- TiDB  CACHE 1 -----------------------
+連番 4件: 1,2,3,4
+<span class="ok-line">SHOW CREATE の値: 5</span></pre>
+      </div>
+
+      <p class="lead">実際にIDを飛ばすこともできます。採番器を作り直させると、続きの番号が変わります。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（05b_gap.php／TiDBのみ）</div>
+        <pre>-- TiDB 既定キャッシュ -----------------
+採番: 1,2,3
+-- ALTER で採番器を作り直す ------------
+<span class="ng-line">採番: 30001,30002,30003</span>
+-- 中身は歯抜けのまま ------------------
+全id: 1,2,3,30001,30002,30003
+行数: 6</pre>
+      </div>
+
+      <p class="lead">公式ドキュメントも同じことを言っています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">TiDB Docs「MySQL Compatibility」— 原文</div>
+        <pre>In TiDB, the auto-incremental column values
+(IDs) are globally unique and incremental
+within a single TiDB server. ... However, the
+IDs are not necessarily allocated sequentially
+
+（TiDBでは自動採番の値は全体で一意であり、
+　1つのTiDB server内では増加する。
+　ただし連続して割り当てられるとは限らない）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>ID＝件数、と思っているコードは要注意。</b>「最新のIDが1000だから1000件」は成り立ちません。</li>
+        <li><b>複数のTiDB serverで運用すると、飛び方はさらに大きくなります。</b><mark>ただしこれは今回測っていません。</mark>手元は1台構成で、<code>ALTER</code> による採番器の作り直しで代替しました。</li>
+      </ul>
+
+      <h3>連番の主キーは、分散DBでは「一箇所に集中する」意味を持つ</h3>
+      <p class="lead">3章を思い出してください。TiKVはデータを<b>キー順に並べて</b>持ち、キーの範囲でRegionに切ります。</p>
+      <p class="lead">主キーが連番だと、新しい行のキーは常に<mark>いちばん後ろのRegion</mark>に入ります。書き込みがそこ1つに集中します。これが<b>ホットスポット</b>です。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/hotspot-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/hotspot.png" alt="連番IDでは新しい行が末尾のRegion 1つに集中し、AUTO_RANDOMでは複数のRegionに散る" loading="lazy">
+        </picture>
+        <figcaption>キー順に並べて置く仕組みなので、連番の主キーは書き込み先が1箇所に寄る。</figcaption>
+      </figure>
+
+      <div class="code wrap">
+        <div class="code-head">TiDB Docs「AUTO_RANDOM」— 原文</div>
+        <pre>Since the value of AUTO_RANDOM is random and
+unique, AUTO_RANDOM is often used in place of
+AUTO_INCREMENT to avoid write hotspot in a
+single storage node caused by TiDB assigning
+consecutive IDs.
+
+（AUTO_RANDOMの値はランダムかつ一意なので、
+　連続したIDによる単一ノードへの書き込み
+　ホットスポットを避けるため、
+　AUTO_INCREMENTの代わりによく使われる）</pre>
+      </div>
+
+      <p class="lead">Laravelのマイグレーションで書く <code>$table->id()</code> は <code>BIGINT UNSIGNED AUTO_INCREMENT</code> の主キーです（上の <code>SHOW CREATE TABLE</code> がその証拠）。<mark>書き込みが多いテーブルほど、ここが効いてきます。</mark></p>
+
+      <div class="code">
+        <div class="code-head">公式に載っている移行方法</div>
+        <pre>ALTER TABLE t MODIFY COLUMN id BIGINT AUTO_RANDOM(5);</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>条件があります。</b><code>AUTO_RANDOM</code> は <code>BIGINT</code> 列専用で、主キーに含まれ、かつ主キーの先頭列である必要があります。</li>
+        <li><b>今回この移行は実行していません。</b>公式ドキュメントの記述として紹介しています。</li>
+        <li><b>まず測るべきは、そのテーブルが本当に書き込みで詰まっているか。</b>小さなアプリで先回りしてIDをランダム化する必要はありません（筆者の判断です）。</li>
+      </ul>
+
+      <details>
+        <summary>colopl/laravel-tidb を入れるべきか — 2026年8月時点では見送り</summary>
+        <div class="body">
+          <p class="lead">TiDB向けのLaravelドライバとして <code>colopl/laravel-tidb</code> というパッケージがあります。コミュニティ製（PingCAP公式ではありません）で、<code>$table-&gt;id()</code> を <code>AUTO_RANDOM</code> に差し替えてくれます。ホットスポット問題への直球の回答です。</p>
+          <p class="lead">ただし、確認したところ<mark>2箇所の食い違い</mark>がありました。</p>
+          <dl>
+            <dt>1. 対応Laravelの版が合わない</dt>
+            <dd>Packagistのリリース一覧（<code>repo.packagist.org</code> のJSON）を取得すると、最新の v5.0.0（2025-05-02）は <code>laravel/framework: ~12</code> と <code>php: &gt;=8.2</code> を要求します。一方で同じ v5.0.0 タグのREADMEには「PHP &gt;= 8.0 / Laravel 11」と書かれています。現行のLaravelは13系なので、<b>Laravel 13では入らない見込みです（実際に <code>composer require</code> は試していません）。</b></dd>
+            <dt>2. SAVEPOINTの記述が古い</dt>
+            <dd>READMEの「Unsupported features」に <code>SAVEPOINT is not supported by TiDB</code> と書かれています。しかしTiDB公式は <code>SAVEPOINT is a feature introduced in TiDB v6.2.0</code> と明記しており、今回の実測でも TiDB v8.5.7 で <code>SAVEPOINT</code> は通りました（4章の互換表）。<b>LaravelのネストしたトランザクションはSAVEPOINTで実装されるので、ここは死活問題です。</b></dd>
+            <dt>リポジトリのメンテ状況は未確認</dt>
+            <dd>GitHubのHTMLページはこの環境から403で開けず、スター数・最終コミット日・Issueの状況は<b>確認できていません</b>。READMEの中身は raw 経由で読んでいます。</dd>
+            <dt>結論（筆者の判断）</dt>
+            <dd>まずは素の <code>mysql</code> ドライバで始める。<code>AUTO_RANDOM</code> が必要になったら、マイグレーションで <code>DB::statement()</code> を書くか、そのときのパッケージの対応状況を見直す。</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details>
+        <summary>外部キーは使える。ただし公式が性能の警告を出している</summary>
+        <div class="body">
+          <p class="lead">「TiDBは外部キーが使えない」という説明を見かけますが、v8.5では違います。4章の実測でも外部キーは <code>OK OK</code> でした。</p>
+          <div class="code wrap">
+            <div class="code-head">TiDB Docs「FOREIGN KEY Constraints」— 原文</div>
+            <pre>Starting from v6.6.0, TiDB supports foreign
+keys and foreign key constraints. Starting
+from v8.5.0, this feature becomes generally
+available.
+
+Warning: The foreign key feature ... might
+cause performance degradation, so it is
+recommended to conduct thorough testing
+before using it in performance-sensitive
+scenarios.</pre>
+          </div>
+          <p class="lead">GA（Generally Available）は「実験段階を抜けて、本番で使ってよい正式機能になった」という意味です。Laravelの <code>foreignId()-&gt;constrained()</code> は外部キーを張るので、この点は重要です。<b>性能への影響は今回測っていません。</b></p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="section section-a" id="s6">
+    <h2><span class="step">6</span>最初の30分でやること</h2>
+
+    <article class="item">
+      <h3>触る前に確認する6項目</h3>
+      <p class="lead">既存のMySQLアプリをTiDBに向けるとき、<mark>先に潰しておくと事故が減る</mark>順に並べました。<span class="cl-count">0 / 6</span></p>
+
+      <ul class="checklist" data-key="tidb-first-2026-08-15">
+        <li><label><input type="checkbox"><span>接続先のポートを <code>4000</code> にした（<code>DB_CONNECTION</code> は <code>mysql</code> のまま）</span></label></li>
+        <li><label><input type="checkbox"><span><code>SELECT version()</code> と <code>SELECT tidb_version()</code> を打って、繋がった相手を確認した</span></label></li>
+        <li><label><input type="checkbox"><span>ストアドプロシージャ・トリガー・イベント・UDFを使っていないか、コードを検索した</span></label></li>
+        <li><label><input type="checkbox"><span><code>FULLTEXT</code> / <code>SPATIAL</code> / 降順インデックス / <code>SKIP LOCKED</code> の有無を確認した</span></label></li>
+        <li><label><input type="checkbox"><span>照合順序を明示していないテーブルを洗い出した（TiDBの既定は <code>utf8mb4_bin</code>）</span></label></li>
+        <li><label><input type="checkbox"><span>「IDが連番で詰まっている」前提のコードが無いか確認した</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 ここまで潰せば、最初の1週間で踏む罠はだいたい避けられます</div>
+
+      <h3>今すぐ打てるSQL</h3>
+      <p class="lead">既存のMySQLに対しても打てます。<mark>TiDBに移す前に、自分のDBが何を使っているか</mark>を先に知ってください。</p>
+
+      <div class="code">
+        <div class="code-head">照合順序を明示していないテーブルを探す</div>
+        <pre>SELECT TABLE_NAME, TABLE_COLLATION
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE();</pre>
+      </div>
+
+      <div class="code">
+        <div class="code-head">ストアド・トリガー・イベントの数を数える</div>
+        <pre>SELECT COUNT(*) FROM information_schema.ROUTINES
+WHERE ROUTINE_SCHEMA = DATABASE();
+
+SELECT COUNT(*) FROM information_schema.TRIGGERS
+WHERE TRIGGER_SCHEMA = DATABASE();
+
+SELECT COUNT(*) FROM information_schema.EVENTS
+WHERE EVENT_SCHEMA = DATABASE();</pre>
+      </div>
+
+      <p class="lead">3つとも <code>0</code> なら、4章で見た「通らないもの」は踏みません。<b>1以上なら、そこが移行の最初の宿題です。</b></p>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          PingCAP「What is TiDB Self-Managed」<i>TiDB Docs (TiDB Self-Managed v8.5)</i>.
+          <span class="note">参照箇所: 冒頭の定義（発音記号・Titanium・分散SQL・HTAP・MySQL互換）、および「Compatible with the MySQL protocol and MySQL ecosystem」節。1章の引用は原文のまま。</span>
+          <a href="https://docs.pingcap.com/tidb/stable/overview/">https://docs.pingcap.com/tidb/stable/overview/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PingCAP「TiDB Architecture」<i>TiDB Docs (v8.5)</i>.
+          <span class="note">参照箇所: TiDB server（ステートレスなSQL層、データを保存しない）、PD server（メタデータ管理・トランザクションIDの払い出し・最低3ノード・奇数推奨・"the brain"）、TiKV server（実データ・既定3レプリカ）、TiFlash（列指向）。3章の根拠。</span>
+          <a href="https://docs.pingcap.com/tidb/stable/tidb-architecture/">https://docs.pingcap.com/tidb/stable/tidb-architecture/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PingCAP「TiDB Storage」<i>TiDB Docs (v8.5)</i>.
+          <span class="note">参照箇所: Key-Valueモデルとキーのバイナリ順、RocksDBへの委譲、Raftによる複製と「過半数に書ければ成功」。3章の引用は原文のまま。</span>
+          <a href="https://docs.pingcap.com/tidb/stable/tidb-storage/">https://docs.pingcap.com/tidb/stable/tidb-storage/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PingCAP「TiKV Overview」<i>TiDB Docs (v8.5)</i>.
+          <span class="note">参照箇所: Region / Raft group / Peer の定義、通常3 peerでLeaderが読み書きを担当、Regionサイズ既定256MiB・分割閾値384MiB・併合閾値54MiB。3章の表の数値はすべてここ。</span>
+          <a href="https://docs.pingcap.com/tidb/stable/tikv-overview/">https://docs.pingcap.com/tidb/stable/tikv-overview/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PingCAP「TiDB Scheduling」<i>TiDB Docs (v8.5)</i>.
+          <span class="note">参照箇所: スケジューリングの3基本操作（レプリカ追加・削除・リーダー移動）、ハートビートによる情報収集、operatorは「提案」でありRegion側が無視できるという注記。3章の引用は原文のまま。</span>
+          <a href="https://docs.pingcap.com/tidb/stable/tidb-scheduling/">https://docs.pingcap.com/tidb/stable/tidb-scheduling/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PingCAP「TimeStamp Oracle (TSO) in TiDB」<i>TiDB Docs (v8.5)</i>.
+          <span class="note">参照箇所: PDが時刻を配ること、Percolatorモデルとの関係、TSOの物理時刻（上位46bit・ミリ秒）と論理カウンタ（下位18bit）の内訳、<code>TIDB_PARSE_TSO</code> の実行例。3章のSQL4行はこのページの記載であり、<mark>手元では実行していません</mark>。</span>
+          <a href="https://docs.pingcap.com/tidb/stable/tso/">https://docs.pingcap.com/tidb/stable/tso/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PingCAP「MySQL Compatibility」<i>TiDB Docs (v8.5)</i>.
+          <span class="note">参照箇所: MySQL 5.7 / 8.0 との互換範囲とGUIツール名、未対応機能の一覧（ストアド・トリガー・イベント・UDF・FULLTEXT・SPATIAL・XA構文・降順インデックス・SKIP LOCKED）、既定コレーションの差、<code>lower_case_table_names</code> は2固定、ビューが更新不可、自動採番が連続とは限らないこと。4章・5章の根拠。</span>
+          <a href="https://docs.pingcap.com/tidb/stable/mysql-compatibility/">https://docs.pingcap.com/tidb/stable/mysql-compatibility/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PingCAP「Connect to TiDB」<i>TiDB Docs (v8.5)</i>.
+          <span class="note">参照箇所: MySQL Client/Server Protocol への対応、接続コマンド（<code>--port 4000</code>）、macOSのMySQL v9.0クライアントで <code>ERROR 2059</code> が出るという注意書き。2章の根拠。</span>
+          <a href="https://docs.pingcap.com/tidb/stable/dev-guide-connect-to-tidb/">https://docs.pingcap.com/tidb/stable/dev-guide-connect-to-tidb/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Oracle「MySQL Client/Server Protocol」<i>MySQL 26.7.0 Source Code Documentation</i>.
+          <span class="note">参照箇所: プロトコルの利用者一覧と、Connection Phase / Command Phase の2段構え。2章の引用は原文のまま。TiDB側の主張の「相手側」の一次資料として使いました。</span>
+          <a href="https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html">https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PingCAP「Quick Start with TiDB Self-Managed」<i>TiDB Docs (v8.5)</i>.
+          <span class="note">参照箇所: 基本のテストクラスタは TiDB 2 / TiKV 3 / PD 3 という構成、<code>tiup playground v8.5.7 --db 2 --pd 3 --kv 3</code>、起動後の接続案内、既定では 127.0.0.1 のみで待ち受けること。2章の根拠。</span>
+          <a href="https://docs.pingcap.com/tidb/stable/quick-start-with-tidb/">https://docs.pingcap.com/tidb/stable/quick-start-with-tidb/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PingCAP「Character Set and Collation」<i>TiDB Docs (v8.5)</i>.
+          <span class="note">参照箇所: v4.0以降の新コレーションフレームワーク、新規クラスタでは既定で有効、対応する照合順序の一覧。4章の引用は原文のまま。</span>
+          <a href="https://docs.pingcap.com/tidb/stable/character-set-and-collation/">https://docs.pingcap.com/tidb/stable/character-set-and-collation/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PingCAP「TiDB Pessimistic Transaction Mode」<i>TiDB Docs (v8.5)</i>.
+          <span class="note">参照箇所: MySQL InnoDBとの差の第1項（範囲を含むDML / SELECT FOR UPDATE が範囲内の並行DMLをブロックしない）、"TiDB does not currently support gap locking"、悲観トランザクションが既定なのは v3.0.8 以降に新規作成したクラスタだけという但し書き。4章の折りたたみで引用。<mark>この挙動は測っていません。</mark></span>
+          <a href="https://docs.pingcap.com/tidb/stable/pessimistic-transaction/">https://docs.pingcap.com/tidb/stable/pessimistic-transaction/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PingCAP「SAVEPOINT」<i>TiDB Docs (v8.5)</i>.
+          <span class="note">参照箇所: <code>SAVEPOINT is a feature introduced in TiDB v6.2.0</code> と構文。5章の折りたたみで、パッケージのREADMEとの食い違いを示すために使用。</span>
+          <a href="https://docs.pingcap.com/tidb/stable/sql-statement-savepoint/">https://docs.pingcap.com/tidb/stable/sql-statement-savepoint/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PingCAP「FOREIGN KEY Constraints」<i>TiDB Docs (v8.5)</i>.
+          <span class="note">参照箇所: v6.6.0で導入・v8.5.0でGA、性能劣化の可能性についての警告。5章の折りたたみの引用は原文のまま。</span>
+          <a href="https://docs.pingcap.com/tidb/stable/foreign-key/">https://docs.pingcap.com/tidb/stable/foreign-key/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PingCAP「AUTO_RANDOM」<i>TiDB Docs (v8.5)</i>.
+          <span class="note">参照箇所: ホットスポット回避のためAUTO_INCREMENTの代わりに使う目的、BIGINT主キー限定・主キーの先頭列という条件、<code>ALTER TABLE t MODIFY COLUMN id BIGINT AUTO_RANDOM(5);</code> という移行例。5章の根拠。<mark>この移行は実行していません。</mark></span>
+          <a href="https://docs.pingcap.com/tidb/stable/auto-random/">https://docs.pingcap.com/tidb/stable/auto-random/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PingCAP「TiDB Glossary」<i>TiDB Docs (v8.5)</i>.
+          <span class="note">参照箇所: Store（<code>tikv-server</code>の1インスタンス）、Leader / Follower / Learner の役割、Hotspot の定義、Key-Value の定義。3章の用語説明を公式定義に合わせるために使用。</span>
+          <a href="https://docs.pingcap.com/tidb/stable/glossary/">https://docs.pingcap.com/tidb/stable/glossary/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PingCAP「TiDB 8.5.7 Release Notes」<i>TiDB Docs</i>, 2026年7月9日.
+          <span class="note">参照箇所: <code>Release date: July 9, 2026</code>。1章の折りたたみで、索引ページ（8.5.5までしか載っていない）との食い違いを示すために両方を取得して比較しました。8.5.8のページは404です。</span>
+          <a href="https://docs.pingcap.com/tidb/stable/release-8.5.7/">https://docs.pingcap.com/tidb/stable/release-8.5.7/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「Database: Getting Started」「Release Notes」<i>Laravel 13.x 公式ドキュメント</i>.
+          <span class="note">参照箇所: 一次対応する5つのDB（MariaDB 10.3+ / MySQL 5.7+ / PostgreSQL 10.0+ / SQLite 3.26.0+ / SQL Server 2017+）、設定が <code>config/database.php</code> にあること、現行メジャーが13系であること。<mark>この一覧にTiDBの名前はありません</mark>（＝Laravel公式のサポート対象ではない）ことの根拠でもあります。</span>
+          <a href="https://laravel.com/docs/13.x/database">https://laravel.com/docs/13.x/database</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          laravel/laravel（アプリケーションスケルトン、13.xブランチ）<i>config/database.php ／ .env.example</i>.
+          <span class="note">参照箇所: <code>mysql</code> 接続定義の <code>port</code>（既定3306）・<code>charset</code>・<code>collation</code>（既定 utf8mb4_unicode_ci）・<code>strict</code>、および <code>.env.example</code> のDBブロック（既定は <code>DB_CONNECTION=sqlite</code>、他はコメントアウト）。5章のコードブロックは raw.githubusercontent.com から取得した原文です。</span>
+          <a href="https://raw.githubusercontent.com/laravel/laravel/13.x/config/database.php">https://raw.githubusercontent.com/laravel/laravel/13.x/config/database.php</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          colopl/laravel-tidb <i>README.md（v5.0.0タグ）</i> ／ Packagist API <i>repo.packagist.org/p2/colopl/laravel-tidb.json</i>.
+          <span class="note">参照箇所: READMEのRequirements（PHP &gt;= 8.0 / Laravel 11 / TiDB &gt;= 7.0）とFeatures（<code>$table-&gt;id()</code> を AUTO_RANDOM に差し替える）とUnsupported features（SAVEPOINT非対応という記述）。PackagistのJSONでは v5.0.0（2025-05-02）が <code>laravel/framework: ~12</code> / <code>php: &gt;=8.2</code> を要求しており、READMEの記述と食い違います。両方とも取得して読みました。</span>
+          <a href="https://raw.githubusercontent.com/colopl/laravel-tidb/v5.0.0/README.md">https://raw.githubusercontent.com/colopl/laravel-tidb/v5.0.0/README.md</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Dongxu Huang ほか「TiDB: A Raft-based HTAP Database」<i>Proceedings of the VLDB Endowment, 13(12): 3072-3084</i>, 2020年8月.
+          <span class="note">参照箇所: アブストラクト（行ストアと列ストアからなるmulti-Raftストレージ、Raftログをlearnerへ非同期複製して列形式へ変換する設計）。3章の折りたたみで引用。書誌はCrossref API（DOI 10.14778/3415478.3415535）で照合済み。本文PDFはvldb.orgの公開版を取得して読みました。</span>
+          <a href="https://www.vldb.org/pvldb/vol13/p3072-huang.pdf">https://www.vldb.org/pvldb/vol13/p3072-huang.pdf</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Diego Ongaro, John Ousterhout「In Search of an Understandable Consensus Algorithm (Extended Version)」<i>Stanford University</i>.
+          <span class="note">参照箇所: アブストラクト（Raftはリーダー選出・ログ複製・安全性という要素に問題を分ける）。3章の「Raftとは何か」の1行説明の裏付け。TiDBの Storage / TiKV Overview の両ページがこのPDFを参照しています。</span>
+          <a href="https://raft.github.io/raft.pdf">https://raft.github.io/raft.pdf</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Daniel Peng, Frank Dabek「Large-scale Incremental Processing Using Distributed Transactions and Notifications」<i>OSDI 2010, USENIX</i>.
+          <span class="note">参照箇所: 書誌情報とアブストラクト（Googleの検索インデックス更新のための増分処理システム）。3章で「TiDBのトランザクションはPercolatorモデルを土台にしている」と述べる際の出典。<mark>PDF本文（2PCの詳細な手順）は読んでいません。</mark></span>
+          <a href="https://research.google/pubs/large-scale-incremental-processing-using-distributed-transactions-and-notifications/">https://research.google/pubs/large-scale-incremental-processing-using-distributed-transactions-and-notifications/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          PingCAP「App Development for Laravel」<i>TiDB Docs</i>（<code>dev-guide-outdated-for-laravel</code>）.
+          <span class="note">HTTP 200で返りますが、<mark>本文は81バイトのリダイレクト用HTMLだけ</mark>で、内容はありません。転送先はアーカイブ済みのv6.1概要ページ。<code>.md</code>版とアーカイブ側の同名ページはいずれも404でした。検索結果の要約には設定内容が並びますが、<b>読める本文が存在しないため引用も要約もしていません。</b>5章の冒頭で、この事実そのものを注意点として扱っています。</span>
+          <a href="https://docs.pingcap.com/tidb/stable/dev-guide-outdated-for-laravel/">https://docs.pingcap.com/tidb/stable/dev-guide-outdated-for-laravel/</a>（2026年8月15日確認）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          colopl/laravel-tidb のGitHubリポジトリページ（HTML）.
+          <span class="note">この実行環境のプロキシから <b>HTTP 403</b> で取得できず、スター数・最終コミット日・Issueの状況といったメンテ状況は確認できていません。READMEの本文だけは raw.githubusercontent.com 経由で取得して読んでいます。5章の折りたたみでも、その旨を明記しました。</span>
+          <a href="https://github.com/colopl/laravel-tidb">https://github.com/colopl/laravel-tidb</a>（2026年8月15日確認）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          TiDB v8.5.7（<code>tiup playground</code>、<code>--db 1 --kv 1 --pd 1 --tiflash 0</code>、127.0.0.1:4000）と MySQL 8.0.46-0ubuntu0.24.04.3（127.0.0.1:3306）を同一マシンで同時に起動し、PHP 8.4.19 の <code>pdo_mysql</code> から同じSQLを両方へ流しました。実施日: 2026年8月15日。
+          <span class="note">2章・4章・5章のターミナル出力は、検証スクリプトの出力ファイルをそのまま貼ったものです（「（中略）」と書いた箇所だけ行を抜いています。文字の書き換えはしていません）。出力は各スクリプトが表示幅40桁で折り返して生成しており、<code>artisan</code> の出力のみ <code>fold -w 40</code> で折り返しました。スクリプトと出力ファイル一式は <code>_labs/2026-08-15_tidb-first/</code> にあります。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Laravel 13.25.0 を <code>composer create-project</code> で新規作成し、<code>.env</code> の <code>DB_PORT</code> を4000にして <code>php artisan migrate</code> を実行。
+          <span class="note">5章のエラー8256は、<mark><code>/tmp</code> の空きが7.7GBしかない一方で <code>tidb_ddl_disk_quota</code> が100GiBだった、この環境固有の条件</mark>で発生したものです。空きが十分ある環境では再現しません。検証のためTiDBのグローバル変数 <code>tidb_enable_dist_task</code> と <code>tidb_ddl_enable_fast_reorg</code> をOFFにしました（出荷時はどちらもON）。複数のTiDB serverノードでのID採番、AUTO_RANDOMへの移行、ギャップロックの挙動差、TiFlashの性能は<b>いずれも測っていません</b>。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「まずは素の <code>mysql</code> ドライバで始める」「本番では一時ディレクトリに空きを用意するほうが筋が良い」「小さなアプリで先回りしてIDをランダム化する必要はない」は、いずれも筆者の運用上の判断です。
+          <span class="note">公式ドキュメントにそう書かれているわけではありません。標準でも推奨設定でもない点を、本文にも明記しています。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月15日時点の内容です。検証環境: TiDB v8.5.7 / MySQL 8.0.46 / PHP 8.4.19 / Laravel 13.25.0</div>
+    <div>公開: 2026年8月15日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

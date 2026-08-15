@@ -1,0 +1,27 @@
+-- TiDB  既定 --------------------------
+連番 4件: 1,2,3,4
+SHOW CREATE の値: 30001
+別接続の id: 5
+明示100万の次: 1000001
+最終 MAX(id): 1000001
+-- MySQL 既定 --------------------------
+連番 4件: 1,2,3,4
+SHOW CREATE の値: 5
+別接続の id: 5
+明示100万の次: 1000001
+最終 MAX(id): 1000001
+-- TiDB  CACHE 1 -----------------------
+連番 4件: 1,2,3,4
+SHOW CREATE の値: 5
+別接続の id: 5
+明示100万の次: 1000001
+最終 MAX(id): 1000001
+-- MySQL に AUTO_ID_CACHE --------------
+NG   AUTO_ID_CACHE 1
+    SQLSTATE[42000]: Syntax error or acc
+    ess violation: 1064 You have an erro
+    r in your SQL syntax; check the manu
+    al that corresponds to your MySQL se
+    rver version for the right syntax to
+     use near 'AUTO_ID_CACHE 1' at line 
+    1

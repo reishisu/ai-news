@@ -1,0 +1,6 @@
+{
+  "family": "web",
+  "containerDefinitions": [
+    { "image": "nginx:1.27" }
+  ]
+}

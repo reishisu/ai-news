@@ -1,0 +1,9 @@
+-- 既定の計画 (1000行) -----------------
+根: Projection_7
+全体コスト: 18892.59
+  TableFullScan_14
+-- 索引を強制した計画 ------------------
+根: Projection_7
+全体コスト: 39309.35
+  IndexRangeScan_14(Build)
+  TableRowIDScan_15

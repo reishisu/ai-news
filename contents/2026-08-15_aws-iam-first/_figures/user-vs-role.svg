@@ -1,0 +1,33 @@
+<svg viewBox="0 0 640 348" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="20" y="22" fill="var(--sub)" font-size="12.5" font-weight="800">AWSアカウント（契約の単位）</text>
+  <rect x="14" y="32" width="612" height="272" rx="12" fill="none" stroke="var(--sub)" stroke-dasharray="5 5" opacity="0.5"/>
+
+  <!-- ルートユーザー -->
+  <rect x="32" y="50" width="576" height="58" rx="8" fill="var(--track)"/>
+  <rect x="32" y="50" width="6" height="58" rx="3" fill="var(--c)"/>
+  <text x="52" y="76" fill="var(--fg)" font-size="14" font-weight="800">ルートユーザー</text>
+  <text x="52" y="96" fill="var(--sub)" font-size="12">アカウント作成時に1つできる。全サービスに完全アクセス</text>
+  <text x="594" y="82" fill="var(--c)" font-size="12.5" font-weight="700" text-anchor="end">日常作業では使わない</text>
+
+  <text x="320" y="128" fill="var(--sub)" font-size="12" text-anchor="middle">日常の作業はこの2つのどちらかで行う</text>
+
+  <!-- IAMユーザー -->
+  <rect x="32" y="140" width="276" height="150" rx="8" fill="var(--track)"/>
+  <rect x="32" y="140" width="6" height="150" rx="3" fill="var(--c)"/>
+  <text x="52" y="168" fill="var(--fg)" font-size="15" font-weight="800">IAMユーザー</text>
+  <text x="52" y="188" fill="var(--sub)" font-size="12">AWSは「限定的に使え」と書く</text>
+  <text x="52" y="216" fill="var(--fg)" font-size="12.5">鍵: パスワード / アクセスキー</text>
+  <text x="52" y="240" fill="var(--fg)" font-size="12.5">期限: 無い。消すまで有効</text>
+  <text x="52" y="264" fill="var(--fg)" font-size="12.5">漏れたら第三者が使い続けられる</text>
+
+  <!-- IAMロール -->
+  <rect x="332" y="140" width="276" height="150" rx="8" fill="var(--track)"/>
+  <rect x="332" y="140" width="6" height="150" rx="3" fill="var(--new)"/>
+  <text x="352" y="168" fill="var(--fg)" font-size="15" font-weight="800">IAMロール</text>
+  <text x="352" y="188" fill="var(--sub)" font-size="12">AWSが推奨するのはこちら</text>
+  <text x="352" y="216" fill="var(--fg)" font-size="12.5">鍵: 無い（持たない）</text>
+  <text x="352" y="240" fill="var(--fg)" font-size="12.5">借りる = STSが一時認証を発行</text>
+  <text x="352" y="264" fill="var(--fg)" font-size="12.5">期限: 既定1時間（最長12時間）</text>
+
+  <text x="320" y="332" fill="var(--new)" font-size="13" font-weight="800" text-anchor="middle">差は権限の強さではなく、鍵を持つかどうか</text>
+</svg>

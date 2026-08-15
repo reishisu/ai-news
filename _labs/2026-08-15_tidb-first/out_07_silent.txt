@@ -1,0 +1,10 @@
+-- TiDB  8.5.7 -------------------------
+ft_idx の行数: 0
+MATCH: NG
+  SQLSTATE[HY000]: General error: 1105 U
+  nknownType: *ast.MatchAgainst
+MyISAM 指定の実体: InnoDB
+-- MySQL 8.0.46 ------------------------
+ft_idx の行数: 1
+MATCH 結果: 1
+MyISAM 指定の実体: MyISAM

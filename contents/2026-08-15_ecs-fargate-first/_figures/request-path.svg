@@ -1,0 +1,63 @@
+<svg viewBox="0 0 640 420" xmlns="http://www.w3.org/2000/svg" role="img">
+  <!-- 利用者 -->
+  <rect x="150" y="16" width="320" height="40" rx="8" fill="var(--track)"/>
+  <text x="168" y="41" fill="var(--fg)" font-size="13" font-weight="800">利用者のブラウザ</text>
+  <path d="M310 58 L310 74" fill="none" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#ar-s)"/>
+
+  <!-- CloudFront -->
+  <rect x="150" y="78" width="320" height="58" rx="8" fill="var(--track)"/>
+  <rect x="150" y="78" width="6" height="58" rx="3" fill="var(--d)"/>
+  <text x="172" y="102" fill="var(--fg)" font-size="13" font-weight="800">CloudFront（エッジ）</text>
+  <text x="172" y="124" fill="var(--sub)" font-size="11.5">一番近い拠点で受ける</text>
+
+  <!-- キャッシュヒットの折り返し -->
+  <path d="M150 116 L70 116 L70 36 L144 36" fill="none" stroke="var(--a)" stroke-width="1.8" marker-end="url(#ar-a)"/>
+  <text x="20" y="72" fill="var(--a)" font-size="11" font-weight="700">キャッシュに</text>
+  <text x="20" y="88" fill="var(--a)" font-size="11" font-weight="700">有れば折り返す</text>
+
+  <path d="M310 138 L310 150" fill="none" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#ar-s)"/>
+
+  <!-- ALB -->
+  <rect x="150" y="152" width="320" height="154" rx="10" fill="none" stroke="var(--b)" stroke-width="1.6"/>
+  <text x="168" y="174" fill="var(--b)" font-size="12.5" font-weight="800">ALB — 中に3人いる</text>
+
+  <rect x="164" y="184" width="292" height="34" rx="6" fill="var(--track)"/>
+  <text x="178" y="206" fill="var(--fg)" font-size="11.5">リスナー — 443で待つ。証明書はここ</text>
+
+  <rect x="164" y="224" width="292" height="34" rx="6" fill="var(--track)"/>
+  <text x="178" y="246" fill="var(--fg)" font-size="11.5">ルール — パスで振り分け先を決める</text>
+
+  <rect x="164" y="264" width="292" height="34" rx="6" fill="var(--track)"/>
+  <text x="178" y="286" fill="var(--fg)" font-size="11.5">ターゲットグループ — target_type = ip</text>
+
+  <!-- ECSサービスは線上ではなく横から -->
+  <rect x="486" y="228" width="140" height="72" rx="8" fill="var(--track)"/>
+  <text x="500" y="252" fill="var(--a)" font-size="12" font-weight="800">ECSサービス</text>
+  <text x="500" y="272" fill="var(--sub)" font-size="11">タスクのIPを</text>
+  <text x="500" y="290" fill="var(--sub)" font-size="11">名簿に登録する</text>
+  <text x="500" y="318" fill="var(--sub)" font-size="11">順路の上には居ない</text>
+  <path d="M484 281 L462 281" fill="none" stroke="var(--a)" stroke-width="1.8" marker-end="url(#ar-a)"/>
+
+  <!-- タスクへ -->
+  <path d="M310 306 L310 320 L225 320 L225 330" fill="none" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#ar-s)"/>
+  <path d="M310 306 L310 320 L395 320 L395 330" fill="none" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#ar-s)"/>
+
+  <rect x="150" y="334" width="150" height="52" rx="8" fill="var(--track)"/>
+  <text x="168" y="356" fill="var(--fg)" font-size="12" font-weight="800">タスクのENI</text>
+  <text x="168" y="376" fill="var(--sub)" font-size="11">10.0.1.23</text>
+
+  <rect x="320" y="334" width="150" height="52" rx="8" fill="var(--track)"/>
+  <text x="338" y="356" fill="var(--fg)" font-size="12" font-weight="800">タスクのENI</text>
+  <text x="338" y="376" fill="var(--sub)" font-size="11">10.0.2.41</text>
+
+  <text x="320" y="408" fill="var(--new)" font-size="12.5" font-weight="800" text-anchor="middle">キャッシュに当たれば、ALBにもタスクにも届かない</text>
+
+  <defs>
+    <marker id="ar-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--sub)"/>
+    </marker>
+    <marker id="ar-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--a)"/>
+    </marker>
+  </defs>
+</svg>

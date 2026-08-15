@@ -1,0 +1,5 @@
+# apply は一度も実行していない
+$ terraform state list
+  No state file was found!
+$ ls terraform.tfstate
+  ls: cannot access 'terraform.tfstate': No such file or directory

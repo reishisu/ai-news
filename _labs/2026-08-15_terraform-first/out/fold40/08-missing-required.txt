@@ -1,0 +1,9 @@
+
+Error: Missing required argument
+
+  on main.tf line 24, in resource
+  "aws_ecs_cluster" "app":
+  24: resource "aws_ecs_cluster" "app" {
+
+The argument "name" is required, but no
+definition was found.

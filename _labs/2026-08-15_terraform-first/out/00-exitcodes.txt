@@ -1,0 +1,15 @@
+command                   exit
+------------------------------
+validate (init前)            1
+init                         0
+validate                     0
+plan                         0
+plan -out=tfplan             0
+plan -detailed-exitcode      2
+fmt -check                   3
+state list (state無)         1
+validate (閉じ}無)           1
+validate (名前typo)          1
+validate (版不一致)          1
+plan (認証情報無)            1
+plan (dataあり)              1

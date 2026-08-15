@@ -1,0 +1,10 @@
+-- TiDB  4000 --------------------------
+tidb_enable_check_constraint=0
+CREATE TABLE: OK
+違反行が入った rows=1
+-- MySQL 3306 --------------------------
+CREATE TABLE: OK
+弾かれた
+  SQLSTATE[HY000]: General error: 3819 C
+  heck constraint 'c1_chk_1' is violated
+  .

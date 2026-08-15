@@ -1,0 +1,1128 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ECS on Fargate の登場人物 — クラスタ・タスク定義・サービス・ALB</title>
+<meta name="description" content="コンテナをAWSで動かすとき何が必要なのか。クラスタ・タスク定義・タスク・サービス・ALBの担当範囲を公式ドキュメントの原文で整理し、AWS CLIとTerraformの実出力で確かめました。EC2版との違いとCloudFrontの位置まで。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ECS on Fargate の登場人物 — クラスタ・タスク定義・サービス・ALB">
+<meta property="og:description" content="クラスタは「サーバーの集まり」ではありません。名前だけで作れる区切りです。公式の原文と実出力で登場人物を整理します。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-15_ecs-fargate-first/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=87fa5662">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">Web開発・インフラ ｜ 2026年8月15日(土)</div>
+    <h1>ECS on Fargate の登場人物 — クラスタ・タスク定義・サービス・ALB</h1>
+    <div class="range">コンテナをAWSで動かすとき、何と何が必要で、それぞれ何を担当しているのか。EC2版との違いと、CloudFrontがどこに立つかまで、公式ドキュメントの原文で確かめます。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約11分</span>
+      <span class="tag">超基礎から</span>
+      <span class="tag">公式の原文つき</span>
+      <span class="tag">AWSへのデプロイは未実行</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <p class="lead">コンテナとは、アプリと、それが動くのに必要なライブラリや設定を1つにまとめた「持ち運べる実行環境」です。<mark>これをAWSで動かすには、少なくとも4人の登場人物が要ります。</mark>その4人が何を担当しているかだけの記事です。</p>
+    <ol>
+      <li>
+        <b>「起動タイプは Fargate か EC2 の2択」は、いまの公式ドキュメントと合っていません</b>
+        <span>公式は3種類を並べ、しかも推奨をFargateではなく別の選択肢だと明記しています。原文を貼りました。</span>
+      </li>
+      <li>
+        <b>クラスタはサーバーの集まりではありません。名前だけで作れる「区切り」です</b>
+        <span>AWS CLIで作成の雛形を出すと、必須らしきものは名前1つでした。実出力を載せます。</span>
+      </li>
+      <li>
+        <b>サービスとALBは、コンテナ名の「文字列一致」でつながっています</b>
+        <span>1文字ずらしても <code>terraform validate</code> も <code>plan</code> も通りました。止めてくれません。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">用語。なぜ登場人物が4人も要るのか</a></li>
+      <li><a href="#s2">クラスタは「サーバーの集まり」ではない</a></li>
+      <li><a href="#s3">タスク定義は設計図、タスクはその実体</a></li>
+      <li><a href="#s4">サービスは見張り役。落ちたら勝手に立て直す</a></li>
+      <li><a href="#s5">ALBは箱が1つではない。中に3人いる</a></li>
+      <li><a href="#s6">サービスとALBの結び目は文字列。Terraformは止めない</a></li>
+      <li><a href="#s7">EC2版との違いは「サーバーの面倒」だけではない</a></li>
+      <li><a href="#s8">CloudFrontはALBの前。後ろではない</a></li>
+      <li><a href="#s9">最初の1つを作る順番</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>用語。なぜ登場人物が4人も要るのか</h2>
+
+    <article class="item">
+      <h3>「コンテナを1個動かしたい」だけなのに、画面には4つの作成ボタンがある</h3>
+      <p class="lead">ECSのコンソールを開くと、クラスタ・タスク定義・サービス・タスクという言葉が並びます。<mark>どれを最初に作るのかが分かりません。</mark>ここが最初の壁です。</p>
+      <p class="lead">先に用語だけ片付けます。知っている行は飛ばしてください。</p>
+
+      <ul class="points">
+        <li><b>コンテナ。</b>アプリと、それが動くのに必要なライブラリ・設定を1つにまとめて、どこでも同じように動かせるようにしたもの。</li>
+        <li><b>コンテナイメージ。</b>コンテナの元になる読み取り専用のファイル一式。レシピと料理の関係です。イメージがレシピ、コンテナが料理。</li>
+        <li><b>Amazon ECS。</b>そのコンテナを「何個、どこで動かすか」をAWSが代わりに管理してくれるサービス。この管理のことをオーケストレーションと呼びます。</li>
+        <li><b>AWS Fargate。</b>サーバーを1台も用意せずにコンテナを動かせる仕組み。公式の言い方は <code>run containers without having to manage servers or clusters of Amazon EC2 instances</code> です。</li>
+      </ul>
+
+      <p class="lead">では登場人物です。AWS公式ドキュメントの「What is Amazon ECS?」に、4つの言葉の定義がそのまま並んでいます。<mark>ここが記事の骨格です。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">Amazon ECS Developer Guide「What is Amazon ECS?」— 原文</div>
+        <pre>Task definition — The blueprint for the
+application.
+Cluster — The infrastructure your
+application runs on.
+Task — An application such as a batch
+job that performs work, and then stops.
+Service — A long running stateless
+application.
+
+（タスク定義＝アプリの設計図 /
+　クラスタ＝アプリが動く土台 /
+　タスク＝仕事をして終わるアプリ /
+　サービス＝動き続けるアプリ）</pre>
+      </div>
+
+      <figure>
+        <picture>
+          <source srcset="images/ecs-cast-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/ecs-cast.png" alt="タスク定義とALBはクラスタの外側にあり、クラスタの中にはタスクとサービスだけが居る。サービスはタスクの数を維持し、ALBは外からタスクへHTTPを振り分ける" loading="lazy">
+        </picture>
+        <figcaption>クラスタの中に居るのはタスクとサービスだけ。タスク定義もALBも、その外側にあります</figcaption>
+      </figure>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>登場人物</th><th>担当</th><th>実体は何か</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>クラスタ</td><td data-label="担当">タスクやサービスを入れておく区切り</td><td data-label="実体は何か">論理的なグループ。サーバーではない</td></tr>
+            <tr><td>タスク定義</td><td data-label="担当">どのイメージを、CPUいくつ・メモリいくつで動かすか</td><td data-label="実体は何か">JSONのテキストファイル</td></tr>
+            <tr><td>タスク</td><td data-label="担当">実際に動いているコンテナのまとまり</td><td data-label="実体は何か">タスク定義から起動した1個</td></tr>
+            <tr><td>サービス</td><td data-label="担当">タスクを指定台数だけ維持し続ける</td><td data-label="実体は何か">ECS内部の見張り役</td></tr>
+            <tr><td>ALB</td><td data-label="担当">外から来たHTTPを、生きているタスクへ振り分ける</td><td data-label="実体は何か">ECSの外側にある別サービス</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">作る順番は、この表の上から下です。<mark>クラスタ → タスク定義 → （ALB） → サービス。</mark>タスクはサービスが勝手に作るので、自分で作るボタンを押すことはほとんどありません。</p>
+
+      <details>
+        <summary>この記事で「やっていないこと」を先に書きます</summary>
+        <div class="body">
+          <p class="lead">この記事の筆者の環境には<mark>AWSアカウントも認証情報もありません</mark>。そのため次の操作は<b>一切実行していません</b>。実行していないものを、実行したかのようには書きません。</p>
+          <ul class="points">
+            <li><b>ECSへのデプロイ操作。</b><code>create-cluster</code> / <code>register-task-definition</code> / <code>create-service</code> のいずれも実行していません。</li>
+            <li><b>タスクの起動、ALB経由のHTTPアクセス、ヘルスチェックの通過確認。</b>していません。</li>
+            <li><b><code>terraform apply</code>。</b>していません。<code>plan</code> までです。</li>
+            <li><b><code>docker build</code>。</b>この環境はDockerのデーモンが動いていないので、失敗します。</li>
+          </ul>
+          <div class="code term">
+            <div class="code-head">実行結果（docker build。デーモンが無い）</div>
+            <pre><span class="ng-line">ERROR: failed to connect to the </span>
+<span class="ng-line">docker API at </span>
+<span class="ng-line">unix:///var/run/docker.sock; check if </span>
+<span class="ng-line">the path is correct and if the daemon </span>
+<span class="ng-line">is running: dial unix </span>
+<span class="ng-line">/var/run/docker.sock: connect: no </span>
+<span class="ng-line">such file or directory</span></pre>
+          </div>
+          <p class="lead">代わりに使ったのは、<b>認証情報が要らない操作</b>だけです。AWS CLIの入力雛形（<code>--generate-cli-skeleton</code>）、CLIがローカルで行うパラメータ検証、CLI同梱のAPI定義ファイル、そして <code>terraform validate</code> と <code>plan</code>。ここから分かることは、思ったより多くありました。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>クラスタは「サーバーの集まり」ではない</h2>
+
+    <article class="item">
+      <h3>作成の雛形を出したら、中身は名前とオプション3つだけだった</h3>
+      <p class="lead">「クラスタ」という言葉は、普通は「複数台のサーバーの集まり」を指します。ECSでは違います。<mark>中身が空の区切りです。</mark></p>
+      <p class="lead">確かめます。AWS CLIには <code>--generate-cli-skeleton</code> という、そのAPIに渡せる項目の雛形を出す機能があります。ターミナルにそのまま打てます。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（aws ecs create-cluster --generate-cli-skeleton を jq で抜粋）</div>
+        <pre>{
+  "clusterName": "",
+  "capacityProviders": [
+    ""
+  ],
+  "settings": [
+    {
+      "name": "containerInsights",
+      "value": ""
+    }
+  ],
+  "serviceConnectDefaults": {
+    "namespace": ""
+  }
+}</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>名前しか要りません。</b>台数もインスタンスの種類も出てきません。Fargateなら本当に名前だけで足ります。</li>
+        <li><b><code>containerInsights</code> は監視のオン・オフ。</b><code>serviceConnectDefaults</code> はサービス同士の名前解決の既定値です。どちらも任意です。</li>
+      </ul>
+
+      <p class="lead">公式ドキュメントも同じことを言っています。<mark>logical grouping ＝ 論理的なまとまり</mark>という語が決定的です。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Amazon ECS Developer Guide「Amazon ECS clusters」— 原文</div>
+        <pre>An Amazon ECS cluster is a logical
+grouping of tasks or services that
+provides the infrastructure capacity
+for your containerized applications.
+...
+Clusters are AWS Region specific.
+
+（クラスタはタスクやサービスの
+　論理的なまとまりで、インフラの
+　容量を提供する。/
+　クラスタはリージョン単位）</pre>
+      </div>
+
+      <p class="lead">同じページには、クラスタが<b>ネットワーク（VPCとサブネット）</b>も含むと書かれています。ここは後でALBと繋がる話なので覚えておいてください。</p>
+
+      <h3>ここで意外な事実。公式の推奨は Fargate ではありません</h3>
+      <p class="lead">日本語の解説の多くは「ECSの起動タイプは Fargate と EC2 の2つ」と書いています。<mark>いまの公式ドキュメントは3つ並べています。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">Amazon ECS Developer Guide「Amazon ECS clusters」— 原文</div>
+        <pre>Amazon ECS offers three infrastructure
+types for your clusters ...
+Amazon ECS Managed Instances
+(Recommended) ... Fargate ...
+Amazon EC2 instances
+
+Note: Amazon ECS Managed Instances is
+the recommended choice for most new
+workloads
+
+（3種類ある。新しいワークロードの
+　多くには Managed Instances を推奨）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>ECS Managed Instances は第3の選択肢です。</b>EC2を使うけれど、用意・パッチ適用・スケールをAWSがやる、という位置づけです。</li>
+        <li><b>登場日は2025年9月30日。</b>AWS公式ブログ（AWS News Blog、Micah Walter）に <code>on 30 SEP 2025</code> と載っています。<mark>それより前に書かれた「2択」の解説は、この日に古くなりました。</mark></li>
+        <li><b>ただしこの記事はFargateを軸に書きます。</b>Managed Instances を筆者は動かしていないためです。動かしていないものの使用感は書きません。</li>
+      </ul>
+
+      <p class="lead">AWS CLIに同梱されているAPI定義ファイルを読むと、選択肢の一覧が機械可読な形で入っています。<code>MANAGED_INSTANCES</code> が確かに居ます。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（AWS CLI 1.46.0 同梱のECS APIモデルから列挙値を抽出）</div>
+        <pre>NetworkMode:
+  bridge
+  host
+  awsvpc
+  none
+Compatibility:
+  EC2
+  FARGATE
+  EXTERNAL
+  MANAGED_INSTANCES
+LaunchType:
+  EC2
+  FARGATE
+  EXTERNAL
+  MANAGED_INSTANCES</pre>
+      </div>
+
+      <div class="code wrap">
+        <div class="code-head">Amazon ECS Developer Guide「Amazon ECS services」— 原文（原文のtypoを含む）</div>
+        <pre>A capacity provider strategy causes
+Amazon ECS to distribute your tasks in
+one or across multiple capacity
+providers. If you want to run your
+workloads on Amazon ECS Managed
+Instances, you must use the Capacity
+provider strategy option.
+A launch type causes Amazon ECS to
+launch our tasks directly on either
+Fargate or on the EC2 instances</pre>
+      </div>
+
+      <p class="lead">最後の <code>launch our tasks</code> は公式側の誤記（<code>your</code> のはず）です。<mark>原文を書き換えないため、そのまま引用しています。</mark></p>
+
+      <p class="lead">ここで筆者は矛盾に見えるものを見つけました。公式ドキュメントは「Managed Instances は起動タイプでは選べない」と書いていますが、<b>API定義の <code>LaunchType</code> には <code>MANAGED_INSTANCES</code> が載っています</b>。実際にどちらの挙動になるかは、<mark>実行できていないので未確認</mark>です。断定しません。</p>
+    </article>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="section section-c" id="s3">
+    <h2><span class="step">3</span>タスク定義は設計図、タスクはその実体</h2>
+
+    <article class="item">
+      <h3>クラスとインスタンスの関係。公式は instantiation と書いている</h3>
+      <p class="lead">タスク定義は<mark>JSONで書かれたテキストファイル</mark>です。それ以上でも以下でもありません。動きません。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Amazon ECS Developer Guide「Amazon ECS task definitions」— 原文</div>
+        <pre>A task definition is a blueprint for
+your application. It is a text file in
+JSON format ...
+A task is the instantiation of a task
+definition within a cluster.
+
+（タスク定義はJSON形式のテキストで、
+　アプリの設計図。
+　タスクは、クラスタの中での
+　タスク定義の実体化）</pre>
+      </div>
+
+      <p class="lead">では、そのJSONに最低限なにを書けばいいのか。<mark>順に投げて、怒られ方を見ます。</mark>AWS CLIは通信する前に手元で入力を検査するので、認証情報が無くてもここは確かめられます。</p>
+
+      <div class="code">
+        <div class="code-head">td-1.json — 名前だけ書いてみる</div>
+        <pre>{ "family": "web" }</pre>
+      </div>
+
+      <div class="code">
+        <div class="code-head">td-3.json — ポート番号を引用符で囲んでしまった版</div>
+        <pre>{
+  "family": "web",
+  "containerDefinitions": [
+    {
+      "name": "app",
+      "image": "nginx:1.27",
+      "portMappings": [
+        { "containerPort": "80" }
+      ]
+    }
+  ]
+}</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">実行結果（aws ecs register-task-definition に順に投げる）</div>
+        <pre>--- td-1.json
+<span class="ng-line">Parameter validation failed:</span>
+<span class="ng-line">Missing required parameter in input: </span>
+<span class="ng-line">"containerDefinitions"</span>
+--- td-2.json
+<span class="ng-line">An error occurred </span>
+<span class="ng-line">(UnrecognizedClientException) when </span>
+<span class="ng-line">calling the RegisterTaskDefinition </span>
+<span class="ng-line">operation: The security token </span>
+<span class="ng-line">included in the request is invalid.</span>
+--- td-3.json
+<span class="ng-line">Parameter validation failed:</span>
+<span class="ng-line">Invalid type for parameter </span>
+<span class="ng-line">containerDefinitions[0].portMappings[0</span>
+<span class="ng-line">].containerPort, value: 80, type: </span>
+<span class="ng-line">&lt;class 'str'&gt;, valid types: &lt;class </span>
+<span class="ng-line">'int'&gt;</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>最低限は <code>family</code> と <code>containerDefinitions</code> の2つ。</b>片方欠けると、通信する前に手元で止まります。</li>
+        <li><b>td-2 は手元の検査を通過して、AWSまで届きました。</b>認証情報が無効なので <code>UnrecognizedClientException</code> で失敗しています。<mark>書き込みは発生していません。</mark></li>
+        <li><b>ポート番号を <code>"80"</code> と書くと型エラー。</b>数値の <code>80</code> です。JSONを手で書くとき一番やりがちな間違いで、これは手元で捕まります。</li>
+      </ul>
+
+      <h3>Fargateでは、CPUとメモリを好きな数字にできない</h3>
+      <p class="lead">Fargateはサーバーを選ばない代わりに、<mark>CPUとメモリを「タスク全体」に対して指定します</mark>。しかも組み合わせが決まっています。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>CPU</th><th>選べるメモリ</th><th>OS</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>256（0.25 vCPU）</td><td data-label="選べるメモリ">512 MiB / 1 GB / 2 GB</td><td data-label="OS">Linux</td></tr>
+            <tr><td>1024（1 vCPU）</td><td data-label="選べるメモリ">2〜8 GB（1GB刻み）</td><td data-label="OS">Linux, Windows</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">この表は公式ドキュメントの一覧から、<mark>筆者が原文で確認できた2行だけ</mark>を抜いたものです。全部で7段階ありますが、読んで確認した行以外は載せません。</p>
+
+      <ul class="points">
+        <li><b>CPUの単位は「CPUユニット」。</b>1024ユニット＝1 vCPU です。最小は256（0.25 vCPU）。</li>
+        <li><b>256を選んだら、メモリは512MiB・1GB・2GBの3択。</b>「1.5GB」は書けません。ここで最初のエラーに出会う人が多いはずです。</li>
+        <li><b>ネットワークモードは <code>awsvpc</code> 固定。</b>公式に <code>Fargate tasks always use the awsvpc network mode</code> と書いてあります。選択の余地がありません。</li>
+      </ul>
+
+      <details>
+        <summary>雛形の <code>"networkMode": "host"</code> を信じてはいけません（実測）</summary>
+        <div class="body">
+          <p class="lead"><code>--generate-cli-skeleton</code> でタスク定義の雛形を出すと <code>"networkMode"</code> に値が入っています。<mark>これを既定値だと思うと事故ります。</mark>10回続けて出して、値を数えました。</p>
+          <div class="code term">
+            <div class="code-head">実行結果（雛形の networkMode を10回出して集計）</div>
+            <pre>  2 awsvpc
+  2 bridge
+  3 host
+  3 none
+awscli/botocore/utils.py
+L1243: return random.choice(shape.enum)</pre>
+          </div>
+          <p class="lead">ばらけました。原因はAWS CLI同梱のソースの1行で、<b>選択肢からランダムに1つ選んでいる</b>だけです。既定値ではありません。</p>
+          <p class="lead">本当の既定値はAPI定義の説明文に書かれています。<code>If no network mode is specified, the default is bridge.</code> そして <code>For Amazon ECS tasks on Fargate, the awsvpc network mode is required.</code> つまり<mark>Fargateなら書かないと通りません</mark>。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="section section-a" id="s4">
+    <h2><span class="step">4</span>サービスは見張り役。落ちたら勝手に立て直す</h2>
+
+    <article class="item">
+      <h3>「2台動かしていて」と言うだけの相手。数を数え続けるのが仕事です</h3>
+      <p class="lead">タスク定義があっても、そのままでは何も動きません。<mark>「これを2台、ずっと動かしておいて」と頼む相手がサービスです。</mark>その台数を <code>desiredCount</code> と呼びます。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Amazon ECS Developer Guide「Amazon ECS services」— 原文</div>
+        <pre>You can use an Amazon ECS service to
+run and maintain a specified number of
+instances of a task definition
+simultaneously ...
+If one of your tasks fails or stops,
+the Amazon ECS service scheduler
+launches another instance of your task
+definition to replace it.
+...
+The service scheduler also replaces
+tasks determined to be unhealthy after
+a container health check or a load
+balancer target group health check
+fails.</pre>
+      </div>
+
+      <p class="lead">最後の段落が重要です。<mark>ALBのヘルスチェックに落ちたタスクも、サービスが置き換えます。</mark>ECSとALBは別サービスなのに、ここで連動しています。</p>
+
+      <div class="quiz">
+        <p class="q">Q. ALBのヘルスチェックのパスを <code>/health</code> に設定したが、アプリはそのURLで404を返す。何が起きる?</p>
+        <button class="opt" type="button" data-correct="false">ALBが利用者に503を返すだけで、タスク自体は動き続ける</button>
+        <button class="opt" type="button" data-correct="true">タスクが起動と停止を延々と繰り返す</button>
+        <button class="opt" type="button" data-correct="false">ヘルスチェックは警告扱いなので、何も起きない</button>
+        <p class="ans" hidden>正解。ALBの既定では、成功とみなすステータスは200（Matcher の既定値）で、2回連続で失敗すると切り離されます。そしてECSのサービススケジューラは「ロードバランサーのターゲットグループのヘルスチェックに落ちたタスクを置き換える」と公式に書かれています。つまり<b>切り離す側（ALB）と作り直す側（ECS）が噛み合って、無限ループになります</b>。アプリのログにはエラーが出ないので、原因が分かりにくい事故の代表です。</p>
+      </div>
+
+      <ul class="points">
+        <li><b>サービスは「タスクを作る人」ではなく「数を維持する人」。</b>デプロイもここが担当します。新しいリビジョンのタスク定義を指すと、置き換えていきます。</li>
+        <li><b>バッチのように1回で終わる処理は、サービスにしません。</b>公式の定義でも、タスクは <code>performs work, and then stops</code>、サービスは <code>long running</code> と書き分けられています。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="section section-b" id="s5">
+    <h2><span class="step">5</span>ALBは箱が1つではない。中に3人いる</h2>
+
+    <article class="item">
+      <h3>ロードバランサー本体・リスナー・ルール・ターゲットグループ</h3>
+      <p class="lead">ALB（Application Load Balancer）は、HTTP/HTTPSを受け取って複数のタスクに振り分けるAWSの窓口です。<mark>ただし「ALBを作る」で終わりません。</mark>入れ子の部品を順に作ります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">User Guide for Application Load Balancers「What is an ALB?」— 原文</div>
+        <pre>A load balancer serves as the single
+point of contact for clients.
+You add one or more listeners to your
+load balancer. A listener checks for
+connection requests from clients,
+using the protocol and port that you
+configure. The rules that you define
+for a listener determine how the load
+balancer routes requests to its
+registered targets.
+...
+Each target group routes requests to
+one or more registered targets ...
+An Application Load Balancer functions
+at the application layer, the seventh
+layer of the ... (OSI) model.
+The default routing algorithm is
+round robin;</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>ロードバランサー本体。</b>クライアントから見た唯一の窓口（<code>single point of contact</code>）。DNS名を持ちます。</li>
+        <li><b>リスナー。</b>「どのポートとプロトコルで待つか」。80で待つ、443で待つ、を決めます。</li>
+        <li><b>リスナールール。</b>URLのパスやホスト名を見て、どの名簿へ送るか判定します。優先度・条件・アクションの組です。</li>
+        <li><b>ターゲットグループ。</b>振り分け先の名簿。ここに登録された宛先へリクエストが渡ります。既定の振り分け方はラウンドロビン（順番に1つずつ）。</li>
+      </ul>
+
+      <p class="lead">「第7層で動く」というのは、<mark>URLの中身まで見られる</mark>ということです。だからパスによる振り分けができます。</p>
+
+      <h3>Fargateの最大の落とし穴。ターゲットタイプは <code>ip</code> にする</h3>
+      <p class="lead">ターゲットグループには「名簿の書き方」の指定があります。<code>instance</code>（EC2のインスタンスIDで書く）か、<code>ip</code>（IPアドレスで書く）か。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Amazon ECS Developer Guide「Architect for AWS Fargate」— 原文</div>
+        <pre>When you create a target group for
+these services, you must choose `ip`
+as the target type, not `instance`.
+This is because tasks that use the
+`awsvpc` network mode are associated
+with an elastic network interface,
+not an Amazon EC2 instance.</pre>
+      </div>
+
+      <p class="lead">理由がそのまま書いてあります。<mark>Fargateのタスクには、そもそもEC2インスタンスIDが無い</mark>のです。あるのはENI（仮想的なLANポート）と、そこに付いたプライベートIPだけ。だからIPで名簿を書きます。</p>
+
+      <div class="code wrap">
+        <div class="code-head">User Guide for ALB「Target groups — Target type」— 原文</div>
+        <pre>After you create a target group, you
+can't change its target type.
+
+（作成後にターゲットタイプは
+　変更できない）</pre>
+      </div>
+
+      <div class="quiz">
+        <p class="q">Q. うっかり <code>instance</code> でターゲットグループを作ってしまった。どう直す?</p>
+        <button class="opt" type="button" data-correct="false">ターゲットグループの設定画面で <code>ip</code> に変更する</button>
+        <button class="opt" type="button" data-correct="true">ターゲットグループを作り直し、リスナーの向き先も差し替える</button>
+        <button class="opt" type="button" data-correct="false">タスク定義の <code>networkMode</code> を <code>bridge</code> にして合わせる</button>
+        <p class="ans" hidden>正解は作り直しです。公式に <code>you can't change its target type</code> と書かれています。3番目を選びたくなりますが、Fargateは <code>awsvpc</code> 固定で <code>bridge</code> を選べません（公式: <code>Fargate tasks always use the awsvpc network mode</code>）。つまり<b>タスク側を曲げて合わせることはできず、ALB側を作り直すしかありません</b>。リスナーがそのターゲットグループを指しているので、そこも同時に差し替えることになります。</p>
+      </div>
+
+      <h3>ヘルスチェックの既定値。ここを知らないと事故る</h3>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>設定名</th><th>既定値</th><th>意味</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>HealthCheckIntervalSeconds</td><td data-label="既定値">30秒</td><td data-label="意味">何秒ごとに叩くか（ターゲットタイプが instance / ip の場合）</td></tr>
+            <tr><td>UnhealthyThresholdCount</td><td data-label="既定値">2回</td><td data-label="意味">何回連続で失敗したら切り離すか（設定範囲2〜10）</td></tr>
+            <tr><td>HealthyThresholdCount</td><td data-label="既定値">5回</td><td data-label="意味">何回連続で成功したら戻すか（設定範囲2〜10）</td></tr>
+            <tr><td>Matcher</td><td data-label="既定値">200</td><td data-label="意味">成功とみなすHTTPステータス</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">4章のクイズの正体がこれです。<mark>30秒ごとに叩かれ、2回落ちたら切られる。</mark>そしてECS側が新しいタスクを立てます。</p>
+
+      <details>
+        <summary>ALBを立てる前に用意するもの（VPC・サブネット・AZ・証明書）</summary>
+        <div class="body">
+          <dl>
+            <dt>VPCとサブネット</dt>
+            <dd>VPCはAWS内に作る自分専用のネットワーク領域。サブネットはそれをさらに区切った小部屋です。Fargateのタスクは、この小部屋の中に置かれます。公式に <code>you must specify one or more subnets to attach the network interface and one or more security groups</code> とあり、<b>サブネットとセキュリティグループの指定は必須</b>です。</dd>
+            <dt>アベイラビリティーゾーンは2つ以上</dt>
+            <dd>ALBの制約です。原文は <code>You must select at least two Availability Zone subnets.</code> かつ <code>Each subnet must be from a different Availability Zone.</code>。さらに各サブネットに <code>/27</code> 以上のCIDRブロックと、空きIPが8個以上あることを確認せよ、とも書かれています。「サブネットを1つしか作っていなくてALBが作れない」は、最初の30分で必ず踏みます。</dd>
+            <dt>HTTPSの証明書はどこに置くのか</dt>
+            <dd>コンテナの中ではなく<b>ALBのリスナー</b>です。原文は <code>You can use an HTTPS listener to offload the work of encryption and decryption to your load balancer</code>、そして <code>If the listener protocol is HTTPS, you must deploy at least one SSL server certificate on the listener.</code>。アプリ側はHTTPのままで構いません。</dd>
+            <dt>そもそもALBは必須なのか</dt>
+            <dd>必須ではありません。公式は <code>Your service can optionally be configured to use Elastic Load Balancing</code> と書いています。ただし同じページで <code>We recommend that you use Application Load Balancers</code> とも書かれています。外からHTTPで受けるなら、実質ALBです。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="section section-c" id="s6">
+    <h2><span class="step">6</span>サービスとALBの結び目は文字列。Terraformは止めない</h2>
+
+    <article class="item">
+      <h3>ALBとタスクは、どこで繋がっているのか</h3>
+      <p class="lead">ここが初見で一番分かりにくいところです。ALBのターゲットグループには、タスクのIPを<b>手で登録しません</b>。<mark>サービスが登録します。</mark></p>
+      <p class="lead">その約束事が <code>create-service</code> の入力に出ています。雛形からALBとネットワークの部分だけ抜きました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（aws ecs create-service --generate-cli-skeleton を jq で抜粋）</div>
+        <pre>{
+  "loadBalancers": [
+    {
+      "targetGroupArn": "",
+      "loadBalancerName": "",
+      "containerName": "",
+      "containerPort": 0,
+      "advancedConfiguration": {
+        "alternateTargetGroupArn": "",
+        "productionListenerRule": "",
+        "testListenerRule": "",
+        "roleArn": ""
+      }
+    }
+  ],
+  "networkConfiguration": {
+    "awsvpcConfiguration": {
+      "subnets": [
+        ""
+      ],
+      "securityGroups": [
+        ""
+      ],
+      "assignPublicIp": "ENABLED"
+    }
+  }
+}</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>targetGroupArn</code> でALBの名簿を指す。</b>「この名簿に、私が動かすタスクを登録します」という宣言です。</li>
+        <li><b><code>containerName</code> と <code>containerPort</code> で、タスク定義の中のどのコンテナかを指す。</b>1つのタスクに複数のコンテナが居られるので、名指しが要ります。</li>
+        <li><b><code>subnets</code> と <code>securityGroups</code> はここで指定する。</b>タスクのENIがどの小部屋に生えるかを決めています。</li>
+      </ul>
+
+      <p class="lead">問題は <code>containerName</code> です。<mark>これはARNでもIDでもなく、ただの文字列</mark>。タスク定義に書いた名前と一字一句合っている必要があります。</p>
+
+      <h3>1文字ずらして terraform plan を通してみた</h3>
+      <p class="lead">Terraformでクラスタ・タスク定義・サービス・ALBを一式書いて、<code>plan</code>（実際には作らず、何が作られるかだけ出す）を実行します。<code>apply</code> は<b>していません</b>。</p>
+
+      <div class="code">
+        <div class="code-head">main.tf — 結び目の部分（実験用の変数を展開して抜粋）</div>
+        <pre>resource "aws_ecs_task_definition" "web" {
+  family       = "demo-web"
+  network_mode = "awsvpc"
+  cpu          = "256"
+  memory       = "512"
+
+  container_definitions = jsonencode([
+    {
+      name  = "web"        # ← この名前
+      image = "public.ecr.aws/nginx/nginx:1.27"
+      portMappings = [
+        { containerPort = 80 }
+      ]
+    }
+  ])
+}
+
+resource "aws_ecs_service" "web" {
+  desired_count = 2
+  launch_type   = "FARGATE"
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.web.arn
+    container_name   = "web"   # ← と一致が必要
+    container_port   = 80
+  }
+}</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">実行結果（terraform plan が作ろうとするもの）</div>
+        <pre>ecs_cluster  main
+ecs_service  web
+ecs_task_definition  web
+iam_role  exec
+iam_role_policy_attachment  exec
+lb  main
+lb_listener  http
+lb_target_group  web
+security_group  alb
+security_group  task
+subnet  public_a
+subnet  public_c
+vpc  main
+----
+作成: 13 件</pre>
+      </div>
+
+      <p class="lead">「コンテナを2個動かす」ために<mark>13個のリソース</mark>が要ります。これがECS on Fargateの実際の重さです。<code>plan</code> から配線の値だけ抜くとこうなります。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（plan が示す配線）</div>
+        <pre><span class="ok-line">desired_count : 2</span>
+<span class="ok-line">launch_type   : FARGATE</span>
+<span class="ok-line">lb.container  : web</span>
+<span class="ok-line">lb.port       : 80</span>
+<span class="ok-line">tg.target_type: ip</span>
+<span class="ok-line">tg.port       : 80</span>
+<span class="ok-line">td.cpu/mem    : 256/512</span>
+<span class="ok-line">td.network    : awsvpc</span></pre>
+      </div>
+
+      <p class="lead">ここまでは正しい構成です。では、<mark>よくある4つの間違い</mark>を1つずつ仕込んで、<code>validate</code> と <code>plan</code> が捕まえるか測りました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（誤り4種を検出できるか）</div>
+        <pre><span class="ng-line">コンテナ名 typo validate:通過 plan:通過</span>
+<span class="ng-line">network_mode    validate:通過 plan:通過</span>
+<span class="ng-line">target_type     validate:通過 plan:通過</span>
+<span class="ng-line">cpu に 300      validate:通過 plan:通過</span></pre>
+      </div>
+
+      <p class="lead"><mark>4件すべて素通りしました。</mark>「通過」は<b>エラーにならなかった</b>という意味です。仕込んだ間違いは次の4つです。</p>
+
+      <ul class="points">
+        <li><b>コンテナ名を <code>web</code> → <code>wev</code> にずらした。</b>サービスがタスク定義に無いコンテナを名指ししています。</li>
+        <li><b><code>network_mode</code> を <code>bridge</code> にした。</b>FARGATEなのに <code>awsvpc</code> 以外を指定しています。</li>
+        <li><b><code>target_type</code> を <code>instance</code> にした。</b>5章で見たとおり、Fargateでは通らない指定です。</li>
+        <li><b><code>cpu</code> を <code>"300"</code> にした。</b>3章の表に無い値です。</li>
+      </ul>
+
+      <div class="code term">
+        <div class="code-head">実行結果（コンテナ名をずらしたときの plan）</div>
+        <pre><span class="ok-line">Success! The configuration is valid.</span>
+
+<span class="ok-line">plan exit = 0</span>
+<span class="ng-line">service が指す名前 : wev</span>
+<span class="ng-line">taskdef の名前     : web</span></pre>
+      </div>
+
+      <p class="lead">一方で、<code>container_name</code> を<b>丸ごと消す</b>と、ちゃんと止まります。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（container_name の行を削除した版）</div>
+        <pre><span class="ng-line">Error: Missing required argument</span>
+
+  on main.tf line 188, in resource
+"aws_ecs_service" "web":
+ 188:   load_balancer {
+
+<span class="ng-line">The argument "container_name" is </span>
+<span class="ng-line">required, but no definition was found.</span></pre>
+      </div>
+
+      <div class="quiz">
+        <p class="q">Q. この結果から言えるのはどれ?</p>
+        <button class="opt" type="button" data-correct="false">Terraformのバージョンが古いので検出できない</button>
+        <button class="opt" type="button" data-correct="true">Terraformは「必須項目があるか」は見るが、「値が他のリソースと噛み合うか」は見ない</button>
+        <button class="opt" type="button" data-correct="false"><code>plan</code> ではなく <code>validate</code> を使えば検出できる</button>
+        <p class="ans" hidden>正解。境界がきれいに出ています。<b>項目の有無・型はローカルで検査されますが、「タスク定義に <code>wev</code> というコンテナがあるか」はAWSに聞かないと分かりません</b>。<code>plan</code> はリソースを作らないので、そこまでは踏み込みません。つまりこの種の間違いは <code>apply</code> するか、デプロイしてから初めて分かります。バージョンの問題ではなく、設計上そうなっています（Terraform 1.14.3 / hashicorp/aws 6.60.0 で実測）。</p>
+      </div>
+
+      <p class="lead">対策は単純です。<mark>コンテナ名を変数にして、2か所から同じ変数を参照する。</mark>手で2回書かないこと。実際の <code>main.tf</code> では、上の2か所の <code>"web"</code> は変数になっています（片方だけずらす実験のために、変数を2つに分けてあります）。全文は <code>_labs/</code> に置いています。</p>
+
+      <details>
+        <summary>タスク実行ロールとタスクロールは別物です（100%混同するところ）</summary>
+        <div class="body">
+          <p class="lead">Terraformの13件のうち2件がIAMでした。ECSには<mark>役割の違う権限が2つ</mark>あります。名前が似ていて必ず混乱します。</p>
+          <div class="table">
+            <table>
+              <thead>
+                <tr><th>名前</th><th>誰が使うか</th><th>何のため</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>タスク実行ロール</td><td data-label="誰が使うか">ECS/Fargateの裏方エージェント</td><td data-label="何のため">イメージの取得やログの書き出し。コンテナからは触れない</td></tr>
+                <tr><td>タスクロール</td><td data-label="誰が使うか">コンテナの中のアプリ自身</td><td data-label="何のため">S3など他のAWSサービスを呼ぶため</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="lead">公式の原文はこうです。実行ロールは <code>grants the Amazon ECS container and Fargate agents permission to make AWS API calls on your behalf</code>、そして <code>they aren't directly accessible by the containers in the task</code>。タスクロールは <code>This role allows your application code (running in the container) to use other AWS services.</code></p>
+          <p class="lead"><mark>「アプリからS3が読めない」ときに実行ロールへ権限を足しても直りません。</mark>足す先はタスクロールです。IAM自体の地図は<a href="../2026-08-15_aws-iam-first/">別記事</a>にまとめています。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section class="section section-a" id="s7">
+    <h2><span class="step">7</span>EC2版との違いは「サーバーの面倒」だけではない</h2>
+
+    <article class="item">
+      <h3>EC2版では登場人物が2人増える</h3>
+      <p class="lead">EC2で動かす場合、クラスタにEC2インスタンスを登録します。<mark>その登録済みインスタンスには専用の名前があります。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">Amazon ECS Developer Guide「EC2 container instances」— 原文</div>
+        <pre>An Amazon ECS container instance is an
+Amazon EC2 instance that run the
+Amazon ECS container agent and is
+registered to a cluster.
+...
+You are responsible for the container
+instance management and maintenance.
+
+（コンテナインスタンスとは、ECSの
+　コンテナエージェントを動かし、
+　クラスタに登録されたEC2のこと。/
+　その管理と保守はあなたの責任）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>コンテナインスタンス。</b>クラスタに登録されたEC2のこと。Fargateには存在しません。</li>
+        <li><b>ECSコンテナエージェント。</b>そのEC2の中で常駐し、ECS本体と通信してタスクを起動するプログラム。Fargateでは自分で用意しません。</li>
+        <li><b>最後の1文が差分の全て。</b><code>You are responsible for the container instance management and maintenance.</code></li>
+      </ul>
+
+      <figure>
+        <picture>
+          <source srcset="images/ec2-vs-fargate-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/ec2-vs-fargate.png" alt="EC2版はEC2インスタンスの中にエージェントとコンテナが同居してポートを取り合うが、Fargateはタスクごとに専用のENIとIPを持つため被らない" loading="lazy">
+        </picture>
+        <figcaption>差はサーバーを持つかどうかだけではありません。タスクがIPを持つか、EC2のポートを借りるかが変わります</figcaption>
+      </figure>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>項目</th><th>Fargate</th><th>EC2</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>サーバーの用意</td><td data-label="Fargate">不要。CPUとメモリを書くだけ</td><td data-label="EC2">自分で用意し、管理と保守も自分（公式明記）</td></tr>
+            <tr><td>増える登場人物</td><td data-label="Fargate">なし</td><td data-label="EC2">コンテナインスタンス／ECSコンテナエージェント</td></tr>
+            <tr><td>ネットワークモード</td><td data-label="Fargate"><code>awsvpc</code> のみ</td><td data-label="EC2"><code>awsvpc</code> / <code>bridge</code> / <code>host</code> / <code>none</code>。Linuxの既定は <code>bridge</code></td></tr>
+            <tr><td>タスクのIP</td><td data-label="Fargate">タスクごとにENIと専用IP</td><td data-label="EC2"><code>bridge</code> ならDockerの仮想ネットワーク経由</td></tr>
+            <tr><td>ALBのターゲットタイプ</td><td data-label="Fargate"><code>ip</code> 必須（公式明記）</td><td data-label="EC2">この記事では未確認。公式で確認したのはFargate側の規定のみ</td></tr>
+            <tr><td>分離</td><td data-label="Fargate">タスクごとに独立。カーネルもCPUもENIも共有しない</td><td data-label="EC2">同じEC2上のタスクは、そのEC2を共有する</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">「タスクごとに独立」は公式の <code>Each Fargate task has its own isolation boundary and does not share the underlying kernel, CPU resources, memory resources, or elastic network interface with another task.</code> によります。</p>
+
+      <details>
+        <summary>ポート番号が被る／被らない、という違いが生まれる理由</summary>
+        <div class="body">
+          <p class="lead">ネットワークモードの一覧に、違いがそのまま出ています。</p>
+          <ul class="points">
+            <li><b><code>awsvpc</code>。</b>原文は <code>The task is allocated its own elastic network interface (ENI) and a primary private IPv4 or IPv6 address.</code> タスクごとにIPが別なので、同じ80番を何個並べても衝突しません。</li>
+            <li><b><code>bridge</code>。</b>原文は <code>The task uses Docker's built-in virtual network on Linux, which runs inside each Amazon EC2 instance that hosts the task.</code> Linuxで何も指定しなければこれになります。</li>
+            <li><b><code>host</code>。</b>原文に <code>Dynamic port mappings can't be used in this network mode.</code> とあります。1台のEC2に同じポートのタスクを2つ置けません。</li>
+          </ul>
+          <p class="lead">つまり<mark>Fargateを選んだ時点で、ポートの取り合いという悩みが消えます</mark>。これはFargateの地味だが大きい利点です。</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>ディスクと料金（読めた範囲だけ）</summary>
+        <div class="body">
+          <dl>
+            <dt>保存はどうなるのか</dt>
+            <dd>Fargateのタスクには一時ディスク（エフェメラルストレージ）が付きます。原文は <code>tasks that are hosted on Fargate using platform version 1.4.0 or later receive a minimum of 20 GiB of ephemeral storage</code>、上限は <code>up to a maximum of 200 GiB</code>。<b>注意点は</b> <code>The pulled, compressed, and the uncompressed container image for the task is stored on the ephemeral storage.</code> — コンテナイメージ自体もこの20GiBに載ります。アプリが使える量は、その分減ります。</dd>
+            <dt>何に対して課金されるのか</dt>
+            <dd>公式の価格ページには <code>You pay for the amount of vCPU, memory, and storage resources consumed</code> とあります。インスタンスの台数ではなく、使った量です。</dd>
+            <dt>いくらか（筆者の計算。参考値）</dt>
+            <dd>同ページのサンプル計算の中に、<b>US East（バージニア北部）/ Linux / X86</b> の単価が書かれています。vCPUが1秒あたり $0.000011244、メモリが1GBあたり1秒 $0.000001235（2026年8月15日参照）。ここから最小構成（0.25 vCPU / 0.5 GB）を1時間動かすと <b>$0.0123</b> になります。<mark>この掛け算は筆者が自分でやったもの</mark>で、公式が提示している金額ではありません。東京リージョンの価格でもありません。ストレージ分は、無料枠の扱いを確認できなかったため含めていません。<b>価格表そのものはページ内のJavaScriptで描画されるため取得できませんでした。</b>実際の見積もりは公式の料金ページで確認してください。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 8 ============ -->
+  <section class="section section-b" id="s8">
+    <h2><span class="step">8</span>CloudFrontはALBの前。後ろではない</h2>
+
+    <article class="item">
+      <h3>公式が番号付きで順路を書いています</h3>
+      <p class="lead">CloudFrontはAWSのCDNです。世界各地の拠点（エッジロケーション、POP）にコンテンツを置いて、<mark>利用者から一番近いところから返します</mark>。</p>
+      <p class="lead">「ALBの前なのか後ろなのか」は、公式ドキュメントに手順として書かれています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Amazon CloudFront Developer Guide「How CloudFront delivers content」— 原文</div>
+        <pre>1. A user accesses your website ...
+2. DNS routes the request to the
+CloudFront POP (edge location) that
+can best serve the request, typically
+the nearest CloudFront POP in terms of
+latency.
+3. CloudFront checks its cache for the
+requested object. If the object is in
+the cache, CloudFront returns it to
+the user. If the object is not in the
+cache, CloudFront ... forwards the
+request to your origin server</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>答えは「前」。</b>利用者 → DNS → CloudFrontのエッジ → （キャッシュに無いときだけ）オリジン、の順です。</li>
+        <li><b>オリジンとは、キャッシュが無いときに取りに行く元の場所。</b>ここにALBを指定します。公式のオリジン一覧に <code>an Application Load Balancer</code> が入っています。</li>
+        <li><b>キャッシュに有れば、ALBまで来ません。</b>ECSのタスクに届くリクエストは、その分減ります。</li>
+      </ul>
+
+      <figure>
+        <picture>
+          <source srcset="images/request-path-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/request-path.png" alt="リクエストは利用者からCloudFront、ALBのリスナー・ルール・ターゲットグループを通ってタスクのENIへ届く。キャッシュに当たればCloudFrontで折り返し、ECSサービスは順路の上には居ない" loading="lazy">
+        </picture>
+        <figcaption>ECSのサービスは順路の上に居ません。ターゲットグループへタスクのIPを登録する係として、横から関わります</figcaption>
+      </figure>
+
+      <p class="lead">つまり全体の順路はこうです。<mark>利用者 → CloudFront → ALB → （ターゲットグループ）→ タスク。</mark>ECSのサービスはこの線上に居ません。<b>タスクを名簿に登録する係</b>として、横から関わります。</p>
+
+      <h3>ALBをインターネットに出さない構成もあります</h3>
+
+      <div class="code wrap">
+        <div class="code-head">Amazon CloudFront Developer Guide「Use various origins」— 原文</div>
+        <pre>If you have an Application Load
+Balancer, Network Load Balancer, or
+EC2 instance in a private subnet, you
+can use it as a VPC origin. With VPC
+origins, your applications can be
+accessed only in a private subnet with
+a CloudFront distribution, which
+prevents your application from being
+accessible on the public internet.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>VPCオリジンを使うと、ALBをプライベートサブネットに置けます。</b>インターネットからは直接叩けず、CloudFront経由でのみ届きます。</li>
+        <li><b>CloudFrontは内部向けALBにも外部向けALBにもルーティングできます。</b>公式に <code>both internal and internet-facing Application Load Balancers</code> とあります。</li>
+        <li><b>ディストリビューションとは、CloudFrontの設定一式のこと。</b>「どのオリジンに、どう転送するか」をここで定義します。</li>
+      </ul>
+
+      <p class="lead">この構成は、クライアント側の会社とインフラ側の会社で担当が分かれているとき、<mark>「どこに何を設定してもらうか」の境界にもなります</mark>。キャッシュとレスポンスヘッダーはCloudFront、証明書とパス振り分けはALB、アプリの挙動はECSのタスク。依頼先が変わります。</p>
+    </article>
+  </section>
+
+  <!-- ============ 9 ============ -->
+  <section class="section section-a" id="s9">
+    <h2><span class="step">9</span>最初の1つを作る順番</h2>
+
+    <article class="item">
+      <h3>依存の向きが決まっているので、順番は選べません</h3>
+      <p class="lead">サービスはタスク定義とターゲットグループを指します。ターゲットグループはVPCを指します。<mark>指される側から先に作ります。</mark></p>
+
+      <ul class="points">
+        <li><b>① VPCとサブネットを2つ以上（別AZ）。</b>ALBの制約です。ここを1つで始めると、ALBの作成画面で止まります。</li>
+        <li><b>② コンテナイメージを置く場所を決める。</b>ECR（AWS版のイメージ置き場）など。タスク定義はイメージのURLを書くだけなので、先に要ります。</li>
+        <li><b>③ クラスタを作る。</b>名前だけです。1分で終わります。</li>
+        <li><b>④ タスク定義を登録する。</b>Fargateなら <code>awsvpc</code>、CPUとメモリは決まった組み合わせから選ぶ。実行ロールも指定します。</li>
+        <li><b>⑤ ターゲットグループを <code>ip</code> で作る。</b>ここを間違えると作り直しです。作成後は変更できません。</li>
+        <li><b>⑥ ALBとリスナーを作り、⑤へ向ける。</b>HTTPSにするなら証明書はリスナーに置きます。</li>
+        <li><b>⑦ サービスを作る。</b>タスク定義・ターゲットグループ・コンテナ名・ポート・サブネット・セキュリティグループを全部ここで結びます。</li>
+      </ul>
+
+      <p class="lead">この順番は<mark>筆者が依存関係から組み立てた手順</mark>で、公式が「この順で作れ」と書いているわけではありません。実際に作って通したわけでもありません（AWSアカウントが無いため）。<b>依存の向きだけは、上で見た各ドキュメントの記述どおりです。</b></p>
+
+      <p class="lead">用語が頭に入ったか、最後に確認してください。<span class="cl-count">0 / 6</span></p>
+      <ul class="checklist" data-key="ecs-fargate-first-2026-08-15">
+        <li><label><input type="checkbox"><span>クラスタが「サーバーの集まり」ではないと説明できる</span></label></li>
+        <li><label><input type="checkbox"><span>タスク定義とタスクの違いを、設計図と実体で言える</span></label></li>
+        <li><label><input type="checkbox"><span>サービスの仕事が <code>desiredCount</code> の維持だと分かる</span></label></li>
+        <li><label><input type="checkbox"><span>ALBの中に、リスナー・ルール・ターゲットグループが居ると分かる</span></label></li>
+        <li><label><input type="checkbox"><span>Fargateではターゲットタイプが <code>ip</code> で、後から変えられないと知っている</span></label></li>
+        <li><label><input type="checkbox"><span>タスク実行ロールとタスクロールを取り違えない</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 これで、ECSの画面に出てくる言葉が全部つながりました</div>
+
+      <a class="next-up" href="../2026-08-15_aws-iam-first/">
+        <div class="label">NEXT →</div>
+        <div class="t">AWSのアクセス制御の地図 — IAMのユーザー・ロール・ポリシーは何が違うのか</div>
+        <div class="d">この記事で出てきた「実行ロール」「タスクロール」の、その手前の話です。</div>
+      </a>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「What is Amazon Elastic Container Service?」<i>Amazon ECS Developer Guide</i>.
+          <span class="note">参照箇所: Capacity / Controller / Provisioning の3層、および Task definition / Cluster / Task / Service の定義。1章の原文引用はここから。</span>
+          <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Amazon ECS clusters」<i>Amazon ECS Developer Guide</i>.
+          <span class="note">参照箇所: クラスタが logical grouping であること、VPC・サブネットを含むこと、リージョン単位であること。および「3種類のインフラ種別」と Managed Instances 推奨の Note。2章の引用2件。</span>
+          <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/clusters.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/clusters.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Amazon ECS task definitions」<i>Amazon ECS Developer Guide</i>.
+          <span class="note">参照箇所: タスク定義が blueprint かつ JSON のテキストであること、タスクが instantiation であること。3章の引用。</span>
+          <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Amazon ECS services」<i>Amazon ECS Developer Guide</i>.
+          <span class="note">参照箇所: サービスが指定台数を維持すること、サービススケジューラが失敗タスクを置き換えること、ロードバランサーのターゲットグループのヘルスチェック失敗でも置き換えること。および「起動タイプ」と「キャパシティプロバイダ戦略」の使い分け。4章と2章の引用。原文の <code>launch our tasks</code> は公式側の誤記だが、書き換えずそのまま引用した。</span>
+          <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Architect for AWS Fargate for Amazon ECS」<i>Amazon ECS Developer Guide</i>.
+          <span class="note">参照箇所: Fargate の定義（サーバー管理不要）、タスクごとの分離境界（カーネル・CPU・メモリ・ENIを共有しない）、ターゲットタイプに <code>ip</code> を選ばねばならない理由。5章・7章の引用。</span>
+          <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Amazon ECS task definition differences for AWS Fargate」<i>Amazon ECS Developer Guide</i>.
+          <span class="note">参照箇所: Fargate は常に <code>awsvpc</code> であること、CPU とメモリをタスクレベルで指定すること、組み合わせ表（本文には原文で確認できた 256 と 1024 の2行のみ掲載）、サブネットとセキュリティグループの指定が必須であること。</span>
+          <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-tasks-services.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-tasks-services.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Amazon ECS task networking options for the EC2 launch type」<i>Amazon ECS Developer Guide</i>.
+          <span class="note">参照箇所: <code>awsvpc</code> / <code>bridge</code> / <code>host</code> の説明。<code>bridge</code> が Linux の既定であること、<code>host</code> では動的ポートマッピングが使えないこと。7章の折りたたみ。</span>
+          <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Amazon EC2 container instances for Amazon ECS」<i>Amazon ECS Developer Guide</i>.
+          <span class="note">参照箇所: コンテナインスタンスの定義と、<code>You are responsible for the container instance management and maintenance.</code> 7章の引用。</span>
+          <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/create-capacity.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/create-capacity.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Use load balancing to distribute Amazon ECS service traffic」<i>Amazon ECS Developer Guide</i>.
+          <span class="note">参照箇所: ロードバランサーの利用が任意（<code>can optionally be configured</code>）であること、それでもALBを推奨していること。5章の折りたたみ。</span>
+          <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-load-balancing.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-load-balancing.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「What is an Application Load Balancer?」<i>User Guide for Application Load Balancers</i>.
+          <span class="note">参照箇所: ロードバランサー／リスナー／ルール／ターゲットグループの入れ子構造、OSI第7層で動作すること、既定の振り分けがラウンドロビンであること。5章の引用。</span>
+          <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html">https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Target groups for your Application Load Balancers」<i>User Guide for Application Load Balancers</i>.
+          <span class="note">参照箇所: ターゲットタイプ <code>instance</code> / <code>ip</code> の定義と、<code>After you create a target group, you can't change its target type.</code> 5章のクイズの根拠。</span>
+          <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html">https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Health checks for your target groups」<i>User Guide for Application Load Balancers</i>.
+          <span class="note">参照箇所: 既定値の表（HealthCheckIntervalSeconds 30秒、HealthyThresholdCount 5、UnhealthyThresholdCount 2、Matcher 200）と、閾値超過で切り離す動作。5章の表と4章のクイズ。</span>
+          <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html">https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Listeners for your Application Load Balancers」<i>User Guide for Application Load Balancers</i>.
+          <span class="note">参照箇所: HTTPSリスナーが暗号化・復号を肩代わりすること、リスナーに証明書を1つ以上配置する必要があること。5章の折りたたみ。</span>
+          <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html">https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Application Load Balancers」<i>User Guide for Application Load Balancers</i>.
+          <span class="note">参照箇所: 別AZのサブネットを2つ以上選ぶ必要があること、各サブネットに <code>/27</code> 以上と空きIP 8個以上が必要なこと。5章の折りたたみと9章。</span>
+          <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html">https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「What is Amazon CloudFront?」および「How CloudFront delivers content to your users」<i>Amazon CloudFront Developer Guide</i>.
+          <span class="note">参照箇所: エッジロケーションとオリジンの定義、および 1〜3 の番号付きの配信手順。8章の「CloudFrontはALBの前」の根拠。</span>
+          <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/HowCloudFrontWorks.html">https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/HowCloudFrontWorks.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Use various origins with CloudFront distributions」<i>Amazon CloudFront Developer Guide</i>.
+          <span class="note">参照箇所: オリジンにALBを指定できること、内部向け・外部向けの両方にルーティングできること、VPCオリジンでプライベートサブネットのALBをCloudFront経由でのみ公開できること。8章の引用。</span>
+          <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/DownloadDistS3AndCustomOrigins.html">https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/DownloadDistS3AndCustomOrigins.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Amazon ECS task execution IAM role」「Amazon ECS task IAM role」<i>Amazon ECS Developer Guide</i>.
+          <span class="note">参照箇所: 実行ロールがエージェント側の権限であり、コンテナから直接アクセスできないこと。タスクロールがコンテナ内のアプリのための権限であること。6章の折りたたみ。</span>
+          <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Fargate task ephemeral storage for Amazon ECS」<i>Amazon ECS Developer Guide</i>.
+          <span class="note">参照箇所: プラットフォームバージョン 1.4.0 以降で最低20 GiB、最大200 GiB、コンテナイメージも同じ領域に置かれること。7章の折りたたみ。</span>
+          <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-task-storage.html">https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-task-storage.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「AWS Fargate Pricing」<i>Amazon Web Services 公式価格ページ</i>.
+          <span class="note">参照箇所: 課金対象が vCPU・メモリ・ストレージであるという概要文と、サンプル計算中の単価（US East（バージニア北部）/ Linux / X86: vCPU $0.000011244/秒、メモリ $0.000001235/GB/秒）。<mark>価格表そのものはJavaScriptで描画されるため取得できず、読めたのは概要文とサンプル計算内の単価のみ</mark>です。</span>
+          <a href="https://aws.amazon.com/fargate/pricing/">https://aws.amazon.com/fargate/pricing/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Micah Walter「Announcing Amazon ECS Managed Instances for containerized applications」<i>AWS News Blog</i>, 2025年9月30日.
+          <span class="note">参照箇所: 公開日（<code>on 30 SEP 2025</code>）と、AWSが用意・スケール・セキュリティパッチ・コスト最適化を担うという説明。<b>仕様書ではなく公式ブログの発表記事</b>である点に注意してください。2章で日付の根拠に使いました。</span>
+          <a href="https://aws.amazon.com/blogs/aws/announcing-amazon-ecs-managed-instances-for-containerized-applications/">https://aws.amazon.com/blogs/aws/announcing-amazon-ecs-managed-instances-for-containerized-applications/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Amazon Web Services「Announcing Amazon ECS Managed Instances」<i>AWS What's New</i>.
+          <span class="note">HTTPステータスは200を返しますが、本文がJavaScriptで描画されるため取得したHTMLに本文も掲載日も含まれていませんでした。<b>読めていないので、この資料からは何も引用していません。</b>同じ内容は上のAWS News Blogで読めたため、そちらを根拠にしています。</span>
+          <a href="https://aws.amazon.com/about-aws/whats-new/2025/09/amazon-ecs-managed-instances/">https://aws.amazon.com/about-aws/whats-new/2025/09/amazon-ecs-managed-instances/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          AWS CLI と Terraform の実出力。2026年8月15日実施。aws-cli 1.46.0 / 同梱 botocore 1.43.62 / Terraform 1.14.3 / hashicorp/aws 6.60.0 / Python 3.11.15。
+          <span class="note">本文のターミナル出力は、この日に実行した結果を<b>加工せずそのまま</b>貼っています（幅を40桁に収めるため、スクリプト側で <code>jq</code> による抜粋と <code>fold</code> による折り返しを行っています。出力を手で書き換えてはいません）。使ったのは <code>--generate-cli-skeleton</code>、AWS CLIのローカルなパラメータ検証、CLI同梱のECS APIモデルの読み出し、<code>terraform init</code> / <code>validate</code> / <code>plan</code> の4種です。検証コードと全実出力は <code>_labs/2026-08-15_ecs-fargate-first/</code> に置いてあります。</span>
+        </li>
+        <li>
+          <span class="flag self">実行していないこと</span>
+          <b>AWS上での実行は行っていません。</b>筆者の環境にはAWSアカウントも認証情報もなく、Dockerのデーモンも動いていません。
+          <span class="note">未実行: <code>aws ecs create-cluster</code> / <code>register-task-definition</code> / <code>create-service</code>、タスクの起動、ALB経由のHTTP疎通、ヘルスチェックの通過確認、<code>terraform apply</code>、<code>docker build</code>。なお <code>register-task-definition</code>（td-2.json）は実際にAWSのエンドポイントへ到達しましたが、トークンが無効なため <code>UnrecognizedClientException</code> で失敗しています。<mark>リソースの作成・変更は一切発生していません。</mark>したがって本文にも、起動後の挙動を見たかのような記述はありません。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          9章の「作る順番」、6章の「コンテナ名は変数にする」という助言、7章の1時間あたりの金額（$0.0123）の計算。
+          <span class="note">順番はドキュメントに書かれた依存関係から筆者が組み立てたもので、AWSが定めた手順ではありません。金額は公式ページに載っていた単価を筆者が掛け算した参考値で、AWSが提示している金額ではなく、東京リージョンの価格でもありません。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月15日時点の内容です。検証環境: aws-cli 1.46.0 / Terraform 1.14.3 / hashicorp/aws 6.60.0 / Python 3.11.15</div>
+    <div>公開: 2026年8月15日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

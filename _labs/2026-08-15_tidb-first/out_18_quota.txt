@@ -1,0 +1,14 @@
+変更前: 107374182400
+warn:
+  Truncated incorrect tidb_ddl_disk_quot
+  a value: '1073741824'
+warn:
+  skip prepared plan-cache: not a SELECT
+  /UPDATE/INSERT/DELETE/SET statement
+warn:
+  skip prepared plan-cache: not a SELECT
+  /UPDATE/INSERT/DELETE/SET statement
+変更後: 107374182400
+-- users の AUTO_INCREMENT -------------
+値: 173730
+実データ MAX(id): 1

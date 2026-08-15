@@ -1,0 +1,24 @@
+CREATE TABLE `users` (
+  `id` bigint unsigned NOT NULL AUTO_INC
+REMENT,
+  `name` varchar(255) COLLATE utf8mb4_un
+icode_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8mb4_u
+nicode_ci NOT NULL,
+  `email_verified_at` timestamp NULL DEF
+AULT NULL,
+  `password` varchar(255) COLLATE utf8mb
+4_unicode_ci NOT NULL,
+  `remember_token` varchar(100) COLLATE 
+utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NU
+LL,
+  `updated_at` timestamp NULL DEFAULT NU
+LL,
+  PRIMARY KEY (`id`) /*T![clustered_inde
+x] CLUSTERED */,
+  UNIQUE KEY `users_email_unique` (`emai
+l`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 
+COLLATE=utf8mb4_unicode_ci AUTO_INCREMEN
+T=171649

@@ -1,0 +1,36 @@
+
+Terraform used the selected providers
+to generate the following execution
+plan. Resource actions are indicated
+with the following symbols:
+  + create
+
+Terraform will perform the following
+actions:
+
+  # aws_ecs_cluster.app will be created
+  + resource "aws_ecs_cluster" "app" {
+      + arn      = (known after apply)
+      + id       = (known after apply)
+      + name     = "tf-hello"
+      + region   = "ap-northeast-1"
+      + tags     = {
+          + "Env" = "sandbox"
+        }
+      + tags_all = {
+          + "Env" = "sandbox"
+        }
+
+      + setting (known after apply)
+    }
+
+Plan: 1 to add, 0 to change, 0 to
+destroy.
+
+───────────────────────────────────────
+
+Saved the plan to: tfplan
+
+To perform exactly these actions, run
+the following command to apply:
+    terraform apply "tfplan"

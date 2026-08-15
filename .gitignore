@@ -1,0 +1,17 @@
+# Terraform — プロバイダのバイナリは数百MBあるので絶対に入れない
+**/.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.tfstate.lock.info
+crash.log
+
+# 依存パッケージ — 取得し直せるものは追跡しない
+**/vendor/
+**/node_modules/
+
+# 実行時に生成されるもの
+**/access.log
+**/api.log
+*.pyc
+__pycache__/
+.DS_Store

@@ -1,0 +1,11 @@
+
+   Illuminate\Database\QueryException 
+
+  SQLSTATE[HY000] [2002] Connection refu
+sed (Connection: mysql, Host: 127.0.0.1,
+ Port: 3306, Database: laravel_tidb, SQL
+: select exists (select 1 from informati
+on_schema.tables where table_schema = sc
+hema() and table_name = 'migrations' and
+ table_type in ('BASE TABLE', 'SYSTEM VE
+RSIONED')) as `exists`)

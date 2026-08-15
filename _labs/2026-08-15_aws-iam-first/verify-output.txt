@@ -1,0 +1,53 @@
+OK  intro     one sign-in identity called the AWS account 
+OK  intro     don't use the root user for everyday tasks
+OK  intro     control who is authenticated (signed in) and
+OK  intro     offered at no additional charge
+OK  intro     is eventually consistent
+OK  elements  The order of the elements doesn't matter
+OK  elements  you cannot use both `Action` and `NotAction`
+OK  best      also known as *least-privilege permissions*
+OK  best      You might start with broad permissions
+OK  best      might not grant least-privilege permissions 
+OK  best      no need to distribute long lived credentials
+OK  taskrole  This role allows your application code (runn
+OK  taskrole  These permissions aren't accessed by the Ama
+OK  taskrole  EC2 instance profiles are not available for 
+OK  taskrole  containers can potentially access credential
+OK  taskrole  ecs-tasks.amazonaws.com
+OK  taskrole  aws:SourceAccount
+OK  taskrole  my-task-secrets-bucket
+OK  taskrole  without calling `sts:AssumeRole`
+OK  taskrole  creating a role for each specific task defin
+OK  execrole  grants the Amazon ECS container and Fargate 
+OK  execrole  they aren't directly accessible by the conta
+OK  execrole  container agent version 1.16.0 and later
+OK  tdparams  `taskRoleArn`
+OK  tdparams  `executionRoleArn`
+OK  fargate   without having to manage servers or clusters
+OK  mp        ecr:GetAuthorizationToken
+OK  mp        logs:PutLogEvents
+OK  mp        November 16, 2017
+OK  mp        v1 (default)
+OK  sdkcred   AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
+OK  sdkcred   SDKs attempt to load credentials from the sp
+OK  users     An IAM user consists of a name and credentia
+OK  users     only use IAM users for specific use cases no
+OK  groups    You cannot identify a user group as a Princi
+OK  groups    User groups can't be nested
+OK  roles     a role is intended to be assumable by anyone
+OK  roles     a role does not have standard long-term cred
+OK  roles     The trust policy specifies which trusted acc
+OK  roles     you cannot specify a wildcard
+OK  roles     temporarily gives up his or her own permissi
+OK  policies  The most common examples of resource-based p
+OK  policies  The principal is implied as that user or rol
+OK  policies  AWS applies a logical OR across the statemen
+OK  version   This is the current version of the policy la
+OK  version   Do not use this version for any new policies
+OK  effect    The Effect value is case sensitive.
+OK  evallogic the resulting permissions are the intersecti
+OK  denyallow An explicit deny overrides an explicit allow
+OK  sts       consist of an access key ID, a secret access
+OK  sts       up to the maximum session duration set for t
+OK  sts       By default, the value is set to 3600 seconds
+--- 不一致 0 件

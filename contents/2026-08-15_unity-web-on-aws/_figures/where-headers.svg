@@ -1,0 +1,57 @@
+<svg viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <defs>
+    <marker id="lft" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--sub)"/>
+    </marker>
+  </defs>
+
+  <text x="17" y="24" fill="var(--sub)" font-size="12" font-weight="700">応答（ファイル＋ヘッダー）は右から左へ返る</text>
+
+  <!-- boxes -->
+  <rect x="17" y="38" width="126" height="58" rx="10" fill="var(--track)" stroke="var(--sub)" stroke-width="1"/>
+  <text x="80" y="63" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle">ブラウザ</text>
+  <text x="80" y="82" fill="var(--sub)" font-size="11" text-anchor="middle">遊ぶ人</text>
+
+  <rect x="177" y="38" width="126" height="58" rx="10" fill="var(--track)" stroke="var(--a)" stroke-width="2"/>
+  <text x="240" y="63" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle">CloudFront</text>
+  <text x="240" y="82" fill="var(--sub)" font-size="11" text-anchor="middle">CDN</text>
+
+  <rect x="337" y="38" width="126" height="58" rx="10" fill="var(--track)" stroke="var(--c)" stroke-width="2"/>
+  <text x="400" y="63" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle">ALB</text>
+  <text x="400" y="82" fill="var(--sub)" font-size="11" text-anchor="middle">負荷分散</text>
+
+  <rect x="497" y="38" width="126" height="58" rx="10" fill="var(--track)" stroke="var(--sub)" stroke-width="1"/>
+  <text x="560" y="63" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle">nginx / ECS</text>
+  <text x="560" y="82" fill="var(--sub)" font-size="11" text-anchor="middle">配信元・S3</text>
+
+  <!-- arrows (right to left) -->
+  <path d="M174 67 L147 67" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#lft)"/>
+  <path d="M334 67 L307 67" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#lft)"/>
+  <path d="M494 67 L467 67" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#lft)"/>
+
+  <!-- verdict pills -->
+  <rect x="177" y="112" width="126" height="26" rx="13" fill="none" stroke="var(--a)" stroke-width="1.8"/>
+  <text x="240" y="130" fill="var(--a)" font-size="12" font-weight="800" text-anchor="middle">◯ ここで付ける</text>
+
+  <rect x="337" y="112" width="126" height="26" rx="13" fill="none" stroke="var(--c)" stroke-width="1.8"/>
+  <text x="400" y="130" fill="var(--c)" font-size="12" font-weight="800" text-anchor="middle">✕ 機能が無い</text>
+
+  <rect x="497" y="112" width="126" height="26" rx="13" fill="none" stroke="var(--sub)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="560" y="130" fill="var(--sub)" font-size="12" font-weight="800" text-anchor="middle">△ 付けさせない</text>
+
+  <!-- captions -->
+  <text x="80" y="118" fill="var(--sub)" font-size="10.5" text-anchor="middle" font-family="ui-monospace, monospace">crossOriginIsolated</text>
+  <text x="80" y="134" fill="var(--sub)" font-size="11" text-anchor="middle">を見て判定する</text>
+
+  <text x="240" y="158" fill="var(--sub)" font-size="11" text-anchor="middle">レスポンスヘッダー</text>
+  <text x="240" y="174" fill="var(--sub)" font-size="11" text-anchor="middle">ポリシーのカスタム枠</text>
+
+  <text x="400" y="158" fill="var(--sub)" font-size="11" text-anchor="middle">足せるのは10種だけ</text>
+  <text x="400" y="174" fill="var(--sub)" font-size="11" text-anchor="middle">COOP/COEP/CORPは無い</text>
+
+  <text x="560" y="158" fill="var(--sub)" font-size="11" text-anchor="middle">付けられるが付けない</text>
+  <text x="560" y="174" fill="var(--sub)" font-size="11" text-anchor="middle">二重になると無効化</text>
+
+  <line x1="17" y1="196" x2="623" y2="196" stroke="var(--sub)" stroke-width="1" stroke-dasharray="3 4" opacity="0.5"/>
+  <text x="320" y="219" fill="var(--fg)" font-size="12.5" text-anchor="middle">S3から直接配る構成ならALBは無い。どちらでも付ける場所はCloudFront</text>
+</svg>

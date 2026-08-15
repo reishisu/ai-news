@@ -1,0 +1,42 @@
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # aws_cloudfront_response_headers_policy.unity_web will be created
+  + resource "aws_cloudfront_response_headers_policy" "unity_web" {
+      + arn     = (known after apply)
+      + comment = "COOP/COEP/CORP for Unity Web multithreading"
+      + etag    = (known after apply)
+      + id      = (known after apply)
+      + name    = "unity-web-coi"
+
+      + custom_headers_config {
+          + items {
+              + header   = "Cross-Origin-Embedder-Policy"
+              + override = true
+              + value    = "require-corp"
+            }
+          + items {
+              + header   = "Cross-Origin-Opener-Policy"
+              + override = true
+              + value    = "same-origin"
+            }
+          + items {
+              + header   = "Cross-Origin-Resource-Policy"
+              + override = true
+              + value    = "cross-origin"
+            }
+        }
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+─────────────────────────────────────────────────────────────────────────────
+
+Saved the plan to: tfplan
+
+To perform exactly these actions, run the following command to apply:
+    terraform apply "tfplan"

@@ -1,0 +1,44 @@
+data.aws_caller_identity.me: Reading...
+
+Terraform used the selected providers
+to generate the following execution
+plan. Resource actions are indicated
+with the following symbols:
+  + create
+
+Terraform planned the following
+actions, but then encountered a problem:
+
+  # aws_ecs_cluster.app will be created
+  + resource "aws_ecs_cluster" "app" {
+      + arn      = (known after apply)
+      + id       = (known after apply)
+      + name     = "tf-hello"
+      + region   = "ap-northeast-1"
+      + tags     = {
+          + "Env" = "sandbox"
+        }
+      + tags_all = {
+          + "Env" = "sandbox"
+        }
+
+      + setting (known after apply)
+    }
+
+Plan: 1 to add, 0 to change, 0 to
+destroy.
+
+Error: reading STS Caller Identity
+
+  with data.aws_caller_identity.me,
+  on main.tf line 32, in data
+  "aws_caller_identity" "me":
+  32: data "aws_caller_identity" "me" {}
+
+operation error STS: GetCallerIdentity,
+https response error StatusCode: 403,
+RequestID:
+aecef423-a705-4639-9b34-0b868f50a579,
+api error InvalidClientTokenId: The
+security token included in the request
+is invalid.

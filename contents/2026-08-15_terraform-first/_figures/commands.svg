@@ -1,0 +1,55 @@
+<svg viewBox="0 0 640 302" xmlns="http://www.w3.org/2000/svg" role="img">
+  <!-- 触る対象の見出し -->
+  <text x="195" y="30" fill="var(--sub)" font-size="12.5" font-weight="800" text-anchor="middle">.tf ファイル</text>
+  <text x="317" y="30" fill="var(--sub)" font-size="12.5" font-weight="800" text-anchor="middle">プロバイダ</text>
+  <text x="439" y="30" fill="var(--sub)" font-size="12.5" font-weight="800" text-anchor="middle">state</text>
+  <text x="561" y="30" fill="var(--sub)" font-size="12.5" font-weight="800" text-anchor="middle">現実のクラウド</text>
+
+  <!-- 行の背景 -->
+  <rect x="14" y="44" width="606" height="48" rx="10" fill="var(--track)"/>
+  <rect x="14" y="148" width="606" height="48" rx="10" fill="var(--track)"/>
+  <rect x="14" y="200" width="606" height="48" rx="10" fill="none" stroke="var(--new)" stroke-width="2"/>
+
+  <!-- init -->
+  <text x="24" y="74" fill="var(--fg)" font-size="13.5" font-weight="800" font-family="ui-monospace, monospace">init</text>
+  <rect x="167" y="55" width="56" height="26" rx="13" fill="none" stroke="var(--sub)" stroke-width="1.5"/>
+  <text x="195" y="72" fill="var(--sub)" font-size="12" text-anchor="middle">読む</text>
+  <rect x="289" y="55" width="56" height="26" rx="13" fill="var(--new)"/>
+  <text x="317" y="72" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">取得</text>
+  <text x="439" y="73" fill="var(--sub)" font-size="14" text-anchor="middle">—</text>
+  <text x="561" y="73" fill="var(--sub)" font-size="14" text-anchor="middle">—</text>
+
+  <!-- validate -->
+  <text x="24" y="126" fill="var(--fg)" font-size="13.5" font-weight="800" font-family="ui-monospace, monospace">validate</text>
+  <rect x="167" y="107" width="56" height="26" rx="13" fill="none" stroke="var(--sub)" stroke-width="1.5"/>
+  <text x="195" y="124" fill="var(--sub)" font-size="12" text-anchor="middle">読む</text>
+  <rect x="289" y="107" width="56" height="26" rx="13" fill="none" stroke="var(--sub)" stroke-width="1.5"/>
+  <text x="317" y="124" fill="var(--sub)" font-size="12" text-anchor="middle">使う</text>
+  <text x="439" y="125" fill="var(--sub)" font-size="14" text-anchor="middle">—</text>
+  <text x="561" y="125" fill="var(--sub)" font-size="14" text-anchor="middle">—</text>
+
+  <!-- plan -->
+  <text x="24" y="178" fill="var(--fg)" font-size="13.5" font-weight="800" font-family="ui-monospace, monospace">plan</text>
+  <rect x="167" y="159" width="56" height="26" rx="13" fill="none" stroke="var(--sub)" stroke-width="1.5"/>
+  <text x="195" y="176" fill="var(--sub)" font-size="12" text-anchor="middle">読む</text>
+  <rect x="289" y="159" width="56" height="26" rx="13" fill="none" stroke="var(--sub)" stroke-width="1.5"/>
+  <text x="317" y="176" fill="var(--sub)" font-size="12" text-anchor="middle">使う</text>
+  <rect x="411" y="159" width="56" height="26" rx="13" fill="none" stroke="var(--sub)" stroke-width="1.5"/>
+  <text x="439" y="176" fill="var(--sub)" font-size="12" text-anchor="middle">読む</text>
+  <rect x="533" y="159" width="56" height="26" rx="13" fill="none" stroke="var(--sub)" stroke-width="1.5"/>
+  <text x="561" y="176" fill="var(--sub)" font-size="12" text-anchor="middle">読む</text>
+
+  <!-- apply -->
+  <text x="24" y="230" fill="var(--new)" font-size="13.5" font-weight="800" font-family="ui-monospace, monospace">apply</text>
+  <rect x="167" y="211" width="56" height="26" rx="13" fill="none" stroke="var(--sub)" stroke-width="1.5"/>
+  <text x="195" y="228" fill="var(--sub)" font-size="12" text-anchor="middle">読む</text>
+  <rect x="289" y="211" width="56" height="26" rx="13" fill="none" stroke="var(--sub)" stroke-width="1.5"/>
+  <text x="317" y="228" fill="var(--sub)" font-size="12" text-anchor="middle">使う</text>
+  <rect x="411" y="211" width="56" height="26" rx="13" fill="var(--new)"/>
+  <text x="439" y="228" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">書く</text>
+  <rect x="533" y="211" width="56" height="26" rx="13" fill="var(--new)"/>
+  <text x="561" y="228" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">書く</text>
+
+  <text x="320" y="270" fill="var(--sub)" font-size="12" text-anchor="middle">枠線＝読むだけ ／ 塗り＝書き込む ／ — ＝触らない</text>
+  <text x="320" y="294" fill="var(--new)" font-size="13" font-weight="800" text-anchor="middle">現実のクラウドを書き換えるのは apply だけ</text>
+</svg>

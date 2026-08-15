@@ -1,0 +1,28 @@
+
+   PASS  Tests\Unit\ExampleTest
+  ✓ that true is true
+
+   FAIL  Tests\Feature\ExampleTest
+  ⨯ the application returns a successful response                        0.30s  
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\ExampleTest > the applicati…  MissingAppKeyException   
+  No application encryption key has been specified.
+
+  at vendor/laravel/framework/src/Illuminate/Encryption/EncryptionServiceProvider.php:83
+     79▕     protected function key(array $config)
+     80▕     {
+     81▕         return tap($config['key'], function ($key) {
+     82▕             if (empty($key)) {
+  ➜  83▕                 throw new MissingAppKeyException;
+     84▕             }
+     85▕         });
+     86▕     }
+     87▕ }
+
+      +19 vendor frames 
+  20  tests/Feature/ExampleTest.php:15
+
+
+  Tests:    1 failed, 1 passed (1 assertions)
+  Duration: 0.40s
+

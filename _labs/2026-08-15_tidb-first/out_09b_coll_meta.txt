@@ -1,0 +1,5 @@
+-- 新照合フレームワーク(TiDB) ----------
+new_collation_enabled: True
+-- users_t.email の照合順序 ------------
+TiDB : utf8mb4_bin
+MySQL: utf8mb4_0900_ai_ci

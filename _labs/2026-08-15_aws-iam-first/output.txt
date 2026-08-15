@@ -1,0 +1,201 @@
+======================================
+0. バージョン
+======================================
+aws-cli/1.46.0 Python/3.11.15 
+Linux/6.18.5-fc-v20 botocore/1.43.62
+Python 3.11.15
+Terraform v1.14.3
+parliament 1.6.4
+======================================
+1. 認証情報が無いとどうなるか
+======================================
+Unable to locate credentials. You can 
+configure credentials by running "aws 
+configure".
+rc=255
+======================================
+1b. 鍵が「無効」な場合は別のエラー
+======================================
+
+An error occurred 
+(InvalidClientTokenId) when calling 
+the GetCallerIdentity operation: The 
+security token included in the 
+request is invalid.
+======================================
+2. ロール作成に必ず要るもの(通信なし)
+======================================
+aws: error: the following arguments 
+are required: 
+--assume-role-policy-document
+======================================
+3. create-user が受け取るもの
+======================================
+{
+    "Path": "",
+    "UserName": "",
+    "PermissionsBoundary": "",
+    "Tags": [
+        {
+            "Key": "",
+            "Value": ""
+        }
+    ]
+}
+======================================
+4. create-role が受け取るもの
+======================================
+{
+    "Path": "",
+    "RoleName": "",
+    "AssumeRolePolicyDocument": "",
+    "Description": "",
+    "MaxSessionDuration": 0,
+    "PermissionsBoundary": "",
+    "Tags": [
+        {
+            "Key": "",
+            "Value": ""
+        }
+    ]
+}
+======================================
+5. アクセスキー発行に期限の指定は無い
+======================================
+{
+    "UserName": ""
+}
+======================================
+6. AssumeRole は期限付き
+======================================
+{
+    "RoleArn": "",
+    "RoleSessionName": "",
+    "PolicyArns": [
+        {
+            "arn": ""
+        }
+    ],
+======================================
+7. アクション名を公式データで照合
+======================================
+action                 ある? 種別
+--------------------------------------
+s3:GetObject           OK    読取
+s3:PutObject           OK    書込
+s3:ListBucket          OK    読取
+s3:DeleteObject        OK    書込
+s3:GetObjectt          NG    -
+sts:AssumeRole         OK    書込
+sts:GetCallerIdentity  OK    読取
+iam:CreateUser         OK    書込
+iam:PassRole           OK    書込
+iam:CreateAccessKey    OK    書込
+--------------------------------------
+見つからなかった: 1 件
+======================================
+8. Resource に書く ARN の形
+======================================
+(${Partition} は aws に置換して表示)
+s3:ListBucket
+  対象 bucket
+arn:aws:s3:::${BucketName}
+
+s3:GetObject
+  対象 object
+arn:aws:s3:::${BucketName}/${ObjectName}
+
+======================================
+8b. Terraformが組み立てたポリシー
+======================================
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ListTheBucket",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::logs"
+    },
+    {
+      "Sid": "ReadObjects",
+      "Effect": "Allow",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::logs/*"
+    }
+  ]
+}
+======================================
+9. Effect の大文字小文字 (terraform)
+======================================
+エラー 2 件
+21行目:
+expected statement.0.effect to be one
+  of ["Allow" "Deny"], got allow
+27行目:
+expected statement.1.effect to be one
+  of ["Allow" "Deny"], got allow
+======================================
+10. ポリシーJSONをlintする
+======================================
+### 01-reader-ok.json
+  指摘なし
+
+### 02-effect-lower.json
+  MALFORMED (5行目)
+   Unknown Effect used. Effect must be
+   either Allow or Deny
+
+### 03-typo-action.json
+  UNKNOWN_ACTION (6行目)
+   Unknown action s3:GetObjectt
+
+### 04-star-star.json
+  指摘なし
+
+### 05-wrong-arn.json
+  RESOURCE_MISMATCH (4行目)
+   [{'action': 's3:ListBucket',
+   'required_format': 'arn:*:s3:::*'}]
+
+### 06-identity-with-principal.json
+  指摘なし
+
+### 07-trust-ok.json
+  MALFORMED (4行目)
+   Statement contains neither Resource
+   nor NotResource
+
+======================================
+10b. 全許可ポリシーは既定では素通り
+======================================
+既定: 指摘 0 件
+community あり: 指摘 24 件
+  PRIVILEGE_ESCALATION x22
+  CREDENTIALS_EXPOSURE x1
+  PERMISSIONS_MANAGEMENT_ACTIONS x1
+======================================
+11. 判定順のおもちゃ実装
+======================================
+要求 s3:GetObject
+対象 logs/report.csv
+--------------------------------------
+何も付けない
+  -> Deny : 暗黙のDeny(許可が無い)
+読取Allowだけ
+  -> Allow : 許可あり・拒否なし
+Allow+Deny
+  -> Deny : 明示的なDeny
+境界:s3:Get*
+  -> Allow : 許可あり・拒否なし
+境界:dynamodbのみ
+  -> Deny : 境界が許可していない
+MFA必須/MFAなし
+  -> Deny : 暗黙のDeny(許可が無い)
+MFA必須/MFAあり
+  -> Allow : 許可あり・拒否なし
+--------------------------------------
+======================================
+12. おもちゃ実装のテスト
+======================================
+10 passed in 0.01s

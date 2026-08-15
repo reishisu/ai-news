@@ -1,0 +1,6 @@
+Terraform v1.14.3
+Success! The configuration is valid.
+
+Plan: 1 to add, 0 to change, 0 to 
+destroy.
+apply は実行していない

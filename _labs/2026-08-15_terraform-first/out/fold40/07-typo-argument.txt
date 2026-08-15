@@ -1,0 +1,18 @@
+
+Error: Missing required argument
+
+  on main.tf line 24, in resource
+  "aws_ecs_cluster" "app":
+  24: resource "aws_ecs_cluster" "app" {
+
+The argument "name" is required, but no
+definition was found.
+
+Error: Unsupported argument
+
+  on main.tf line 25, in resource
+  "aws_ecs_cluster" "app":
+  25:   nmae = "tf-hello"
+
+An argument named "nmae" is not
+expected here. Did you mean "name"?

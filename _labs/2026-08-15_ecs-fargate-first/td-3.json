@@ -1,0 +1,12 @@
+{
+  "family": "web",
+  "containerDefinitions": [
+    {
+      "name": "app",
+      "image": "nginx:1.27",
+      "portMappings": [
+        { "containerPort": "80" }
+      ]
+    }
+  ]
+}

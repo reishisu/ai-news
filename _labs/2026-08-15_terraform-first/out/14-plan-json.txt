@@ -1,0 +1,10 @@
+format_version : 1.2
+terraform_ver  : 1.14.3
+resource_count : 1
+
+addr    : aws_ecs_cluster.app
+actions : create
+known   : configuration, name, region,
+          service_connect_defaults,
+          tags, tags_all
+unknown : arn, id, setting

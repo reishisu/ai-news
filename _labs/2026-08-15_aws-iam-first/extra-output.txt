@@ -1,0 +1,21 @@
+# 記事執筆時に追加で取った実出力（2026-08-15）
+# run_all.sh の 6. は head -8 で切れており DurationSeconds が
+# 見えないため、記事用に grep で絞って取り直した。
+# 2. も 380px 幅に収めるためロール名を r に縮めて取り直した。
+
+$ aws sts assume-role --generate-cli-skeleton \
+    | grep -E "RoleArn|Session|Duration"
+    "RoleArn": "",
+    "RoleSessionName": "",
+    "DurationSeconds": 0,
+
+$ aws iam create-access-key --generate-cli-skeleton
+{
+    "UserName": ""
+}
+
+$ aws iam create-role --role-name r 2>&1 \
+    | tail -1 | fold -s -w 38
+aws: error: the following arguments 
+are required: 
+--assume-role-policy-document

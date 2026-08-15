@@ -1,0 +1,221 @@
+### 環境
+Python 3.11.15
+v22.22.2
+Chromium 141.0.7390.37 
+Terraform v1.14.3
+aws-cli/1.46.0
+
+app.wasm         41 bytes
+app.wasm.gz      61 bytes
+app.wasm.br      42 bytes
+
+### ブラウザでの実測
+ブラウザ: 141.0.7390.37
+
+■ ヘッダーなしのページ
+  isSecureContext       true
+  crossOriginIsolated   false
+  SharedArrayBuffer     なし
+  共有メモリ
+      作れる (SharedArrayBuffer)
+  Workerへ渡す
+      渡せない (DataCloneError)
+
+■ COOP+COEP 付きのページ
+  isSecureContext       true
+  crossOriginIsolated   true
+  SharedArrayBuffer     あり
+  共有メモリ
+      作れる (SharedArrayBuffer)
+  Workerへ渡す          渡せる
+
+■ COOP+COEP 付き / IP直打ちの http
+  isSecureContext       false
+  crossOriginIsolated   false
+  SharedArrayBuffer     なし
+  共有メモリ
+      作れる (SharedArrayBuffer)
+  Workerへ渡す
+      渡せない (DataCloneError)
+
+■ Accept-Encoding (localhost, http)
+  gzip, deflate, br, zstd
+■ Accept-Encoding (IP直打ち, http)
+  gzip, deflate
+
+■ IP直打ちで br を配ると
+  NG br 申告あり
+     Content-Encoding: br
+     TypeError: Failed to fetch
+     Failed to load resource: net::ERR_C
+     ONTENT_DECODING_FAILED
+  OK 無圧縮
+     Content-Encoding なし
+     add(2,3) = 5
+
+■ .wasm の配信ヘッダー
+  OK 無圧縮
+     Content-Type: application/wasm
+     add(2,3) = 5
+  NG 型が違う
+     Content-Type: application/octet-str
+     eam
+     TypeError: Failed to execute 'compi
+     le' on 'WebAssembly': Incorrect res
+     ponse MIME type. Expected 'applicat
+     ion/wasm'.
+  NG br 素のまま
+     Content-Encoding なし
+     CompileError: WebAssembly.instantia
+     teStreaming(): expected magic word 
+     00 61 73 6d, found 1b 28 00 f8 @+0
+  OK br 申告あり
+     Content-Encoding: br
+     add(2,3) = 5
+  NG br 申告だけ
+     中身は無圧縮なのに br と申告
+     TypeError: WebAssembly compilation 
+     aborted: Network error: Response bo
+     dy loading was aborted
+     Failed to load resource: net::ERR_C
+     ONTENT_DECODING_FAILED
+  NG gz 素のまま
+     Content-Encoding なし
+     CompileError: WebAssembly.instantia
+     teStreaming(): expected magic word 
+     00 61 73 6d, found 1f 8b 08 00 @+0
+  OK gz 申告あり
+     Content-Encoding: gzip
+     add(2,3) = 5
+
+■ COEPページ→別オリジンをfetch
+  NG ヘッダーなし
+     配信元が何も付けていない
+     TypeError: Failed to fetch
+     Access to fetch at 'http://127.0.0.
+     1:8822/bare/app.wasm' from origin '
+     http://127.0.0.1:8821' has been blo
+     cked by CORS policy: No 'Access-Con
+     trol-Allow-Origin' header is presen
+     t on the requested resource.
+     Failed to load resource: net::ERR_F
+     AILED
+  NG CORPのみ
+     CORP: cross-origin
+     TypeError: Failed to fetch
+     Access to fetch at 'http://127.0.0.
+     1:8822/corp/app.wasm' from origin '
+     http://127.0.0.1:8821' has been blo
+     cked by CORS policy: No 'Access-Con
+     trol-Allow-Origin' header is presen
+     t on the requested resource.
+     Failed to load resource: net::ERR_F
+     AILED
+  OK CORSあり
+     ACAO: *
+     add(2,3) = 5
+
+■ COEPページ→別オリジンのscript
+  NG ヘッダーなし
+     配信元が何も付けていない
+     onerror (詳細は下の行)
+     Failed to load resource: net::ERR_B
+     LOCKED_BY_RESPONSE.NotSameOriginAft
+     erDefaultedToSameOriginByCoep
+  OK CORPのみ
+     CORP: cross-origin
+     読み込めた
+
+
+### 配信ヘッダーの確認
+HTTP/1.1 200
+content-type
+  text/html; charset=utf-8
+cross-origin-opener-policy
+  same-origin
+cross-origin-embedder-policy
+  require-corp
+
+HTTP/1.1 200
+content-type
+  application/wasm
+content-encoding
+  br
+
+### aws s3 cp が付ける Content-Type
+(S3には上げていない)
+■ aws s3 cp が載せる値(推定)
+app.loader.js
+  type text/javascript
+  enc  (付かない)
+  ※mimetypesの符号化推測: なし
+app.framework.js.br
+  type text/javascript
+  enc  (付かない)
+  ※mimetypesの符号化推測: br
+app.wasm
+  type application/wasm
+  enc  (付かない)
+  ※mimetypesの符号化推測: なし
+app.wasm.br
+  type application/wasm
+  enc  (付かない)
+  ※mimetypesの符号化推測: br
+app.data.br
+  type (付かない→S3既定)
+  enc  (付かない)
+  ※mimetypesの符号化推測: br
+app.wasm.gz
+  type application/wasm
+  enc  (付かない)
+  ※mimetypesの符号化推測: gzip
+
+--content-encoding br を付けた場合
+  enc  br
+
+### 本物のAWSは触れない
+$ aws cloudfront list-distributions
+An error occurred 
+(InvalidClientTokenId) when calling 
+the ListDistributions operation: The 
+security token included in the 
+request is invalid.
+
+### CloudFront の雛形(認証情報なし)
+■ SecurityHeadersConfig の中身
+ContentSecurityPolicy
+ContentTypeOptions
+FrameOptions
+ReferrerPolicy
+StrictTransportSecurity
+XSSProtection
+
+■ 雛形に Cross-Origin という語が出る回数
+0
+
+■ 自由に足せる枠
+Header
+Override
+Value
+
+### terraform (apply はしない)
+Terraform v1.14.3
+Success! The configuration is valid.
+
+Plan: 1 to add, 0 to change, 0 to 
+destroy.
+apply は実行していない
+
+■ 変更の件数
+create : 1件
+
+■ 作られるもの
+aws_cloudfront_response_headers_policy
+
+■ 付けるヘッダー
+  Cross-Origin-Embedder-Policy
+      require-corp
+  Cross-Origin-Opener-Policy
+      same-origin
+  Cross-Origin-Resource-Policy
+      cross-origin

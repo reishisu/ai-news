@@ -1,0 +1,30 @@
+===== 0. .env 側のDBのテーブル =====
+DB_CONNECTION=sqlite
+cache cache_locks failed_jobs
+job_batches jobs migrations
+password_reset_tokens sessions
+sqlite_sequence users
+
+
+===== 1. RefreshDatabase なし =====
+
+   FAIL  Tests\Feature\UserCountTest
+  ⨯ users table is readable      0.10s
+  ────────────────────────────────────
+   FAILED  Tests\Fea…  QueryException
+  SQLSTATE[HY000]: General error: 1 no
+such table: users (Connection: sqlite,
+Database: :memory:, SQL: select
+count(*) as "aggregate" from "users")
+
+exit=2
+
+===== 2. RefreshDatabase あり =====
+
+   PASS  Tests\Feature\UserCountTest
+  ✓ users table is readable      0.15s
+
+  Tests:    1 passed (1 assertions)
+  Duration: 0.24s
+
+exit=0

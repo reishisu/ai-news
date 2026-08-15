@@ -1,0 +1,14 @@
+{
+  "category": "Web開発・インフラ",
+  "tags": [
+    "AWS",
+    "ECS",
+    "入門",
+    "実測",
+    "公式ドキュメント"
+  ],
+  "featured": true,
+  "title": "ECS on Fargate の登場人物 — クラスタ・タスク定義・サービス・ALB",
+  "summary": "ECSの画面に並ぶクラスタ・タスク定義・タスク・サービスが何を担当しているのかを、公式ドキュメントの原文で整理しました。クラスタはサーバーの集まりではなく、名前だけで作れる区切りです。サービスとALBはコンテナ名の文字列一致で繋がっていて、1文字ずらしても terraform plan は通りました。CloudFrontはALBの前。AWSへのデプロイは実行していません。",
+  "thumbnail": "images/thumb.png"
+}

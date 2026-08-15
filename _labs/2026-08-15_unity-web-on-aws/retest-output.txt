@@ -1,0 +1,18 @@
+ブラウザ: 141.0.7390.37
+
+■ ヘッダーなしで配信した場合
+  crossOriginIsolated   false
+  SharedArrayBuffer     なし / 作れない (ReferenceError)
+  WebAssembly           あり
+  WebGL2                あり
+  WebGPU                あり
+  論理コア数            4
+
+■ COOP + COEP を付けて配信した場合
+  crossOriginIsolated   true
+  SharedArrayBuffer     あり / 作れる
+  WebAssembly           あり
+  WebGL2                あり
+  WebGPU                あり
+  論理コア数            4
+

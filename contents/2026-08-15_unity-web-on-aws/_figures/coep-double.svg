@@ -1,0 +1,51 @@
+<svg viewBox="0 0 640 268" xmlns="http://www.w3.org/2000/svg" role="img">
+  <defs>
+    <marker id="rgt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--sub)"/>
+    </marker>
+  </defs>
+
+  <text x="102" y="24" fill="var(--sub)" font-size="11.5" font-weight="700" text-anchor="middle">付ける場所</text>
+  <text x="322" y="24" fill="var(--sub)" font-size="11.5" font-weight="700" text-anchor="middle">返るレスポンスの中身</text>
+  <text x="540" y="24" fill="var(--sub)" font-size="11.5" font-weight="700" text-anchor="middle">ブラウザの結論</text>
+
+  <!-- row 1 : OK -->
+  <rect x="14" y="38" width="176" height="70" rx="10" fill="var(--track)" stroke="var(--a)" stroke-width="2"/>
+  <text x="102" y="66" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle">CloudFront だけ</text>
+  <text x="102" y="88" fill="var(--sub)" font-size="11" text-anchor="middle">オリジン側は付けない</text>
+
+  <path d="M194 73 L218 73" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#rgt)"/>
+
+  <rect x="222" y="38" width="200" height="70" rx="10" fill="var(--track)" stroke="var(--sub)" stroke-width="1"/>
+  <text x="322" y="62" fill="var(--sub)" font-size="11" text-anchor="middle">COEP ヘッダーは 1本</text>
+  <text x="322" y="88" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle" font-family="ui-monospace, monospace">require-corp</text>
+
+  <path d="M426 73 L450 73" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#rgt)"/>
+
+  <rect x="454" y="38" width="172" height="70" rx="10" fill="none" stroke="var(--a)" stroke-width="2"/>
+  <text x="540" y="66" fill="var(--a)" font-size="12.5" font-weight="800" text-anchor="middle">分離される</text>
+  <text x="540" y="88" fill="var(--a)" font-size="12.5" font-weight="800" text-anchor="middle">マルチスレッド動く</text>
+
+  <!-- row 2 : NG -->
+  <rect x="14" y="130" width="176" height="86" rx="10" fill="var(--track)" stroke="var(--c)" stroke-width="2"/>
+  <text x="102" y="158" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle">nginx と CloudFront</text>
+  <text x="102" y="178" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle">の両方</text>
+  <text x="102" y="199" fill="var(--sub)" font-size="11" text-anchor="middle">念のため入れておいた</text>
+
+  <path d="M194 173 L218 173" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#rgt)"/>
+
+  <rect x="222" y="130" width="200" height="86" rx="10" fill="var(--track)" stroke="var(--c)" stroke-width="1.5"/>
+  <text x="322" y="152" fill="var(--c)" font-size="11" font-weight="700" text-anchor="middle">COEP ヘッダーが 2本</text>
+  <text x="322" y="176" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle" font-family="ui-monospace, monospace">require-corp,</text>
+  <text x="322" y="196" fill="var(--fg)" font-size="13" font-weight="700" text-anchor="middle" font-family="ui-monospace, monospace">require-corp</text>
+
+  <path d="M426 173 L450 173" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#rgt)"/>
+
+  <rect x="454" y="130" width="172" height="86" rx="10" fill="none" stroke="var(--c)" stroke-width="2"/>
+  <text x="540" y="160" fill="var(--c)" font-size="12.5" font-weight="800" text-anchor="middle">unsafe-none に落ちる</text>
+  <text x="540" y="182" fill="var(--c)" font-size="12.5" font-weight="800" text-anchor="middle">動かない</text>
+  <text x="540" y="202" fill="var(--c)" font-size="11.5" text-anchor="middle">エラーは1件も出ない</text>
+
+  <text x="320" y="246" fill="var(--fg)" font-size="12.5" text-anchor="middle">正しい値を2回付けると、1回も付けなかったのと同じになる</text>
+  <text x="320" y="262" fill="var(--sub)" font-size="11" text-anchor="middle">HTML Living Standard §7.1.4.1 の fail open</text>
+</svg>

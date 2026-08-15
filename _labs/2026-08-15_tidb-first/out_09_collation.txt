@@ -1,0 +1,15 @@
+-- TiDB  8.5.7 -------------------------
+大文字で検索: 0 件
+OK   大文字を重複挿入
+OK   表名 USERS_T で参照
+-- MySQL 8.0.46 ------------------------
+大文字で検索: 1 件
+NG   大文字を重複挿入
+    SQLSTATE[23000]: Integrity constrain
+    t violation: 1062 Duplicate entry 'T
+    ARO@EXAMPLE.COM' for key 'users_t.em
+    ail'
+NG   表名 USERS_T で参照
+    SQLSTATE[42S02]: Base table or view 
+    not found: 1146 Table 'shop.USERS_T'
+     doesn't exist

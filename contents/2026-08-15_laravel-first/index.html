@@ -1,0 +1,1303 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laravel を最初に動かすまで — composer、artisan、最初のテストが落ちる理由</title>
+<meta name="description" content="PHPを触ったことがない前提で、Laravel 13 をインストールして画面が出るまでを実測しました。composer create-project 直後のテストは落ちません。落ちるのは clone してきた側です。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Laravel を最初に動かすまで — composer、artisan、最初のテストが落ちる理由">
+<meta property="og:description" content="インストールから php artisan serve まで、実行ログをそのまま貼ります。テストが落ちる2つの原因も実測しました。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-15_laravel-first/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=87fa5662">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">Web開発・インフラ ｜ 2026年8月15日(土)</div>
+    <h1>Laravel を最初に動かすまで — composer、artisan、最初のテストが落ちる理由</h1>
+    <div class="range">PHPを触ったことがない前提で書きます。インストールから画面が出るまでを実際に通し、実行ログはファイルからそのまま貼ります（一部を切り出した箇所は、その旨を明記します）。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約12分</span>
+      <span class="tag">実測ログをそのまま</span>
+      <span class="tag">超基礎から</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <p class="lead"><b>Laravel</b>（ララベル）は、<b>PHP</b> という「Webサイトのサーバー側を書くための言語」で作られた<b>フレームワーク</b>です。フレームワークとは、アプリの骨組みと部品があらかじめ用意された土台のこと。<mark>ゼロから書く代わりに、決められた場所に自分のコードを置いていきます。</mark></p>
+    <ol>
+      <li>
+        <b>入れるものは4つだけ。PHP / Composer / Laravelインストーラ / Node（またはBun）</b>
+        <span>公式のインストール手順「Installing PHP and the Laravel Installer」節の冒頭にそう書いてあります。</span>
+      </li>
+      <li>
+        <b>作った直後のテストは落ちません。実測で「2 passed」</b>
+        <span>落ちるのは、他人のプロジェクトを <code>git clone</code>（Gitという共有の仕組みから、コードを手元にコピーしてくること）した側です。原因は <code>.env</code> の <code>APP_KEY</code> が空なこと。</span>
+      </li>
+      <li>
+        <b>テストは <code>.env</code> のデータベースを見ていない</b>
+        <span><code>phpunit.xml</code> が接続先を <code>:memory:</code>（メモリ上の使い捨てDB）に上書きします。だからテストのDBは毎回空っぽです。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">入れるものは4つ。公式のインストール手順の冒頭に書いてある</a></li>
+      <li><a href="#s2">最初のテストが落ちるのは、cloneしてきた側だけ</a></li>
+      <li><a href="#s3">Composer は「部品を集める係」。vendor/ が無いと最初の require で死ぬ</a></li>
+      <li><a href="#s4">artisan はブラウザと同じ入口を通っている</a></li>
+      <li><a href="#s5">ディレクトリのどこに何を書くのか</a></li>
+      <li><a href="#s6">テストDBは .env を見ていない。もう一つの落ち方</a></li>
+      <li><a href="#s7">ルートを1本足して、動くところまで</a></li>
+      <li><a href="#more">もっと知りたい人へ</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>入れるものは4つ。公式のインストール手順の冒頭に書いてある</h2>
+
+    <article class="item">
+      <h3>迷う余地はありません。公式が名指ししています</h3>
+      <p class="lead">「何をインストールすればいいのか」は、Laravel公式のインストール手順に書いてあります。ページの1文目ではなく、<mark>「Installing PHP and the Laravel Installer」節の冒頭</mark>です。訳ではなく原文を貼ります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Laravel 13.x「Installation」— Installing PHP and the Laravel Installer 節の冒頭・原文</div>
+        <pre>Before creating your first Laravel application,
+make sure that your local machine has PHP,
+Composer, and the Laravel installer installed.
+In addition, you should install either Node and
+NPM or Bun so that you can compile your
+application's frontend assets.
+
+（最初のLaravelアプリを作る前に、手元のマシンに
+　PHP・Composer・Laravelインストーラが入っている
+　ことを確認してください。加えて、フロントエンドの
+　アセットをコンパイルするために Node と NPM か
+　Bun のどちらかを入れる必要があります）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>PHP。</b>Laravel が書かれている言語そのもの。これが無いと1行も動きません。</li>
+        <li><b>Composer。</b>PHP用の「必要な部品を集めてくる係」。3章で詳しくやります。</li>
+        <li><b>Laravelインストーラ。</b><code>laravel new</code> というコマンドを追加するだけの小さな道具。新しいプロジェクト一式を作ってくれます。</li>
+        <li><b>Node と NPM、または Bun。</b>CSSとJavaScriptをブラウザ用に変換するために使います。原文は <code>either Node and NPM or Bun</code> なので<mark>どちらか片方でよい</mark>のですが、情報量が多いのはNode側です。<mark>PHPのアプリなのにJavaScript側の道具が要る</mark>のは、画面まわりだけそちらの仕組みに乗っているためです。</li>
+      </ul>
+
+      <p class="lead">この4つを入れたあと、公式が案内している最短手順はこれだけです。<mark>ターミナル</mark>（macOSなら「ターミナル」アプリ、WindowsならPowerShell）を開いて、プロジェクトを置きたいフォルダで打ちます。</p>
+
+      <div class="code">
+        <div class="code-head">Laravel 13.x「Installation」に載っている手順</div>
+        <pre>laravel new example-app
+
+cd example-app
+npm install &amp;&amp; npm run build
+composer run dev</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>laravel new example-app</code>。</b><code>example-app</code> という名前のフォルダが作られ、その中に一式が入ります。名前は好きに変えて構いません。</li>
+        <li><b><code>cd example-app</code>。</b>「作られたフォルダの中に移動する」という意味。<mark>以降のコマンドは全部この中で打ちます。</mark></li>
+        <li><b><code>npm install &amp;&amp; npm run build</code>。</b>CSSとJavaScriptを組み立てます。</li>
+        <li><b><code>composer run dev</code>。</b>開発用のサーバーが立ち上がり、<code>http://localhost:8000</code> で画面が見られます。止めるときは <kbd>Ctrl</kbd>+<kbd>C</kbd>。</li>
+      </ul>
+
+      <p class="lead"><code>laravel new</code> は途中で<mark>「テストフレームワークはどれにする?」と対話で聞いてきます</mark>。インストーラのソースを読むと、<code>Pest</code> と <code>PHPUnit</code> の2択で、既定は Pest でした。</p>
+
+      <div class="code">
+        <div class="code-head">laravel/installer の NewCommand.php（320行目付近）</div>
+        <pre>$input-&gt;setOption('pest', select(
+    label: 'Which testing framework do you prefer?',
+    options: ['Pest', 'PHPUnit'],
+    default: 'Pest',
+) === 'Pest');</pre>
+      </div>
+
+      <details>
+        <summary>この記事の検証は <code>laravel new</code> ではなく <code>composer create-project</code> で行いました</summary>
+        <div class="body">
+          <dl>
+            <dt>なぜ</dt>
+            <dd>対話で聞いてくるコマンドは自動実行に向かないためです。<code>composer create-project laravel/laravel example-app</code> は、同じ雛形を対話なしで展開します。実際 <code>laravel new</code> の中身も、ソースを読むと <code>composer create-project laravel/laravel ... --no-scripts</code> を呼んでいました。</dd>
+            <dt>違いが出るところ</dt>
+            <dd><code>create-project</code> ではテストフレームワークは <b>PHPUnit</b> のままです（Pestに差し替えるのはインストーラ側の仕事）。この記事の実行ログはすべてPHPUnit側のものです。<mark>あなたが <code>laravel new</code> で Pest を選んでいたら、テストの書き方だけが変わります。</mark>この記事で扱う「落ちる理由」は両方に共通です。</dd>
+            <dt>もう1つの違い</dt>
+            <dd><code>laravel new</code> は <code>--no-scripts</code> を付けて呼ぶので、雛形側の後処理は走りません。代わりにインストーラ自身が <code>key:generate</code> などを実行しています。結果として「鍵が作られる」点は同じです。</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details>
+        <summary>どのバージョンを選ぶか（2026年8月時点）</summary>
+        <div class="body">
+          <p class="lead">公式のサポート表を取得して確認しました。数値はすべてその表からの引用です。</p>
+          <div class="table">
+            <table>
+              <thead><tr><th>版</th><th>PHP</th><th>リリース</th><th>バグ修正の期限</th></tr></thead>
+              <tbody>
+                <tr><th>Laravel 12</th><td data-label="PHP">8.2 - 8.5</td><td data-label="リリース">2025年2月24日</td><td data-label="バグ修正の期限">2026年8月13日</td></tr>
+                <tr><th>Laravel 13</th><td data-label="PHP">8.3 - 8.5</td><td data-label="リリース">2026年3月17日</td><td data-label="バグ修正の期限">2027年 第3四半期</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="lead">Laravel 12 のバグ修正期限は<mark>2026年8月13日で、この記事を書いた時点で既に過ぎています</mark>。新しく始めるなら 13 です。</p>
+          <p class="lead">注意点が1つ。Laravel 13 本体が要求するPHPは 8.3 以上ですが、テストフレームワークの Pest は公式サイトに「PHP 8.4+ が必要」と書かれています。Packagist（PHPの部品の配布サイト。3章で出てきます）のメタデータJSONで確認したところ Pest 5系は <code>^8.4</code>、Pest 4系は <code>^8.3.0</code> でした（<code>^</code> の意味は3章で説明します。ここでは「8.4以上の8系」くらいの理解で十分です）。ここから考えると<b>PHP 8.3 で Pest を選ぶと入るのは 4系になるはず</b>ですが、<mark><code>laravel new</code> は対話が必要で自動実行できなかったため、これは実測ではなく制約からの推論です。</mark></p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>最初のテストが落ちるのは、cloneしてきた側だけ</h2>
+
+    <article class="item">
+      <h3>作った直後は落ちません。実測で確かめました</h3>
+      <p class="lead">この記事は「Laravelを入れて最初に <code>php artisan test</code>（テストを実行するコマンド。<b>テスト</b>とは、コードが期待どおり動くかを機械に確認させる仕組みです）を打つと、鍵が無くて落ちる」という前提で書き始めました。<mark>実際にやってみたら、落ちませんでした。</mark></p>
+      <p class="lead">出典があって書いた前提ではなく、こちらの思い込みです。実行ログを先に貼ります。なお <code>artisan</code> の正体は4章で明かします。ここでは「Laravelに付いてくる何でも屋のコマンド」と思って読んでください。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（2026年8月15日実測。40桁での折り返し以外の加工なし）</div>
+        <pre>===== 0. 環境 =====
+PHP 8.4.19 (cli) (built: Mar 30 2026
+19:28:35) (NTS)
+
+Composer version 2.8.12 2025-09-19
+13:41:59
+
+
+===== 1. composer create-project =====
+exit=0
+--- ログ末尾(post-create-project) ---
+&gt; @php artisan key:generate --ansi
+   INFO  Application key set
+successfully.
+&gt; @php artisan migrate --graceful --ansi
+
+
+===== 2. .env の APP_KEY を見る =====
+APP_KEY=base64:8RstfD+dGxT8zb1spGiPxxEq+
+^ create-project が自動生成済み
+APP_KEY=
+^ .env.example は空のまま
+
+===== 3. ここで php artisan test =====
+
+<span class="ok-line">   PASS  Tests\Unit\ExampleTest</span>
+<span class="ok-line">  ✓ that true is true</span>
+
+<span class="ok-line">   PASS  Tests\Feature\ExampleTest</span>
+<span class="ok-line">  ✓ the application returns a s… 0.12s</span>
+
+  Tests:    2 passed (2 assertions)
+  Duration: 0.21s
+
+
+exit=0</pre>
+      </div>
+
+      <p class="lead">理由は、ログ末尾に出ている <code>key:generate</code> の行です。<code>composer create-project</code> が終わったあと、<mark>雛形に書かれた後処理が自動で走っている</mark>のです。実物を見ます。</p>
+
+      <div class="code wrap">
+        <div class="code-head">生成された composer.json の scripts（この項目だけを抜粋）</div>
+        <pre>"post-create-project-cmd": [
+    "@php artisan key:generate --ansi",
+    "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
+    "@php artisan migrate --graceful --ansi"
+],</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>key:generate</code>。</b>暗号化用の鍵を作って <code>.env</code> に書き込みます。</li>
+        <li><b><code>touch(database/database.sqlite)</code>。</b>空のデータベースファイルを1個作ります。</li>
+        <li><b><code>migrate</code>。</b>そのファイルの中にテーブルを作ります。</li>
+      </ul>
+
+      <p class="lead">つまり<mark>「動く状態」まで最初から用意されている</mark>ということです。公式ドキュメントにも同じことが書かれています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Laravel 13.x「Installation」— Databases and Migrations 節</div>
+        <pre>During the creation of the application, Laravel
+created a database/database.sqlite file for you,
+and ran the necessary migrations to create the
+application's database tables.
+
+（アプリ作成時に Laravel が database/database.sqlite
+　ファイルを作り、アプリのDBテーブルを作るのに必要な
+　マイグレーションを実行済みです）</pre>
+      </div>
+
+      <div class="quiz">
+        <p class="q">Q. では、あの「鍵が無い」エラーはどこで出るのか?</p>
+        <button class="opt" type="button" data-correct="false">Laravelのバージョンが古いときだけ出る</button>
+        <button class="opt" type="button" data-correct="true">他人のプロジェクトを <code>git clone</code> してきたとき</button>
+        <button class="opt" type="button" data-correct="false">PHPのバージョンが合っていないとき</button>
+        <p class="ans" hidden>正解。<code>.env</code> は <code>.gitignore</code>（<b>Gitで共有しないファイルの一覧</b>。パスワードなど手元だけの設定はここに書いて共有対象から外します）に入っているので、cloneしても付いてきません。ひな形の <code>.env.example</code> をコピーして使うことになりますが、そこに書いてある <code>APP_KEY=</code> は<b>空</b>です。だから鍵がありません。次でその状態を作って測ります。</p>
+      </div>
+    </article>
+
+    <article class="item">
+      <h3>clone した側を再現する。1件だけ落ちた</h3>
+      <p class="lead"><code>.env.example</code> を <code>.env</code> にコピーするだけで、clone直後と同じ状態になります。そこでテストを打ちました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（先頭9行だけ切り出しています）</div>
+        <pre>===== 4. git clone 直後を再現 =====
+(.env.example をコピー = APP_KEY 空)
+APP_KEY=
+
+===== 5. APP_KEY 空で test =====
+exit=2
+
+<span class="ok-line">   PASS  Tests\Unit\ExampleTest</span>
+<span class="ok-line">  ✓ that true is true</span>
+
+<span class="ng-line">   FAIL  Tests\Feature\ExampleTest</span>
+<span class="ng-line">  ⨯ the application returns a s… 0.30s</span>
+<span class="ng-line">  ────────────────────────────────────</span>
+<span class="ng-line">   FAILED  T…  MissingAppKeyException</span>
+<span class="ng-line">  No application encryption key has</span>
+<span class="ng-line">been specified.</span></pre>
+      </div>
+
+      <p class="lead">切り落とした続きには、<mark>フレームワークのソースのどの行で落ちたか</mark>まで出ています。そのまま貼ります。</p>
+
+      <div class="code">
+        <div class="code-head">同じ実行の続き — Illuminate/Encryption/EncryptionServiceProvider.php</div>
+        <pre>     79▕     protected function key(array $config)
+     80▕     {
+     81▕         return tap($config['key'], function ($key) {
+     82▕             if (empty($key)) {
+  ➜  83▕                 throw new MissingAppKeyException;
+     84▕             }
+     85▕         });
+     86▕     }
+     87▕ }</pre>
+      </div>
+
+      <p class="lead">「鍵が空なら例外を投げる」と書いてあるだけです。この鍵が何のためにあるのかは、公式に説明があります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Laravel 13.x「Encryption」— 原文</div>
+        <pre>Before using Laravel's encrypter, you must set
+the key configuration option in your
+config/app.php configuration file. This
+configuration value is driven by the APP_KEY
+environment variable. You should use the
+php artisan key:generate command to generate
+this variable's value since the key:generate
+command will use PHP's secure random bytes
+generator to build a cryptographically secure
+key for your application.
+
+（Laravelの暗号化機能を使う前に config/app.php の
+　key 設定を必ず設定しなければなりません。この値は
+　APP_KEY 環境変数（OSやシェルから渡される設定値）で
+　決まります。値の生成には php artisan key:generate
+　を使ってください。このコマンドは PHP の安全な乱数
+　バイト生成器を使って、暗号学的に安全な鍵を作ります）</pre>
+      </div>
+
+      <p class="lead">Laravelは cookie（ブラウザに預ける小さなデータ）やセッションを暗号化します。<mark>その鍵が無いと、アプリを起動する段階で止まります。</mark>直し方は1行です。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（続き。40桁での折り返し以外の加工なし）</div>
+        <pre>===== 6. php artisan key:generate =====
+
+<span class="ok-line">   INFO  Application key set</span>
+<span class="ok-line">successfully.</span>
+
+
+
+===== 7. もう一度 php artisan test =====
+
+<span class="ok-line">   PASS  Tests\Unit\ExampleTest</span>
+<span class="ok-line">  ✓ that true is true</span>
+
+<span class="ok-line">   PASS  Tests\Feature\ExampleTest</span>
+<span class="ok-line">  ✓ the application returns a s… 0.11s</span>
+
+  Tests:    2 passed (2 assertions)
+  Duration: 0.20s
+
+
+exit=0</pre>
+      </div>
+
+      <p class="lead">ブラウザから開いた場合も同じです。鍵を空に戻すと <code>500</code>、<code>key:generate</code> で <code>200</code> に戻りました。<mark>この3桁の数字はHTTPステータスコードで、<code>200</code>が「正常に返せた」、<code>500</code>が「サーバー側で処理が失敗した」を表します。</mark>（<code>/hello</code> は7章で自分で足すURLです）</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果 — php artisan serve に curl で当てた（加工なし）</div>
+        <pre>===== 9. serve して確認 =====
+<span class="ok-line">GET /      HTTP 200</span>
+<span class="ok-line">GET /hello HTTP 200</span>
+<span class="ok-line">{"message":"hello","laravel":"13.25.0"}</span>
+
+
+===== 10. APP_KEY を空に戻す =====
+<span class="ng-line">GET /      HTTP 500</span>
+<span class="ng-line">GET /hello HTTP 500</span>
+
+===== 11. key:generate で復旧 =====
+
+<span class="ok-line">   INFO  Application key set</span>
+<span class="ok-line">successfully.</span>
+
+
+<span class="ok-line">GET /      HTTP 200</span>
+<span class="ok-line">GET /hello HTTP 200</span></pre>
+      </div>
+
+      <p class="lead">このときブラウザに出る画面も確認しました。見出しに <code>Illuminate\Encryption\MissingAppKeyException</code>、本文に <code>No application encryption key has been specified.</code>、バッジに <code>LARAVEL 13.25.0</code> と <code>PHP 8.4.19</code>。<mark>トレースの先頭（例外が投げられた場所）は <code>EncryptionServiceProvider.php:83</code></mark>。<code>public/index.php:20</code> が出てくるのはずっと下の<b>47番目</b>で、アプリ側のコードとしては一番外側です。<mark>スタックトレースは「例外が起きた奥」から「呼び出しの外側」の順に並びます。</mark>この一番外側の行が何なのかは4章で分かります。</p>
+    </article>
+
+    <article class="item">
+      <h3>Unit は通ったのに Feature だけ落ちた。継承元が違うから</h3>
+      <p class="lead">同じ鍵の問題なのに、2つあるテストのうち<mark>片方だけ落ちています</mark>。理由は、最初から入っている2つのファイルを並べると分かります。<b>継承</b>（<code>extends</code>）とは、あるクラスの機能をまるごと引き継いで、その上に自分の処理を足す仕組みのことです。<mark>引き継ぐ相手が違えば、テスト開始時にやることも変わります。</mark></p>
+
+      <div class="code">
+        <div class="code-head">tests/Unit/ExampleTest.php（落ちなかった側・&lt;?php とdocblockは省略）</div>
+        <pre>namespace Tests\Unit;
+
+use PHPUnit\Framework\TestCase;
+
+class ExampleTest extends TestCase
+{
+    public function test_that_true_is_true(): void
+    {
+        $this-&gt;assertTrue(true);
+    }
+}</pre>
+      </div>
+
+      <div class="code">
+        <div class="code-head">tests/Feature/ExampleTest.php（落ちた側・同じく省略あり）</div>
+        <pre>namespace Tests\Feature;
+
+// use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class ExampleTest extends TestCase
+{
+    public function test_the_application_returns_a_successful_response(): void
+    {
+        $response = $this-&gt;get('/');
+
+        $response-&gt;assertStatus(200);
+    }
+}</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>Unit側は <code>PHPUnit\Framework\TestCase</code> を直接継承。</b>Laravelアプリを起動しません。だから鍵が要りません。</li>
+        <li><b>Feature側は <code>Tests\TestCase</code> を継承。</b>こちらはLaravelを起動します。起動時に鍵を読むので、そこで落ちます。</li>
+        <li><b>だから <code>1 failed, 1 passed</code> になります。</b>「テストが全部落ちない＝設定は正しい」ではありません。</li>
+      </ul>
+
+      <div class="code wrap">
+        <div class="code-head">Laravel 13.x「Testing: Getting Started」— 原文</div>
+        <pre>Tests within your "Unit" test directory do not
+boot your Laravel application and therefore are
+unable to access your application's database or
+other framework services.
+
+（「Unit」ディレクトリ内のテストは Laravel アプリを
+　起動しないため、アプリのデータベースやその他の
+　フレームワークのサービスにアクセスできません）</pre>
+      </div>
+
+      <div class="quiz">
+        <p class="q">Q. これから書くテストは、どちらのフォルダに置くべき?</p>
+        <button class="opt" type="button" data-correct="false">とりあえず Unit。速いから</button>
+        <button class="opt" type="button" data-correct="true">DBやURLに触るなら Feature。触らない計算だけなら Unit</button>
+        <button class="opt" type="button" data-correct="false">どちらでも同じ。フォルダは分類のためだけ</button>
+        <p class="ans" hidden>正解。フォルダ名は分類ではなく<b>動作の違い</b>です。Unit に置いたテストはLaravelを起動しないので、そこで <code>User::create()</code> のようなコードを書くと動きません。「速そうだから Unit」で始めて詰まる、というのが最初の事故です。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="section section-a" id="s3">
+    <h2><span class="step">3</span>Composer は「部品を集める係」。vendor/ が無いと最初の require で死ぬ</h2>
+
+    <article class="item">
+      <h3>パソコン全体に入れる apt や brew とは別のもの。プロジェクトの中に入れます</h3>
+      <p class="lead">なぜ Composer が要るのか。<mark>Laravelアプリは、自分が書いていないコードの塊に頼って動く</mark>からです。この「他人が作った部品」を<b>依存</b>（dependency）と呼びます。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Composer 公式「Introduction」— 原文</div>
+        <pre>Composer is a tool for dependency management in
+PHP. It allows you to declare the libraries your
+project depends on and it will manage
+(install/update) them for you.
+
+Composer is not a package manager in the same
+sense as Yum or Apt are. ... it manages them on
+a per-project basis, installing them in a
+directory (e.g. vendor) inside your project. By
+default, it does not install anything globally.
+
+（Composer は PHP における依存管理のツールです。
+　プロジェクトが依存するライブラリを宣言でき、
+　Composer が管理してくれます。
+
+　Composer は Yum や Apt と同じ意味でのパッケージ
+　マネージャではありません。…プロジェクト単位で
+　管理し、プロジェクト内のディレクトリ（例: vendor）に
+　インストールします。既定では何もグローバルには
+　インストールしません）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>入る場所はプロジェクトの中の <code>vendor/</code>。</b>パソコン全体には何も足しません。だから<mark>プロジェクトごとに別のバージョンを使えます</mark>。</li>
+        <li><b>部品を取りに行く先は Packagist。</b>Composer 公式の配布サイトです。</li>
+        <li><b><code>vendor/</code> は Git に入れません。</b>雛形の <code>.gitignore</code>（Gitで共有しないファイルの一覧）に <code>/vendor</code> が書かれています。だから clone したら <code>composer install</code> が必要です。<mark><code>.env</code> がcloneで付いてこないのも、同じファイルに書かれているからです。</mark></li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <h3>composer.json は「宣言」、composer.lock は「記録」</h3>
+      <p class="lead">この2つの違いが分かると、チームで環境がズレる事故がほぼ消えます。生成されたファイルの実物です。</p>
+
+      <div class="code">
+        <div class="code-head">生成された composer.json（require は全部、require-dev は先頭と末尾だけ）</div>
+        <pre>"require": {
+    "php": "^8.3",
+    "laravel/framework": "^13.17",
+    "laravel/tinker": "^3.0"
+},
+"require-dev": {
+    "fakerphp/faker": "^1.23",
+    ...
+    "phpunit/phpunit": "^12.5.12"
+},</pre>
+      </div>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>ファイル</th><th>中身</th><th>誰が書く</th></tr></thead>
+          <tbody>
+            <tr><th>composer.json</th><td data-label="中身">どの部品の、どの<b>バージョン範囲</b>が要るか</td><td data-label="誰が書く">人間</td></tr>
+            <tr><th>composer.lock</th><td data-label="中身">実際に入れた<b>正確なバージョン</b></td><td data-label="誰が書く">Composer（自動）</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead"><code>^13.17</code> の <code>^</code>（キャレット）は「13系の範囲なら新しくしてよい」という意味です。<mark>範囲なので、いつ入れるかで実際に入る版が変わります。</mark>それを固定するのが <code>composer.lock</code> です。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Composer 公式「Basic usage」— 原文</div>
+        <pre>running install when a composer.lock file is
+present resolves and installs all dependencies
+that you listed in composer.json, but Composer
+uses the exact versions listed in composer.lock
+to ensure that the package versions are
+consistent for everyone working on your project.
+
+（composer.lock がある状態で install を実行すると、
+　composer.json に列挙した全依存を解決して
+　インストールしますが、Composer は composer.lock に
+　記載された正確なバージョンを使い、プロジェクトに
+　関わる全員でバージョンが揃うようにします）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>composer install</code>。</b><code>composer.lock</code> どおりに入れる。<mark>普段はこれだけ使います。</mark></li>
+        <li><b><code>composer update</code>。</b>範囲内で新しいものを取り直し、<code>composer.lock</code> を書き換える。<mark>初学者が何気なく打つと、チーム全員の環境が動きます。</mark></li>
+        <li><b><code>require-dev</code> は開発時だけ。</b>テストツールなどが入ります。本番では入れません。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <h3>app/Models/User.php が App\Models\User になるのは、規約で決まっている</h3>
+      <p class="lead"><b>クラス</b>とは、データとその操作をひとまとめにした設計図で、PHPでは基本的に<mark>1クラス＝1ファイル</mark>です。Laravelには「そのクラスを使おうとした瞬間に、対応するファイルを自動で読み込む」仕組みがあります。これを<b>オートロード</b>と言います。<mark>ファイルを <code>require</code> して回る必要がありません。</mark></p>
+      <p class="lead">では、どのクラスがどのファイルかをどう決めているのか。<code>composer.json</code> に書いてあります。</p>
+
+      <div class="code">
+        <div class="code-head">生成された composer.json の autoload</div>
+        <pre>"autoload": {
+    "psr-4": {
+        "App\\": "app/",
+        "Database\\Factories\\": "database/factories/",
+        "Database\\Seeders\\": "database/seeders/"
+    }
+},</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>App\</code> は <code>app/</code> に対応する。</b>だから <code>app/Models/User.php</code> の中身は <code>App\Models\User</code> という名前になります。</li>
+        <li><b><b>名前空間</b>（namespace）はクラス名の「姓」です。</b><code>User</code> という名前は他の部品にもあり得るので、<code>App\Models\</code> を前に付けて区別します。</li>
+        <li><b>この対応づけは <code>PSR-4</code> という規約。</b>PHP-FIG という団体が定めた「名前空間とディレクトリ構造を対応させる」仕様です。<mark>Laravel独自のルールではありません。</mark></li>
+      </ul>
+
+      <details>
+        <summary>PSR-4 の原文（何を定めているか）</summary>
+        <div class="body">
+          <div class="code wrap">
+            <div class="code-head">PSR-4: Autoloader（PHP-FIG）</div>
+            <pre>This PSR describes a specification for
+autoloading classes from file paths. ...
+This PSR also describes where to place files
+that will be autoloaded according to the
+specification.
+
+（この PSR はファイルパスからクラスをオートロード
+　するための仕様を記述します。…またこの PSR は、
+　オートロードされるファイルをどこに置くかも
+　記述します）</pre>
+          </div>
+          <p class="lead">つまり「ファイルをどこに置くか」は好みではなく、<mark>規約で決まっている</mark>ということです。5章のディレクトリの話も、この上に乗っています。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="section section-b" id="s4">
+    <h2><span class="step">4</span>artisan はブラウザと同じ入口を通っている</h2>
+
+    <article class="item">
+      <h3>artisan とは、プロジェクト直下にある1つのファイルです</h3>
+      <p class="lead"><code>php artisan ○○</code> の <code>artisan</code> は、コマンド名ではなく<mark>ファイル名</mark>です。<code>cd</code> したフォルダの中に、拡張子なしで置かれています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Laravel 13.x「Artisan Console」— 原文</div>
+        <pre>Artisan is the command line interface included
+with Laravel. Artisan exists at the root of your
+application as the artisan script and provides
+a number of helpful commands that can assist you
+while you build your application.
+
+（Artisan は Laravel に同梱されているコマンドライン
+　インターフェースです。Artisan はアプリのルートに
+　artisan スクリプトとして存在し、開発を助ける
+　多数のコマンドを提供します）</pre>
+      </div>
+
+      <p class="lead">中身を開くと、驚くほど短いです。<mark>どちらも全文が20行未満</mark>なので、生成された実物を行番号つきで丸ごと貼ります。ブラウザからの入口である <code>public/index.php</code> と並べてください。</p>
+
+      <div class="code">
+        <div class="code-head">artisan（生成された実物・全18行）</div>
+        <pre> 1  #!/usr/bin/env php
+ 2  &lt;?php
+ 3
+ 4  use Illuminate\Foundation\Application;
+ 5  use Symfony\Component\Console\Input\ArgvInput;
+ 6
+ 7  define('LARAVEL_START', microtime(true));
+ 8
+ 9  // Register the Composer autoloader...
+10  require __DIR__.'/vendor/autoload.php';
+11
+12  // Bootstrap Laravel and handle the command...
+13  /** @var Application $app */
+14  $app = require_once __DIR__.'/bootstrap/app.php';
+15
+16  $status = $app-&gt;handleCommand(new ArgvInput);
+17
+18  exit($status);</pre>
+      </div>
+
+      <div class="code">
+        <div class="code-head">public/index.php（生成された実物・全20行）</div>
+        <pre> 1  &lt;?php
+ 2
+ 3  use Illuminate\Foundation\Application;
+ 4  use Illuminate\Http\Request;
+ 5
+ 6  define('LARAVEL_START', microtime(true));
+ 7
+ 8  // Determine if the application is in maintenance mode...
+ 9  if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
+10      require $maintenance;
+11  }
+12
+13  // Register the Composer autoloader...
+14  require __DIR__.'/../vendor/autoload.php';
+15
+16  // Bootstrap Laravel and handle the request...
+17  /** @var Application $app */
+18  $app = require_once __DIR__.'/../bootstrap/app.php';
+19
+20  $app-&gt;handleRequest(Request::capture());</pre>
+      </div>
+
+      <figure>
+        <picture>
+          <source srcset="images/entry-points-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/entry-points.png" alt="ブラウザとターミナルは入口ファイルが違うだけで、vendor/autoload.php と bootstrap/app.php の2行は共通。分岐するのは最後の1行だけ" loading="lazy">
+        </picture>
+        <figcaption>入口は2つあるが、途中は同じ。だから composer install の抜けは両方に効く。</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>実質やっていることは、どちらも3つだけ。</b>コメントと <code>use</code> を除くと、残るのは <code>vendor/autoload.php</code> を読む／<code>bootstrap/app.php</code> からアプリを受け取る／それに仕事をさせる、の3行です。</li>
+        <li><b>最初に読むのが <code>vendor/autoload.php</code>。</b><mark><code>composer install</code> をしていないと、ブラウザからでもコマンドからでも同じ行で死にます。</mark></li>
+        <li><b>違うのは最後の1行だけ。</b>ブラウザからなら <code>handleRequest</code>、コマンドからなら <code>handleCommand</code>。</li>
+        <li><b>2章のエラー画面でトレースのいちばん外側に出ていた <code>public/index.php:20</code> がこれです。</b>例外そのものは奥の <code>EncryptionServiceProvider.php:83</code> で投げられていますが、<mark>そこまで辿り着くリクエストが始まった場所がこの1行</mark>です。</li>
+      </ul>
+
+      <div class="code wrap">
+        <div class="code-head">Laravel 13.x「Request Lifecycle」— 原文</div>
+        <pre>The entry point for all requests to a Laravel
+application is the public/index.php file. ...
+The index.php file loads the Composer generated
+autoloader definition, and then retrieves an
+instance of the Laravel application from
+bootstrap/app.php.
+
+（Laravelアプリへの全リクエストの入口は
+　public/index.php です。…index.php は Composer が
+　生成したオートローダ定義を読み込み、次に
+　bootstrap/app.php から Laravel アプリケーションの
+　インスタンスを取得します）</pre>
+      </div>
+    </article>
+
+    <article class="item">
+      <h3>最初に覚える artisan コマンドは5つで足ります</h3>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>コマンド</th><th>何が起きるか</th></tr></thead>
+          <tbody>
+            <tr><th><code>php artisan list</code></th><td data-label="何が起きるか">使えるコマンドを全部並べる。迷ったらこれ</td></tr>
+            <tr><th><code>php artisan serve</code></th><td data-label="何が起きるか">開発用のWebサーバを立てる。既定は <code>http://localhost:8000</code></td></tr>
+            <tr><th><code>php artisan test</code></th><td data-label="何が起きるか">テストを実行する。中身は Pest / PHPUnit を呼んでいる</td></tr>
+            <tr><th><code>php artisan migrate</code></th><td data-label="何が起きるか">まだ実行していないマイグレーションを流し、DBにテーブルを作る</td></tr>
+            <tr><th><code>php artisan tinker</code></th><td data-label="何が起きるか">対話環境に入る。アプリのコードをその場で1行ずつ試せる</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <details>
+        <summary><code>php artisan dev</code> は4つのプロセスをまとめて起動します</summary>
+        <div class="body">
+          <p class="lead">1章に出てきた <code>composer run dev</code> は、中で <code>php artisan dev</code> を呼んでいます（生成された <code>composer.json</code> の <code>scripts.dev</code> にそう書いてあります）。公式の Artisan ドキュメントによると、これは次の4つを同時に起動します。</p>
+          <ul class="points">
+            <li><b><code>php artisan serve --host=localhost</code>。</b>Webサーバ。</li>
+            <li><b><code>php artisan queue:listen --tries=1 --timeout=0</code>。</b>あとで処理する仕事（キュー）の受け口。</li>
+            <li><b><code>php artisan pail --timeout=0</code>。</b>ログをその場に流し続けるツール。</li>
+            <li><b><code>npm run dev</code>。</b>CSS/JSを監視して自動で作り直す（Vite）。</li>
+          </ul>
+          <p class="lead">同ページに<mark>Node 22.13 以降が必要</mark>と明記されています。Windowsではタブ表示にならず <code>concurrently</code> にフォールバックする、とも書かれています。</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>実測で見つけた罠 — AIエージェント経由だと <code>php artisan test</code> の出力がJSONになる（<code>laravel/pao</code>）</summary>
+        <div class="body">
+          <p class="lead">検証中、テスト結果が人間向けの表示にならず困りました。犯人は<mark>雛形の <code>require-dev</code> に入っている <code>laravel/pao</code></mark>（<code>Agent-optimized output for PHP testing tools</code>）です。フレームワーク本体（<code>laravel/framework</code>）の依存ではなく、<code>laravel/laravel</code> 雛形が開発用に入れているパッケージでした。</p>
+          <div class="code term wrap">
+            <div class="code-head">実行結果（環境変数 CLAUDECODE=1 を付けて実行。加工なし）</div>
+            <pre>$ CLAUDECODE=1 php artisan test
+{"tool":"phpunit","result":"passed","tests":2,"passed":2,"assertions":2,"duration_ms":108}</pre>
+          </div>
+          <p class="lead">「AIエージェントの中で動いているか」を判定しているのは、<code>laravel/pao</code> が依存している <code>laravel/agent-detector</code> です。<code>vendor/laravel/agent-detector/src/AgentDetector.php</code> を開くと、<code>CURSOR_AGENT</code> <code>GEMINI_CLI</code> <code>CODEX_SANDBOX</code> <code>CLAUDECODE</code> <code>COPILOT_CLI</code> などの環境変数名がずらりと並んでいました。<mark>検出だけが agent-detector の仕事で、JSONを組み立てているのは <code>laravel/pao</code> 側</mark>（<code>src/Drivers/Concerns/TestResultParsable.php</code> に <code>'duration_ms' =&gt; $durationMs</code> があります）。これらの環境変数が立っていると出力形式が切り替わります。</p>
+          <p class="lead">人間と同じ表示に戻すには、その変数を外して実行します（この記事の実行ログはすべて外した状態のものです）。</p>
+          <div class="code">
+            <div class="code-head">外して実行する</div>
+            <pre>env -u CLAUDECODE -u AI_AGENT php artisan test</pre>
+          </div>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="section section-c" id="s5">
+    <h2><span class="step">5</span>ディレクトリのどこに何を書くのか</h2>
+
+    <article class="item">
+      <h3>最初に触るのは4つだけです</h3>
+      <p class="lead">生成直後のフォルダには <code>app</code> <code>bootstrap</code> <code>config</code> <code>database</code> <code>public</code> <code>resources</code> <code>routes</code> <code>storage</code> <code>tests</code> <code>vendor</code> が並びます。全部覚える必要はありません。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/dir-map-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/dir-map.png" alt="1リクエストは routes/web.php から app/Http/Controllers、app/Models、resources/views の順に通る。最初に触るのはこの4つだけ" loading="lazy">
+        </picture>
+        <figcaption>出発点は必ず routes/web.php。この4つ以外は最初は開かなくていい。</figcaption>
+      </figure>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>置き場所</th><th>何を書くか</th></tr></thead>
+          <tbody>
+            <tr><th><code>routes/web.php</code></th><td data-label="何を書くか"><b>まずここ。</b>「どのURLが来たら何を返すか」。全部の出発点</td></tr>
+            <tr><th><code>app/Http/Controllers/</code></th><td data-label="何を書くか">URLに対応する処理をまとめたクラス（コントローラ）</td></tr>
+            <tr><th><code>app/Models/</code></th><td data-label="何を書くか">DBのテーブル1つに対応するクラス（モデル / Eloquent）</td></tr>
+            <tr><th><code>resources/views/</code></th><td data-label="何を書くか">画面のHTML。<code>.blade.php</code> という拡張子で置く</td></tr>
+            <tr><th><code>database/migrations/</code></th><td data-label="何を書くか">「テーブルをこう作る」という手順。DB版のバージョン管理</td></tr>
+            <tr><th><code>config/</code></th><td data-label="何を書くか">設定ファイル。値そのものは <code>.env</code> から読むことが多い</td></tr>
+            <tr><th><code>tests/</code></th><td data-label="何を書くか">テスト。<code>Feature/</code> と <code>Unit/</code> の2つ（2章参照）</td></tr>
+            <tr><th><code>public/</code></th><td data-label="何を書くか"><b>入口の <code>index.php</code> と画像などの静的ファイル。</b>ここだけが外から見える</td></tr>
+            <tr><th><code>storage/</code></th><td data-label="何を書くか">ログ・キャッシュなど、Laravelが動きながら書き出すもの。<b>自分では書かない</b></td></tr>
+            <tr><th><code>vendor/</code></th><td data-label="何を書くか">Composerが入れた他人のコード。<b>絶対に手で編集しない</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code wrap">
+        <div class="code-head">Laravel 13.x「Directory Structure」— 原文</div>
+        <pre>The majority of your application is housed in
+the app directory. By default, this directory is
+namespaced under App and is autoloaded by
+Composer using the PSR-4 autoloading standard.
+
+The public directory contains the index.php
+file, which is the entry point for all requests
+entering your application and configures
+autoloading.
+
+（アプリの大部分は app ディレクトリに置かれます。
+　既定でこのディレクトリは App 名前空間に属し、
+　Composer が PSR-4 オートロード規約を使って
+　読み込みます。
+
+　public ディレクトリには index.php があり、これが
+　アプリに入ってくる全リクエストの入口であり、
+　オートロードの設定も行います）</pre>
+      </div>
+
+      <div class="quiz">
+        <p class="q">Q. <code>app/Events/</code> や <code>app/Jobs/</code> が見当たらない。壊れている?</p>
+        <button class="opt" type="button" data-correct="false">インストールに失敗している。作り直すべき</button>
+        <button class="opt" type="button" data-correct="true">正常。使うときに <code>make:*</code> コマンドが作るので、最初は存在しない</button>
+        <button class="opt" type="button" data-correct="false">Laravel 13 で廃止された</button>
+        <p class="ans" hidden>正解。公式のディレクトリ構造のページに、<code>Events</code> / <code>Jobs</code> / <code>Mail</code> / <code>Notifications</code> / <code>Policies</code> / <code>Rules</code> は既定では存在せず <code>make:*</code> コマンドで作られる、と明記されています。<code>app/Console</code> も <code>make:command</code> を実行するまでありません。<mark>「チュートリアルにあるフォルダが無い」の大半はこれです。</mark></p>
+      </div>
+
+      <details>
+        <summary>bootstrap/app.php を1回だけ読んでおくと、地図がつながります</summary>
+        <div class="body">
+          <p class="lead">生成された <code>bootstrap/app.php</code> の中身です。ここでLaravel本体が組み立てられます。</p>
+          <div class="code">
+            <div class="code-head">bootstrap/app.php（抜粋）</div>
+            <pre>return Application::configure(basePath: dirname(__DIR__))
+    -&gt;withRouting(
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    -&gt;withMiddleware(function (Middleware $middleware): void {
+        //
+    })
+    -&gt;withExceptions(function (Exceptions $exceptions): void {
+        ...
+    })-&gt;create();</pre>
+          </div>
+          <ul class="points">
+            <li><b><code>web:</code> の行が、<code>routes/web.php</code> を使うという宣言です。</b>「なぜあのファイルにURLを書くのか」の答えがここにあります。</li>
+            <li><b><code>health: '/up'</code>。</b><mark>最初から <code>/up</code> というURLが生えています。</mark>アプリが生きているかを外から確認するための入口です。</li>
+            <li><b><code>withMiddleware</code>。</b>ミドルウェアとは、リクエストが本体に届く前後に挟まる処理。ログイン確認やCSRF対策がここで動きます。</li>
+          </ul>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="section section-a" id="s6">
+    <h2><span class="step">6</span>テストDBは .env を見ていない。もう一つの落ち方</h2>
+
+    <article class="item">
+      <h3>ブラウザでは動くのに、テストだけ no such table で落ちる</h3>
+      <p class="lead">2章の鍵の問題を直すと、次はこれで詰まります。<mark>実際に落ちるところまで再現しました。</mark></p>
+      <p class="lead">やったことは単純です。<code>DB::table('users')-&gt;count()</code> を呼ぶだけのテストを <code>tests/Feature/</code> に置いて実行しました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（2026年8月15日実測。テスト出力は先頭6行だけ切り出し）</div>
+        <pre>===== 0. .env 側のDBのテーブル =====
+DB_CONNECTION=sqlite
+cache cache_locks failed_jobs
+job_batches jobs migrations
+password_reset_tokens sessions
+sqlite_sequence users
+
+
+===== 1. RefreshDatabase なし =====
+
+<span class="ng-line">   FAIL  Tests\Feature\UserCountTest</span>
+<span class="ng-line">  ⨯ users table is readable      0.10s</span>
+<span class="ng-line">  ────────────────────────────────────</span>
+<span class="ng-line">   FAILED  Tests\Fea…  QueryException</span>
+<span class="ng-line">  SQLSTATE[HY000]: General error: 1 no</span>
+<span class="ng-line">such table: users (Connection: sqlite,</span>
+<span class="ng-line">Database: :memory:, SQL: select</span>
+<span class="ng-line">count(*) as "aggregate" from "users")</span>
+
+exit=2</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>users</code> テーブルは<mark>実在します</mark>。</b>1行目で並べたとおりです。列挙された10個のうち <code>sqlite_sequence</code> はSQLiteが勝手に作る内部テーブルなので、<mark>マイグレーションが作ったのは9個</mark>です。</li>
+        <li><b>それでも「no such table」。</b>エラー文の中に答えが書いてあります。<code>Database: :memory:</code>。</li>
+        <li><b>テストは別のDBを見ています。</b><code>:memory:</code> はディスクではなくメモリ上に作られる使い捨てDB。<mark>毎回まっさらな空っぽで始まります。</mark></li>
+      </ul>
+
+      <p class="lead">誰が接続先をすり替えたのか。<code>phpunit.xml</code> です。テストの設定ファイルで、プロジェクト直下にあります。</p>
+
+      <div class="code">
+        <div class="code-head">生成された phpunit.xml の &lt;php&gt; から抜粋（全14行のうち8行）</div>
+        <pre>&lt;php&gt;
+    &lt;env name="APP_ENV" value="testing"/&gt;
+    &lt;env name="BCRYPT_ROUNDS" value="4"/&gt;
+    &lt;env name="CACHE_STORE" value="array"/&gt;
+    &lt;env name="DB_CONNECTION" value="sqlite"/&gt;
+    &lt;env name="DB_DATABASE" value=":memory:"/&gt;
+    &lt;env name="MAIL_MAILER" value="array"/&gt;
+    &lt;env name="QUEUE_CONNECTION" value="sync"/&gt;
+    &lt;env name="SESSION_DRIVER" value="array"/&gt;
+&lt;/php&gt;</pre>
+      </div>
+
+      <figure>
+        <picture>
+          <source srcset="images/test-db-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/test-db.png" alt="ブラウザは .env のとおり database/database.sqlite を見るが、テストは phpunit.xml の上書きで空の :memory: を見るため no such table になる" loading="lazy">
+        </picture>
+        <figcaption>画面が動くのにテストだけ落ちるのは、見ているDBが別だから。</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b><code>DB_DATABASE</code> が <code>:memory:</code> に上書きされている。</b>これが「テストだけ落ちる」の正体です。</li>
+        <li><b>メールも <code>array</code> に差し替わっています。</b>テスト中に本物のメールが飛ばないようにするためです。</li>
+        <li><b>ただし <code>APP_KEY</code> はここにありません。</b>だからテストは <code>.env</code> の鍵をそのまま使います。2章で Feature が落ちたのはこのためです。</li>
+      </ul>
+
+      <p class="lead">直し方は、<mark>コメントアウトされたまま同梱されているあの1行</mark>を有効にすることです。2章で見た <code>tests/Feature/ExampleTest.php</code> の3行目にありました。</p>
+
+      <div class="code">
+        <div class="code-head">この2行を足す</div>
+        <pre>use Illuminate\Foundation\Testing\RefreshDatabase;
+
+class UserCountTest extends TestCase
+{
+    use RefreshDatabase;
+    ...</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">実行結果（同じテストを、この2行を足して再実行。こちらも先頭6行）</div>
+        <pre>===== 2. RefreshDatabase あり =====
+
+<span class="ok-line">   PASS  Tests\Feature\UserCountTest</span>
+<span class="ok-line">  ✓ users table is readable      0.15s</span>
+
+  Tests:    1 passed (1 assertions)
+  Duration: 0.24s
+
+exit=0</pre>
+      </div>
+
+      <div class="code wrap">
+        <div class="code-head">Laravel 13.x「Database Testing」— 原文（離れた2段落。間はコード例）</div>
+        <pre>Laravel's included
+Illuminate\Foundation\Testing\RefreshDatabase
+trait will take care of this for you. Simply use
+the trait on your test class:
+
+（… 原文ではここにコード例が2つ入ります …）
+
+The Illuminate\Foundation\Testing\RefreshDatabase
+trait does not migrate your database if your
+schema is up to date. Instead, it will only
+execute the test within a database transaction.
+Therefore, any records added to the database by
+test cases that do not use this trait may still
+exist in the database.
+
+（Laravel 同梱の RefreshDatabase トレイトが
+　これを引き受けてくれます。テストクラスで
+　このトレイトを use するだけです:
+
+　RefreshDatabase トレイトは、スキーマが最新なら
+　マイグレーションを実行しません。代わりに、
+　テストをデータベーストランザクション内で
+　実行するだけです。したがって、このトレイトを
+　使っていないテストがDBに入れたレコードは、
+　そのまま残っている可能性があります）</pre>
+      </div>
+
+      <p class="lead"><b>トレイト</b>（trait）とは、PHPでクラスに機能を横から差し込む仕組みです。<code>use RefreshDatabase;</code> と1行書くだけで、テストごとにDBの状態を戻す処理が付きます。</p>
+    </article>
+
+    <article class="item">
+      <h3>もう1つの罠。<code>config:cache</code> を打つと <code>.env</code> が読まれなくなる</h3>
+      <p class="lead">「<code>.env</code> を直したのに反映されない」「昨日は通ったテストが今日落ちる」。この原因が高確率でこれです。<mark>設定キャッシュ</mark>と言います。</p>
+      <p class="lead">実際に踏んでみました。<code>config:cache</code> を打ったあと <code>.env</code> の <code>APP_KEY</code> を空にして、鍵が消えるかを見ます。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（2026年8月15日実測。折り返し以外の加工なし）</div>
+        <pre>===== 0. .env に鍵がある状態 =====
+.env の鍵の行数: 1
+key: あり
+
+
+===== 1. config:cache を打つ =====
+
+   INFO  Configuration cached
+successfully.
+
+
+
+===== 2. .env の APP_KEY を空に =====
+APP_KEY=
+<span class="ng-line">key: あり</span>
+
+
+===== 3. config:clear を打つ =====
+
+   INFO  Configuration cache cleared
+successfully.
+
+
+<span class="ok-line">key: なし</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>.env</code> を空にしたのに「key: あり」。</b>キャッシュされた設定を読んでいるので、<code>.env</code> の変更が届いていません。</li>
+        <li><b><code>config:clear</code> で初めて反映されました。</b>逆に言えば、それまでは何を直しても無反応です。</li>
+        <li><b>これは不具合ではありません。</b>本番で速くするための機能です。</li>
+      </ul>
+
+      <div class="code wrap">
+        <div class="code-head">Laravel 13.x「Configuration」— Configuration Caching 節</div>
+        <pre>The command should not be run during local
+development as configuration options will
+frequently need to be changed during the course
+of your application's development.
+
+Once the configuration has been cached, your
+application's .env file will not be loaded by
+the framework during requests or Artisan
+commands; therefore, the env function will only
+return external, system level environment
+variables.
+
+（ローカル開発中は設定を頻繁に変更するため、この
+　コマンドを実行すべきではありません。
+
+　いったん設定がキャッシュされると、リクエスト時にも
+　Artisanコマンド実行時にもアプリの .env は
+　読み込まれなくなります。したがって env 関数は
+　OS側の環境変数しか返さなくなります）</pre>
+      </div>
+
+      <p class="lead">Laravel側もこれを警戒しています。生成された <code>composer.json</code> の <code>test</code> スクリプトは、<mark>テストの前に必ず <code>config:clear</code> を打つ</mark>ようになっていました。</p>
+
+      <div class="code">
+        <div class="code-head">生成された composer.json の scripts.test</div>
+        <pre>"test": [
+    "@php artisan config:clear --ansi @no_additional_args",
+    "@php artisan test"
+],</pre>
+      </div>
+
+      <p class="lead">つまり <code>php artisan test</code> ではなく <code>composer test</code> と打てば、この罠は自動で回避されます。公式のテストドキュメントにも、テスト前に <code>config:clear</code> をせよという注意書きがあります。</p>
+
+      <a class="next-up" href="../2026-08-15_tidb-first/">
+        <div class="label">NEXT →</div>
+        <div class="t">TiDBを最初に触る — MySQLと同じところ、違うところ</div>
+        <div class="d">この記事のアプリ側DBはSQLiteのままでした。同じ Laravel 13 から接続先を別のDBに変えて <code>php artisan migrate</code> を打つと何が起きるかは、そちらで実測しています。</div>
+      </a>
+    </article>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section class="section section-b" id="s7">
+    <h2><span class="step">7</span>ルートを1本足して、動くところまで</h2>
+
+    <article class="item">
+      <h3>最初の1行は <code>routes/web.php</code> に書きます</h3>
+      <p class="lead">生成直後の <code>routes/web.php</code> はこれだけです。<code>/</code> にアクセスが来たら <code>welcome</code> という画面を返す、という意味。</p>
+
+      <div class="code">
+        <div class="code-head">routes/web.php（生成直後）</div>
+        <pre>use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('welcome');
+});</pre>
+      </div>
+
+      <p class="lead">ここに1本足します。<mark>コントローラもモデルも作らずに、URLを1つ増やせます。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">routes/web.php の末尾に追記する</div>
+        <pre>Route::get('/hello', function () {
+    return ['message' =&gt; 'hello', 'laravel' =&gt; app()-&gt;version()];
+});</pre>
+      </div>
+
+      <p class="lead"><b>配列</b>（<code>['キー' =&gt; '値']</code> の形でまとめたデータ）をそのまま返すと、Laravelが自動で <b>JSON</b> に変換して返します。JSONは <code>{"message":"hello"}</code> のような、プログラム同士がデータをやりとりするときの標準的な書き方です。<code>php artisan serve</code> でサーバーを立てて、実際に叩きました。</p>
+
+      <div class="code term">
+        <div class="code-head">実行結果（php artisan serve に curl で当てた）</div>
+        <pre>===== 8. ルートを1本足す =====
+
+Route::get('/hello', function () {
+    return ['message' =&gt; 'hello',
+'laravel' =&gt; app()-&gt;version()];
+});
+
+
+===== 9. serve して確認 =====
+<span class="ok-line">GET /      HTTP 200</span>
+<span class="ok-line">GET /hello HTTP 200</span>
+<span class="ok-line">{"message":"hello","laravel":"13.25.0"}</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>ブラウザで確認するなら <code>http://localhost:8000/hello</code>。</b><code>curl</code> を使わなくても、同じものが表示されます。</li>
+        <li><b><code>app()-&gt;version()</code> が返したのは <code>13.25.0</code>。</b>これが実際に動いているLaravel本体の版です。</li>
+        <li><b>ここまで来れば、あとは足していくだけです。</b>処理が長くなったら <code>app/Http/Controllers/</code> に移し、DBを触るなら <code>app/Models/</code> を作ります。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <h3>詰まったときに、この順で確認してください</h3>
+      <p class="lead">この記事で実際に踏んだ罠を、確認する順に並べました。<span class="cl-count">0 / 6</span></p>
+      <ul class="checklist" data-key="laravel-first-2026-08-15">
+        <li><label><input type="checkbox"><span><code>vendor/</code> がある（無ければ <code>composer install</code>）</span></label></li>
+        <li><label><input type="checkbox"><span><code>.env</code> がある（無ければ <code>cp .env.example .env</code>）</span></label></li>
+        <li><label><input type="checkbox"><span><code>.env</code> の <code>APP_KEY=</code> が空でない（空なら <code>php artisan key:generate</code>）</span></label></li>
+        <li><label><input type="checkbox"><span><code>php artisan config:clear</code> を打った（<code>.env</code> の変更が効かないとき）</span></label></li>
+        <li><label><input type="checkbox"><span>DBを触るテストに <code>use RefreshDatabase;</code> を書いた</span></label></li>
+        <li><label><input type="checkbox"><span>そのテストを <code>tests/Unit/</code> ではなく <code>tests/Feature/</code> に置いた</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 最初の関門は全部越えました</div>
+
+      <a class="next-up" href="../2026-08-14_lockfile/">
+        <div class="label">NEXT →</div>
+        <div class="t">npmのロックファイルが固定しないもの — install と ci の違い</div>
+        <div class="d">3章で出てきた「lockファイルは何を固定するのか」を、JavaScript側で16通りに測った記事です。考え方は <code>composer.lock</code> と同じです。</div>
+      </a>
+    </article>
+  </section>
+
+  <!-- ============ もっと知りたい人へ ============ -->
+  <section class="section section-d" id="more">
+    <h2>もっと知りたい人へ</h2>
+    <article class="item">
+      <p class="lead">この記事の根拠ではありませんが、<mark>同じテーマを分かりやすく扱っている資料</mark>です。すべて自分で本文を読み、この記事の一次資料と照らして誤りが無いことを確認しました。</p>
+      <ul class="reads">
+        <li>
+          <span class="kind">公式</span>
+          <a href="https://laravel.com/docs/13.x/lifecycle">Request Lifecycle</a>
+          <span class="by">Laravel 公式ドキュメント 13.x</span>
+          <span class="why">4章で見た「入口の数行」から先、リクエストがどこを通って画面になるかを順に説明しています。サービスプロバイダの register と boot の順序まで書いてあるので、2周目に読むと効きます。</span>
+        </li>
+        <li>
+          <span class="kind">公式</span>
+          <a href="https://getcomposer.org/doc/01-basic-usage.md">Composer — Basic usage</a>
+          <span class="by">Composer 公式ドキュメント</span>
+          <span class="why">3章の内容を、Laravelを抜きにして最短で説明しています。<code>composer.json</code> と <code>composer.lock</code> の関係、<code>vendor/autoload.php</code> がどこから来るのかが、実例つきで書かれています。</span>
+        </li>
+        <li>
+          <span class="kind">公式</span>
+          <a href="https://laravel.com/docs/13.x/structure">Directory Structure</a>
+          <span class="by">Laravel 公式ドキュメント 13.x</span>
+          <span class="why">5章の表の元ネタです。「このフォルダが無い」と思ったとき、<code>make:*</code> で作られるものかどうかがここで確認できます。1ページで全ディレクトリを網羅しています。</span>
+        </li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「Installation」<i>Laravel 13.x 公式ドキュメント</i>.
+          <span class="note">参照箇所: 「Installing PHP and the Laravel Installer」節の冒頭にある必要ソフト4種（PHP / Composer / Laravelインストーラ / Node・NPM または Bun）。<mark>ページ全体の1文目ではありません</mark>（1文目は <code>Laravel is a web application framework with expressive, elegant syntax.</code>、手前に Meet Laravel / Why Laravel? / Getting Started Using AI があります）。ほかに、<code>laravel new</code> から <code>composer run dev</code> までの手順、「Databases and Migrations」節（作成時に <code>database/database.sqlite</code> が作られマイグレーションが実行済みであること）。Markdown版（末尾に <code>.md</code> を付けたURL）を取得して全文を読みました。1章・2章の引用は原文のまま。</span>
+          <a href="https://laravel.com/docs/13.x/installation">https://laravel.com/docs/13.x/installation</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「Artisan Console」<i>Laravel 13.x 公式ドキュメント</i>.
+          <span class="note">参照箇所: 冒頭のArtisanの定義（アプリのルートに <code>artisan</code> スクリプトとして存在する）、<code>php artisan list</code>、「The Dev Command」節（<code>php artisan dev</code> が起動する4プロセスの表、Node 22.13以降が必要、Windowsでの <code>concurrently</code> へのフォールバック）。</span>
+          <a href="https://laravel.com/docs/13.x/artisan">https://laravel.com/docs/13.x/artisan</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「Directory Structure」<i>Laravel 13.x 公式ドキュメント</i>.
+          <span class="note">参照箇所: <code>app</code>（App名前空間・PSR-4）、<code>public</code>（全リクエストの入口）、<code>bootstrap</code> / <code>config</code> / <code>database</code> / <code>resources</code> / <code>routes</code> / <code>storage</code> / <code>tests</code> / <code>vendor</code> の各節。および <code>Events</code> / <code>Jobs</code> / <code>Mail</code> / <code>Notifications</code> / <code>Policies</code> / <code>Rules</code> と <code>app/Console</code> が既定では存在せず <code>make:*</code> で作られるという注記（5章のクイズの根拠）。</span>
+          <a href="https://laravel.com/docs/13.x/structure">https://laravel.com/docs/13.x/structure</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「Testing: Getting Started」<i>Laravel 13.x 公式ドキュメント</i>.
+          <span class="note">参照箇所: Unitディレクトリのテストがアプリを起動せずDBやフレームワークのサービスに触れないという記述（2章の引用は原文のまま）、テスト実行前に <code>config:clear</code> を実行せよという注意書き（6章）。</span>
+          <a href="https://laravel.com/docs/13.x/testing">https://laravel.com/docs/13.x/testing</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「Database Testing」<i>Laravel 13.x 公式ドキュメント</i>.
+          <span class="note">参照箇所: <code>RefreshDatabase</code> トレイトの使い方と、スキーマが最新ならマイグレーションせずトランザクション内で実行するという説明（6章の引用は原文のまま）。</span>
+          <a href="https://laravel.com/docs/13.x/database-testing">https://laravel.com/docs/13.x/database-testing</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「Configuration」<i>Laravel 13.x 公式ドキュメント</i>.
+          <span class="note">参照箇所: 「Configuration Caching」節。ローカル開発では <code>config:cache</code> を実行すべきでないこと、キャッシュ後は <code>.env</code> が読み込まれなくなること（6章の引用は原文のまま）。</span>
+          <a href="https://laravel.com/docs/13.x/configuration">https://laravel.com/docs/13.x/configuration</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「Encryption」<i>Laravel 13.x 公式ドキュメント</i>.
+          <span class="note">参照箇所: <code>APP_KEY</code> と <code>config/app.php</code> の <code>key</code> の関係、<code>php artisan key:generate</code> で値を生成すべきという記述（2章の引用は原文のまま）。</span>
+          <a href="https://laravel.com/docs/13.x/encryption">https://laravel.com/docs/13.x/encryption</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「Request Lifecycle」<i>Laravel 13.x 公式ドキュメント</i>.
+          <span class="note">参照箇所: <code>public/index.php</code> が全リクエストの入口であること、オートローダ定義を読み <code>bootstrap/app.php</code> からアプリのインスタンスを取得すること（4章の引用は原文のまま）。</span>
+          <a href="https://laravel.com/docs/13.x/lifecycle">https://laravel.com/docs/13.x/lifecycle</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「Release Notes / Support Policy」<i>Laravel 13.x 公式ドキュメント</i>.
+          <span class="note">参照箇所: サポート表（Laravel 12 = PHP 8.2-8.5 / 2025年2月24日リリース / バグ修正 2026年8月13日まで、Laravel 13 = PHP 8.3-8.5 / 2026年3月17日リリース / バグ修正 2027年第3四半期まで）、および「Laravel 13.x requires a minimum PHP version of 8.3」。1章の折りたたみの表はこのページの数値です。</span>
+          <a href="https://laravel.com/docs/13.x/releases">https://laravel.com/docs/13.x/releases</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          laravel/installer「NewCommand.php」<i>GitHub（master ブランチ）</i>.
+          <span class="note">参照箇所: 320〜324行目のテストフレームワーク選択（<code>options: ['Pest', 'PHPUnit'], default: 'Pest'</code>。1章に引用したのはこの部分）、615行目の <code>composer create-project laravel/laravel ... --no-scripts</code>、662行目の <code>key:generate</code> 実行。<mark>github.com のHTMLページはこの環境からは403で開けなかった</mark>ため、<code>raw.githubusercontent.com</code> で本文を取得して読みました。</span>
+          <a href="https://raw.githubusercontent.com/laravel/installer/master/src/NewCommand.php">https://raw.githubusercontent.com/laravel/installer/master/src/NewCommand.php</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          laravel/framework「MissingAppKeyException.php」「EncryptionServiceProvider.php」<i>GitHub（13.x ブランチ）</i>.
+          <span class="note">参照箇所: 例外メッセージの既定値 <code>No application encryption key has been specified.</code> と、<code>key()</code> メソッド内の <code>if (empty($key)) { throw new MissingAppKeyException; }</code>。2章に貼った79〜87行目は<b>手元の実行時に表示されたもの</b>ですが、<code>EncryptionServiceProvider.php</code> の79行目が <code>protected function key(array $config)</code>、83行目が <code>throw new MissingAppKeyException;</code> であることを、この一次資料と行番号まで突き合わせて確認しました。こちらも raw で取得。</span>
+          <a href="https://raw.githubusercontent.com/laravel/framework/13.x/src/Illuminate/Encryption/MissingAppKeyException.php">https://raw.githubusercontent.com/laravel/framework/13.x/src/Illuminate/Encryption/MissingAppKeyException.php</a>（2026年8月15日参照）<br>
+          <a href="https://raw.githubusercontent.com/laravel/framework/13.x/src/Illuminate/Encryption/EncryptionServiceProvider.php">https://raw.githubusercontent.com/laravel/framework/13.x/src/Illuminate/Encryption/EncryptionServiceProvider.php</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Composer「Introduction」「Basic usage」<i>getcomposer.org 公式ドキュメント</i>.
+          <span class="note">参照箇所: Composer が Yum / Apt とは違いプロジェクト単位で <code>vendor</code> に入れるという説明、<code>composer.lock</code> がある状態での <code>install</code> の挙動、<code>vendor/autoload.php</code> が生成されること（3章の引用は原文のまま）。</span>
+          <a href="https://getcomposer.org/doc/00-intro.md">https://getcomposer.org/doc/00-intro.md</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PHP-FIG「PSR-4: Autoloader」<i>PHP Standards Recommendations</i>.
+          <span class="note">参照箇所: 冒頭の仕様の目的（ファイルパスからのオートロードと、ファイルの置き場所を定めること）。3章の折りたたみの引用は原文のまま。<code>App\</code> → <code>app/</code> がLaravel独自の慣習ではないことの根拠です。</span>
+          <a href="https://www.php-fig.org/psr/psr-4/">https://www.php-fig.org/psr/psr-4/</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Pest「Installation」<i>pestphp.com 公式ドキュメント</i> / Packagist metadata API（<code>pestphp/pest</code>）.
+          <span class="note">参照箇所: 「Pest requires PHP 8.4+ to run.」という記述と、Packagist の JSON から読んだ各版の <code>require.php</code>（v5.1.1 / v5.1.0 / v5.0.4 / v5.0.3 はいずれも <code>^8.4</code>、4.x ブランチの composer.json は <code>^8.3.0</code>）。1章の折りたたみのバージョン注意はこの2つの照合結果です。</span>
+          <a href="https://pestphp.com/docs/installation">https://pestphp.com/docs/installation</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          github.com 上の HTML ページ（<code>github.com/laravel/laravel/blob/13.x/...</code> など）。
+          <span class="note">この環境のプロキシ経由では <b>HTTP 403</b> が返り、本文を取得できませんでした。そのため上記のGitHub由来の資料はすべて <code>raw.githubusercontent.com</code>（いずれも200を確認）で読んでいます。github.com 側の表示は確認していません。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Laravelの新規作成からテスト・起動までの再現。2026年8月15日実施。PHP 8.4.19 / Composer 2.8.12 / Laravel Framework 13.25.0 / laravel/laravel v13.9.0 / PHPUnit 12.5.33 / Python 3.11.15 / Chromium 141.0.7390.37。
+          <span class="note">2章・7章のターミナル出力は、<code>composer create-project</code> から <code>php artisan serve</code> までを1本のスクリプトで通した <code>_labs/2026-08-15_laravel-first/output.txt</code> をそのまま切り出したものです。<b>文字の書き換え・並べ替え・複数コマンドの合成はしていません。</b>幅380pxで読めるよう、表示幅40桁での折り返しのみを機械的に行っています（内容は不変）。<mark>行を削っている箇所は2つだけで、どちらも本文に明記しています</mark>: (1) 2章の失敗ログは <code>head -9</code> で先頭9行を切り出したもの、(2) 6章のDBテストは <code>head -6</code> で先頭6行を切り出したもの。それ以外は空行を含めてファイルのとおりです。2章の <code>composer.json</code> / <code>phpunit.xml</code> の抜粋は生成された実物からの引用、<code>artisan</code> と <code>public/index.php</code> は全文、テストファイルは <code>&lt;?php</code> 行とdocblockを省いた抜粋です（code-headに明記）。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          テストDBと設定キャッシュの再現。同日・同環境。
+          <span class="note">6章の2つの出力は、<code>DB::table('users')-&gt;count()</code> だけを行うテストを追加して <code>RefreshDatabase</code> の有無で実行した結果（<code>dbtest-output.txt</code>）と、<code>config:cache</code> → <code>.env</code> 変更 → <code>config:clear</code> を順に実行した結果（<code>configcache-output.txt</code>）です。鍵の有無は <code>php artisan tinker --execute</code> で <code>config("app.key")</code> を見て判定しました。<mark>DBテストの出力は、スクリプト側で <code>head -6</code> により先頭6行に切り詰めています</mark>（本文のcode-headにも書きました）。それ以外の加工はしていません。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          ブラウザのエラー画面。Chromium 141.0.7390.37 で <code>APP_KEY</code> を空にした状態のトップページを開いて撮影。
+          <span class="note">2章で述べた表示内容（見出しの例外名、本文のメッセージ、<code>LARAVEL 13.25.0</code> / <code>PHP 8.4.19</code> のバッジ）は、その画像を目視して書いています。<mark>スタックトレースの並び順は、当初この記事で「先頭が <code>public/index.php:20</code>」と書いていましたが誤りでした。</mark>保存したエラー画面のHTMLを読み直したところ、先頭は <code>EncryptionServiceProvider.php:83</code>、<code>public/index.php:20</code> は47番目（アプリ側のコードとしては一番外側。48番目は <code>artisan serve</code> 組み込みサーバの <code>server.php:23</code>）です。抜き出したフレーム一覧は <code>_labs/2026-08-15_laravel-first/trace-frames.txt</code> に置きました。該当箇所を訂正しました。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          <code>laravel/pao</code> による <code>php artisan test</code> の出力形式の切り替え。同日・同環境。
+          <span class="note">4章の折りたたみのJSONは、環境変数 <code>CLAUDECODE=1</code> を付けて <code>php artisan test</code> を実行した実出力です。JSONを組み立てているのは <code>vendor/laravel/pao/src/Drivers/Concerns/TestResultParsable.php</code>（<code>'duration_ms' =&gt; $durationMs</code>）、エージェント検出だけを担当しているのが <code>vendor/laravel/agent-detector/src/AgentDetector.php</code> であることを、いずれもソースを開いて確認しました。依存関係は生成された <code>composer.lock</code>（<code>laravel/pao v1.1.4</code> → <code>laravel/agent-detector ^2.0.2</code>）と <code>composer.json</code> の <code>require-dev</code>（<code>"laravel/pao": "^1.0.6"</code>）で確認しています。<mark>この挙動について公式ドキュメントの該当ページは確認していません。</mark>手元のvendorのソースとlockファイルを読んだだけです。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測（測れなかったこと）</span>
+          この環境の制約で確認できなかったもの。
+          <span class="note"><b>(1)</b> <code>codeload.github.com</code> がプロキシで403のため、110パッケージすべてがzip配布ではなくソース取得で入りました。そのため <code>vendor/</code> の容量は通常の値にならず、<mark>この記事にディスク使用量は書いていません</mark>。<b>(2)</b> Dockerはデーモンが動いておらず未実行。<b>(3)</b> MySQL / TiDB との接続は行っていません（アプリ側は SQLite、テスト側は <code>:memory:</code>）。<b>(4)</b> <code>laravel new</code> は対話が必要なため実行しておらず、その挙動はインストーラのソースを読んだ範囲でのみ書いています。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月15日時点の内容です。検証環境: PHP 8.4.19 / Composer 2.8.12 / Laravel Framework 13.25.0 / PHPUnit 12.5.33 / Chromium 141.0.7390.37</div>
+    <div>検証に使ったスクリプトと実行結果は、このリポジトリの <code>_labs/2026-08-15_laravel-first/</code> に置いています。</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+-- T=TiDB8.5.7 M=MySQL8.0.46 -----------
+OK OK  ビュー作成
+OK OK  外部キー
+OK OK  生成列
+OK OK  CHECK制約
+OK OK  SAVEPOINT
+NG OK  ストアド
+NG OK  トリガー
+NG OK  イベント
+OK OK  全文索引
+OK OK  ENGINE=MyISAM
+OK OK  GET_LOCK
+-- NG の中身 ---------------------------
+TiDB / ストアド
+  SQLSTATE[HY000]: General error: 8108 U
+  nsupported type *resolve.NodeW
+TiDB / トリガー
+  SQLSTATE[42000]: Syntax error or acces
+  s violation: 1064 You have an error in
+   your SQL syntax; check the manual tha
+  t corresponds to your TiDB version for
+   the right syntax to use line 1 column
+   14 near "TRIGGER tg1 BEFORE INSERT ON
+   orders FOR EACH ROW SET @x = 1" 
+TiDB / イベント
+  SQLSTATE[42000]: Syntax error or acces
+  s violation: 1064 You have an error in
+   your SQL syntax; check the manual tha
+  t corresponds to your TiDB version for
+   the right syntax to use line 1 column
+   12 near "EVENT ev1 ON SCHEDULE EVERY 
+  1 DAY DO SELECT 1" 

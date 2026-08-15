@@ -1,0 +1,208 @@
+
+########## 0. バージョン
+aws       : 1.46.0
+botocore  : 1.43.62
+terraform : 1.14.3
+aws-prov  : 6.60.0
+python3   : 3.11.15
+node      : v22.22.2
+docker    : 29.3.1
+chromium  : 141.0.7390.37
+
+########## 1. クラスタの雛形
+{
+  "clusterName": "",
+  "capacityProviders": [
+    ""
+  ],
+  "settings": [
+    {
+      "name": "containerInsights",
+      "value": ""
+    }
+  ],
+  "serviceConnectDefaults": {
+    "namespace": ""
+  }
+}
+
+########## 2. タスク定義の雛形
+== タスク定義の直下(抜粋) ==
+{
+  "family": "",
+  "cpu": "",
+  "memory": "",
+  "networkMode": "none",
+  "requiresCompatibilities": [
+    "EXTERNAL"
+  ],
+  "executionRoleArn": "",
+  "taskRoleArn": ""
+}
+
+== containerDefinitions[0] の鍵 ==
+command cpu credentialSpecs dependsOn 
+disableNetworking dnsSearchDomains 
+dnsServers dockerLabels 
+dockerSecurityOptions entryPoint 
+environment environmentFiles 
+essential extraHosts 
+firelensConfiguration healthCheck 
+hostname image interactive links 
+linuxParameters logConfiguration 
+memory memoryReservation mountPoints 
+name portMappings privileged 
+pseudoTerminal readonlyRootFilesystem 
+repositoryCredentials 
+resourceRequirements restartPolicy 
+secrets startTimeout stopTimeout 
+systemControls ulimits user 
+versionConsistency volumesFrom 
+workingDirectory
+
+########## 3. APIモデルの列挙値
+NetworkMode:
+  bridge
+  host
+  awsvpc
+  none
+Compatibility:
+  EC2
+  FARGATE
+  EXTERNAL
+  MANAGED_INSTANCES
+LaunchType:
+  EC2
+  FARGATE
+  EXTERNAL
+  MANAGED_INSTANCES
+
+########## 4. モデルの networkMode 説明
+The Docker networking mode to use for 
+the containers in the task. The valid 
+values are none, bridge, awsvpc, and 
+host. If no network mode is 
+specified, the default is bridge. For 
+Amazon ECS tasks on Fargate, the 
+awsvpc network mode is required. For 
+Amazon ECS tasks on Amazon EC2 Linux 
+instances, any network mode can be 
+
+########## 4b. 雛形の enum は毎回変わる
+  2 awsvpc
+  2 bridge
+  3 host
+  3 none
+awscli/botocore/utils.py
+L1243: return random.choice(shape.enum)
+
+########## 5. タスク定義を段階的に投げる
+--- td-1.json
+
+Parameter validation failed:
+Missing required parameter in input: 
+"containerDefinitions"
+--- td-2.json
+
+An error occurred 
+(UnrecognizedClientException) when 
+calling the RegisterTaskDefinition 
+operation: The security token 
+included in the request is invalid.
+--- td-3.json
+
+Parameter validation failed:
+Invalid type for parameter 
+containerDefinitions[0].portMappings[0
+].containerPort, value: 80, type: 
+<class 'str'>, valid types: <class 
+'int'>
+
+########## 6. サービスの雛形(ALB/NW)
+{
+  "loadBalancers": [
+    {
+      "targetGroupArn": "",
+      "loadBalancerName": "",
+      "containerName": "",
+      "containerPort": 0,
+      "advancedConfiguration": {
+        "alternateTargetGroupArn": "",
+        "productionListenerRule": "",
+        "testListenerRule": "",
+        "roleArn": ""
+      }
+    }
+  ],
+  "networkConfiguration": {
+    "awsvpcConfiguration": {
+      "subnets": [
+        ""
+      ],
+      "securityGroups": [
+        ""
+      ],
+      "assignPublicIp": "ENABLED"
+    }
+  }
+}
+
+########## 7. plan が作るもの
+ecs_cluster  main
+ecs_service  web
+ecs_task_definition  web
+iam_role  exec
+iam_role_policy_attachment  exec
+lb  main
+lb_listener  http
+lb_target_group  web
+security_group  alb
+security_group  task
+subnet  public_a
+subnet  public_c
+vpc  main
+----
+作成: 13 件
+
+########## 8. plan が示す配線
+desired_count : 2
+launch_type   : FARGATE
+lb.container  : web
+lb.port       : 80
+tg.target_type: ip
+tg.port       : 80
+td.cpu/mem    : 256/512
+td.network    : awsvpc
+
+########## 9. container_name を消すと
+
+Error: Missing required argument
+
+  on main.tf line 188, in resource 
+"aws_ecs_service" "web":
+ 188:   load_balancer {
+
+The argument "container_name" is 
+required, but no definition was found.
+
+########## 10. コンテナ名をずらすと
+Success! The configuration is valid.
+
+plan exit = 0
+service が指す名前 : wev
+taskdef の名前     : web
+
+########## 11. 誤り4種を検出できるか
+コンテナ名 typo validate:通過 plan:通過
+network_mode    validate:通過 plan:通過
+target_type     validate:通過 plan:通過
+cpu に 300      validate:通過 plan:通過
+
+########## 12. docker build は動かない
+ERROR: failed to connect to the 
+docker API at 
+unix:///var/run/docker.sock; check if 
+the path is correct and if the daemon 
+is running: dial unix 
+/var/run/docker.sock: connect: no 
+such file or directory

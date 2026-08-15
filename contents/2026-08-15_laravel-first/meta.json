@@ -1,0 +1,8 @@
+{
+  "category": "Web開発・インフラ",
+  "tags": ["Laravel", "PHP", "Composer", "実測", "入門", "テスト"],
+  "featured": true,
+  "title": "Laravel を最初に動かすまで — composer、artisan、最初のテストが落ちる理由",
+  "summary": "PHPを触ったことがない前提で、Laravel 13 のインストールから php artisan serve までを実際に通しました。composer create-project 直後のテストは落ちません。落ちるのは git clone してきた側で、原因は APP_KEY が空なこと。テストDBが .env ではなく phpunit.xml の :memory: を見ていることも実測しています。",
+  "thumbnail": "images/thumb.png"
+}
