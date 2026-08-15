@@ -36,7 +36,7 @@
       </li>
       <li>
         <b>Claude Code 2.1.233が、前日2.1.232の「直った」Bash権限修正を明示的にRevertした</b>
-        <span>理由は<code>cd &lt;dir&gt; &amp;&amp; &lt;command&gt; &gt; file</code>というごく普通のコマンドで、auto modeが毎回手動承認を求めるようになった回帰。あわせてTodoWrite等のタスク管理ツールが新しいモデルから消えました。<b>前回記事の訂正を兼ねます。</b></span>
+        <span>理由は<b>Windowsで</b><code>cd &lt;dir&gt; &amp;&amp; &lt;command&gt; &gt; file</code>というごく普通のコマンドを打つと、auto modeが毎回手動承認を求めるようになった回帰。あわせてTodoWrite等のタスク管理ツールが新しいモデルから消えました。<b>前回記事の訂正を兼ねます。</b></span>
       </li>
       <li>
         <b>GitHubのOAuth Appが複数リダイレクトURIと更新トークンに対応。同時に「既存アプリはずっとワイルドカード照合が効いていた」ことが公開された</b>
@@ -154,7 +154,7 @@
           </tbody>
         </table>
       </div>
-      <p class="lead">単位はすべてUSD / 100万トークン。Google公式のGemini API pricingページ本文からの転記です。</p>
+      <p class="lead">単位はすべてUSD / 100万トークン。Google公式のGemini API pricingページ本文、<mark>Standard(標準)ティアの欄</mark>からの転記です。同じページのBatch / Flex / Priorityは別の単価で、いずれも2027年1月1日に2倍になる点は共通です。</p>
 
       <ul class="points">
         <li><b>年間予算を組むなら2027年分は2倍で計算する。</b>4項目すべてがきっかり2倍です。「今の単価で年間費用を出す」と、来年の見積もりが半分になります。</li>
@@ -190,7 +190,7 @@
         <li><b>事実の記述ほど透かしが薄い。</b>「Watermarking is sparser on factual passages where there are fewer choices」。コードも同じ理屈で、「a piece of code would break if a different term was chosen」場面には適用されません。ただし「such as comments within code」では使われうる、と明記されています。</li>
         <li><b>EUの法律なのに全世界に適用される。</b>理由は「we don't yet have a durable way to scope it by region」。地域ごとに切り分ける確実な方法がまだ無いから、というのが公式の説明です。日本の読者も対象です。</li>
         <li><b>検出APIは「近日」で、今は存在しない。</b>「We will soon be offering a watermark detection API. We're in the process of working out the details of its implementation.」現時点では読者側で検証できません。</li>
-        <li><b>透かしは「Claudeが関与した」しか言えない。</b>「It cannot distinguish "Claude wrote this" from "Claude heavily edited this."」軽い編集では消えないが、全単語を書き換える完全なリライトなら消える、とも書かれています。</li>
+        <li><b>透かしは「Claudeが関与した」しか言えない。</b>「It cannot distinguish "Claude wrote this" from "Claude heavily edited this."」「軽い編集ではおそらく完全には消えない(Light editing probably won&#39;t remove the watermark completely)」、全単語を書き換える完全なリライトなら消える、とも書かれています。</li>
       </ul>
 
       <details>
@@ -227,7 +227,7 @@
         <span class="tag">Laravel 13.25.0</span>
         <span class="tag">キュー</span>
       </div>
-      <p class="lead">キューとは、時間のかかる処理(メール送信、画像変換など)を後回しにするための待ち行列です。ワーカー(<code>queue:work</code>)がそれを順番に取り出して実行します。13.25.0で入ったのは、<mark>ワーカーを止めずに、新しいジョブを拾うのだけを一時停止する</mark>スイッチです。</p>
+      <p class="lead">キューとは、時間のかかる処理(メール送信、画像変換など)を後回しにするための待ち行列です。ワーカー(<code>queue:work</code>)がそれを順番に取り出して実行します。<mark>ワーカーを止めずに、新しいジョブを拾うのだけを一時停止する</mark><code>queue:pause</code>自体はLaravel 12.xからあります。13.25.0で入ったのは、<mark>全接続の全キューをまとめて止める・戻す<code>--all</code></mark>のほうです(CHANGELOGの表記も「Add a global pause switch for queues」)。</p>
 
       <p class="lead">ところが公式ドキュメントは同じ節の中で、再開コマンドを<code>queue:continue</code>と<code>queue:resume</code>の2通りで書いています。誤記なのか。<b>この環境にLaravelを立てて確かめました。</b></p>
 
@@ -263,6 +263,8 @@ queue:restart
 <span class="ok-line">queue:resume
   alias: queue:continue</span>
 queue:retry
+  alias: -
+queue:retry-batch
   alias: -
 queue:work
   alias: -</pre>
@@ -317,7 +319,7 @@ $ cat storage/done.log
 <span class="ok-line">A</span></pre>
       </div>
 
-      <p class="lead">一時停止中はワーカーを起動しても<b>ジョブを拾わずに即終了</b>します(exit=0、ログは空のまま)。プロセス自体は生きているので、コンテナは落ちません。</p>
+      <p class="lead">一時停止中はワーカーを起動しても<b>ジョブを拾いません</b>(ログは空のまま)。上の実行が即終了しているのは<code>--stop-when-empty</code>を付けたからで、常駐運用なら公式が書くとおり<mark>ワーカーのプロセス自体は止まりません</mark>(「pausing a queue does not stop the worker process itself」)。</p>
 
       <p class="lead">そして、公式が書いている落とし穴も再現しました。原文は「<b>Resuming all queues does not resume queues that were paused individually.</b>」個別に止めたキューは<code>--all</code>では戻りません。</p>
 
@@ -365,12 +367,14 @@ $ cat storage/done.log
             <dd>PHP 8.4.19 (cli, NTS) / Composer 2.8.12 / Laravel Framework 13.25.0 / DB は SQLite の実ファイル / <code>QUEUE_CONNECTION=database</code> / <code>CACHE_STORE=database</code>。<code>composer create-project laravel/laravel laravel-queue-test "13.*"</code> で作った素のプロジェクトに、<code>storage/done.log</code>へ1行追記するだけのジョブを1つ足しただけです。<code>config/queue.php</code>は一切いじっていません。実測日は2026年8月15日。</dd>
             <dt>出力幅を縮められなかったこと</dt>
             <dd>本サイトの決まりでは、ターミナル出力は幅380pxに収まる長さにします。ところが<code>export COLUMNS=40</code>を付けても、Laravelの<code>INFO</code>バナーは折り返されませんでした。実測すると<mark>76桁</mark>あります(<code>queue:work</code>の進捗行は48〜52桁)。これはLaravel側の出力で、こちらでは縮められません。<b>手で短く書き換えるのは禁止</b>なので、そのまま貼っています。<code>.code</code>ブロックは中で横スクロールするので、ページ全体は崩れません。</dd>
+            <dt>13.25.0で変わったのは<code>--all</code>だけ</dt>
+            <dd>タグ付きのソースを取得して差を見ました。<code>v13.24.0</code>の<code>ResumeCommand.php</code>は<code>$signature = 'queue:resume {queue : ...}'</code>で<b>キュー名が必須・<code>--all</code>なし</b>、<code>v13.25.0</code>で<code>{queue?}</code>と<code>--all</code>が加わります(<code>PauseCommand.php</code>も同じ)。<mark><code>queue:pause</code>と<code>queue:continue</code>自体はLaravel 12.xの時点で存在し</mark>、12.xのドキュメントにも同じ節があります(<code>--all</code>と「個別に止めたキューは戻らない」の注記は13.xで追加)。</dd>
             <dt>確認できなかったこと</dt>
-            <dd><mark><code>queue:continue</code>という別名がいつ追加されたかは特定できませんでした。</mark>同梱の<code>CHANGELOG.md</code>(v13.0.0 〜 v13.24.0)に<code>queue:continue</code>への言及は1件もありません。よって「13.xのどの版で入ったか」は書きません。現行13.25.0に存在することだけが実測済みです。</dd>
+            <dd><mark><code>queue:continue</code>という別名がいつ追加されたかは特定できませんでした。</mark>12.xブランチの<code>ResumeCommand.php</code>にも<code>aliases: ['queue:continue']</code>があるため、少なくとも13.xで入ったものではありません。同梱の<code>CHANGELOG.md</code>(v13.0.0 〜 v13.24.0)にも言及が1件もないため、初出の版は書きません。</dd>
             <dt>筆者の意見</dt>
             <dd>ドキュメントはバグではありませんが、書き方には改善の余地があります。同じページで正式名と別名を混ぜているのに、「<code>queue:continue</code>は<code>queue:resume</code>の別名です」という一文がどこにも無いためです。</dd>
             <dt>出典</dt>
-            <dd><a href="https://laravel.com/docs/13.x/queues">Laravel 13.x Queues(公式ドキュメント)</a> / <a href="https://raw.githubusercontent.com/laravel/framework/13.x/CHANGELOG.md">laravel/framework CHANGELOG</a></dd>
+            <dd><a href="https://laravel.com/docs/13.x/queues">Laravel 13.x Queues(公式ドキュメント)</a> / <a href="https://laravel.com/docs/12.x/queues">Laravel 12.x Queues(同じ節の12.x版)</a> / <a href="https://raw.githubusercontent.com/laravel/framework/13.x/CHANGELOG.md">laravel/framework CHANGELOG</a></dd>
           </dl>
         </div>
       </details>
@@ -390,7 +394,7 @@ $ cat storage/done.log
       <ul class="points">
         <li><b>対象は「明示的Deny」だけ。</b>原文は「Now the error message includes the specific policy ARN <b>for explicit deny cases</b>」。<mark>「どこにもAllowが無いから落ちた」(暗黙のDeny)では、指し示すポリシーが存在しないのでARNは出ません。</mark>実務で多いのはむしろ後者です。</li>
         <li><b>5種類のポリシーが対象。</b>SCP(組織全体にかける上限)、RCP(リソース側にかける上限)、アイデンティティベースポリシー(ユーザーやロールに付ける許可)、セッションポリシー、アクセス許可境界。403の原因究明が難しいのは、この5つが同時に効いているからです。</li>
-        <li><b>同一アカウント・同一Organization内のリクエストが対象。</b>クロスアカウントのアクセスは含まれません。</li>
+        <li><b>同一アカウント・同一Organization内のリクエストが対象。</b>原文は「for same-account and same-organization requests」。<mark>同じ組織の中ならアカウントをまたいでも対象ですが、組織の外からのアクセスは含まれません。</mark></li>
         <li><b>全リージョンで利用可能。</b>GovCloud(US)と中国リージョンを含む、と明記されています。</li>
       </ul>
 
@@ -409,14 +413,14 @@ $ cat storage/done.log
 
     <article class="item">
       <div class="source"><img src="https://www.google.com/s2/favicons?domain=terraform.io&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">HashiCorp</div>
-      <h3>terraform-provider-awsは3日で6.58→6.60。8/12に入った回帰を、翌日8/13のリリースが塞いでいる</h3>
+      <h3>terraform-provider-awsは週1本ペース。8/12の6.59.0で入った回帰を、翌日8/13の6.60.0が塞いだ</h3>
       <div class="tags">
         <span class="tag">8/13</span>
         <span class="tag ok">✓ 公式確認済</span>
         <span class="tag">Terraform</span>
         <span class="tag">バージョン固定</span>
       </div>
-      <p class="lead">プロバイダとは、TerraformがAWSなどのAPIを叩くための部品です。AWSプロバイダは<mark>ほぼ毎日リリースされています</mark>。6.59.0が8月12日、6.60.0が8月13日。そして6.60.0のバグ修正の1行目がこれです。</p>
+      <p class="lead">プロバイダとは、TerraformがAWSなどのAPIを叩くための部品です。AWSプロバイダは<mark>ほぼ週1本のペース</mark>で出ています(6.57.0が7/29、6.58.0が8/5、6.59.0が8/12。いずれも水曜)。ところが6.60.0は<mark>その翌日の8月13日</mark>に出ました。バグ修正にこの行があります。</p>
 
       <div class="code wrap">
         <div class="code-head">CHANGELOG 6.60.0 (August 13, 2026) — BUG FIXES</div>
@@ -511,7 +515,7 @@ the old nor the new record.</pre>
           <source srcset="images/unity-tradeoff-dark.png" media="(prefers-color-scheme: dark)">
           <img src="images/unity-tradeoff.png" alt="Unity 6000.7.0a4のWebビルド設定。コードサイズ削減率が大きいほどフレーム時間の悪化も大きくなる" loading="lazy">
         </picture>
-        <figcaption>削れる量と遅くなる量は比例している。どこで止めるかは、転送量とフレームレートのどちらを取るかの判断</figcaption>
+        <figcaption>削る量を増やすほど、遅くなる量も増える。どこで止めるかは、転送量とフレームレートのどちらを取るかの判断</figcaption>
       </figure>
 
       <div class="table">
@@ -676,7 +680,7 @@ the old nor the new record.</pre>
 
       <ul class="points">
         <li><b>出力はオフピークで2.28〜2.36倍、ピークで4.55〜4.71倍。</b>v4-proが2.28倍 / 4.55倍、v4-flashが2.36倍 / 4.71倍です(本サイトの計算)。</li>
-        <li><b>キャッシュヒットの上げ幅が突出している。</b>v4-proのcache hitは$0.003625 → ピーク$0.044で<mark>約12.1倍</mark>、オフピークでも約6.07倍。<b>プロンプトキャッシュ前提でコストを組んでいた構成ほど、影響が大きくなります</b>(本サイトの計算)。</li>
+        <li><b>キャッシュヒットの上げ幅が突出している。</b>v4-proのcache hitは$0.003625 → ピーク$0.044で<mark>約12.14倍</mark>、オフピークでも約6.07倍。<b>プロンプトキャッシュ前提でコストを組んでいた構成ほど、影響が大きくなります</b>(本サイトの計算)。</li>
         <li><b>入力(cache miss)は比較的おとなしい。</b>オフピークで約1.52〜1.57倍、ピークで約3.03〜3.14倍(本サイトの計算)。値上げ幅は「出力 &gt; キャッシュヒット入力」ではなく、「キャッシュヒット入力 &gt; 出力 &gt; キャッシュミス入力」の順です。</li>
         <li><b>ピーク帯は7時間だけ。なのに日本のユーザーはほぼ全部踏む。</b>公式脚注の原文は「Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC (all other hours are off-peak)」。<mark>UTC+9で直すと10:00-13:00と15:00-19:00 JST</mark>です(この換算は本サイトが行いました)。</li>
       </ul>
@@ -738,7 +742,7 @@ the old nor the new record.</pre>
         <div class="body">
           <dl>
             <dt>Hugging Face上の実測メタデータ</dt>
-            <dd>リポジトリ作成 <code>createdAt = 2026-08-05T08:22:59Z</code>、最終更新 <code>lastModified = 2026-08-14T15:00:01Z</code>(= 8月15日00:00 JST)。調査時点で likes 9,727 / downloads 91,917。タグは<code>license:apache-2.0</code>、アーキテクチャは<code>Qwen3_5ForConditionalGeneration</code>で、ビジョンエンコーダ付きの因果言語モデルです。派生モデル(GGUF / MLX / AWQ / 量子化など)が8月15日の1日だけで数十件作られていることも、APIで作成日時の降順に取得して確認しました。</dd>
+            <dd>リポジトリ作成 <code>createdAt = 2026-08-05T08:22:59Z</code>、最終更新 <code>lastModified = 2026-08-14T15:00:01Z</code>(= 8月15日00:00 JST)。調査時点で likes 9,727 / downloads 91,917。タグは<code>license:apache-2.0</code>、アーキテクチャは<code>Qwen3_5ForConditionalGeneration</code>で、ビジョンエンコーダ付きの因果言語モデルです。派生モデル(GGUF / MLX / AWQ / 量子化など)が<b>8月15日の1日だけで400件以上</b>作られていることも、Hub APIで作成日時の降順に取得して数えました(<code>search=Qwen3.8-27B</code>で8月14日373件 / 8月15日415件)。</dd>
             <dt>構造</dt>
             <dd>READMEの記載は「Hidden Dimension: 5120 / Number of Layers: 64 / Hidden Layout: 16 × (3 × (Gated DeltaNet → FFN) → 1 × (Gated Attention → FFN))」。Multi-Token Predictionを複数ステップで学習した、とも書かれています。</dd>
             <dt>読み方についての筆者の意見</dt>
@@ -828,7 +832,14 @@ the old nor the new record.</pre>
 
         <li>
           <span class="flag primary">一次資料</span>
-          Amazon Web Services「Amazon S3 adds policy details to Access Denied error messages」<i>AWS What's New</i>, 2026年8月13日（ページ本文の「Posted on: Aug 13, 2026」）.
+          Laravel「<code>ResumeCommand.php</code> / <code>PauseCommand.php</code>（タグ v13.24.0 と v13.25.0、および 12.x ブランチ）」<i>laravel/framework ソース</i>.
+          <span class="note">参照箇所: <code>v13.24.0</code> は <code>protected $signature = 'queue:resume {queue : The name of the queue that should resume processing}';</code>（キュー名必須・<code>--all</code> なし）、<code>v13.25.0</code> は <code>{queue?}</code> と <code>{--all : Resume job processing for all queues on all connections}</code> を持ちます（<code>PauseCommand.php</code> も同様に <code>--all</code> が追加）。12.x ブランチの <code>ResumeCommand.php</code> にも <code>#[AsCommand(name: 'queue:resume', aliases: ['queue:continue'])]</code> があり、<b>コマンドと別名は 13.25.0 の新規追加ではない</b>ことの根拠です。あわせて Laravel 12.x ドキュメントの「Pausing and Resuming Queue Workers」節（<code>queue:pause</code> / <code>queue:continue</code> の記述はあるが <code>--all</code> と「Resuming all queues does not resume queues that were paused individually.」は無い）も取得して確認しました。</span>
+          <a href="https://raw.githubusercontent.com/laravel/framework/v13.25.0/src/Illuminate/Queue/Console/ResumeCommand.php">https://raw.githubusercontent.com/laravel/framework/v13.25.0/src/Illuminate/Queue/Console/ResumeCommand.php</a>（2026年8月16日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Amazon S3 adds additional policy details to access denied error messages」<i>AWS What's New</i>, 2026年8月13日（ページ本文の「Posted on: Aug 13, 2026」）.
           <span class="note">参照箇所: 「Amazon S3 now includes the specific AWS Identity and Access Management (IAM) and AWS Organizations policy Amazon Resource Name (ARN) in HTTP 403 Access Denied error messages for same-account and same-organization requests.」、「Previously, S3 access denied error messages included the policy type and reason for denial, but when multiple policies of the same type existed, you still had to manually inspect each one to pinpoint the root cause. Now the error message includes the specific policy ARN <b>for explicit deny cases</b>, covering Service Control Policies (SCPs), Resource Control Policies (RCPs), identity-based policies, session policies, and permission boundaries.」（「明示的Denyのみ」「5種類のポリシー」の根拠）、「This capability is available in all AWS Regions, including the AWS GovCloud (US) Regions and the AWS China Regions.」</span>
           <a href="https://aws.amazon.com/about-aws/whats-new/2026/08/s3-additional-policy-details-access-denied-error-messages/">https://aws.amazon.com/about-aws/whats-new/2026/08/s3-additional-policy-details-access-denied-error-messages/</a>（2026年8月16日参照）
         </li>
@@ -836,7 +847,7 @@ the old nor the new record.</pre>
         <li>
           <span class="flag primary">一次資料</span>
           HashiCorp「terraform-provider-aws CHANGELOG」<i>GitHub (raw.githubusercontent.com, mainブランチ)</i>.
-          <span class="note">参照箇所: 見出し「## 6.60.0 (August 13, 2026)」「## 6.59.0 (August 12, 2026)」と、6.60.0 の BUG FIXES 冒頭「* resource/aws_network_acl_rule: Fix <code>Missing Resource Identity After Read</code> errors. This fixes a regression introduced in v6.59.0」。「6.61.0 (Unreleased)」の ENHANCEMENTS より「* data-source/aws_lb_listener_rule: Add <code>condition.source_ip.ip_address_type</code> attribute」「* resource/aws_lb_listener_rule: Add <code>condition.source_ip.ip_address_type</code> argument」「* resource/aws_pinpointsmsvoicev2_phone_number: Add <code>wait_for_active</code> argument … Number types gated on carrier or registration approval (for example <code>TEN_DLC</code>, <code>TOLL_FREE</code>, or any number submitted with <code>registration_id</code>) can remain <code>PENDING</code> for days to weeks, which previously caused <code>terraform apply</code> to time out」。6.60.0の公開日時は Terraform Registry API（<code>https://registry.terraform.io/v1/providers/hashicorp/aws</code>）の <code>published_at = 2026-08-13T18:12:29Z</code> で照合しました。</span>
+          <span class="note">参照箇所: 見出し「## 6.60.0 (August 13, 2026)」「## 6.59.0 (August 12, 2026)」と、6.60.0 の BUG FIXES にある「* resource/aws_network_acl_rule: Fix <code>Missing Resource Identity After Read</code> errors. This fixes a regression introduced in v6.59.0」。「6.61.0 (Unreleased)」の ENHANCEMENTS より「* data-source/aws_lb_listener_rule: Add <code>condition.source_ip.ip_address_type</code> attribute」「* resource/aws_lb_listener_rule: Add <code>condition.source_ip.ip_address_type</code> argument」「* resource/aws_pinpointsmsvoicev2_phone_number: Add <code>wait_for_active</code> argument … Number types gated on carrier or registration approval (for example <code>TEN_DLC</code>, <code>TOLL_FREE</code>, or any number submitted with <code>registration_id</code>) can remain <code>PENDING</code> for days to weeks, which previously caused <code>terraform apply</code> to time out」。6.60.0の公開日時は Terraform Registry API（<code>https://registry.terraform.io/v1/providers/hashicorp/aws</code>）の <code>published_at = 2026-08-13T18:12:29Z</code> で照合しました。</span>
           <a href="https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/CHANGELOG.md">https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/CHANGELOG.md</a>（2026年8月16日参照）
         </li>
 
@@ -856,15 +867,15 @@ the old nor the new record.</pre>
 
         <li>
           <span class="flag primary">一次資料</span>
-          Shangao Li, Yao Zhang, Volker Tresp, Yuanyuan Yang「QuoteBench」<i>arXiv:2608.13547v1</i>, 2026年8月13日登録（<code>&lt;published&gt; = 2026-08-13T17:57:20Z</code>）.
+          Shangao Li, Yao Zhang, Volker Tresp, Yuanyuan Yang「QuoteBench: How Matched Scores Can Hide Command-Path Failures」<i>arXiv:2608.13547v1</i>, 2026年8月13日登録（<code>&lt;published&gt; = 2026-08-13T17:57:20Z</code>）.
           <span class="note">参照箇所（<b>要旨のみ。全文は未取得</b>）: 「LLM coding agents issue Bash commands through interfaces that may serialize, wrap, and reparse model output. Matched execution scores alone cannot distinguish command-generation errors from failures introduced after generation. QuoteBench measures this boundary with exact final-state validation on <b>56 one-shot tasks from 14 incident-derived families</b>」、「Across eight same-window configurations, replaying the same reply through the added parser <b>lowers success by 55.4 to 73.2 percentage points</b>; disclosure recovers <b>30.4 to 60.7 points</b> for six configurations, and zero or slightly negative for the other two.」、「Raw generation is nearly saturated at the frontier; boundary adaptation is what still separates models. <b>GPT-5.6-sol's matched gap of -3.6 points hides -64.3 points of damage and +60.7 points of compensation.</b>」、「Evaluations of command-issuing agents should report the model configuration, generation contract, execution path, operating point, and final-state validator rather than treat a matched score as an intrinsic model property.」。書誌・要旨はarXiv APIから取得しました。<b>査読前のプレプリントであり、数値は著者の自己申告値です。</b>著者コメント欄に記載のプロジェクトページ（quotebench.lsamc.website）は未取得です。</span>
           <a href="https://arxiv.org/abs/2608.13547">https://arxiv.org/abs/2608.13547</a>（2026年8月16日参照）
         </li>
 
         <li>
           <span class="flag primary">一次資料</span>
-          Wenqiang Luo, Jacky Keung, Xiaoyu Shi, Yicheng Sun, Boyang Yang, Zhou Yang ほか計7名「(LLMベースAPRにおけるパッチ肥大化の研究)」<i>arXiv:2608.13292v1</i>, 2026年8月13日登録（<code>&lt;published&gt; = 2026-08-13T14:25:50Z</code>）.
-          <span class="note">参照箇所（<b>要旨のみ。全文は未取得</b>）: 「we identify patch verbosity as a major yet overlooked concern in LLM-based APR. <b>Characterizing 28 state-of-the-art approaches on SWE-bench Verified, we find that even successful patches are consistently larger and more complex than developer patches, with the median approach producing 121.78% more total changes, 80.91% more net changes, and 43.99% higher cyclomatic complexity.</b>」、「this verbosity is rooted in capability-oriented design choices such as iterative refinement and broad context, and <b>can hardly be reduced by surface-level controls such as output format or minimality prompts.</b>」、「Across four host systems, prompting, commit-untangling, and minimality-aware baselines reduce patch size only by sacrificing 49 to 217 resolved instances. In contrast, RECAP achieves a substantially better size-correctness tradeoff, <b>cutting average total changes from +242.14% to +4.24% and net changes from +348.24% to -39.75% relative to developer patches</b> while preserving or improving resolution by up to 42 instances.」、「minimality cannot be simply reduced to syntactic compression, and … decoupling minimization from generation offers a practical path to more reviewable repairs.」。<b>査読前のプレプリントであり、数値は著者の自己申告値です。</b>タイトルはarXiv APIで取得した書誌に基づきますが、本記事の見出しでは邦訳せずに内容で表現しています。</span>
+          Wenqiang Luo, Jacky Keung, Xiaoyu Shi, Yicheng Sun, Boyang Yang, Zhou Yang, Haoye Tian「Refine After Generation: Toward Correct and Concise Patches in LLM-based Program Repair」<i>arXiv:2608.13292v1</i>, 2026年8月13日登録（<code>&lt;published&gt; = 2026-08-13T14:25:50Z</code>）.
+          <span class="note">参照箇所（<b>要旨のみ。全文は未取得</b>）: 「we identify patch verbosity as a major yet overlooked concern in LLM-based APR. <b>Characterizing 28 state-of-the-art approaches on SWE-bench Verified, we find that even successful patches are consistently larger and more complex than developer patches, with the median approach producing 121.78% more total changes, 80.91% more net changes, and 43.99% higher cyclomatic complexity.</b>」、「this verbosity is rooted in capability-oriented design choices such as iterative refinement and broad context, and <b>can hardly be reduced by surface-level controls such as output format or minimality prompts.</b>」、「Across four host systems, prompting, commit-untangling, and minimality-aware baselines reduce patch size only by sacrificing 49 to 217 resolved instances. In contrast, RECAP achieves a substantially better size-correctness tradeoff, <b>cutting average total changes from +242.14% to +4.24% and net changes from +348.24% to -39.75% relative to developer patches</b> while preserving or improving resolution by up to 42 instances.」、「minimality cannot be simply reduced to syntactic compression, and … decoupling minimization from generation offers a practical path to more reviewable repairs.」。<b>査読前のプレプリントであり、数値は著者の自己申告値です。</b>タイトル・著者はarXiv APIで取得した書誌のとおりです(本記事の見出しは邦訳ではなく内容で表現しています)。</span>
           <a href="https://arxiv.org/abs/2608.13292">https://arxiv.org/abs/2608.13292</a>（2026年8月16日参照）
         </li>
 
@@ -904,7 +915,7 @@ the old nor the new record.</pre>
         <li>
           <span class="flag self">自分の計算</span>
           DeepSeekの値上げ倍率は、公式Pricingページの現行価格と改定後価格から本サイトが割り算した値です。<mark>公式はこの倍率を公表していません。</mark>
-          <span class="note">計算内容: 出力は v4-pro が $0.87 → $1.98（2.28倍）/ $3.96（4.55倍）、v4-flash が $0.28 → $0.66（2.36倍）/ $1.32（4.71倍）。cache hit入力は v4-pro が $0.003625 → $0.022（6.07倍）/ $0.044（12.1倍）、v4-flash が $0.0028 → $0.007（2.5倍）/ $0.014（5.0倍）。cache miss入力は v4-pro が $0.435 → $0.66（1.52倍）/ $1.32（3.03倍）、v4-flash が $0.14 → $0.22（1.57倍）/ $0.44（3.14倍）。小数第3位を四捨五入しています。またarXiv:2608.13292 の「121.78% more / 80.91% more / 43.99% higher」を倍率（約2.2倍 / 約1.8倍 / 約1.44倍）に言い換えた箇所も本サイトの換算です。</span>
+          <span class="note">計算内容: 出力は v4-pro が $0.87 → $1.98（2.28倍）/ $3.96（4.55倍）、v4-flash が $0.28 → $0.66（2.36倍）/ $1.32（4.71倍）。cache hit入力は v4-pro が $0.003625 → $0.022（6.07倍）/ $0.044（12.14倍）、v4-flash が $0.0028 → $0.007（2.5倍）/ $0.014（5.0倍）。cache miss入力は v4-pro が $0.435 → $0.66（1.52倍）/ $1.32（3.03倍）、v4-flash が $0.14 → $0.22（1.57倍）/ $0.44（3.14倍）。小数第3位を四捨五入しています。またarXiv:2608.13292 の「121.78% more / 80.91% more / 43.99% higher」を倍率（約2.2倍 / 約1.8倍 / 約1.44倍）に言い換えた箇所も本サイトの換算です。</span>
         </li>
 
         <li>
