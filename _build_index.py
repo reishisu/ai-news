@@ -223,7 +223,7 @@ def head_extras(prefix, page_url, title):
 <link rel="apple-touch-icon" href="{prefix}favicon.svg">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{title}">
-<meta property="og:description" content="世界のAIニュースを日本語で、毎朝6:00にお届け">
+<meta property="og:description" content="世界のAIニュースを日本語で、毎朝5:00にお届け">
 <meta property="og:url" content="{page_url}">
 <meta property="og:image" content="{SITE_URL}ogp.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -290,6 +290,16 @@ def enhance_issue(issue, meta):
     # アクセス解析(site.json にコードがあるときだけ)
     if ANALYTICS and "goatcounter" not in html:
         html = inject_before_body(html, ANALYTICS)
+
+    # OGP画像は、その記事自身のサムネイルを指す。
+    # 共通の ogp.png のままだと、どの記事をシェアしても同じ絵になって見分けが付かない。
+    thumb = meta.get("thumbnail") or "images/thumb.png"
+    if (issue["html_path"].parent / thumb).exists():
+        thumb_url = f"{page_url}{thumb}"
+        html = re.sub(r'(<meta\s+property="og:image"\s+content=")[^"]*(")',
+                      lambda m: m.group(1) + thumb_url + m.group(2), html, count=1)
+        html = re.sub(r'(<meta\s+name="twitter:image"\s+content=")[^"]*(")',
+                      lambda m: m.group(1) + thumb_url + m.group(2), html, count=1)
 
     html = add_cache_busting(html, VERSIONS)
 

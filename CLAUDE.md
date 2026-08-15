@@ -96,6 +96,7 @@ contents/YYYY-MM-DD_スラッグ/
 _templates/home.html  # ホームのテンプレート
 _build_index.py       # サイトビルダー
 _render_figures.py    # SVG → PNG(ライト/ダーク)
+_render_thumbs.py     # 記事のサムネイル(1200x630)
 _fetch_popular.py     # GoatCounterから閲覧数取得
 ```
 
@@ -192,12 +193,29 @@ _fetch_popular.py     # GoatCounterから閲覧数取得
 
 - `category`: デイリーダイジェスト / AIで作る技術 / Web開発・インフラ / クライアント技術 / チームで作る技術
 - `tags`: 3〜6個。**既存タグを優先して使い回す**（`cat contents/*/meta.json | grep -A8 '"tags"'`）。`|` は使わない
-- サムネイル生成:
-  ```
-  /opt/pw-browsers/chromium --headless --no-sandbox --disable-gpu --hide-scrollbars \
-    --window-size=1200,630 --screenshot=contents/<記事>/images/thumb.png \
-    "file://$PWD/contents/<記事>/index.html"
-  ```
+
+### サムネイル（`images/thumb.png`）
+
+**必ず `_render_thumbs.py` で作ること。** chromium に記事HTMLを直接撮らせると、
+**右下に浮いているシェアボタンが写り込みます**（過去に全記事で発生）。
+このスクリプトは撮影用の一時HTMLを作り、シェアボタン・コメント欄・計測タグを
+外してから撮ります。記事本体は書き換えません。
+
+```bash
+python3 _render_thumbs.py                    # 全記事
+python3 _render_thumbs.py <記事ディレクトリ名>  # 1記事だけ
+python3 _render_thumbs.py --stale            # 記事HTMLより古いものだけ
+```
+
+- **タイトルや冒頭を直したら、必ず撮り直す。** サムネイルは記事の見出しを写した画像です。
+  古いままだと、**ホームのカードとSNSのシェア画像にだけ昔の見出しが残ります**
+  （実際に19枚が古いまま残っていて、8/15のダイジェストは旧タイトルを表示していました）
+- 生成後は **Read で開いて目視確認**する。見出しが切れていないか、想定の記事か
+- 1200×630。この比率はSNSのカード表示に合わせたもので、変えない
+
+`og:image` と `twitter:image` は `_build_index.py` が**その記事のサムネイルに書き換えます。**
+記事HTMLに共通の `ogp.png` を書いておいても構いません（ビルド時に差し替わります）。
+記事ごとに違う画像にしないと、どれをシェアしても同じ絵になって見分けが付きません。
 
 ---
 
@@ -222,6 +240,7 @@ _fetch_popular.py     # GoatCounterから閲覧数取得
 ```bash
 git checkout main && git pull origin main
 python3 _render_figures.py <記事ディレクトリ名>
+python3 _render_thumbs.py <記事ディレクトリ名>   # タイトルを直したときも必ず
 python3 _build_index.py
 git add -A && git commit -m "日本語のメッセージ"
 git push -u origin main

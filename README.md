@@ -1,6 +1,6 @@
 # AIニュース デイリーダイジェスト
 
-毎朝6:00 JSTに自動更新されるAIニュースまとめサイト
+毎朝5:00 JSTに自動更新されるAIニュースまとめサイト
 
 公開URL: https://reishisu.github.io/ai-news/
 
@@ -89,7 +89,7 @@ GOATCOUNTER_TOKEN=xxxxx python3 _fetch_popular.py 7     # 直近7日
 
 ## 仕組み
 
-毎朝6:00 JSTのスケジュールタスク(Claude Code)がニュースを収集し、
+毎朝5:00 JSTのスケジュールタスク(Claude Code)がニュースを収集し、
 `contents/` に当日号を追加 → `_render_figures.py` で図版をPNG化 →
 `_build_index.py` でホームを再生成 → mainへpush。
 6:45 JSTのウォッチドッグが公開済みかを確認し、未公開なら生成からやり直します。
