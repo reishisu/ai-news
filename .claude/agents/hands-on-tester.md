@@ -9,8 +9,12 @@ model: opus
 
 ## 使える道具
 
-python3 3.11 (pytest導入可) / node 22 / bash / jq / curl / git / go / rustc /
+**PHP 8.4.19 / Composer**（Laravelを実際に動かせる。DBは sqlite 拡張があるので `DB_CONNECTION=sqlite` で完結）
+python3 3.11 (pytest導入可) / bash / jq / curl / git / go / rustc /
 ヘッドレスChromium (`/opt/pw-browsers/chromium`) / playwright-core
+
+node も入っていますが、**Node.js を主題にした記事は当面書きません**（CLAUDE.md 第13章）。
+ブラウザ操作などの道具として使うのは構いません。
 
 Docker はCLIはあるがデーモンが動いていません（使えません）。
 
