@@ -32,7 +32,7 @@
     <ol>
       <li>
         <b>DeepSeekが明日8月17日01:00 JSTからAPIを値上げ。しかも「ピーク帯」が日本の業務時間とほぼ一致する</b>
-        <span>公式が定義したピークは01:00-04:00と06:00-10:00 UTC。JSTに直すと10-13時と15-19時です。オフピーク価格ですら現行より高く、出力は現行比2.28〜2.36倍(本サイトの計算)。</span>
+        <span>公式が定義したピークは01:00-04:00と06:00-10:00 UTC(協定世界時)。日本時間(JST)はUTCより9時間進んでいるので、直すと10-13時と15-19時です。オフピーク価格ですら現行より高く、出力は現行比2.28〜2.36倍(本サイトの計算)。</span>
       </li>
       <li>
         <b>Claude Code 2.1.233が、前日2.1.232の「直った」Bash権限修正を明示的にRevertした</b>
@@ -106,7 +106,7 @@
         <span class="tag">OAuth</span>
         <span class="tag">要棚卸し</span>
       </div>
-      <p class="lead">機能追加は3つです。OAuth Appが期限付きアクセストークンと更新トークンを選べるようになり、リダイレクトURIを最大10個登録でき、GitHub App / OAuth Appの両方でワイルドカード照合を明示的にオン・オフできるようになりました。</p>
+      <p class="lead">OAuth Appとは、GitHubのログイン情報を使って外部サービスと連携するためのアプリ登録です(似た仕組みのGitHub Appとは別のカテゴリ)。機能追加は3つです。OAuth Appが期限付きアクセストークン(APIを呼ぶための一時的な鍵)と更新トークン(鍵が切れる前に取り直すための鍵)を選べるようになり、リダイレクトURIを最大10個登録でき、GitHub App / OAuth Appの両方でワイルドカード照合を明示的にオン・オフできるようになりました。</p>
 
       <p class="lead">ただし読者に効くのは最後の1文です。原文をそのまま引きます。<mark>「Apps with only one redirect URI have wildcard matching enabled. This is a legacy behavior of GitHub that is now visible and controllable.」</mark>つまり<b>今日穴が空いたのではなく、ずっと空いていたものが見えるようになった</b>ということです。</p>
 
@@ -134,7 +134,7 @@
 
     <article class="item">
       <div class="source"><img src="https://www.google.com/s2/favicons?domain=ai.google.dev&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Google</div>
-      <h3>Gemini 3.7 FlashがGA。ただし表示価格は「2026年12月31日まで」で、2027年1月1日から入出力とも2倍と価格表に書いてある</h3>
+      <h3>Gemini 3.7 FlashがGA(正式版、Generally Availableの略)。ただし表示価格は「2026年12月31日まで」で、2027年1月1日から入出力とも2倍と価格表に書いてある</h3>
       <div class="tags">
         <span class="tag">8/13</span>
         <span class="tag ok">✓ 公式確認済</span>
@@ -393,7 +393,7 @@ $ cat storage/done.log
 
       <ul class="points">
         <li><b>対象は「明示的Deny」だけ。</b>原文は「Now the error message includes the specific policy ARN <b>for explicit deny cases</b>」。<mark>「どこにもAllowが無いから落ちた」(暗黙のDeny)では、指し示すポリシーが存在しないのでARNは出ません。</mark>実務で多いのはむしろ後者です。</li>
-        <li><b>5種類のポリシーが対象。</b>SCP(組織全体にかける上限)、RCP(リソース側にかける上限)、アイデンティティベースポリシー(ユーザーやロールに付ける許可)、セッションポリシー、アクセス許可境界。403の原因究明が難しいのは、この5つが同時に効いているからです。</li>
+        <li><b>5種類のポリシーが対象。</b>SCP(組織全体にかける上限)、RCP(リソース側にかける上限)、アイデンティティベースポリシー(ユーザーやロールに付ける許可)、セッションポリシー(ロールを一時的に借りるときに追加で絞り込む許可)、アクセス許可境界(ユーザーやロールが持てる権限の上限)。403の原因究明が難しいのは、この5つが同時に効いているからです。</li>
         <li><b>同一アカウント・同一Organization内のリクエストが対象。</b>原文は「for same-account and same-organization requests」。<mark>同じ組織の中ならアカウントをまたいでも対象ですが、組織の外からのアクセスは含まれません。</mark></li>
         <li><b>全リージョンで利用可能。</b>GovCloud(US)と中国リージョンを含む、と明記されています。</li>
       </ul>
@@ -586,7 +586,7 @@ the old nor the new record.</pre>
         <div class="body">
           <dl>
             <dt>査読前です</dt>
-            <dd>arXivのプレプリントで、<mark>査読を経ていません</mark>。またこの記事では<b>arXiv APIから取得した公式の書誌と要旨のみを読んでおり、本文(PDF/HTML全文)は未取得</b>です。上の数値はすべて著者自身が要旨に書いた自己申告値です。著者コメント欄に記載のプロジェクトページも取得していません。</dd>
+            <dd>arXivは、研究者が論文を査読(専門家による事前審査)より前に公開できるサーバーです。この論文はそこに置かれた<mark>プレプリントで、査読を経ていません</mark>。またこの記事では<b>arXiv APIから取得した公式の書誌と要旨のみを読んでおり、本文(PDF/HTML全文)は未取得</b>です。上の数値はすべて著者自身が要旨に書いた自己申告値です。著者コメント欄に記載のプロジェクトページも取得していません。</dd>
             <dt>規模</dt>
             <dd>「56 one-shot tasks from 14 incident-derived families」— 実際のインシデントから作った14系統・56タスクを、最終状態の厳密な検証で採点しています。著者はShangao Li, Yao Zhang, Volker Tresp, Yuanyuan Yangの4名、登録は2026-08-13T17:57:20Z。</dd>
             <dt>出典</dt>
@@ -711,7 +711,7 @@ the old nor the new record.</pre>
         <span class="tag">オープンウェイト</span>
         <span class="tag warn">⚠ 自己申告ベンチ</span>
       </div>
-      <p class="lead">前回記事で扱ったGLM-5.3は約753Bで、重みの公開が2週間先送りされていました。今回のQwen3.8-27Bはその真逆です。<mark>約27.78BのパラメータをApache-2.0で、今すぐダウンロードできます</mark>(Hugging FaceのAPIメタデータで<code>safetensors.parameters.BF16 = 27,781,427,952</code>を確認)。MoEではない密モデルです。</p>
+      <p class="lead">前回記事で扱ったGLM-5.3は約753Bで、重みの公開が2週間先送りされていました。今回のQwen3.8-27Bはその真逆です。<mark>約27.78BのパラメータをApache-2.0で、今すぐダウンロードできます</mark>(Hugging FaceのAPIメタデータで<code>safetensors.parameters.BF16 = 27,781,427,952</code>を確認)。全パラメータを常に使う「密(dense)」モデルで、質問ごとに一部だけを使うMoE(Mixture of Experts)ではありません。</p>
 
       <div class="table">
         <table>
