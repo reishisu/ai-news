@@ -38,7 +38,7 @@
 
   <rect x="126" y="196" width="230" height="64" rx="10" fill="none" stroke="var(--a)" stroke-width="1.5"/>
   <text x="241" y="226" fill="var(--fg)" font-size="13" font-weight="800" text-anchor="middle" font-family="ui-monospace, monospace">AuthTabIntent</text>
-  <text x="241" y="246" fill="var(--a)" font-size="11.5" font-weight="700" text-anchor="middle">2025年7月30日に安定版</text>
+  <text x="241" y="246" fill="var(--a)" font-size="11.5" font-weight="700" text-anchor="middle">既定で共有する</text>
 
   <text x="376" y="235" fill="var(--sub)" font-size="18" font-weight="800" text-anchor="middle">=</text>
 

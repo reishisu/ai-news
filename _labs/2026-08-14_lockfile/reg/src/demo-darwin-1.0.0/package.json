@@ -1,0 +1,6 @@
+{
+  "name": "demo-darwin",
+  "version": "1.0.0",
+  "main": "index.js",
+  "os": ["darwin"]
+}

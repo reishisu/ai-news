@@ -1,0 +1,41 @@
+########## 14/15 (run-2.sh)
+
+########## 14 resolved が別ホストのときの npm ci
+-- lock の resolved --
+http://127.0.0.1:8871/demo-lib/-/demo-
+lib-1.0.0.tgz
+-- registry を 8872 にして npm ci --
+
+added 1 package in 281ms
+8871(lockのURL) への取得: 1
+8872(設定した先) への取得: 0
+
+########## 15 peer 衝突: フラグ無し ci のエラー文面
+-- 15a 私設レジストリ(demo-peer) --
+npm error code ERESOLVE
+npm error peer demo-lib@"^1.0.0" from 
+demo-peer@1.0.0
+npm error Conflicting peer 
+dependency: demo-lib@1.0.1
+npm error   peer demo-lib@"^1.0.0" 
+from demo-peer@1.0.0
+npm error Fix the upstream dependency 
+conflict, or retry
+npm error this command with --force 
+or --legacy-peer-deps
+-- 15b 公開レジストリに無い名前 --
+npm error code EUSAGE
+
+########## versions
+npm  10.9.7
+node v22.22.2
+
+########## 16 (run-3.sh)
+-- npm 10 --
+added 1 package in 3s
+-- npm 12 --
+npm error code EALLOWGIT
+npm error Fetching packages of type 
+"git" have been disabled
+npm error Refusing to fetch 
+"isarray@github:juliangruber/isarray"

@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/tmp/claude-0/-home-user-ai-news/218add4d-91bf-5dd6-8681-3e6fbe7a6b0f/scratchpad/2026-08-14_hooks-guardrails/hooks/guard-exit1.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

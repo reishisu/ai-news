@@ -1,0 +1,23 @@
+$ node exp1_share.js ./prof
+1 本体ブラウザ(ログイン実行)
+  status: LOGGED_IN alice
+  sid   : alice
+  ls.tag: uqks3q
+2 アプリAのWebView(別領域)
+  status: ANON
+  sid   : (なし)
+  ls.tag: 07m9r4
+3 アプリBのWebView(別領域)
+  status: ANON
+  sid   : (なし)
+  ls.tag: k74coh
+4 アプリ内タブ(本体と同領域)
+  status: LOGGED_IN alice
+  sid   : alice
+  ls.tag: uqks3q
+
+$ node exp2_spy.js
+盗んだ入力キー:
+  alicehunter2
+盗んだCookie(HttpOnly):
+  sid=alice httpOnly=true

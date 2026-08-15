@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/tmp/g.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

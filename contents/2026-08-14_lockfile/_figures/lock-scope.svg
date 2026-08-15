@@ -20,8 +20,8 @@
 
   <!-- 右列 -->
   <rect x="284" y="42" width="264" height="52" rx="8" fill="none" stroke="var(--c)" stroke-width="1.5"/>
-  <text x="416" y="64" fill="var(--fg)" font-size="13.5" font-weight="700" text-anchor="middle">取得元のレジストリ</text>
-  <text x="416" y="84" fill="var(--sub)" font-size="12" text-anchor="middle">127.0.0.1 から7個。警告0</text>
+  <text x="416" y="64" fill="var(--fg)" font-size="13.5" font-weight="700" text-anchor="middle">取得元は resolved 次第</text>
+  <text x="416" y="84" fill="var(--sub)" font-size="12" text-anchor="middle">npmjs なら設定先 / 他ならその先</text>
 
   <rect x="284" y="104" width="264" height="52" rx="8" fill="none" stroke="var(--c)" stroke-width="1.5"/>
   <text x="416" y="126" fill="var(--fg)" font-size="13.5" font-weight="700" text-anchor="middle">スクリプトが走るか</text>
@@ -29,7 +29,7 @@
 
   <rect x="284" y="166" width="264" height="52" rx="8" fill="none" stroke="var(--c)" stroke-width="1.5"/>
   <text x="416" y="188" fill="var(--fg)" font-size="13.5" font-weight="700" text-anchor="middle">lock を作ったフラグ</text>
-  <text x="416" y="208" fill="var(--sub)" font-size="12" text-anchor="middle">フラグ無しciは ETARGET</text>
+  <text x="416" y="208" fill="var(--sub)" font-size="12" text-anchor="middle">フラグ無しciは別のエラーで落ちる</text>
 
   <rect x="284" y="228" width="264" height="52" rx="8" fill="none" stroke="var(--c)" stroke-width="1.5"/>
   <text x="416" y="250" fill="var(--fg)" font-size="13.5" font-weight="700" text-anchor="middle">npm 自身のバージョン</text>

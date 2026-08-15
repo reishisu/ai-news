@@ -1228,7 +1228,7 @@ code for fear it will cause production bugs.
         <li>
           <span class="flag self">自分の実測</span>
           粒度別の検出マトリクス・カバレッジ・実行時間・ミューテーションの各実験。Python 3.11.15 / pytest 9.1.1 / pytest-cov 7.1.0 / coverage 7.15.4 / mutmut 3.7.0 / git 2.43.0 / Linux 6.18.5（4コア）、2026年8月14日実施。
-          <span class="note">記事中のターミナル出力は、色分けの <code>span</code> を被せた以外は加工せずそのまま貼っています。すべて隔離した作業ディレクトリで実行し、このリポジトリのコードは変更していません。<b>公開前の検証で、<code>mutmut show</code>（good側）のブロックに、実際には出ていない重複行が1行混入しているのが見つかったため削除しました。</b>同じコマンドを再実行して12行であることを確認済みです。</span>
+          <span class="note">記事中のターミナル出力は、色分けの <code>span</code> を被せた以外は加工せずそのまま貼っています。すべて隔離した作業ディレクトリで実行し、このリポジトリのコードは変更していません。<b>公開前の検証で、<code>mutmut show</code>（good側）のブロックに、実際には出ていない重複行が1行混入しているのが見つかったため削除しました。</b>同じコマンドを再実行して12行であることを確認済みです。時間依存の2本（<code>run_time.py</code> / <code>run_flaky.py</code>）を除く全ブロックは、公開前に再実行して1行単位で一致することを確認しました。検証コードと実行結果はリポジトリの <code>_labs/2026-08-14_test-design/</code> に置いてあります。</span>
         </li>
         <li>
           <span class="flag self">自分の実測</span>

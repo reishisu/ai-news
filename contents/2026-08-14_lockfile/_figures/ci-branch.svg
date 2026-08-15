@@ -18,7 +18,7 @@
   <text x="150" y="160" fill="var(--fg)" font-size="13" text-anchor="middle">lock の版をそのまま使う</text>
   <text x="150" y="194" fill="var(--a)" font-size="15" font-weight="800" text-anchor="middle">同じ結果になる</text>
   <text x="150" y="224" fill="var(--sub)" font-size="11.5" text-anchor="middle">実測: 4.1.2 公開後も 4.0.0</text>
-  <text x="150" y="242" fill="var(--sub)" font-size="11.5" text-anchor="middle">lock は1バイトも変わらない</text>
+  <text x="150" y="242" fill="var(--sub)" font-size="11.5" text-anchor="middle">lock は1文字も変わらない</text>
 
   <!-- 右上: install -->
   <rect x="314" y="108" width="272" height="68" rx="10" fill="none" stroke="var(--b)" stroke-width="2"/>

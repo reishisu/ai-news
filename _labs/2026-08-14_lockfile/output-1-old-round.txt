@@ -1,0 +1,504 @@
+
+##### exp1 #####
+== A) 公開: 1.0.0 のみ / lock なし
+
+added 1 package in 312ms
+exit=0
+range   : demo-lib@^1.0.0
+lockfile: demo-lib@1.0.0
+node_mod: demo-lib@1.0.0
+== B) 1.0.1 が公開された / lock なし
+
+added 1 package in 294ms
+exit=0
+range   : demo-lib@^1.0.0
+lockfile: demo-lib@1.0.1
+node_mod: demo-lib@1.0.1
+== C) A の lock を持ち込む(1.0.1 公開中)
+
+added 1 package in 275ms
+exit=0
+range   : demo-lib@^1.0.0
+lockfile: demo-lib@1.0.0
+node_mod: demo-lib@1.0.0
+== D) lock ありで npm ci
+
+added 1 package in 270ms
+exit=0
+range   : demo-lib@^1.0.0
+lockfile: demo-lib@1.0.0
+node_mod: demo-lib@1.0.0
+
+##### exp2 #####
+== 準備: ^1.0.0 で lock を作る
+
+added 1 package in 325ms
+exit=0
+range   : demo-lib@^1.0.0
+lockfile: demo-lib@1.0.1
+node_mod: demo-lib@1.0.1
+== 1) 範囲を ~1.0.0 に変更 -> npm ci
+
+added 1 package in 287ms
+exit=0
+range   : demo-lib@~1.0.0
+lockfile: demo-lib@1.0.1
+node_mod: demo-lib@1.0.1
+== 2) 範囲を ^2.0.0 に変更 -> npm ci
+npm error code EUSAGE
+npm error
+npm error `npm ci` can only install 
+packages when your package.json and 
+package-lock.json or 
+npm-shrinkwrap.json are in sync. Please 
+update your lock file with `npm 
+install` before continuing.
+npm error
+npm error Invalid: lock file's 
+demo-lib@1.0.1 does not satisfy 
+demo-lib@2.0.0
+npm error
+npm error Clean install a project
+npm error
+npm error ...(usage 以下 省略)
+exit=1
+MARKER: node_modules/MARKER
+range   : demo-lib@^2.0.0
+lockfile: demo-lib@1.0.1
+node_mod: demo-lib@1.0.1
+== 3) 同じ状態で npm install
+
+removed 1 package, and changed 1 
+package in 292ms
+exit=0
+range   : demo-lib@^2.0.0
+lockfile: demo-lib@2.0.0
+node_mod: demo-lib@2.0.0
+== 4) lock を消して npm ci
+npm error code EUSAGE
+npm error
+npm error The `npm ci` command can only 
+install with an existing 
+package-lock.json or
+npm error npm-shrinkwrap.json with 
+lockfileVersion >= 1. Run an install 
+with npm@5 or
+npm error later to generate a 
+package-lock.json file, then try again.
+npm error
+npm error Clean install a project
+npm error
+npm error ...(usage 以下 省略)
+exit=1
+
+##### exp3 #####
+npm10 = 10.9.7
+npm12 = 12.0.2
+== A) lock なしで npm ci (npm10)
+npm error code EUSAGE
+npm error
+npm error The `npm ci` command can only 
+install with an existing 
+package-lock.json or
+npm error npm-shrinkwrap.json with 
+lockfileVersion >= 1. Run an install 
+with npm@5 or
+npm error later to generate a 
+package-lock.json file, then try again.
+npm error
+npm error Clean install a project
+npm error
+npm error ...(usage 以下 省略)
+exit=1
+== B) lock なしで npm ci (npm12)
+npm error code EUSAGE
+npm error
+npm error The `npm ci` command can only 
+install with an existing
+npm error package-lock.json with 
+lockfileVersion >= 1. Run an install 
+with npm@5
+npm error or later to generate a 
+package-lock.json file, then try again.
+npm error
+npm error Clean install a project
+npm error
+npm error ...(usage 以下 省略)
+exit=1
+== C) shrinkwrap を置く(1.0.0 で固定)
+ファイル: npm-shrinkwrap.json package.json 
+== C-1) npm10 install (shrinkwrap あり)
+
+added 1 package in 269ms
+exit=0
+range   : demo-lib@^1.0.0
+lockfile: demo-lib@(no lockfile)
+node_mod: demo-lib@1.0.0
+生成物: node_modules npm-shrinkwrap.json package.json 
+== C-2) npm12 install (同じ入力)
+
+added 1 package in 366ms
+exit=0
+range   : demo-lib@^1.0.0
+lockfile: demo-lib@1.0.1
+node_mod: demo-lib@1.0.1
+生成物: node_modules npm-shrinkwrap.json package-lock.json package.json 
+== C-3) npm12 ci (shrinkwrap のみ)
+npm error code EUSAGE
+npm error
+npm error The `npm ci` command can only 
+install with an existing
+npm error package-lock.json with 
+lockfileVersion >= 1. Run an install 
+with npm@5
+npm error or later to generate a 
+package-lock.json file, then try again.
+npm error
+npm error Clean install a project
+npm error
+npm error ...(usage 以下 省略)
+exit=1
+
+##### exp4 #####
+lock の中身:
+ resolved = https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz
+ integrity= sha512-XI5MPzVNApjAyhQzphX8Bkm...
+== A) registry を 8872(正しいミラー)に向ける
+npm warn deprecated left-pad@1.3.0: use 
+String.prototype.padStart()
+
+added 1 package in 276ms
+exit=0
+入った版: 1.3.0
+-- 8872 のアクセスログ --
+GET /left-pad/-/left-pad-1.3.0.tgz
+== B) registry を 8873(改ざんミラー)に向ける
+npm warn tarball tarball data for 
+left-pad@http://127.0.0.1:8873/left-pad/
+-/left-pad-1.3.0.tgz 
+(sha512-XI5MPzVNApjAyhQzphX8BkmKsKUxD4Ld
+yK24iZeQGinBN9yTQT3bFlCBy/aVx2HrNcqQGsdo
+t8ghrjyrvMCoEA==) seems to be 
+corrupted. Trying again.
+npm warn tarball tarball data for 
+left-pad@http://127.0.0.1:8873/left-pad/
+-/left-pad-1.3.0.tgz 
+(sha512-XI5MPzVNApjAyhQzphX8BkmKsKUxD4Ld
+yK24iZeQGinBN9yTQT3bFlCBy/aVx2HrNcqQGsdo
+t8ghrjyrvMCoEA==) seems to be 
+corrupted. Trying again.
+npm error code EINTEGRITY
+npm error 
+sha512-XI5MPzVNApjAyhQzphX8BkmKsKUxD4Ldy
+K24iZeQGinBN9yTQT3bFlCBy/aVx2HrNcqQGsdot
+8ghrjyrvMCoEA== integrity checksum 
+failed when using sha512: wanted 
+sha512-XI5MPzVNApjAyhQzphX8BkmKsKUxD4Ldy
+K24iZeQGinBN9yTQT3bFlCBy/aVx2HrNcqQGsdot
+8ghrjyrvMCoEA== but got 
+sha512-WLKyJ7eaGP63GWxMMtfudUC01oG+N9+iS
+QueuY3/uQPMw1NyBs7OBynMcp0Vg2bJhT3Rmd+Ci
+DcERABOWq8ulA==. (3619 bytes)
+npm error A complete log of this run 
+can be found in: 
+/tmp/claude-0/-home-user-ai-news/218add4
+d-91bf-5dd6-8681-3e6fbe7a6b0f/scratchpad
+/2026-08-14_lockfile/cache-y/_logs/2026-
+08-14T15_42_23_760Z-debug-0.log
+exit=1
+-- 8873 のアクセスログ --
+GET /left-pad/-/left-pad-1.3.0.tgz
+node_modules: なし
+
+##### exp5 #####
+== A) npm 10.9.7 で install
+
+added 1 package in 341ms
+exit=0
+marker: 作られた
+lock hasInstallScript: true
+== B) npm 12.0.2 で install(同じ入力)
+
+added 1 package in 374ms
+npm warn install-scripts 1 package had 
+install scripts blocked because they 
+are not covered by allowScripts:
+npm warn install-scripts   
+demo-hook@1.0.0 (postinstall: node 
+postinstall.js)
+npm warn install-scripts
+npm warn install-scripts Run `npm 
+install-scripts ls` to review, or `npm 
+install-scripts approve <pkg>` to allow.
+exit=0
+marker: 無い
+lock hasInstallScript: true
+== C) npm12: 承認してから rebuild
+npm error code EUSAGE
+npm error
+npm error Manage install-script 
+approvals for dependencies
+npm error
+npm error ...(usage 以下 省略)
+exit=1
+marker: 無い
+npm warn rebuild 1 package had install 
+scripts blocked because they are not 
+covered by allowScripts. Run `npm 
+install-scripts ls` to review.
+rebuilt dependencies successfully
+exit=0
+marker: 無い
+
+##### exp5c #####
+== C-1) install-scripts ls
+1 package has install scripts blocked 
+because they are not covered by 
+allowScripts:
+  demo-hook@1.0.0 (postinstall: node 
+postinstall.js)
+
+Run `npm install-scripts approve <pkg>` 
+to allow, or `npm install-scripts deny 
+<pkg>` to deny.
+exit=0
+== C-2) approve demo-hook
+Approved demo-hook:
+  added demo-hook@1.0.0
+exit=0
+-- package.json --
+{
+  "name": "app",
+  "version": "1.0.0",
+  "dependencies": {
+    "demo-hook": "^1.0.0"
+  },
+  "allowScripts": {
+    "demo-hook@1.0.0": true
+  }
+}
+== C-3) npm rebuild
+rebuilt dependencies successfully
+exit=0
+marker: 作られた
+== C-4) 消して npm ci しなおす
+
+added 1 package in 401ms
+exit=0
+marker: 作られた
+
+##### exp6 #####
+demo-peer の peerDeps: demo-lib@^1.0.0
+root の要求        : demo-lib@^2.0.0
+== 1) 素の npm install
+npm error code ERESOLVE
+npm error ERESOLVE unable to resolve 
+dependency tree
+npm error
+npm error While resolving: app@1.0.0
+npm error Found: demo-lib@2.0.0
+npm error node_modules/demo-lib
+npm error   demo-lib@"^2.0.0" from the 
+root project
+npm error
+npm error Could not resolve dependency:
+npm error peer demo-lib@"^1.0.0" from 
+demo-peer@1.0.0
+npm error node_modules/demo-peer
+npm error   demo-peer@"^1.0.0" from the 
+root project
+npm error
+npm error Fix the upstream dependency 
+conflict, or retry
+npm error this command with --force or 
+--legacy-peer-deps
+npm error to accept an incorrect (and 
+potentially broken) dependency 
+resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error 
+/tmp/claude-0/-home-user-ai-news/218add4
+d-91bf-5dd6-8681-3e6fbe7a6b0f/scratchpad
+/2026-08-14_lockfile/cache/_logs/2026-08
+-14T15_44_47_408Z-eresolve-report.txt
+npm error A complete log of this run 
+can be found in: 
+/tmp/claude-0/-home-user-ai-news/218add4
+d-91bf-5dd6-8681-3e6fbe7a6b0f/scratchpad
+/2026-08-14_lockfile/cache/_logs/2026-08
+-14T15_44_47_408Z-debug-0.log
+exit=1
+== 2) --legacy-peer-deps 付きで install
+
+added 2 packages in 289ms
+exit=0
+lock 内の legacy 痕跡: 0 箇所
+== 3) フラグ無しで npm ci
+npm error code ERESOLVE
+npm error ERESOLVE could not resolve
+npm error
+npm error While resolving: 
+demo-peer@1.0.0
+npm error Found: demo-lib@2.0.0
+npm error node_modules/demo-lib
+npm error   demo-lib@"^2.0.0" from the 
+root project
+npm error
+npm error Could not resolve dependency:
+npm error peer demo-lib@"^1.0.0" from 
+demo-peer@1.0.0
+npm error node_modules/demo-peer
+npm error   demo-peer@"^1.0.0" from the 
+root project
+npm error
+npm error Conflicting peer dependency: 
+demo-lib@1.0.1
+npm error node_modules/demo-lib
+npm error   peer demo-lib@"^1.0.0" from 
+demo-peer@1.0.0
+npm error   node_modules/demo-peer
+npm error     demo-peer@"^1.0.0" from 
+the root project
+npm error
+npm error Fix the upstream dependency 
+conflict, or retry
+npm error this command with --force or 
+--legacy-peer-deps
+npm error to accept an incorrect (and 
+potentially broken) dependency 
+resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error 
+/tmp/claude-0/-home-user-ai-news/218add4
+d-91bf-5dd6-8681-3e6fbe7a6b0f/scratchpad
+/2026-08-14_lockfile/cache/_logs/2026-08
+-14T15_44_48_112Z-eresolve-report.txt
+npm error A complete log of this run 
+can be found in: 
+/tmp/claude-0/-home-user-ai-news/218add4
+d-91bf-5dd6-8681-3e6fbe7a6b0f/scratchpad
+/2026-08-14_lockfile/cache/_logs/2026-08
+-14T15_44_48_112Z-debug-0.log
+exit=1
+== 4) フラグ付きで npm ci
+
+added 2 packages in 284ms
+exit=0
+
+##### exp7 #####
+== A) in sync のまま npm ci
+実行前 MARKER: あり
+
+added 1 package in 287ms
+exit=0
+実行後 MARKER: 消えた
+== B) sync を壊してから npm ci
+実行前 MARKER: あり
+npm error code EUSAGE
+npm error
+npm error `npm ci` can only install 
+packages when your package.json and 
+package-lock.json or 
+npm-shrinkwrap.json are in sync. Please 
+update your lock file with `npm 
+install` before continuing.
+npm error
+npm error Invalid: lock file's 
+demo-lib@1.0.1 does not satisfy 
+demo-lib@2.0.0
+npm error
+npm error Clean install a project
+npm error
+npm error ...(usage 以下 省略)
+exit=1
+実行後 MARKER: あり
+== C) lock に legacy-peer-deps の痕跡はあるか
+package-lock.json 内の 'legacy' 出現数:
+0
+lock のトップレベルキー:
+name version lockfileVersion requires packages
+
+##### exp8 #####
+== A) 版がズレる (Invalid)
+npm error code EUSAGE
+npm error
+npm error `npm ci` can only install 
+packages when your package.json and 
+package-lock.json are in sync. Please 
+update your lock file with `npm 
+install` before continuing.
+npm error
+npm error Invalid: lock file's 
+demo-lib@1.0.1 does not satisfy 
+demo-lib@2.0.0
+npm error
+npm error Clean install a project
+npm error
+npm error ...(usage 以下 省略)
+exit=1
+== B) 依存が lock に無い (Missing)
+npm error code EUSAGE
+npm error
+npm error `npm ci` can only install 
+packages when your package.json and 
+package-lock.json are in sync. Please 
+update your lock file with `npm 
+install` before continuing.
+npm error
+npm error Missing: demo-peer@1.0.0 from 
+lock file
+npm error
+npm error Clean install a project
+npm error
+npm error ...(usage 以下 省略)
+exit=1
+
+##### exp9 #####
+lock の resolved:
+ http://127.0.0.1:8871/demo-lib/-/demo-lib-1.0.0.tgz
+== registry を 8872 に向けて npm ci
+
+added 1 package in 286ms
+exit=0
+8871(lock の resolved 先) へのアクセス:
+1
+8872(設定した registry) へのアクセス:
+0
+8872 の中身:
+
+##### exp10 #####
+この環境: linux
+== A) optionalDependencies に両 OS 分を入れる
+
+added 1 package in 296ms
+exit=0
+lock に載っている entry:
+  demo-darwin os=["darwin"]
+  demo-linux os=["linux"]
+node_modules の実体:
+  demo-linux
+== B) 同じ lock で npm ci
+
+added 1 package in 280ms
+exit=0
+node_modules の実体:
+  demo-linux
+== C) 必須 dependencies にすると
+npm error code EBADPLATFORM
+npm error notsup Unsupported platform 
+for demo-darwin@1.0.0: wanted 
+{"os":"darwin"} (current: 
+{"os":"linux"})
+npm error notsup Valid os:  darwin
+npm error notsup Actual os: linux
+npm error A complete log of this run 
+can be found in: 
+/tmp/claude-0/-home-user-ai-news/218add4
+d-91bf-5dd6-8681-3e6fbe7a6b0f/scratchpad
+/2026-08-14_lockfile/cache/_logs/2026-08
+-14T15_44_53_725Z-debug-0.log
+exit=1

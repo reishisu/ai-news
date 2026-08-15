@@ -1,0 +1,6 @@
+{
+  "name": "demo-peer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "peerDependencies": { "demo-lib": "^1.0.0" }
+}

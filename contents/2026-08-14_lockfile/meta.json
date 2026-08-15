@@ -9,6 +9,6 @@
   ],
   "featured": true,
   "title": "npmのロックファイルが固定しないもの — install と ci の違い",
-  "summary": "package-lock.json を14通りの方法でいじめて、何が固定され何が固定されないかを測りました。lockには registry.npmjs.org と書いてあるのに、7個すべてを手元の別サーバーから警告ゼロで取得。npm ci は package.json を読んでいます。npm 12 で npm-shrinkwrap.json が黙って無視されるようになった件まで、実測ログをそのまま載せます。",
+  "summary": "package-lock.json を16通りの方法でいじめて、何が固定され何が固定されないかを測りました。lockの registry.npmjs.org は取得先ではなく「今の設定先」を指す合言葉で、別サーバーから7個を警告ゼロで取得。npm ci は package.json を読んでいます。npm 12 で npm-shrinkwrap.json が黙って無視されるようになった件まで、実測ログをそのまま載せます。",
   "thumbnail": "images/thumb.png"
 }

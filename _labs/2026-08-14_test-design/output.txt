@@ -23,29 +23,17 @@ bill.py          0%  100%    0%  100%
 api.py           0%    0%    0%  100%
 cli.py           0%    0%    0%  100%
 
-########## python3 run_diffcov.py ##########
-全体cov  変更前: 100.0%
-全体cov  変更後: 92.9%
-追加行: 14行 / 通った: 10行
-差分cov: 71.4%
--- 誰も通していない追加行 --
-coupon.py:13 c = code.strip().upper()
-coupon.py:14 if c not in CODES:
-coupon.py:15 raise ValueError("unknown coupon: %s" % c)
-coupon.py:16 return CODES[c]
-
 ########## python3 run_subproc_cov.py ##########
 計測ファイル数: 4
 Name              Stmts   Miss  Cover
 -------------------------------------
 app/__init__.py       0      0   100%
 app/api.py           10      1    90%
-app/bill.py          14      1    93%
+app/bill.py          13      1    92%
 app/cli.py            8      0   100%
-app/coupon.py        11      4    64%
 app/price.py         13      2    85%
 -------------------------------------
-TOTAL                56      8    86%
+TOTAL                44      4    91%
 
 ########## python3 run_isolate.py ##########
 === t_unit.py ===
@@ -97,7 +85,7 @@ ________________ test_3 ________________
 t_spec_bad.py:29: in test_3
     assert r["total"] == 44000
 E   assert 41250 == 44000
-1 failed, 2 passed in 0.03s
+1 failed, 2 passed in 0.04s
 
 === t_spec_good.py ===
 .F.FF.F                          [100%]
@@ -122,6 +110,17 @@ t_spec_good.py:24: in test_invoice
     assert inv["subtotal"] == sub, why
 E   AssertionError: 割引と年払いは併用
 E   assert 375000 == 400000
-4 failed, 3 passed in 0.03s
+4 failed, 3 passed in 0.02s
 
+
+########## python3 run_diffcov.py ##########
+全体cov  変更前: 100.0%
+全体cov  変更後: 92.9%
+追加行: 14行 / 通った: 10行
+差分cov: 71.4%
+-- 誰も通していない追加行 --
+coupon.py:13 c = code.strip().upper()
+coupon.py:14 if c not in CODES:
+coupon.py:15 raise ValueError("unknown coupon: %s" % c)
+coupon.py:16 return CODES[c]
 
