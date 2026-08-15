@@ -1,0 +1,28 @@
+<svg viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="24" fill="var(--fg)" font-size="13" font-weight="800">Terminal-Bench 3.0 スコア</text>
+
+  <!-- axis baseline -->
+  <line x1="150" y1="40" x2="150" y2="196" stroke="var(--sub)" stroke-width="1" stroke-dasharray="3 3"/>
+
+  <!-- GLM-5.2 -->
+  <text x="140" y="58" fill="var(--fg)" font-size="12.5" font-weight="700" text-anchor="end">GLM-5.2</text>
+  <rect x="150" y="46" width="28" height="24" rx="4" fill="var(--old)"/>
+  <text x="186" y="63" fill="var(--fg)" font-size="12" font-weight="800">4.6</text>
+
+  <!-- GLM-5.3 -->
+  <text x="140" y="98" fill="var(--fg)" font-size="12.5" font-weight="700" text-anchor="end">GLM-5.3</text>
+  <rect x="150" y="86" width="170" height="24" rx="4" fill="var(--new)"/>
+  <text x="328" y="103" fill="var(--fg)" font-size="12" font-weight="800">28.3</text>
+
+  <!-- Fable 5 -->
+  <text x="140" y="138" fill="var(--fg)" font-size="12.5" font-weight="700" text-anchor="end">Fable 5</text>
+  <rect x="150" y="126" width="202" height="24" rx="4" fill="var(--track)" stroke="var(--sub)" stroke-width="1"/>
+  <text x="360" y="143" fill="var(--fg)" font-size="12" font-weight="800">33.7</text>
+
+  <!-- GPT-5.6 Sol -->
+  <text x="140" y="178" fill="var(--fg)" font-size="12.5" font-weight="700" text-anchor="end">GPT-5.6 Sol</text>
+  <rect x="150" y="166" width="207" height="24" rx="4" fill="var(--track)" stroke="var(--sub)" stroke-width="1"/>
+  <text x="365" y="183" fill="var(--fg)" font-size="12" font-weight="800">34.6</text>
+
+  <text x="150" y="208" fill="var(--sub)" font-size="11.5">GLM-5.2比で6倍に伸びたが、フロンティア級にはまだ届かない</text>
+</svg>
