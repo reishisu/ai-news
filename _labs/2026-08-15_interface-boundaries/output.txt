@@ -1,0 +1,6 @@
+契約テスト: GET /api/search
+------------------------
+[OK] consumer側の期待値
+[OK] provider v1
+[NG] provider v2(破壊的変更)
+  'score' is a required property

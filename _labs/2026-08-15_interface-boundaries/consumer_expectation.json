@@ -1,0 +1,7 @@
+{
+  "results": [
+    {"id": 1, "title": "Unity WebGLの基礎", "score": 0.92},
+    {"id": 2, "title": "WebViewとfetch", "score": 0.71}
+  ],
+  "total": 2
+}
