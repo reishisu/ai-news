@@ -271,6 +271,21 @@ p code, li code, dd code, td code {
 .refs .flag.unverified { color: var(--warn); background: var(--warn-bg); border-color: transparent; }
 .refs .flag.self { color: var(--accent); background: var(--mark); border-color: transparent; }
 
+/* ---------- もっと知りたい人へ(参考文献とは別枠の紹介) ---------- */
+.reads { list-style: none; margin: 6px 0 0; padding: 0; }
+.reads li {
+  margin-top: 14px; padding: 14px 16px;
+  border: 1px solid var(--line); border-radius: 11px; background: var(--card);
+}
+.reads .kind {
+  display: inline-block; margin-right: 8px; padding: 1px 9px; border-radius: 999px;
+  font-size: .72rem; font-weight: 800;
+  color: var(--accent); background: var(--mark);
+}
+.reads a { font-weight: 700; }
+.reads .by { display: block; margin-top: 3px; color: var(--sub); font-size: .82rem; }
+.reads .why { display: block; margin-top: 6px; font-size: .93rem; line-height: 1.8; }
+
 /* ---------- 出現アニメーション ---------- */
 .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
 .reveal.shown { opacity: 1; transform: none; }
