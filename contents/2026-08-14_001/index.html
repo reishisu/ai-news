@@ -52,7 +52,7 @@
   <nav class="toc">
     <h2>目次</h2>
     <ol>
-      <li><a href="#work">今日から効いてくる実務のアップデート(3件)</a></li>
+      <li><a href="#work">今日から効いてくる実務のアップデート(2件)</a></li>
       <li><a href="#research">技術・研究(1件)</a></li>
       <li><a href="#industry">モデル・業界(2件)</a></li>
     <li><a href="#corrections">訂正と追記</a></li>
@@ -98,42 +98,6 @@
             <dd>操作イベントはMac内に一時保存され、48時間で削除されます。要約された記憶はプレーンテキストのMarkdownとして <code>~/.codex/memories/extensions/skysight/</code> に残り、消すまで残り続けます。<b>この記憶ファイルは暗号化されていません</b>。同じmacOSユーザーで動く他のプログラムから読める可能性がある、と公式ドキュメントが明記しています。</dd>
             <dt>出典</dt>
             <dd><a href="https://learn.chatgpt.com/docs/changelog">OpenAI公式チェンジログ(2026-08-13の項)</a> / <a href="https://learn.chatgpt.com/codex/customization/computer-history">OpenAI公式ドキュメント「Computer History」</a> / <a href="https://9to5mac.com/2026/08/13/chatgpt-for-mac-adds-opt-in-computer-history-feature-replacing-chronicle/">9to5Mac</a></dd>
-          </dl>
-        </div>
-      </details>
-    </article>
-
-    <article class="item">
-      <div class="source"><img src="https://www.google.com/s2/favicons?domain=anthropic.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
-      <h3>Claude Codeの連続更新でSlack連携の不具合が直った — 不調ならまず更新を</h3>
-      <div class="tags">
-        <span class="tag">8/12-13</span>
-        <span class="tag ok">✓ 公式確認済</span>
-        <span class="tag">開発ツール</span>
-        <span class="tag">v2.1.228 / 229 / 231</span>
-      </div>
-      <p class="lead">Claude Codeは、ターミナルから使う開発者向けのAIです。コードを読ませたり書かせたり、コマンドを実行させたりできます。8月12〜13日(JST)にv2.1.228・229・231が立て続けに出ました。目玉は<mark>SlackなどMCPサーバーへのOAuthサインイン失敗の修正</mark>です。<b>MCP</b>はAIを外部サービスにつなぐ共通規格、<b>OAuth</b>はパスワードを渡さずに「このアプリにSlackを触らせてよい」と許可する方式のこと。長考中に接続が切れる問題への対策も入っています。</p>
-
-      <ul class="points">
-        <li><b>Slack連携が復旧(v2.1.231)。</b>リダイレクトURIの不一致によるサインイン失敗が修正されました。</li>
-        <li><b>長考中の切断対策(v2.1.229)。</b>キープアライブの追加に加え、セッション再開やVS Codeサイドバーの表示も改善。</li>
-        <li><b>画面が固まる問題も解消(v2.1.228)。</b>処理は動いているのに再描画されない不具合が直りました。</li>
-      </ul>
-
-      <details>
-        <summary>もう少し詳しく</summary>
-        <div class="body">
-          <dl>
-            <dt>補足</dt>
-            <dd>8月7日(v2.1.224)には自前マシンでセッションを動かすセルフホスト環境も追加されており、更新頻度が高い状態です。不具合に当たったらまず更新するのが早道です。</dd>
-            <dt>v2.1.230は存在しません</dt>
-            <dd>公式CHANGELOGにも公式npmパッケージにも2.1.230の記載がなく、229の次は231です。「230が来ていない」と探す必要はありません。</dd>
-            <dt>日付の根拠</dt>
-            <dd>公式CHANGELOGにリリース日は書かれていません。日付は公式npmパッケージ <code>@anthropic-ai/claude-code</code> の公開時刻から取りました(228=8/12 02:45、229=8/13 04:28、231=8/13 17:27 JST)。</dd>
-            <dt>未確認</dt>
-            <dd>定額プラン向けの「週次利用上限50%ブーストが8月19日まで延長」という情報は公式アナウンスを直接確認できていません。参考情報として扱ってください。</dd>
-            <dt>出典</dt>
-            <dd><a href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md">Claude Code 公式CHANGELOG(anthropics/claude-code)</a> / <a href="https://registry.npmjs.org/@anthropic-ai/claude-code">npm公式レジストリの公開時刻</a></dd>
           </dl>
         </div>
       </details>
@@ -332,7 +296,16 @@
   <!-- ============ 訂正 ============ -->
   <section class="section section-d" id="corrections">
     <h2>訂正と追記</h2>
-    <article class="item">
+        <article class="item">
+      <h3>2026年8月16日 — 不具合修正だけの項目を1件削除しました</h3>
+      <p class="lead">「Claude Codeの連続更新でSlack連携の不具合が直った」の項目を削除しました。<mark>読者の実務に影響しない細かな不具合修正は、今後このダイジェストで扱いません。</mark></p>
+      <ul class="points">
+        <li><b>何を削ったか。</b>v2.1.228 / 229 / 231 の修正内容(SlackのOAuthサインイン失敗、長考中の切断、画面の再描画停止)を並べた項目です。いずれも「直った」という報告で、読者が何かを判断したり対応したりする必要のないものでした。</li>
+        <li><b>なぜ削ったか。</b>件数を埋めるために拾っていた項目で、読む側の時間を使わせるだけでした。仕様変更・提供終了・料金改定・脆弱性のように<b>対応が要るもの</b>だけを載せる方針に変えます。</li>
+        <li><b>あわせて外したもの。</b>この項目だけを支えていた参考文献3件(公式CHANGELOG、npmレジストリ、releasebot.ioを使わない判断)も外しました。8月15日の訂正7件目は、この項目に対して行った出典差し替えの記録なので、経緯としてそのまま残しています。</li>
+      </ul>
+    </article>
+<article class="item">
       <h3>2026年8月15日 — 一次資料に当たり直し、9件を訂正しました</h3>
       <p class="lead">外部監査の指摘を受けて全項目を検証し直しました。<mark>間違いは消さずに、何をどう直したかを残します。</mark></p>
       <ul class="points">
@@ -372,18 +345,6 @@
           OpenAI「Computer History」<i>OpenAI公式ドキュメント</i>.
           <span class="note">参照箇所: 「How Computer History works」「Privacy and local storage」「Prompt injection risk」。スクリーンショット・画面録画・マイク音声・システム音声を取得しないこと、プライベートブラウジングが除外されること、イベントファイルが48時間で削除されること、記憶ファイルが暗号化されないこと、プロンプトインジェクションのリスクの根拠。</span>
           <a href="https://learn.chatgpt.com/codex/customization/computer-history">https://learn.chatgpt.com/codex/customization/computer-history</a>（2026年8月15日参照）
-        </li>
-        <li>
-          <span class="flag primary">一次資料</span>
-          Anthropic「CHANGELOG.md」<i>anthropics/claude-code リポジトリ</i>.
-          <span class="note">参照箇所: 2.1.231 / 2.1.229 / 2.1.228 / 2.1.224 の各項。Slack等のMCP OAuthリダイレクトURI不一致の修正、SSEキープアライブ、再描画停止の修正、セルフホストランナー追加の根拠。2.1.230が存在しないことも同ファイルで確認。</span>
-          <a href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md">https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md</a>（2026年8月15日参照）
-        </li>
-        <li>
-          <span class="flag primary">一次資料</span>
-          Anthropic「@anthropic-ai/claude-code」<i>npm公式レジストリのパッケージメタデータ</i>.
-          <span class="note">参照箇所: <code>time</code> フィールド。各版の公開時刻(2.1.228=2026-08-11T17:45Z、2.1.229=2026-08-12T19:28Z、2.1.231=2026-08-13T08:27Z)と、2.1.230が公開されていないことの根拠。公式CHANGELOGに日付の記載が無いため、日付はここから取った。</span>
-          <a href="https://registry.npmjs.org/@anthropic-ai/claude-code">https://registry.npmjs.org/@anthropic-ai/claude-code</a>（2026年8月15日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
@@ -470,11 +431,6 @@
           「単純作業をProで回しているならFlashへ落とすだけで3分の1になる」という運用上の目安。
           <span class="note">価格が正確に3倍であることは公式価格表で確認できるが、どの作業をFlashに落として良いかは規格でも公式の推奨でもなく、筆者の判断。自分のタスクで実際に品質を測ってから決めてください。</span>
         </li>
-        <li>
-          <span class="flag self">自分の意見</span>
-          releasebot.io を出典として使わない判断。
-          <span class="note">同サイトは自ら「22の情報源から収集」と名乗る第三者アグリゲータで、Anthropicの公式サイトではない。内容自体は公式CHANGELOGと照合して正しかったが、「公式リリースノート」として提示するのは誤りだと判断し、リンクごと公式に差し替えた。</span>
-        </li>
       </ol>
     </article>
   </section>
@@ -510,7 +466,6 @@
     <div><a href="../../">← ホームに戻る</a></div>
   </footer>
 </main>
-
 
 <!-- ai-news-sharebar -->
 <div id="ai-news-sharebar" aria-label="SNSでシェア">
