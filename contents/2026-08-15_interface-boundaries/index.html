@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>チームの境界をどこに引くか — インターフェース契約は結合を消さない</title>
+<meta name="description" content="Conwayの1968年論文の本文には「組織図がアーキテクチャになる」とは書いていません。原文の引用と、JSON Schemaによる契約テストの実測から、チームの境界の引き方を組み立て直します。変更依頼シートのテンプレート付き。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="チームの境界をどこに引くか — インターフェース契約は結合を消さない">
+<meta property="og:description" content="有名な「Conwayの法則」の一文は論文本文に存在しません。原文と実測で境界の引き方を組み立て直します。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-15_interface-boundaries/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-15_interface-boundaries/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=87fa5662">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">チームで作る技術 ｜ 2026年8月15日(土)</div>
+    <h1>チームの境界をどこに引くか — インターフェース契約は結合を消さない</h1>
+    <div class="range">有名な「Conwayの法則」の一文は、1968年の論文本文には存在しません。原文と実測から、境界の引き方を組み立て直します。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約8分</span>
+      <span class="tag">リード向け</span>
+      <span class="tag">テンプレ配布</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li>
+        <b>「組織の構造がそのままシステムの構造になる」という有名な一文は、Conwayの論文本文にない</b>
+        <span>あれは著者本人が発表42年後に書いた言い換えです。論文が実際に言っているのは「分岐があるなら、2つの設計グループはインターフェース仕様を交渉して合意している」でした。</span>
+      </li>
+      <li>
+        <b>契約(JSON Schema)は、破壊的変更を統合前に止めた</b>
+        <span>providerが黙って <code>score</code> を <code>relevance_score</code> に変えた瞬間、契約テストが落ちました。実行結果をそのまま貼ります。</span>
+      </li>
+      <li>
+        <b>それでも契約は結合を減らさない。見えるようにするだけ</b>
+        <span>Consumer-Driven Contractsの原典が明言しています。「結局のところ、破壊的変更は破壊的変更のままだ」。ツールは会話の代わりになりません。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">太い1本のAPIを全員で共有すると、無関係な変更で壊れる</a></li>
+      <li><a href="#s2">Conwayの論文には「組織図がアーキテクチャになる」と書いていない</a></li>
+      <li><a href="#s3">OpenAPI公式がdesign-firstを勧める理由は「並行作業」ではない</a></li>
+      <li><a href="#s4">実演：契約は破壊的変更をどこで止めたか</a></li>
+      <li><a href="#s5">契約は結合を減らさない。掘り出して並べるだけ</a></li>
+      <li><a href="#s6">「決める期間」と「使う期間」は別のモードにする</a></li>
+      <li><a href="#s7">境界の引き方でよくある失敗3つ</a></li>
+      <li><a href="#s8">そのまま使う「インターフェース変更依頼シート」</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>太い1本のAPIを全員で共有すると、無関係な変更で壊れる</h2>
+
+    <article class="item">
+      <h3>「うちは何も変えていないのに壊れた」が毎月起きるなら、境界の引き方の問題です</h3>
+      <p class="lead">よくある形です。委託先が持つLaravel APIに、自社のUnity Webクライアントと、WebViewアプリと、社内の管理画面がぶら下がっている。<mark>3つのconsumerが1本の太いAPIを共有しています。</mark></p>
+
+      <p class="lead">管理画面のために1フィールド足した。返却JSONの形が変わった。Unity Web側が起動しなくなった。誰も悪くないのに事故が起きます。</p>
+
+      <p class="lead">この現象には30年前に名前が付いています。インターフェース分離の原則(ISP)です。原文はこうです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Robert C. Martin「The Interface Segregation Principle」(The C++ Report, 1996年) より原文</div>
+        <pre>CLIENTS SHOULD NOT BE FORCED TO DEPEND UPON INTERFACES THAT THEY DO NOT USE.</pre>
+      </div>
+
+      <p class="lead">大事なのは、その次の段落です。<b>なぜダメなのか</b>が書いてあります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">同・結合についての説明</div>
+        <pre>When clients are forced to depend upon interfaces that they don't use, then those clients are subject to changes to those interfaces. This results in an inadvertent coupling between all the clients.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>「意図しない結合」がconsumer同士に生まれる。</b>Unity Webチームと管理画面チームは一度も会話していないのに、互いの変更で壊れる関係になっています。</li>
+        <li><b>会社をまたぐと、この結合は見えません。</b>委託先から見えるのは「APIを叩いている誰か」であって、3つのチームの都合ではないからです。</li>
+        <li><b>社内だけで完結していても同じです。</b>委託先が「別会社」か「別チーム」かの違いにすぎません。合意していないインターフェースを共有した時点で、同じ事故が起きます。</li>
+        <li><b>直し方は「使っていないものに依存させない」こと。</b>consumerごとに面を分ける。同じデータでも、返す形を分けたほうが安いことがあります。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>Conwayの論文には「組織図がアーキテクチャになる」と書いていない</h2>
+
+    <article class="item">
+      <h3>いちばん引用されている一文は、論文の本文に存在しません</h3>
+      <p class="lead">境界の話をすると必ずConwayの法則が出てきます。引用されるのはこの一文です。</p>
+
+      <div class="code wrap">
+        <div class="code-head">よく引用される一文（出どころに注意）</div>
+        <pre>Any organization that designs a system (defined more broadly here than just information systems) will inevitably produce a design whose structure is a copy of the organization's communication structure.</pre>
+      </div>
+
+      <p class="lead"><mark>これは1968年の論文本文ではありません。</mark>Conway本人が自分のサイトに載せている「発表から42年後の著者注」の文です。同じページに論文原文と並んで置かれています。</p>
+
+      <p class="lead">つまり著者本人の言葉ではあるが、査読を経た1968年の論文の記述ではない。この区別は、原文が実際に何を言っているかを見ると効いてきます。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Melvin E. Conway「How Do Committees Invent?」(Datamation, 1968年4月号 pp.28-31) 結論部</div>
+        <pre>The basic thesis of this article is that organizations which design systems (in the broad sense used here) are constrained to produce designs which are copies of the communication structures of these organizations... a design effort should be organized according to the need for communication.</pre>
+      </div>
+
+      <p class="lead">後半が大事です。<b>「設計の取り組みは、コミュニケーションの必要性に従って組織されるべきだ」</b>。組織図の話ではなく、<mark>誰と誰が話す必要があるかの話</mark>をしています。</p>
+
+      <h3>この記事にとっての本命は、インターフェースの定義のほう</h3>
+      <p class="lead">論文の中には、境界そのものを定義した一文があります。こちらのほうが実務で使えます。</p>
+
+      <div class="code wrap">
+        <div class="code-head">同・インターフェースの定義</div>
+        <pre>If there is a branch, then the two (not necessarily distinct) design groups X and Y which designed the two nodes must have negotiated and agreed upon an interface specification to permit communication between the two corresponding nodes of the design organization.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>境界とは「交渉して合意されたインターフェース仕様」です。</b>組織図の線ではありません。合意していない境界は、境界として機能していないということです。</li>
+        <li><b>論文の主張は準同型(homomorphism)です。</b>原文は "there is a homomorphism from the linear graph of a system to the linear graph of its design organization."。<mark>システムのグラフから設計組織のグラフへの写像</mark>であって、組織図をコピーすればアーキテクチャになる、という主張ではありません。</li>
+        <li><b>「組織図に似る」のは条件付きです。</b>原文は "To the extent that organizational protocol restricts communication along lines of command, the communication structure of an organization will resemble its administrative structure." と書き、その例として軍隊型の組織を挙げています。指揮系統でしか話せない組織なら似る、という条件文です。</li>
+      </ul>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>よく言われる形</th><th>1968年の論文が実際に書いていること</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>組織図がそのままアーキテクチャになる</b></td>
+              <td data-label="論文が書いていること">システムのグラフから設計組織のグラフへの準同型がある。組織図に似るのは「指揮系統でしか話せない組織」の場合という条件付き</td>
+            </tr>
+            <tr>
+              <td><b>1チームなら1パスのコンパイラになる</b></td>
+              <td data-label="論文が書いていること">この例は論文にありません。挙がっている実例は、8人を5人と3人に割ったところ、<b>COBOLコンパイラが5フェーズ、ALGOLコンパイラが3フェーズ</b>になった、というもの</td>
+            </tr>
+            <tr>
+              <td><b>Any organization that designs a system...（有名な一文）</b></td>
+              <td data-label="論文が書いていること">本文には無い。著者が42年後にサイトへ書いた言い換え。論文の結論部は "organizations which design systems ... are constrained to produce designs which are copies of the communication structures of these organizations"</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="quiz">
+        <p class="q">Q. 「Any organization that designs a system will produce a design whose structure is a copy of the organization's communication structure」の出典は?</p>
+        <button class="opt" type="button" data-correct="false">Conway, Datamation 1968年4月号の本文</button>
+        <button class="opt" type="button" data-correct="true">Conway本人が2010年頃に自サイトへ書いた「著者注」</button>
+        <button class="opt" type="button" data-correct="false">Fowlerのbliki記事が最初に定式化した</button>
+        <div class="ans" hidden>
+          <p class="lead"><b>正解。著者本人が自サイトに書いた「著者注」です。</b></p>
+          <p class="lead">melconway.com に、論文原文と並べて載っています。1968年の本文に同じ文はありません。Fowlerも、この著者注のほうを引いています。</p>
+          <p class="lead">実務ではここが効きます。この一文だけを根拠に「組織を先に変えればアーキテクチャが変わる」と決めると、原文の条件を飛ばすことになります。</p>
+        </div>
+      </div>
+
+      <h3>Fowlerが挙げる3つの対応と、その限界</h3>
+      <p class="lead">Martin Fowlerは、Conwayの法則への対応を3つに整理しています。原文は "Ignore... Accept... Inverse Conway Maneuver..." の3つです。</p>
+
+      <p class="lead">3つめの「逆Conway作戦」（欲しいアーキテクチャに合わせて組織を先に変える）については、限界も書いています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Martin Fowler「Conway's Law」(martinfowler.com, 2022年10月20日) より</div>
+        <pre>changing the development organization isn't going to be an instant fix. Instead it's more likely to result in a mismatch between developers and code that adds friction to further enhancement.</pre>
+      </div>
+
+      <p class="lead">同じ記事の結論はこうです。<b>"the modular decomposition of a system and the decomposition of the development organization must be done together."</b> 片方だけ動かすな、ということです。</p>
+
+      <p class="lead">Fowlerは時差の効果にも触れています。<mark>物理的に話しにくい相手とは、境界がはっきりする</mark>という指摘です。</p>
+
+      <div class="code wrap">
+        <div class="code-head">同・タイムゾーンについて</div>
+        <pre>Components developed in different time-zones needed to have a well-defined and limited interaction because their creators would not be able to talk easily.</pre>
+      </div>
+
+      <p class="lead">会社をまたぐ体制は、これに近い状態です。すぐ聞けない。だから境界を明示的に決める価値が、社内より高くなります。</p>
+
+      <details>
+        <summary>境界を分けているのは技術ではなく言葉である、という見方</summary>
+        <div class="body">
+          <p class="lead">Fowlerは別の記事で、境界づけられたコンテキスト(Bounded Context)を分ける要因についてこう書いています。</p>
+          <div class="code wrap">
+            <div class="code-head">Martin Fowler「Bounded Context」(2014年1月15日) より</div>
+            <pre>Various factors draw boundaries between contexts. Usually the dominant one is human culture, since models act as Ubiquitous Language, you need a different model when the language changes.</pre>
+          </div>
+          <p class="lead">支配的な要因は人間の文化だ、と言っています。同じ「ユーザー」という単語が、クライアント側では「ログイン中のプレイヤー」、サーバー側では「課金アカウント」を指しているなら、<b>そこが境界の候補</b>です。用語がズレる場所を探すのは、実務でいちばん安い境界の見つけ方です。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="section section-c" id="s3">
+    <h2><span class="step">3</span>OpenAPI公式がdesign-firstを勧める理由は「並行作業」ではない</h2>
+
+    <article class="item">
+      <h3>OpenAPI仕様書の本文に、design-first も API-first も1度も出てきません</h3>
+      <p class="lead">「OpenAPI仕様がAPI-First開発を推奨している」という説明をよく見ます。これは誤りです。</p>
+
+      <p class="lead">この記事の裏取りで、OpenAPI Specification v3.2.0（2025年9月19日）の本文HTML（25万字超）を取得して全文検索しました。<mark>"design-first" / "API-first" / "contract-first" はいずれも0件</mark>でした。</p>
+
+      <p class="lead">仕様書が自分を定義している文はこれだけです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">OpenAPI Specification v3.2.0 冒頭より</div>
+        <pre>The OpenAPI Specification (OAS) defines a standard, language-agnostic interface to HTTP APIs which allows both humans and computers to discover and understand the capabilities of the service without access to source code, documentation, or through network traffic inspection.</pre>
+      </div>
+
+      <p class="lead">では公式はどこでdesign-firstを勧めているのか。別サイトの Best Practices です。しかも<b>理由が世間の説明と違います。</b></p>
+
+      <div class="code wrap">
+        <div class="code-head">OpenAPI Initiative「Best Practices」(learn.openapis.org) より</div>
+        <pre>in the opinion of the OpenAPI Initiative (OAI), the importance of using Design-first cannot be stressed strongly enough. The reason is simple: The number of APIs that can be created in code is far superior to what can be described in OpenAPI... OpenAPI is not capable of describing every possible HTTP API, it has limitations.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>理由は「OpenAPIで書けないAPIができてしまうから」。</b>コードを先に書くと、OpenAPIに落とせない形になる。だから先に設計しろ、と言っています。</li>
+        <li><b>「並行作業のため」とは一言も書いていません。</b>ここは公式の理由とは別の話です。混ぜて説明すると、根拠を1つ失います。</li>
+        <li><b>OpenAPIには限界があると公式が認めている。</b>これは実務的に重要です。契約に書けないことは、契約の外で合意するしかありません。</li>
+      </ul>
+
+      <h3>並行作業の根拠は、別のページにちゃんとある</h3>
+      <p class="lead">同じ learn.openapis.org の Introduction には、こう書かれています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">OpenAPI Initiative「Introduction」(learn.openapis.org) より</div>
+        <pre>APIs provide information hiding: neither side of the API (the provider and the consumer) know the implementation details of the other one. As long as both adhere to the API, they can be changed as much as needed without the other party even noticing.</pre>
+      </div>
+
+      <p class="lead">「双方が守っている限り、相手に気づかれずにいくらでも変えられる」。<mark>これが並行作業の根拠</mark>です。design-firstを勧める理由とは別物として引いてください。</p>
+
+      <p class="lead">そして条件が付いています。<b>"As long as both adhere to the API"</b>。守らなければ、この効能は消えます。次の節で、守らなかった場合に何が起きるかを実際に動かします。</p>
+
+      <div class="quiz">
+        <p class="q">Q. OpenAPI Specification v3.2.0の本文に「design-first」「API-first」という語は何回出てくる?</p>
+        <button class="opt" type="button" data-correct="false">章立てになるくらい何度も</button>
+        <button class="opt" type="button" data-correct="false">数回だけ、推奨として</button>
+        <button class="opt" type="button" data-correct="true">0回</button>
+        <div class="ans" hidden>
+          <p class="lead"><b>正解、0回です。</b></p>
+          <p class="lead">仕様書はフォーマットの定義であって、開発プロセスを推奨していません。design-firstを強く勧めているのは学習サイト(learn.openapis.org)の Best Practices ページで、理由は「コードを先に書くと、OpenAPIで記述しきれないAPIができるから」です。</p>
+          <p class="lead">「仕様がAPI-Firstを推奨している」と社内資料に書くと、根拠を示せません。引くべきは仕様書ではなく Best Practices ページです。</p>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="section section-a" id="s4">
+    <h2><span class="step">4</span>実演：契約は破壊的変更をどこで止めたか</h2>
+
+    <article class="item">
+      <h3>providerが黙って score をリネームした瞬間、テストが落ちた</h3>
+      <p class="lead">シナリオはこうです。自社フロント(consumer)と委託先サーバー(provider)が <code>GET /api/search?q=...</code> を分担する。実装の前に、返却JSONの形をJSON Schemaで決めます。</p>
+
+      <div class="code">
+        <div class="code-head">schema.json（事前に合意した契約・抜粋）</div>
+        <pre>{
+  "type": "object",
+  "required": ["results", "total"],
+  "properties": {
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "score"],
+        "properties": {
+          "id": {"type": "integer"},
+          "title": {"type": "string"},
+          "score": {"type": "number"}
+        }
+      }
+    },
+    "total": {"type": "integer"}
+  }
+}</pre>
+      </div>
+
+      <p class="lead">providerの初期実装(v1)はこれに沿っています。consumer側も「こう返ってくるはず」という期待値のJSONを書き、同じ契約に当てます。</p>
+
+      <p class="lead">後日、providerが内部の見直しのつもりで2つ変えます。<b>consumerには知らせていません。</b></p>
+
+      <ul class="points">
+        <li><b><code>score</code> → <code>relevance_score</code> にリネーム。</b>「名前として正しいから」という、よくある動機です。</li>
+        <li><b><code>id</code> を整数から文字列へ。</b><code>1</code> が <code>"s-1"</code> になりました。プレフィックスを付けたかった、という話です。</li>
+        <li><b>どちらもサーバー内部だけ見れば妥当な変更です。</b>だから止まりません。契約を見ていない限り。</li>
+      </ul>
+
+      <div class="code term">
+        <div class="code-head">$ python3 run_contract_test.py の出力（そのまま）</div>
+        <pre>契約テスト: GET /api/search
+------------------------
+<span class="ok-line">[OK] consumer側の期待値</span>
+<span class="ok-line">[OK] provider v1</span>
+<span class="ng-line">[NG] provider v2(破壊的変更)</span>
+<span class="ng-line">  'score' is a required property</span></pre>
+      </div>
+
+      <p class="lead">統合前に落ちました。<mark>「ゲームが起動しない」の前に「'score' is a required property」が出る</mark>。これが契約を先に決める効果です。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/contract-break-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/contract-break.png" alt="provider v2は score を relevance_score に変え、契約テストが落ちた" loading="lazy">
+        </picture>
+        <figcaption>consumerに届く前に、契約の側で止まっている</figcaption>
+      </figure>
+
+      <details>
+        <summary>表示は1件だが、実際には6件の違反を検出していた</summary>
+        <div class="body">
+          <p class="lead"><code>jsonschema.validate()</code> は、違反が複数あっても代表1件を選んで例外にします。上の出力に <code>'score' is a required property</code> しか出ていないのはそのためです。</p>
+          <p class="lead"><code>Draft7Validator(schema).iter_errors(payload)</code> で全件見たところ、実際は<b>6件</b>でした。<code>id</code> の型違反が3件（結果3件ぶん）、<code>score</code> の欠如が3件です。</p>
+          <p class="lead">実務上の注意はここです。<mark>1件直して再実行、を5回繰り返すことになります。</mark>相手の会社に修正を依頼する前に、全件出して1回で渡してください。往復の回数がそのまま日数になります。</p>
+        </div>
+      </details>
+
+      <p class="lead">実行環境は Python 3.11.15 / jsonschema 4.26.0 です。<b>実際のHTTPサーバーは立てていません。</b>レスポンス生成ロジックだけを関数で模擬しました。ネットワーク越しの挙動は、この実測には含まれていません。</p>
+
+      <p class="lead">検証一式は <code>_labs/2026-08-15_interface-boundaries/</code> に置いてあります。</p>
+    </article>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="section section-a" id="s5">
+    <h2><span class="step">5</span>契約は結合を減らさない。掘り出して並べるだけ</h2>
+
+    <article class="item">
+      <h3>この記事でいちばん重要な一文。原典がはっきり否定しています</h3>
+
+      <p class="lead">先に用語を1つ。<b>Consumer-Driven Contracts(CDC)</b>とは、consumer側が「自分はこう使う」という期待値を先に書き、providerがそれを満たすかをテストする手法です。</p>
+
+      <p class="lead">前節のJSON Schemaによる契約テストとは<mark>別のものです</mark>。あちらは「返ってくる形が合っているか」を見るだけで、どのconsumerが何を使っているかは見ていません。</p>
+
+      <p class="lead">前の節を見ると「契約を入れれば疎結合になる」と言いたくなります。<mark>そのCDCの原典が、そこを明確に否定しています。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">Ian Robinson「Consumer-Driven Contracts: A Service Evolution Pattern」(2006年6月12日) より</div>
+        <pre>Consumer-driven contracts do not necessarily reduce the coupling between services. Loosely-coupled services are relatively independent of one another, but remain coupled nonetheless. What the pattern does do, however, is excavate and put on display some of those residual, 'hidden' couplings, so that providers and consumers can better negotiate and manage them.</pre>
+      </div>
+
+      <p class="lead">"excavate and put on display" — <b>掘り出して、見えるところに並べる</b>。減らすとは書いていません。同じ記事にはこうもあります。</p>
+
+      <div class="code wrap">
+        <div class="code-head">同・変更についての一文</div>
+        <pre>when all's said and done, a breaking change is still a breaking change.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>契約テストが赤くなっても、破壊的変更が消えるわけではありません。</b>消えるのは「気づかないまま本番で壊れる」だけです。それは十分大きい価値ですが、別の価値です。</li>
+        <li><b>赤いテストの次に必要なのは、交渉です。</b>誰が、いつまでに、どちらを直すのか。ここは人が決めます。</li>
+        <li><b>「契約を入れたから安心」と言い出したら危険信号。</b>結合が減ったのではなく、見えただけです。</li>
+      </ul>
+
+      <h3>Pact公式が挙げる「使えない条件」に、コミュニケーションが入っている</h3>
+      <p class="lead">契約テストのツールとして代表的なPactの公式ドキュメントは、契約テストをこう定義しています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Pact公式「Introduction」(docs.pact.io, 2022年8月30日) より</div>
+        <pre>Contract testing is a technique for testing an integration point by checking each application in isolation to ensure the messages it sends or receives conform to a shared understanding that is documented in a 'contract'.</pre>
+      </div>
+
+      <p class="lead">同じページの比喩が分かりやすいです。<b>「煙探知機を試すために家に火を付けますか?」</b></p>
+
+      <div class="code wrap">
+        <div class="code-head">同・比喩</div>
+        <pre>Do you set your house on fire to test your smoke alarm? No, you test the contract it holds with your ears by using the testing button.</pre>
+      </div>
+
+      <p class="lead">そのPactが、<mark>契約テストが向かない条件</mark>を明記しています。技術的な条件ではありません。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Pact公式「When to use Pact」(docs.pact.io, 2022年4月13日) より抜粋</div>
+        <pre>Testing APIs where the team maintaining the other side of the integration will not also be using Pact
+
+…
+
+Testing providers where the consumer and provider teams do not have good communication channels.</pre>
+      </div>
+
+      <p class="lead">※原文は「向かない条件」を並べた全10項目の箇条書きです。上はその<b>1番目と6番目</b>を抜き出したもので、間の4項目は「…」で省いています。</p>
+
+      <p class="lead">「良好なコミュニケーションチャネルが無いチーム間」は<b>適用外</b>だと書いてあります。会話が要らなくなるどころか、<mark>会話があることが前提条件</mark>です。</p>
+
+      <div class="quiz">
+        <p class="q">Q. 契約テストを導入した。何が起きる?</p>
+        <button class="opt" type="button" data-correct="false">consumerとproviderの結合が減り、独立して動けるようになる</button>
+        <button class="opt" type="button" data-correct="true">隠れていた結合が可視化され、交渉の材料になる</button>
+        <button class="opt" type="button" data-correct="false">仕様変更の連絡が不要になり、CIが代わりに教えてくれる</button>
+        <div class="ans" hidden>
+          <p class="lead"><b>正解。隠れていた結合が見えるようになります。</b></p>
+          <p class="lead">CDCの原典が "do not necessarily reduce the coupling" と明言し、やることは "excavate and put on display" だと書いています。</p>
+          <p class="lead">3つめが特に危険です。Pact公式は、向かない条件に「チーム間に良好なコミュニケーションチャネルが無い場合」を挙げています。連絡が要らなくなるのではなく、連絡できることが前提です。</p>
+          <p class="lead">ここを逆にすると、赤くなったテストを誰も直せないまま放置されます。</p>
+        </div>
+      </div>
+
+      <details>
+        <summary>OpenAPIの定義があれば契約テストになる、ではない理由</summary>
+        <div class="body">
+          <p class="lead">Pact公式は、スキーマ／仕様との違いをこう説明しています。</p>
+          <div class="code wrap">
+            <div class="code-head">Pact公式 Introduction より</div>
+            <pre>Unlike a schema or specification (eg. OAS), which is a static artefact that describes all possible states of a resource, a Pact contract is enforced by executing a collection of test cases... Pact is, in effect, 'contract by example'.</pre>
+          </div>
+          <p class="lead">OASは<b>あり得る状態を全部記述した静的な成果物</b>。Pactは<b>実際に使う例だけをテストで強制するもの</b>。役割が違います。</p>
+          <p class="lead">前節で使ったJSON Schemaも同じで、「形が合っているか」は見ますが、「そのconsumerが実際にどのフィールドを使っているか」は分かりません。この記事の実測も、そこまでは示していません。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="section section-b" id="s6">
+    <h2><span class="step">6</span>「決める期間」と「使う期間」は別のモードにする</h2>
+
+    <article class="item">
+      <h3>境界を決める作業は、終わらせる前提で始めます</h3>
+      <p class="lead">Team Topologiesは、チーム間の関わり方を3つのモードに整理しています。公式のKey Conceptsページの定義です。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Team Topologies「Key Concepts」(teamtopologies.com) より</div>
+        <pre>Collaboration: working together for a defined period of time to discover new things (APIs, practices, technologies, etc.)
+
+X-as-a-Service: one team provides and one team consumes something 'as a Service'
+
+Facilitation: one team helps and mentors another team</pre>
+      </div>
+
+      <p class="lead">注目すべきは Collaboration の定義にある <b>"for a defined period of time"</b> です。<mark>期限付きだと定義に書き込まれています。</mark></p>
+
+      <figure>
+        <picture>
+          <source srcset="images/interaction-modes-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/interaction-modes.png" alt="Collaborationは期限付き、契約が決まればX-as-a-Serviceへ移る" loading="lazy">
+        </picture>
+        <figcaption>APIを決める期間と、決まったAPIを使う期間は、別のモードとして扱う</figcaption>
+      </figure>
+
+      <p class="lead">2025年2月21日のTeam Topologies公式ニュースレター（Ana Ciobotaru / Eduardo da Silva）が、この2モードの典型的な誤解を挙げています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">誤解1: Collaborationを恒久化してしまう</div>
+        <pre>Organizations often fall into the trap of permanent collaboration, creating what they call 'hybrid teams' or 'joint task forces' that never seem to end... it must be temporary and focused on specific learning objectives.</pre>
+      </div>
+
+      <div class="code wrap">
+        <div class="code-head">誤解2: X-as-a-Serviceを「APIを作ること」に矮小化する</div>
+        <pre>X-as-a-Service... is frequently reduced to simply 'creating an API' or 'building a platform.' This oversimplification leads platform teams to adopt a 'build, and they will come' philosophy... True X-as-a-Service emerges from consumer teams' needs.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>合同チームが半年続いていたら、それは失敗の兆候です。</b>「まだ決まらないから一緒にやっている」は、決める作業が終わっていないという意味です。</li>
+        <li><b>APIを先に作っても使われません。</b>公式が "build, and they will come" を名指しで否定しています。X-as-a-Serviceは<mark>consumer側の実需から創発する</mark>ものだ、と。</li>
+        <li><b>だからCollaborationが先に来る。</b>consumerが何を必要としているかを、期限を切って一緒に掘る。それが済んだらサービス提供に切り替える。順番が逆だと空振りします。</li>
+      </ul>
+
+      <p class="lead">同じニュースレターは、実務指針も2つ書いています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">同・指針</div>
+        <pre>Set clear boundaries and timeframes for each interaction mode
+
+Establish explicit exit criteria, especially for Collaboration and Facilitation modes</pre>
+      </div>
+
+      <p class="lead"><b>終了条件を明示せよ</b>。会社をまたぐ体制なら、これは契約の話にもなります。「いつまで密に動くのか」を決めずに始めた共同作業は、たいてい終わりません。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>局面</th><th>モード</th><th>終了条件の例</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>APIの形をこれから決める</b></td>
+              <td data-label="モード">Collaboration（期限付き）</td>
+              <td data-label="終了条件の例">契約ファイル(schema/pact)が両社のリポジトリにマージされ、CIで検証が回っている</td>
+            </tr>
+            <tr>
+              <td><b>決まったAPIを使って作る</b></td>
+              <td data-label="モード">X-as-a-Service</td>
+              <td data-label="終了条件の例">（終了条件ではなく運用条件）変更依頼シート経由でしか契約を変えない</td>
+            </tr>
+            <tr>
+              <td><b>相手側の運用を自社が学ぶ</b></td>
+              <td data-label="モード">Facilitation（期限付き）</td>
+              <td data-label="終了条件の例">自社だけでログを読み、切り分けの一次判断ができる</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section class="section section-c" id="s7">
+    <h2><span class="step">7</span>境界の引き方でよくある失敗3つ</h2>
+
+    <article class="item">
+      <h3>兆候は先に出ます。全部、会議より先にログや会話に出ます</h3>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>失敗</th><th>先に出る兆候</th><th>手当て</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>太い1本を全consumerで共有</b><br><span class="cap">意図しない結合(ISP)</span></td>
+              <td data-label="先に出る兆候">「うちは何も変えていないのに壊れた」が月1回以上出る。レスポンスに、自分たちが使わないフィールドが半分以上ある</td>
+              <td data-label="手当て">consumerごとに面を分ける。まず「どのconsumerがどのフィールドを使っているか」の表を作る。ここが空欄なら、そもそも誰も把握していない</td>
+            </tr>
+            <tr>
+              <td><b>Collaborationが終わらない</b><br><span class="cap">合同チーム化</span></td>
+              <td data-label="先に出る兆候">両社の定例が3か月以上続いている。議題が「決めること」から「進捗共有」に変わっている。抜けると話が進まない人が1人いる</td>
+              <td data-label="手当て">終了条件を1行で書く（例:「契約ファイルがマージされCIで回る」）。書けないなら、まだ何を決めるのかが決まっていません</td>
+            </tr>
+            <tr>
+              <td><b>契約テストを入れたので会話は不要と考える</b><br><span class="cap">前提条件の欠落</span></td>
+              <td data-label="先に出る兆候">赤い契約テストが1週間以上放置されている。「相手の会社に誰が言うのか」が決まっていない</td>
+              <td data-label="手当て">Pact公式が適用外に挙げるのは「良好なコミュニケーションチャネルが無いチーム間」。連絡先と一次対応者を先に決める。ツールはその後</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="points">
+        <li><b>「赤いまま放置」がいちばん重い。</b>テストが落ちても誰も動かない状態は、契約が無い状態より悪いです。落ちることに慣れるからです。</li>
+        <li><b>3つとも、原因は技術ではなく合意の不足です。</b>スキーマの書き方を直しても解けません。</li>
+        <li><b>だから次のシートが必要になります。</b>誰が・いつまでに・どちらを直すのかを、毎回同じ形で書き残すためのものです。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 8 ============ -->
+  <section class="section section-b" id="s8">
+    <h2><span class="step">8</span>そのまま使う「インターフェース変更依頼シート」</h2>
+
+    <article class="item">
+      <h3>相手の会社に投げる前に、これが埋まっているかだけ見ます</h3>
+      <p class="lead">契約が可視化するのは「壊れる」ところまでです。<mark>そこから先の交渉は、毎回同じ形で書いたほうが速い。</mark>コピーして使ってください。</p>
+
+      <div class="code wrap">
+        <div class="code-head">インターフェース変更依頼シート（コピーして使えます）</div>
+        <pre># インターフェース変更依頼シート
+
+## 1. 対象
+- エンドポイント:
+- 契約ファイルのパス:
+- 依頼元（会社・チーム・担当）:
+
+## 2. 変更内容（1行ずつ before → after）
+- 例) results[].score → results[].relevance_score
+- 例) results[].id  整数 → 文字列
+
+## 3. 影響を受けるconsumer一覧
+※下の3行はこの記事の例です。
+　自社のconsumer名に書き換えてから使ってください。
+- [ ] Unity Webクライアント（担当:      ／社:      ）
+- [ ] WebViewアプリ（担当:      ／社:      ）
+- [ ] 管理画面（担当:      ／社:      ）
+※1つでもチェックが付いたら、以下は全項目必須
+
+## 4. 後方互換の有無
+□ ある（旧フィールドを残す。残す期限:        ）
+□ ない（＝破壊的変更。5〜8を必ず埋める）
+
+## 5. 移行期限
+- 新旧併存の開始日:
+- 旧フィールド削除の予定日:
+- 上の2つの間隔:      日
+  ※各consumerのリリース周期より長いこと
+
+## 6. 契約テストへの反映
+- 契約ファイルを更新したPR:
+- consumer側の期待値を更新したPR:
+- 全件のエラーを出した結果（1件ずつ直させない）:
+
+## 7. 通知
+- 通知した日時:
+- 通知先（会社名・チャンネル）:
+- 受領確認（誰が・いつ）:
+
+## 8. ロールバック手順
+- 戻し方（デプロイ単位で書く）:
+- 戻すのにかかる時間:
+- 戻す判断をする人:</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>3番が空欄のまま来る依頼が、いちばん事故ります。</b>「誰が使っているか分からない」は、そのまま「誰が壊れるか分からない」です。</li>
+        <li><b>5番の「間隔」を日数で書かせる。</b>相手の会社は、こちらのリリース周期を知りません。2週間サイクルなら2週間では足りない、と数字で言う必要があります。</li>
+        <li><b>8番を書かせるのは、相手を疑うためではありません。</b>戻し方が書けない変更は、そもそも安全に出せないという確認です。</li>
+      </ul>
+
+      <p class="lead">最後に、明日から手を動かすぶんです。<span class="cl-count">0 / 5</span></p>
+      <ul class="checklist" data-key="interface-boundaries-2026-08-15">
+        <li><label><input type="checkbox"><span>いま1本のAPIを共有しているconsumerを全部書き出した（社名つきで）</span></label></li>
+        <li><label><input type="checkbox"><span>どのconsumerがどのフィールドを使っているか、表にした</span></label></li>
+        <li><label><input type="checkbox"><span>契約ファイル（JSON Schema等）の置き場所と、更新する人を決めた</span></label></li>
+        <li><label><input type="checkbox"><span>相手の会社との共同作業に、終了条件を1行で書いた</span></label></li>
+        <li><label><input type="checkbox"><span>契約テストが赤くなったとき、誰が相手に連絡するかを決めた</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 これで「うちは何も変えていないのに壊れた」の原因を追えます</div>
+
+      <a class="next-up" href="../2026-08-14_task-breakdown/">
+        <div class="label">NEXT →</div>
+        <div class="t">タスク分解とクリティカルパス — どこを縮めると納期が動くか</div>
+        <div class="d">境界を決めたら、次はタスクを割って依存関係を洗い出す番です。</div>
+      </a>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Melvin E. Conway「How Do Committees Invent?」<i>Datamation, Vol.14, No.5</i>, pp.28-31, 1968年4月.
+          <span class="note">参照箇所: 結論部（"organizations which design systems ... are constrained to produce designs which are copies of the communication structures of these organizations"、および "a design effort should be organized according to the need for communication"）、インターフェース仕様の交渉についての一節、準同型（homomorphism）の記述、指揮系統と組織図についての条件文、8人をCOBOL 5人・ALGOL 3人に割った実例（結果が5フェーズ・3フェーズ）。著者本人のサイトに掲載された論文本文を取得して該当箇所を読んでいます。</span>
+          <a href="http://www.melconway.com/Home/Committees_Paper.html">http://www.melconway.com/Home/Committees_Paper.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Melvin E. Conway「発表から42年後の著者注」（melconway.com、論文本文と併載）.
+          <span class="note">"Any organization that designs a system (defined more broadly here than just information systems) will inevitably produce a design whose structure is a copy of the organization's communication structure." の出典。著者本人が書いた文であり、本文を取得して該当箇所を読んでいます。<b>ただし1968年の論文本文ではなく、発表から42年後（2010年頃）に著者が自サイトへ書き足した後年の注記です。</b>本記事はこの点を明記したうえで、論文本文からの引用と分けて扱っています。査読を経た原著の記述として引用してはいけません。</span>
+          <a href="http://www.melconway.com/Home/Committees_Paper.html">http://www.melconway.com/Home/Committees_Paper.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Martin Fowler「Conway's Law」<i>martinfowler.com bliki</i>, 2022年10月20日（10月24日改訂）.
+          <span class="note">参照箇所: タイムゾーンが分かれたコンポーネントは "well-defined and limited interaction" を必要とする、という記述。対応の3分類（Ignore / Accept / Inverse Conway Maneuver）。逆Conway作戦の限界（"changing the development organization isn't going to be an instant fix..."）。結論の "the modular decomposition of a system and the decomposition of the development organization must be done together."</span>
+          <a href="https://martinfowler.com/bliki/ConwaysLaw.html">https://martinfowler.com/bliki/ConwaysLaw.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Martin Fowler「Bounded Context」<i>martinfowler.com bliki</i>, 2014年1月15日.
+          <span class="note">参照箇所: 境界を分ける支配的な要因は人間の文化であり、言語が変わればモデルも変わる、という記述（"Various factors draw boundaries between contexts..."）。本記事では「用語がズレる場所が境界の候補」という文脈で引いています。</span>
+          <a href="https://martinfowler.com/bliki/BoundedContext.html">https://martinfowler.com/bliki/BoundedContext.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          OpenAPI Initiative「OpenAPI Specification v3.2.0」, 2025年9月19日.
+          <span class="note">参照箇所: 冒頭のOAS定義（"defines a standard, language-agnostic interface to HTTP APIs..."）。あわせて、<b>本文HTML（25万字超）を取得して全文検索し、"design-first" / "API-first" / "contract-first" がいずれも0件であることを確認</b>しました。仕様書が開発プロセスを推奨していない、という本記事の記述はこの確認に基づきます。</span>
+          <a href="https://spec.openapis.org/oas/v3.2.0.html">https://spec.openapis.org/oas/v3.2.0.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          OpenAPI Initiative「Best Practices」<i>learn.openapis.org</i>.
+          <span class="note">参照箇所: Design-firstの重要性と、その理由（"The number of APIs that can be created in code is far superior to what can be described in OpenAPI... OpenAPI is not capable of describing every possible HTTP API, it has limitations."）。本記事の「勧める理由は並行作業ではない」という主張の根拠です。</span>
+          <a href="https://learn.openapis.org/best-practices.html">https://learn.openapis.org/best-practices.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          OpenAPI Initiative「Introduction」<i>learn.openapis.org</i>.
+          <span class="note">参照箇所: information hiding についての記述（"As long as both adhere to the API, they can be changed as much as needed without the other party even noticing."）。本記事では、並行作業の根拠をこちらに置き、Best Practicesのdesign-first推奨とは別の根拠として扱っています。</span>
+          <a href="https://learn.openapis.org/introduction.html">https://learn.openapis.org/introduction.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Pact「Introduction」（2022年8月30日）／「When to use Pact」（2022年4月13日）<i>docs.pact.io</i>.
+          <span class="note">参照箇所: <b>Introduction（docs.pact.io トップ）</b>から、契約テストの定義（"testing an integration point by checking each application in isolation..."）、煙探知機の比喩、OASとの違い（"Unlike a schema or specification (eg. OAS)... Pact is, in effect, 'contract by example'."）。<b>When to use Pact</b> から、契約テストが向かない条件の一覧（全10項目）のうち1番目と6番目（"Testing APIs where the team maintaining the other side of the integration will not also be using Pact" / "Testing providers where the consumer and provider teams do not have good communication channels."）。本記事の「会話が前提条件である」という主張の根拠です。よく似た言い回し（"Pact is 'contract by examples'"）はFAQページにもありますが、本記事が引用したのは上記2ページの本文です。</span>
+          <a href="https://docs.pact.io/">https://docs.pact.io/</a>
+          ／<a href="https://docs.pact.io/getting_started/what_is_pact_good_for">https://docs.pact.io/getting_started/what_is_pact_good_for</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Ian Robinson「Consumer-Driven Contracts: A Service Evolution Pattern」<i>martinfowler.com</i>, 2006年6月12日.
+          <span class="note">参照箇所: "Consumer-driven contracts do not necessarily reduce the coupling between services... What the pattern does do, however, is excavate and put on display some of those residual, 'hidden' couplings, so that providers and consumers can better negotiate and manage them."、および "when all's said and done, a breaking change is still a breaking change."。本記事の第5節はこの2文が主張の核です。</span>
+          <a href="https://martinfowler.com/articles/consumerDrivenContracts.html">https://martinfowler.com/articles/consumerDrivenContracts.html</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Team Topologies「Key Concepts」<i>teamtopologies.com</i>.
+          <span class="note">参照箇所: 3つのインタラクションモードの定義（Collaboration / X-as-a-Service / Facilitation）。Collaborationの定義に "for a defined period of time" が含まれている点を根拠にしています。</span>
+          <a href="https://teamtopologies.com/key-concepts">https://teamtopologies.com/key-concepts</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Ana Ciobotaru / Eduardo da Silva「Team Topologies Interaction Modes: Breaking Through Common Misconceptions」<i>Team Topologies 公式ニュースレター</i>, 2025年2月21日.
+          <span class="note">参照箇所: Collaborationの恒久化（"permanent collaboration... 'hybrid teams' or 'joint task forces' that never seem to end"）、X-as-a-Serviceの矮小化（"'build, and they will come' philosophy... True X-as-a-Service emerges from consumer teams' needs."）、実務指針（"Set clear boundaries and timeframes for each interaction mode" / "Establish explicit exit criteria, especially for Collaboration and Facilitation modes"）。</span>
+          <a href="https://teamtopologies.com/news-blogs-newsletters/2025/2/21/team-topologies-interaction-modes-breaking-through-common-misconceptions">https://teamtopologies.com/news-blogs-newsletters/2025/2/21/team-topologies-interaction-modes-breaking-through-common-misconceptions</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Robert C. Martin「The Interface Segregation Principle」<i>The C++ Report</i>, 1996年.
+          <span class="note">参照箇所: 原則の宣言（"CLIENTS SHOULD NOT BE FORCED TO DEPEND UPON INTERFACES THAT THEY DO NOT USE."）と、その直後の結合についての説明（"This results in an inadvertent coupling between all the clients."）。Internet Archive経由で公開されているPDF本文を取得して読んでいます。<b>掲載月は確認できていません。</b></span>
+          <a href="https://web.archive.org/web/20150905081110id_/http://www.objectmentor.com/resources/articles/isp.pdf">https://web.archive.org/web/20150905081110id_/http://www.objectmentor.com/resources/articles/isp.pdf</a>（2026年8月15日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          契約テストのデモ一式。<code>_labs/2026-08-15_interface-boundaries/</code>（README.md / schema.json / consumer_expectation.json / provider_v1.py / provider_v2_broken.py / run_contract_test.py / output.txt）。Python 3.11.15、jsonschema 4.26.0、2026年8月15日実行。
+          <span class="note">第4節に貼った出力は <code>python3 run_contract_test.py</code> の実行結果を<b>加工せずそのまま</b>貼っています。<b>実際のHTTPサーバーは立てていません。</b><code>provider_v1.search()</code> / <code>provider_v2_broken.search()</code> はレスポンス生成ロジックのみを模擬した関数で、FlaskやFastAPIでの実サーバー化、ネットワーク越しの検証は行っていません。「6件検出していた」は <code>Draft7Validator.iter_errors()</code> で確認した結果です（型違反3件＋必須プロパティ欠如3件）。AWS上での実行は一切行っていません。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「インターフェース変更依頼シート」の項目立て、失敗3つの兆候、終了条件の書き方は、<b>筆者の運用上の目安</b>であって標準や規格ではありません。
+          <span class="note">シートの8項目は、上記の一次資料（ISPの意図しない結合、CDCの「破壊的変更は破壊的変更のまま」、Pactの前提条件、Team Topologiesの終了条件）から筆者が組み立てたものです。原典に同じ様式があるわけではありません。チームの人数・リリース周期・契約形態に合わせて削ってください。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月15日時点の内容です</div>
+    <div>公開: 2026年8月15日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
