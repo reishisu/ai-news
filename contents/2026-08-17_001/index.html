@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-news：2026/08/17 — 週末はAI各社の動きなし、更新はWebViewとVRChatだけ</title>
+<meta name="description" content="対象期間は日曜から月曜早朝。AI開発ツール・Web開発インフラ・arXiv・モデル業界は一次情報の更新がゼロだったため、埋めずに0件のままにしています。動きがあったのはクライアント技術だけ。Android System WebViewがv152へ切り替わり始め、直前のChrome 151系にはHigh 5件の修正。VRChat 2026.3.1はProp Abilitiesを本番投入し、VRC_Pickupのアウトラインは戻ったがSDKが来ていません。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI-news：2026/08/17 — 週末はAI各社の動きなし、更新はWebViewとVRChatだけ">
+<meta property="og:description" content="週末のため主要AI・インフラ・研究は一次情報の更新ゼロ。動いたのはAndroid System WebView v152とVRChat 2026.3.1の2件だけです。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-17_001/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-17_001/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=87fa5662">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">2026年8月17日(月)</div>
+    <h1>AI-news：2026/08/17 — 週末はAI各社の動きなし、更新はWebViewとVRChatだけ</h1>
+    <div class="range">対象期間: 8月16日(日) 5:00 〜 8月17日(月) 5:00 JST(クライアント技術は直近1週間)</div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 今日の3行まとめ</h2>
+    <ol>
+      <li>
+        <b>Android System WebViewがv152へ切り替わり始めた。公式リリースノートには定型文があるだけで、中身は書かれていない</b>
+        <span>アプリに入っているWebViewの中身は、こちらの都合と関係なく更新されます。<b>何が変わったかを知りたければChrome側のリリースノートを見るしかありません。</b>直前の Chrome 151.0.7922.137 には、重大度Highのセキュリティ修正が5件入っています。</span>
+      </li>
+      <li>
+        <b>VRChat 2026.3.1でProp Abilitiesが本番投入。VRC_Pickupのアウトラインは戻ったが、対応SDKが同梱されていない</b>
+        <span>SDK(Software Development Kit)とは、ワールドやアバターを作るための開発ツール一式です。公式が「The SDK that will allow them to fix that is *not* shipping with this patch, however. Next release will have it!」と明記しています。<mark>影響を受けたワールドは、次のSDKが出るまで作者側で直せません。</mark></span>
+      </li>
+      <li>
+        <b>それ以外の4カテゴリは、一次情報の更新がゼロだった</b>
+        <span>対象期間が日曜から月曜早朝にかかるためです。各社の公式チャンネル・RSS・GitHubリリース・arXivを確認しましたが、いずれも対象期間の開始前(8/15 JSTまで)で止まっていました。<mark>件数を揃えるための穴埋めはしません。</mark></span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#work">実務者向けのAI開発ツール(0件)</a></li>
+      <li><a href="#dev">Web開発・インフラ(0件)</a></li>
+      <li><a href="#client">クライアント技術(2件)</a></li>
+      <li><a href="#research">技術・研究(0件)</a></li>
+      <li><a href="#industry">モデル・業界(0件)</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 実務者向け ============ -->
+  <section class="section section-b" id="work">
+    <h2>🧰 実務者向けのAI開発ツール<span class="n">0件</span></h2>
+    <p class="none">特筆すべき動きなし</p>
+  </section>
+
+  <!-- ============ Web開発・インフラ ============ -->
+  <section class="section section-c" id="dev">
+    <h2>🧑‍💻 Web開発・インフラ<span class="n">0件</span></h2>
+    <p class="none">特筆すべき動きなし</p>
+  </section>
+
+  <!-- ============ クライアント技術 ============ -->
+  <section class="section section-a" id="client">
+    <h2>📱 クライアント技術<span class="n">2件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=google.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Google</div>
+      <h3>Android System WebViewがv152へ — 公式リリースノートは定型文だけで、中身はChrome側を見るしかない</h3>
+      <div class="tags">
+        <span class="tag">8/12(直近1週間)</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">WebView</span>
+        <span class="tag">Chrome 152</span>
+        <span class="tag">セキュリティ</span>
+      </div>
+
+      <p class="lead">WebViewは、Androidアプリの中にWebページを表示する部品です。中身はChromeと同じ描画エンジンで、<mark>アプリ側では更新を止められません。</mark>Google Playが「Android System WebView」という別アプリとして配り、端末ごとに勝手に上がります。</p>
+
+      <p class="lead">そのv152が2026年8月12日から配信されています。Googleのリリースノートに書かれているのは、これで全部です。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Google System Services Release Notes — Android WebView v152 (2026-08-12) の全文</div>
+<pre>Improvements to security and privacy
+and updates for bug fixes.
+
+New developer features for Google &amp;
+3rd party app developers to support
+functionality related to displaying
+web content in their apps.
+
+Important: Some features may be
+experimental and available to
+certain users.</pre>
+      </div>
+
+      <p class="lead">個別の変更点は1つも書かれていません。<b>ただし、これは珍しいことではありません。</b>同じページの1つ前、v151（2026-07-15）には具体的な行が2つ載っています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">同じページの Android WebView v151 (2026-07-15) — 定型文の前にある2行</div>
+<pre>The HTTP Cache Quota API allows app
+developers to optimize and manually
+manage the WebView HTTP cache size.
+
+This is a migration that moves Android
+WebView visited links infrastructure
+over to partitioned-aware visited links
+infrastructure with no behavioral
+change.</pre>
+      </div>
+
+      <p class="lead">v150（2026-06-17）にも <code>enqueuePreconnect</code> API の説明など3行あります。<b>ただし同じページをv149まで遡ると、v149・v148・v146・v145・v144はいずれも今回のv152と同じ定型文3行だけでした</b>（v147の項はこのページに載っていません）。<mark>具体的な行があるv151・v150のほうが、直近では例外です。</mark>つまり「WebViewが上がって何かが壊れた」ときに公式のWebViewリリースノートを見ても手がかりが無いのは、今回に限った話ではなく普段からそうだった、ということです。追うならChrome側を見ます。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/chrome-webview-timeline-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/chrome-webview-timeline.png" alt="8月11日にChrome 151の安定版、翌12日にWebView v152とChrome for Android 152が出ている。WebViewの番号はChromeのメジャー番号と同じ系列で動く" loading="lazy">
+        </picture>
+        <figcaption>同じ152系でも、具体的な変更点が書かれているのはChrome側だけ</figcaption>
+      </figure>
+
+      <p class="lead"><b>直前の151系には、重大度Highの修正が5件入っています。</b>8月11日、Chrome 151.0.7922.137 の安定版が出ました。<mark>セキュリティ修正5件、すべて重大度High、すべてUse after free(解放済みメモリへの参照)です。</mark>Highは、Chromiumの重大度区分（Critical / High / Medium / Low の4段階）で上から2番目です。Chromiumの基準では<mark>「攻撃者が他のオリジンになりすます、または他オリジンのデータを読める」レベル</mark>を指します。</p>
+
+      <p class="lead">CVEは、脆弱性1件ごとに振られる世界共通の識別番号です(Common Vulnerabilities and Exposures)。番号があると、どのバージョンで直った脆弱性の話をしているかを他の資料とも照合できます。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>CVE番号</th><th>公式ブログの記述</th></tr></thead>
+          <tbody>
+            <tr><td>CVE-2026-19556</td><td data-label="公式ブログの記述">Use after free in V8</td></tr>
+            <tr><td>CVE-2026-19557</td><td data-label="公式ブログの記述">Use after free in TabStrip</td></tr>
+            <tr><td>CVE-2026-19558</td><td data-label="公式ブログの記述">Use after free in Extensions</td></tr>
+            <tr><td>CVE-2026-19559</td><td data-label="公式ブログの記述">Use after free in HTML</td></tr>
+            <tr><td>CVE-2026-19560</td><td data-label="公式ブログの記述">Use after free in Blink</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">Android版のリリースノートには<mark>「Android releases contain the same security fixes as their corresponding Desktop releases」</mark>と書かれています。V8(JavaScriptエンジン)・HTML・Blink(描画エンジン)は、WebViewも同じものを使う部分です。</p>
+
+      <p class="lead"><b>ただし、ここから先は正直に区切ります。</b>Googleは<b>この5件がWebViewに影響すると明言していません。</b>WebViewのリリースノートは上の定型文だけで、CVE番号との対応表も出ていません。「共通コンポーネントなので影響しうる範囲に入る」までが、資料から言えることです。</p>
+
+      <p class="lead"><b>もうひとつ、152で「接続先の許可リスト」が入る予定です。</b>Connection Allowlists という機能です。Chrome Status のマイルストーンは<mark>desktop 152 / android 152 / webview 152</mark>で、WebViewも対象に入っています。<b>ただし同じエントリの実装ステータスは「Proposed」、<code>is_released</code> は <code>false</code> のままです</b>（エントリの最終更新は2026年7月23日）。<mark>152に必ず載ると確定したわけではありません。</mark></p>
+
+      <p class="lead">やることは単純です。<b>サーバーがレスポンスヘッダーで「このページが接続してよい宛先の一覧」を配ります。</b>ブラウザは接続を張る前に照合し、一致しないものをブロックします。要約の原文がこうです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Chrome Status — Connection Allowlists の要約（抜粋）</div>
+<pre>Prior to the establishment of any
+connection by the user agent on behalf
+of a page, the agent will evaluate the
+destination against this allowlist;
+connections to verified endpoints will
+be permitted, while those failing to
+match the entries in the list will be
+blocked.</pre>
+      </div>
+
+      <p class="lead">これは、次のクイズに出てくるCORSとは別の仕組みです。CORSは「別サイトのデータを読み込んでよいか」をサーバーが答える仕組みで、判定はいったん接続してレスポンスが返ってきた後に行われます。Connection Allowlists は、その手前の「そもそも接続してよいか」を先に決める仕組みです。</p>
+
+      <div class="quiz">
+        <p class="q">Q. <code>Connection-Allowlist</code> を付けたページから、許可リストに載っていないAPIへ <code>fetch()</code> した。サーバー側のCORS設定（<code>Access-Control-Allow-Origin</code>）が正しければ通る?</p>
+        <button class="opt" type="button" data-correct="false">通る。CORSで許可されていればブラウザはブロックしない</button>
+        <button class="opt" type="button" data-correct="false">通るが、レスポンスは中身を読めない状態になる</button>
+        <button class="opt" type="button" data-correct="true">通らない。許可リストに無い宛先は、接続を張る前の段階で落とされる</button>
+        <p class="ans" hidden>正解。CORSは「返ってきた応答を読ませてよいか」をサーバーが答える仕組みで、判定はリクエストを送った後です。Connection Allowlists は「そもそもどこへ接続してよいか」をページ側が事前に宣言する仕組みで、<b>接続の確立前</b>に照合されます（上の原文の <code>Prior to the establishment of any connection</code>）。層が違うので、CORSヘッダーをいくら直しても通りません。「WebViewから叩けない = CORSの問題」という反射が効かなくなる、という話です。</p>
+      </div>
+
+      <ul class="points">
+        <li><b>CSPの代わりではなく、CSPから切り出したもの。</b>Chrome Status の動機欄にこう書かれています。「Content Security Policy addresses some of this need, but does so in a way that is more granular than necessary for the most critical use cases」。つまり<mark>CSPは細かすぎるので、接続先の制御だけを単独のヘッダーに分けた</mark>という位置づけです。</li>
+        <li><b>ヘッダーの形は例が出ている。</b><code>Connection-Allowlist: (response-origin "https://cdn.example" "https://*.example.:tld" "https://api.example:*"); report-to=ReportingAPIEndpoint</code>。Chrome Status の動機欄に載っている例です(原文は途中で改行されているため、1行に詰めています)。</li>
+        <li><b>いきなり遮断しないで済む。</b>「the reporting infrastructure for Connection-Allowlist was introduced to support both enforced violation reporting and a "report-only" mode, allowing developers to monitor potential breakages without interrupting service」。<mark>遮断せずに違反だけ報告するモードがあります。</mark>ヘッダーの具体的な書き方までは記載がないので、ここでは書きません。</li>
+        <li><b>今すぐ何かする必要はありません。</b>Chrome for Android 152 は8月12日に<b>一部ユーザー向けの early stable</b>として出たところです（152.0.7977.42）。WebViewのv152配信も同日に始まったばかりです。</li>
+      </ul>
+
+      <p class="lead"><b>効いてくるのはこの構成です。</b>WebViewの中のページからLaravel APIを叩いていて、そのページを配っているサーバーがインフラ担当の別会社にある場合。<mark>あちら側が <code>Connection-Allowlist</code> を付けた瞬間、こちら側のfetchの宛先が制限されます。</mark>CORSとは別の設定なので、CORSの一覧を渡しても足りません。</p>
+
+      <div class="code wrap">
+        <div class="code-head">インフラ担当会社へ送る文面（そのままコピーして使えます）</div>
+<pre>Chrome 152 に Connection Allowlists
+という機能が入る予定です
+（Chrome Status 上はまだ
+Proposed 扱いです）。
+レスポンスヘッダー
+Connection-Allowlist
+で、ページが接続してよい宛先を
+サーバー側から宣言できます。
+
+確認したいこと:
+1. このヘッダーを付ける予定は
+   ありますか
+2. 付けるなら、まずレポート専用
+   モード（違反を報告するだけで
+   遮断しない）から始められますか
+3. アプリのWebViewが叩く宛先の
+   一覧はこちらから出します</pre>
+      </div>
+
+      <p class="lead">この文面は筆者が組み立てたものです。公式が推奨している依頼テンプレートではありません。</p>
+
+      <p class="lead">今日のうちに片付くのは、この3つです。<span class="cl-count">0 / 3</span></p>
+      <ul class="checklist" data-key="webview-152-2026-08-17">
+        <li><label><input type="checkbox"><span>不具合報告のテンプレートに「Android System WebViewのバージョン」欄を足した</span></label></li>
+        <li><label><input type="checkbox"><span>自社のWebViewが叩く外部ドメインを洗い出して一覧にした</span></label></li>
+        <li><label><input type="checkbox"><span>インフラ担当会社に <code>Connection-Allowlist</code> の予定を聞いた</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 これで152系が全端末に来ても、切り分けから始められます</div>
+
+      <details>
+        <summary>この項目で確認したこと・確認していないこと</summary>
+        <div class="body">
+          <dl>
+            <dt>Connection Allowlists の現状</dt>
+            <dd>Chrome Status API のエントリで確認できるのは、マイルストーンが <code>desktop 152 / android 152 / webview 152</code>、<code>shipping_year = 2026</code>、<code>rollout_plan</code> の表示名が「Will ship enabled for all users」、<code>breaking_change = false</code>、<code>requires_embedder_support = true</code> という点です。<mark>ただし同じエントリの実装ステータスは <code>Proposed</code>、<code>is_released</code> は <code>false</code> で、最終更新は2026年7月23日（<code>accurate_as_of</code>）です。</mark>仕様は WICG で策定中（成熟度の表示は「Specification being incubated in a Community Group」）。他ブラウザの態度は Firefox が Positive、Safari が No signal と記載されています。</dd>
+            <dt>実機での検証はしていません</dt>
+            <dd>本サイトの環境に Android 端末はありません。<b>WebViewの実機でヘッダーの挙動を試したわけではなく、記載はすべて公式の文書に基づいています。</b>また、Fetch標準（WHATWG）の本文は今回取得していないため、CORSの判定手順の詳細はこの記事では扱っていません。</dd>
+            <dt>Chrome 152の解説記事について</dt>
+            <dd>Chromeチームが <code>developer.chrome.com/blog/chrome-152-beta</code> に解説を出しています。ページ内の日付は2026年7月30日で、<mark>本ダイジェストの対象期間の外</mark>です。この記事では根拠として使っていません（本文の主張は Chrome Status API の記載のみに基づいています）。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://support.google.com/product-documentation/answer/14343500">Google System Services Release Notes</a> / <a href="https://chromereleases.googleblog.com/2026/08/chrome-for-android-update_0318651269.html">Chrome for Android Update (152)</a> / <a href="https://chromereleases.googleblog.com/2026/08/stable-channel-update-for-desktop_01815628406.html">Stable Channel Update for Desktop (151)</a> / <a href="https://chromereleases.googleblog.com/2026/08/chrome-for-android-update_0633903601.html">Chrome for Android Update (151)</a> / <a href="https://chromestatus.com/api/v0/features/5175745573945344">Chrome Status: Connection Allowlists</a></dd>
+          </dl>
+        </div>
+      </details>
+
+      <a class="next-up" href="../2026-08-14_webview-origin/">
+        <div class="label">前提を確認するなら →</div>
+        <div class="t">WebViewのfetchが失敗する理由 — Origin: null とCORSの関係</div>
+        <div class="d">「WebViewからAPIが叩けない」の従来型の原因を、実測で追い詰めた回です。Connection Allowlistsはこれとは別の層の話になります。</div>
+      </a>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=vrchat.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">VRChat</div>
+      <h3>VRChat 2026.3.1 — VRC_Pickupのアウトラインは戻ったが、直すためのSDKが同梱されていない</h3>
+      <div class="tags">
+        <span class="tag">8/12(直近1週間)</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">VRChat</span>
+        <span class="tag">Build 1885 / Live</span>
+        <span class="tag warn">⚠ 作者側は次のSDK待ち</span>
+      </div>
+
+      <p class="lead">2026年8月12日、Build 1885、Live（本番配信）です。<mark>クリエイター側にとっていちばん重いのは、機能そのものではなく「今は直せない」という一文</mark>なので、そこから書きます。</p>
+
+      <p class="lead"><code>VRC_Pickup</code>（プレイヤーが手で掴めるオブジェクトのコンポーネント）のハイライト表示が、形の変わるメッシュ（<code>SkinnedMeshRenderer</code>）にも効くようになりました。メッシュとは、3Dモデルの表面を作っている点と面のデータのことです。キャラクターの体のように、ボーンの動きに合わせて形が変わるメッシュを指してSkinnedMeshRendererと呼びます。これは前のリリースで一度入れて、<b>コンテンツに影響が出たために取り消されていた</b>ものです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">VRChat 2026.3.1 リリースノート — 該当箇所</div>
+<pre>Reintroduced precisely highlighting
+pickups that can change shape, in other
+words SkinnedMeshRenderer support for
+VRC_Pickup.
+
+We reverted this one in the last release
+due to it affecting some content. We've
+now added a field to specify which
+meshes exactly to outline.
+
+The SDK that will allow them to fix that
+is *not* shipping with this patch,
+however. Next release will have it!</pre>
+      </div>
+
+      <p class="lead">再導入にあたって「どのメッシュを縁取るか」を指定するフィールドが追加されました。ところが<mark>そのフィールドを設定するためのSDKが、このパッチには入っていません。</mark>作者側にできることは、次のリリースを待つことだけです。</p>
+
+      <p class="lead">SDKの最新版は 3.10.4（2026年6月17日）で、この期間に新しいリリースは出ていません（VRChat公式のSDKリリース一覧で確認）。<b>クライアントだけが先に出て、制作側の道具があとから来る</b>という順番です。VRChat自身は「the amount of content this affects is extraordinarily small」と書いています。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/vrc-pickup-lanes-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/vrc-pickup-lanes.png" alt="VRC_Pickupのアウトラインは導入→revert→再導入とクライアント側だけが3回動き、SDKは2026年6月17日の3.10.4から更新されていない" loading="lazy">
+        </picture>
+        <figcaption>作者が「どのメッシュを縁取るか」を指定できるのは、次のSDKが出てから</figcaption>
+      </figure>
+
+      <p class="lead"><b>もうひとつの本命が Prop Abilities です。</b>クライアント全体で有効化されました。原文は「Prop Abilities have been enabled in the client.」ワールド作者向けの告知は前のリリースで済んでいます。<mark>今回増えたのは、インスタンス作成者（ワールドを開いて部屋を立てた人）の側です。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">VRChat 2026.3.1 リリースノート — Prop Abilities</div>
+<pre>Prop Abilities have been enabled in the
+client.
+
+We previously mentioned this change for
+world creators in the last release.
+
+Instance creators can now do the same
+thing, giving them the ability to
+disable certain Props from being
+spawned.</pre>
+      </div>
+
+      <p class="lead">Propは、プレイヤーがワールドに持ち込んで出せるアイテムのことです。<b>特定のPropのスポーンを無効化できる相手が、ワールド作者だけでなく部屋を立てた人にも広がりました。</b>イベント運営で「この持ち込みは無しにしたい」を、ワールド側の改修なしで決められることになります。</p>
+
+      <ul class="points">
+        <li><b>Androidで <code>rtspt://</code> が <code>rtsp://</code> に置き換わる。</b>原文は「Android devices will now replace rtspt:// URLs during video player loading with rtsp:// to work around a limitation of ExoPlayer.」<mark>Quest / Android の動画ワールドで、読み込み時のURLがクライアント側で書き換わります。</mark>ExoPlayer（Androidの動画再生ライブラリ）側の制限の回避策だと明記されています。<code>rtspt://</code>（RTSP over TCP）を前提に組んでいる配信があるなら、挙動が変わる箇所です。</li>
+        <li><b><code>VRCObjectSync</code> の同期が改善。これも出戻り。</b>原文は「Greatly improved the reliability of VRCObjectSync, specifically around ensuring that the final state after motion is the same between all players in an instance.」<mark>オブジェクトが動き終わった後の最終状態が、全員の画面で一致するようになった</mark>という改善です。2026.2.3で一度入れて内部事情でrevertしたものを、今回戻したと書かれています（「Déjà vu? We had that one in 2026.2.3, but needed to revert it for internal reasons.」）。</li>
+        <li><b>クライアント内からバグ報告を送れるようになった。</b>Quick Menu の右上にある Report (!) ボタンから「Bug Report」。<mark>クライアントのログファイルを自動で添付できます。</mark>報告先はCannyです。</li>
+        <li><b>ステッカーと絵文字にSDF（Signed Distance Fields）が入った。</b>GPU側で「縁の近くだけ半透明か」を判定し、条件を満たす画像をベクター的に扱います。原文は「These images get pixel-perfect antialiasing and clipping at any distance and from nearly any angle, even on Android!」</li>
+      </ul>
+
+      <details>
+        <summary>このリリースで扱わなかったもの</summary>
+        <div class="body">
+          <dl>
+            <dt>2026.3.1p1（8月13日, Build 1886）は扱いません</dt>
+            <dd>本文を確認しましたが、ネームプレートのドロップシャドウ追加、プロフィールのカラーテーマのコントラスト自動補正、Represented Groupアイコンの白背景の修正、Socialタブのフィルタモーダルの修正、iOSでEDMバンドルのAudioLink対応コンテンツが見えない問題の修正など、<mark>不具合修正と細かな表示調整だけ</mark>でした。本ダイジェストは「読んで何かする必要があるか」で採否を決めているため、この号では省いています。</dd>
+            <dt>SDK / Creator Companion はリリースなし</dt>
+            <dd>VRChat公式のSDKリリース一覧を確認しました。最新は <b>Release 3.10.4（2026年6月17日）</b>で、対象期間にも直近1週間にも新しいリリースはありません。<code>VRC_Pickup</code> のメッシュ指定フィールドが使えるようになる時期は、公式は「Next release」としか書いていないため、この記事では日付を書きません。</dd>
+            <dt>実機での確認はしていません</dt>
+            <dd>本サイトの環境にVRChatクライアントもUnityもありません。<b>上記はすべて公式リリースノートの本文からの引用と要約で、動作を確かめたものではありません。</b></dd>
+            <dt>出典</dt>
+            <dd><a href="https://docs.vrchat.com/docs/vrchat-202631">VRChat 2026.3.1（公式リリースノート）</a> / <a href="https://docs.vrchat.com/docs/vrchat-202631p1">VRChat 2026.3.1p1</a> / <a href="https://creators.vrchat.com/releases/">VRChat SDK Releases</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 技術・研究 ============ -->
+  <section class="section section-c" id="research">
+    <h2>🔬 技術・研究<span class="n">0件</span></h2>
+    <p class="none">特筆すべき動きなし</p>
+  </section>
+
+  <!-- ============ モデル・業界 ============ -->
+  <section class="section section-a" id="industry">
+    <h2>🏢 モデル・業界<span class="n">0件</span></h2>
+    <p class="none">特筆すべき動きなし</p>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料だけに基づいています。<mark>読んでいない資料は引用しません。</mark>今号は実機・実測を伴う項目がないため、<b>自分の実測はありません</b>。</p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Google System Services Release Notes」<i>Google Help Center</i>, 2026年8月.
+          <span class="note">参照箇所: 「August 2026」節の「<b>Android WebView v152 (2026-08-12)</b>」と、その配下の全文「Improvements to security and privacy and updates for bug fixes.」「New developer features for Google &amp; 3rd party app developers to support functionality related to displaying web content in their apps.」「Important: Some features may be experimental and available to certain users.」。<b>v152の項に個別の変更点の行が存在しないこと</b>（記事中の「定型文だけ」の根拠）を確認しました。あわせて同じページの「<b>Android WebView v151 (2026-07-15)</b>」には定型文の前に「The HTTP Cache Quota API allows app developers to optimize and manually manage the WebView HTTP cache size.」「This is a migration that moves Android WebView visited links infrastructure over to partitioned-aware visited links infrastructure with no behavioral change.」の2行が、「<b>Android WebView v150 (2026-06-17)</b>」には同様に「The HTTP Cache Quota API …」「WebView utilizes the native-only renderer.」「Introduced the enqueuePreconnect API to allow embedders to queue network preconnect requests without triggering immediate WebView initialization, reducing resource consumption and startup latency.」の3行があることを確認しています。<b>さらに同じページをv149まで遡ったところ、v149(2026-05-20)・v148(2026-04-22)・v146(2026-02-25)・v145(2026-01-28)・v144(2026-01-07)はいずれもv152と同じ定型文3行のみで、個別の変更点は書かれていませんでした。</b>つまり定型文のみが通常運転で、v151・v150に具体的な行があったことのほうが直近では例外です（記事中の該当箇所を「v152だけが」から「v151・v150のほうが例外」に修正した根拠）。</span>
+          <a href="https://support.google.com/product-documentation/answer/14343500">https://support.google.com/product-documentation/answer/14343500</a>（2026年8月17日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Krishna Govind「Chrome for Android Update」<i>Chrome Releases（Google Chrome公式ブログ）</i>, 2026年8月12日（本文の日付表記「Wednesday, August 12, 2026」）.
+          <span class="note">参照箇所: 「We've just released <b>Chrome 152 (152.0.7977.42) for Android to a small percentage of users</b>. It'll become available on Google Play over the next few days. You can find more details about early Stable releases here.」「This release includes stability and performance improvements.」。ラベルは「Chrome for Android」「Early Stable Updates」。記事中の「一部ユーザー向けのearly stable」の根拠です。</span>
+          <a href="https://chromereleases.googleblog.com/2026/08/chrome-for-android-update_0318651269.html">https://chromereleases.googleblog.com/2026/08/chrome-for-android-update_0318651269.html</a>（2026年8月17日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Daniel Yip「Stable Channel Update for Desktop」<i>Chrome Releases（Google Chrome公式ブログ）</i>, 2026年8月11日（本文の日付表記「Tuesday, August 11, 2026」）.
+          <span class="note">参照箇所: 「The Stable channel has been updated to <b>151.0.7922.137/.138</b> for Windows and Mac and 151.0.7922.137 for Linux」「This update includes <b>5</b> security fixes.」と、その配下の5行「[$500][535000102] <b>High</b> CVE-2026-19556: <b>Use after free in V8</b>.」「[N/A][534867485] High CVE-2026-19557: Use after free in TabStrip.」「[N/A][536676756] High CVE-2026-19558: Use after free in Extensions.」「[N/A][540100588] High CVE-2026-19559: Use after free in HTML.」「[N/A][540482895] High CVE-2026-19560: Use after free in Blink.」。記事の表はこの5行の転記で、CVE番号・重大度・記述はすべて原文どおりです。<b>本文にWebViewへの言及はありません。</b></span>
+          <a href="https://chromereleases.googleblog.com/2026/08/stable-channel-update-for-desktop_01815628406.html">https://chromereleases.googleblog.com/2026/08/stable-channel-update-for-desktop_01815628406.html</a>（2026年8月17日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          The Chromium Projects「Severity Guidelines for Security Issues」<i>Chromium ソースツリー <code>docs/security/severity-guidelines.md</code></i>.
+          <span class="note">参照箇所: 見出しが <b>Critical severity (S0) / High severity (S1) / Medium severity (S2) / Low severity (S3)</b> の4段階で構成されていること（記事中の「Highは4段階で上から2番目」の根拠）。および High の定義「<b>High severity (S1) vulnerabilities allow an attacker to execute code in the context of, or otherwise impersonate other origins or read cross-origin data.</b>」（記事中の「他のオリジンになりすます、または他オリジンのデータを読める」の根拠）。</span>
+          <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/docs/security/severity-guidelines.md">https://chromium.googlesource.com/chromium/src/+/HEAD/docs/security/severity-guidelines.md</a>（2026年8月17日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Harry Souders「Chrome for Android Update」<i>Chrome Releases（Google Chrome公式ブログ）</i>, 2026年8月11日（本文の日付表記「Tuesday, August 11, 2026」）.
+          <span class="note">参照箇所: 「We've just released <b>Chrome 151 (151.0.7922.137) for Android</b>.」「<b>Android releases contain the same security fixes as their corresponding Desktop releases</b> (Windows &amp; Mac: 151.0.7922.137/138, Linux: 151.0.7922.137) unless otherwise noted.」。記事中で「Android版にもデスクトップ版と同じセキュリティ修正が入る」と書いた根拠です。</span>
+          <a href="https://chromereleases.googleblog.com/2026/08/chrome-for-android-update_0633903601.html">https://chromereleases.googleblog.com/2026/08/chrome-for-android-update_0633903601.html</a>（2026年8月17日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Chrome Status「Connection Allowlists」<i>chromestatus.com API v0 / feature 5175745573945344</i>（エントリ作成 2026年2月2日、最終更新 2026年7月23日）.
+          <span class="note">参照箇所: <code>browsers.chrome</code> の <code>desktop = 152</code> / <code>android = 152</code> / <code>webview = 152</code>（記事中の対象バージョンの根拠）。<code>summary</code> の「Connection Allowlists is a feature designed to provide explicit control over external endpoints by restricting connections initiated via the Fetch API or other web platform APIs from a document or worker.」「The proposed implementation involves the distribution of an authorized endpoint list from the server through an HTTP response header. <b>Prior to the establishment of any connection by the user agent on behalf of a page, the agent will evaluate the destination against this allowlist; connections to verified endpoints will be permitted, while those failing to match the entries in the list will be blocked.</b>」。<code>motivation</code> の「<b>Content Security Policy addresses some of this need, but does so in a way that is more granular than necessary for the most critical use cases</b>, and with a syntax and grammar that's complicated by the other protections CSP is used to deploy.」と、ヘッダーの例「Connection-Allowlist: (response-origin "https://cdn.example" "https://*.example.:tld" "https://api.example:*"); report-to=ReportingAPIEndpoint」。<code>debuggability</code> の「the reporting infrastructure for Connection-Allowlist was introduced to support both enforced violation reporting and a <b>"report-only" mode</b>, allowing developers to monitor potential breakages without interrupting service.」。あわせて <code>shipping_year = 2026</code>、<code>rollout_plan_displayname = "Will ship enabled for all users"</code>、<code>breaking_change = false</code>、<code>requires_embedder_support = true</code>、<code>browsers.chrome.status.text = "Proposed"</code>、<code>is_released = false</code>、<code>accurate_as_of = 2026-07-23</code>、<code>standards.maturity.text = "Specification being incubated in a Community Group"</code>、<code>browsers.ff.view.text = "Positive"</code>、<code>browsers.safari.view.text = "No signal"</code> を確認しました。</span>
+          <a href="https://chromestatus.com/api/v0/features/5175745573945344">https://chromestatus.com/api/v0/features/5175745573945344</a>（2026年8月17日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          VRChat「VRChat 2026.3.1」<i>VRChat Documentation（Release Notes）</i>, 2026年8月12日（本文の表記「August 12 - Build 1885 - Live」）.
+          <span class="note">参照箇所: 「<b>Prop Abilities have been enabled in the client.</b> We previously mentioned this change for world creators in the last release. <b>Instance creators can now do the same thing, giving them the ability to disable certain Props from being spawned.</b>」、「<b>Reintroduced precisely highlighting pickups that can change shape, in other words SkinnedMeshRenderer support for VRC_Pickup.</b> We reverted this one in the last release due to it affecting some content. We've now added a field to specify which meshes exactly to outline. <b>The SDK that will allow them to fix that is *not* shipping with this patch, however. Next release will have it!</b> We feel that the amount of content this affects is extraordinarily small, but we still wanted to note this here anyway!」、「<b>Android devices will now replace rtspt:// URLs during video player loading with rtsp:// to work around a limitation of ExoPlayer.</b>」、「<b>Greatly improved the reliability of VRCObjectSync, specifically around ensuring that the final state after motion is the same between all players in an instance.</b> Déjà vu? We had that one in 2026.2.3, but needed to revert it for internal reasons. This release brings it back!」、「You can now report bugs from within the client! … via the Quick Menu. Click the Report (!) button, located in the top right corner, then click "Bug Report." This feature supports automatic uploading of your client log file.」、「Introducing Signed Distance Fields (SDF)! … These images get pixel-perfect antialiasing and clipping at any distance and from nearly any angle, even on Android!」</span>
+          <a href="https://docs.vrchat.com/docs/vrchat-202631">https://docs.vrchat.com/docs/vrchat-202631</a>（2026年8月17日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          VRChat「VRChat 2026.3.1p1」<i>VRChat Documentation（Release Notes）</i>, 2026年8月13日（本文の表記「August 13 - Build 1886 - Live」）.
+          <span class="note">参照箇所: 全項目を読み、Nameplates（アイコンのドロップシャドウ追加、プロフィールのカラーテーマのコントラスト自動補正）、User Profiles（Represented Groupアイコンの白背景の修正）、Other Menus（Socialタブのフィルタモーダル、ショップのネームプレート効果プレビューの修正）、iOS（EDMバンドルのAudioLink対応コンテンツが見えない問題の修正）だけであることを確認しました。<b>本記事で扱わない判断の根拠です。</b></span>
+          <a href="https://docs.vrchat.com/docs/vrchat-202631p1">https://docs.vrchat.com/docs/vrchat-202631p1</a>（2026年8月17日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          VRChat「VRChat SDK Releases」<i>VRChat Creation Documentation</i>.
+          <span class="note">参照箇所: リリース一覧の先頭が「<b>Release 3.10.4 — June 17, 2026</b>（Momo the Monster, VRChat Developer）」で、それより新しいエントリが存在しないこと。記事中の「対象期間および直近1週間にSDKのリリースは無い」の根拠です。以降は Release 3.10.3（2026年4月16日）、Release 3.10.2（2026年2月5日）と続きます。</span>
+          <a href="https://creators.vrchat.com/releases/">https://creators.vrchat.com/releases/</a>（2026年8月17日参照）
+        </li>
+
+        <li>
+          <span class="flag unverified">未確認(日付のみ照合)</span>
+          Chrome チーム「New in Chrome 152 (beta)」<i>developer.chrome.com/blog/chrome-152-beta</i>.
+          <span class="note">なぜ未確認か: ページを取得して<b>公開日が 2026-07-30 であること</b>と、Connection Allowlists の見出しが存在することだけを確認しました。<mark>本ダイジェストの対象期間の外にある解説記事のため、本文を根拠として使っていません。</mark>記事中の Connection Allowlists の記述は、すべて Chrome Status API のエントリに基づいています。</span>
+          <a href="https://developer.chrome.com/blog/chrome-152-beta">https://developer.chrome.com/blog/chrome-152-beta</a>（2026年8月17日参照）
+        </li>
+
+        <li>
+          <span class="flag self">自分の意見</span>
+          「WebViewの5件のCVEはWebViewにも影響しうる範囲に入る」「インフラ担当会社へは今のうちに <code>Connection-Allowlist</code> の予定を聞いておく」「チェックリストの3項目」「依頼の文面」は、いずれも<mark>公式が言っていることではなく筆者の運用上の判断</mark>です。
+          <span class="note">公式が書いているのは、(1) Chrome 151系のセキュリティ修正5件の内容、(2) Android版にはデスクトップ版と同じ修正が入ること、(3) Connection Allowlists の仕組みと対象マイルストーン、までです。<b>GoogleはWebViewとCVE番号の対応を公開していません。</b>また本記事の執筆にあたり、Android実機・VRChatクライアント・Unity のいずれも動かしていません。実測は行っていません。</span>
+        </li>
+
+        <li>
+          <span class="flag self">確認したが該当なし</span>
+          実務者向けAI開発ツール / Web開発・インフラ / 技術・研究 / モデル・業界 の4カテゴリを0件にしたのは、<mark>調べた結果として更新が無かった</mark>ためです。
+          <span class="note">対象期間（2026年8月16日05:00 〜 8月17日05:00 JST）が日曜から月曜早朝にかかるため、各社の公式チャンネル・RSS・GitHubのリリース・arXivの新着を確認した範囲では、いずれも対象期間の開始前（8月15日 JSTまで）で止まっていました。<b>件数を揃えるために軽微な不具合修正を拾うことはしていません</b>（本サイトの方針）。「調べていないから0件」ではなく「調べた結果0件」である点を明記しておきます。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>生成: 2026年8月17日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

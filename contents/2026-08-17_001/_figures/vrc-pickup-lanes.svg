@@ -1,0 +1,47 @@
+<svg viewBox="0 0 640 336" xmlns="http://www.w3.org/2000/svg" role="img">
+
+  <text x="320" y="24" fill="var(--fg)" font-size="13.5" font-weight="800" text-anchor="middle">クライアントは3回動き、SDKは6月から止まったまま</text>
+
+  <!-- 「今回」の境界 -->
+  <line x1="404" y1="52" x2="404" y2="288" stroke="var(--track)" stroke-width="1.5" stroke-dasharray="5 4"/>
+
+  <!-- レーン1: クライアント -->
+  <text x="16" y="58" fill="var(--sub)" font-size="11.5" font-weight="800">クライアント（VRChat本体）</text>
+
+  <rect x="16" y="68" width="182" height="78" rx="10" fill="none" stroke="var(--sub)" stroke-width="1.4"/>
+  <text x="107" y="94" fill="var(--sub)" font-size="10.5" text-anchor="middle">以前のリリース</text>
+  <text x="107" y="114" fill="var(--fg)" font-size="11" font-weight="800" text-anchor="middle">SkinnedMeshRenderer</text>
+  <text x="107" y="132" fill="var(--fg)" font-size="11" text-anchor="middle">対応を導入</text>
+
+  <polygon points="198,101 212,107 198,113" fill="var(--sub)"/>
+
+  <rect x="214" y="68" width="182" height="78" rx="10" fill="none" stroke="var(--sub)" stroke-width="1.4"/>
+  <text x="305" y="94" fill="var(--sub)" font-size="10.5" text-anchor="middle">前のリリース</text>
+  <text x="305" y="114" fill="var(--c)" font-size="11.5" font-weight="800" text-anchor="middle">revert（取り消し）</text>
+  <text x="305" y="132" fill="var(--sub)" font-size="10.5" text-anchor="middle">コンテンツに影響が出た</text>
+
+  <polygon points="396,101 410,107 396,113" fill="var(--sub)"/>
+
+  <rect x="412" y="68" width="212" height="78" rx="10" fill="none" stroke="var(--new)" stroke-width="2"/>
+  <text x="518" y="92" fill="var(--sub)" font-size="10.5" text-anchor="middle">2026.3.1 ／ 8月12日</text>
+  <text x="518" y="112" fill="var(--new)" font-size="11.5" font-weight="800" text-anchor="middle">再導入（フィールド付き）</text>
+  <text x="518" y="132" fill="var(--fg)" font-size="10.5" text-anchor="middle">対象メッシュを指定できる</text>
+
+  <!-- レーン分け -->
+  <line x1="16" y1="166" x2="624" y2="166" stroke="var(--track)" stroke-width="1.5"/>
+
+  <!-- レーン2: SDK -->
+  <text x="16" y="190" fill="var(--sub)" font-size="11.5" font-weight="800">SDK（作者が直すための道具）</text>
+
+  <rect x="16" y="200" width="380" height="78" rx="10" fill="var(--track)"/>
+  <text x="206" y="232" fill="var(--fg)" font-size="11" font-weight="800" text-anchor="middle">SDK 3.10.4（2026年6月17日）</text>
+  <text x="206" y="252" fill="var(--sub)" font-size="10.5" text-anchor="middle">この期間、新しいリリースなし</text>
+
+  <rect x="412" y="200" width="212" height="78" rx="10" fill="none" stroke="var(--c)" stroke-width="1.6" stroke-dasharray="6 5"/>
+  <text x="518" y="224" fill="var(--fg)" font-size="11" text-anchor="middle">フィールドを設定できる</text>
+  <text x="518" y="243" fill="var(--c)" font-size="11.5" font-weight="800" text-anchor="middle">SDKは同梱されていない</text>
+  <text x="518" y="262" fill="var(--sub)" font-size="10.5" text-anchor="middle">次のリリース待ち</text>
+
+  <text x="320" y="306" fill="var(--fg)" font-size="12.5" font-weight="700" text-anchor="middle">本体だけ先に出て、作者が直せるのは次のSDKから</text>
+  <text x="320" y="326" fill="var(--sub)" font-size="11" text-anchor="middle">出典: VRChat 2026.3.1 リリースノートと公式SDKリリース一覧</text>
+</svg>
