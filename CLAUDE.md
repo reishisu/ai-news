@@ -207,6 +207,10 @@ python3 _render_thumbs.py <記事ディレクトリ名>  # 1記事だけ
 python3 _render_thumbs.py --stale            # 記事HTMLより古いものだけ
 ```
 
+**`_build_index.py` の後に走らせること。** ビルドはキャッシュ対策の `?v=` と
+`og:image` を全記事に書き込むので、先にサムネイルを作ると全部が `--stale` 扱いに
+なります（見た目は変わっていないのに、更新時刻だけが新しくなるため）。
+
 - **タイトルや冒頭を直したら、必ず撮り直す。** サムネイルは記事の見出しを写した画像です。
   古いままだと、**ホームのカードとSNSのシェア画像にだけ昔の見出しが残ります**
   （実際に19枚が古いまま残っていて、8/15のダイジェストは旧タイトルを表示していました）
@@ -240,8 +244,8 @@ python3 _render_thumbs.py --stale            # 記事HTMLより古いものだ�
 ```bash
 git checkout main && git pull origin main
 python3 _render_figures.py <記事ディレクトリ名>
-python3 _render_thumbs.py <記事ディレクトリ名>   # タイトルを直したときも必ず
 python3 _build_index.py
+python3 _render_thumbs.py <記事ディレクトリ名>   # タイトルを直したときも必ず
 git add -A && git commit -m "日本語のメッセージ"
 git push -u origin main
 ```
