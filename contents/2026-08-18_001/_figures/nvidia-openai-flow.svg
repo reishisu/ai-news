@@ -1,0 +1,53 @@
+<svg viewBox="0 0 640 352" xmlns="http://www.w3.org/2000/svg" role="img">
+
+  <defs>
+    <marker id="nf-new" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--new)"/>
+    </marker>
+    <marker id="nf-sub" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--sub)"/>
+    </marker>
+    <marker id="nf-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--c)"/>
+    </marker>
+  </defs>
+
+  <text x="320" y="22" fill="var(--fg)" font-size="13.5" font-weight="800" text-anchor="middle">1050億ドルは、誰から誰への約束か（8-K本文の記述）</text>
+
+  <!-- ノード -->
+  <rect x="40" y="64" width="176" height="58" rx="10" fill="none" stroke="var(--sub)" stroke-width="1.6"/>
+  <text x="128" y="90" fill="var(--fg)" font-size="13" font-weight="800" text-anchor="middle">NVIDIA</text>
+  <text x="128" y="110" fill="var(--sub)" font-size="11" text-anchor="middle">保証を出す側</text>
+
+  <rect x="424" y="64" width="176" height="58" rx="10" fill="none" stroke="var(--sub)" stroke-width="1.6"/>
+  <text x="512" y="90" fill="var(--fg)" font-size="13" font-weight="800" text-anchor="middle">SB Energy</text>
+  <text x="512" y="110" fill="var(--sub)" font-size="11" text-anchor="middle">貸主（Lessor）</text>
+
+  <rect x="232" y="252" width="176" height="58" rx="10" fill="none" stroke="var(--sub)" stroke-width="1.6"/>
+  <text x="320" y="278" fill="var(--fg)" font-size="13" font-weight="800" text-anchor="middle">OpenAI</text>
+  <text x="320" y="298" fill="var(--sub)" font-size="11" text-anchor="middle">最終的に負担する側</text>
+
+  <!-- ① 残存価値保証 -->
+  <text x="320" y="76" fill="var(--new)" font-size="12" font-weight="800" text-anchor="middle">残存価値保証</text>
+  <text x="320" y="94" fill="var(--fg)" font-size="11.5" font-weight="700" text-anchor="middle">上限1050億ドル</text>
+  <path d="M220 106 L416 106" stroke="var(--new)" stroke-width="1.8" marker-end="url(#nf-new)"/>
+
+  <!-- ② 出資（別枠） -->
+  <path d="M220 146 L416 146" stroke="var(--sub)" stroke-width="1.4" stroke-dasharray="6 4" marker-end="url(#nf-sub)"/>
+  <text x="320" y="166" fill="var(--sub)" font-size="11" text-anchor="middle">別枠の出資 15億ドル</text>
+
+  <!-- ③ リース -->
+  <path d="M496 126 L410 244" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#nf-sub)"/>
+  <text x="470" y="188" fill="var(--fg)" font-size="12" font-weight="800">20年リース</text>
+  <text x="470" y="206" fill="var(--sub)" font-size="11">建設・所有・運営は</text>
+  <text x="470" y="224" fill="var(--sub)" font-size="11">SB Energy</text>
+
+  <!-- ④ 全額補償 -->
+  <path d="M236 248 L142 128" stroke="var(--c)" stroke-width="1.8" marker-end="url(#nf-c)"/>
+  <text x="170" y="188" fill="var(--c)" font-size="12" font-weight="800" text-anchor="end">NVIDIAが払った額を</text>
+  <text x="170" y="206" fill="var(--c)" font-size="12" font-weight="800" text-anchor="end">OpenAIが全額補償</text>
+  <text x="170" y="224" fill="var(--sub)" font-size="10" text-anchor="end" font-family="ui-monospace, monospace">reimburse and indemnify</text>
+
+  <line x1="16" y1="324" x2="624" y2="324" stroke="var(--track)" stroke-width="1.5"/>
+  <text x="320" y="344" fill="var(--fg)" font-size="12" font-weight="700" text-anchor="middle">NVIDIAが出しているのは資金ではなく信用。払った分はOpenAIに戻る</text>
+</svg>
