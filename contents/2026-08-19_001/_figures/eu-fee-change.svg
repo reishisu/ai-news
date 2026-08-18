@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320" font-family="sans-serif">
+  <text x="320" y="28" text-anchor="middle" font-size="17" font-weight="bold" fill="var(--fg)">AppleのEUビジネス条件(10月1日から)</text>
+
+  <!-- 左: 廃止 -->
+  <rect x="30" y="50" width="260" height="200" rx="12" fill="none" stroke="var(--old)" stroke-width="3"/>
+  <text x="160" y="80" text-anchor="middle" font-size="15" font-weight="bold" fill="var(--old)">廃止される3つ</text>
+  <text x="160" y="118" text-anchor="middle" font-size="14" fill="var(--fg)">Core Technology Fee</text>
+  <text x="160" y="136" text-anchor="middle" font-size="12" fill="var(--sub)">(インストール数への課金)</text>
+  <text x="160" y="172" text-anchor="middle" font-size="14" fill="var(--fg)">Initial Acquisition Fee</text>
+  <text x="160" y="210" text-anchor="middle" font-size="14" fill="var(--fg)">Store Services Fee</text>
+
+  <!-- 矢印 -->
+  <path d="M300 150 h28 m0 0 l-10 -8 m10 8 l-10 8" stroke="var(--fg)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- 右: 新体系 -->
+  <rect x="345" y="50" width="270" height="200" rx="12" fill="none" stroke="var(--new)" stroke-width="3"/>
+  <text x="480" y="80" text-anchor="middle" font-size="15" font-weight="bold" fill="var(--new)">新しい体系</text>
+  <text x="480" y="112" text-anchor="middle" font-size="14" font-weight="bold" fill="var(--fg)">Core Technology Commission</text>
+  <text x="480" y="130" text-anchor="middle" font-size="12" fill="var(--sub)">(App Store外配布のデジタル取引に5%)</text>
+  <line x1="365" y1="146" x2="595" y2="146" stroke="var(--track)" stroke-width="2"/>
+  <text x="480" y="172" text-anchor="middle" font-size="13" fill="var(--fg)">Apple決済: 26%(中小 15%)</text>
+  <text x="480" y="196" text-anchor="middle" font-size="13" fill="var(--fg)">アプリ内の代替決済: 20%(中小 10%)</text>
+  <text x="480" y="228" text-anchor="middle" font-size="12" fill="var(--sub)">代替決済の選択は12か月維持の義務</text>
+
+  <text x="320" y="292" text-anchor="middle" font-size="13" fill="var(--sub)">出典: Apple Developer News / Support「Changes for apps in the EU」(8/18)</text>
+</svg>

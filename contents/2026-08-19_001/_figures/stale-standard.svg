@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 280" font-family="sans-serif">
+  <text x="320" y="30" text-anchor="middle" font-size="17" font-weight="bold" fill="var(--fg)">規約ファイルの状態と「良い書き方」が選ばれた割合</text>
+
+  <!-- 正しい規約 100% -->
+  <text x="40" y="85" font-size="14" font-weight="bold" fill="var(--fg)">正しい規約</text>
+  <rect x="180" y="68" width="400" height="26" rx="6" fill="var(--track)"/>
+  <rect x="180" y="68" width="400" height="26" rx="6" fill="var(--new)"/>
+  <text x="570" y="87" text-anchor="end" font-size="15" font-weight="bold" fill="#fff">100%</text>
+
+  <!-- 規約なし 33% -->
+  <text x="40" y="145" font-size="14" font-weight="bold" fill="var(--fg)">規約なし</text>
+  <text x="40" y="163" font-size="12" fill="var(--sub)">(コードだけ)</text>
+  <rect x="180" y="128" width="400" height="26" rx="6" fill="var(--track)"/>
+  <rect x="180" y="128" width="132" height="26" rx="6" fill="var(--b)"/>
+  <text x="322" y="147" font-size="15" font-weight="bold" fill="var(--fg)">33%</text>
+
+  <!-- 古い規約 0% -->
+  <text x="40" y="205" font-size="14" font-weight="bold" fill="var(--fg)">古い規約</text>
+  <text x="40" y="223" font-size="12" fill="var(--sub)">(実装と食い違い)</text>
+  <rect x="180" y="188" width="400" height="26" rx="6" fill="var(--track)"/>
+  <rect x="180" y="188" width="6" height="26" rx="3" fill="var(--old)"/>
+  <text x="196" y="207" font-size="15" font-weight="bold" fill="var(--old)">0%</text>
+
+  <text x="320" y="262" text-anchor="middle" font-size="13" fill="var(--sub)">arXiv:2608.16630 §4.9(各10試行・3,385判定)。古い規約は「無い」より悪い</text>
+</svg>

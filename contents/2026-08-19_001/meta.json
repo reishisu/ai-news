@@ -1,0 +1,19 @@
+{
+  "category": "デイリーダイジェスト",
+  "tags": [
+    "Laravel",
+    "セキュリティ",
+    "AWS",
+    "WebView",
+    "iOS",
+    "エージェント設計"
+  ],
+  "featured": false,
+  "title": "AI-news：2026/08/19 — Laravelのinバリデーションが厳密比較に変わった",
+  "summary": "Laravel 12.67.0 / 13.26.0で inルールが厳密比較になり、'01'や' 1'が通らなくなった。セキュリティ修正であると同時に後方互換を壊す挙動変更。AppleはEUのCore Technology Feeを廃止しデジタル取引5%のCore Technology Commissionへ(10月1日発効)。個人版CopilotのGroup Chat・Podcasts・Deep Researchは8月18日から順次終了。「古い規約ファイルは無いより悪い」という実験結果も。",
+  "thumbnail": "images/thumb.png",
+  "thumb": {
+    "main": "inルールが厳密に",
+    "sub": "Laravel 12.67 / 13.26 で挙動が変わる"
+  }
+}

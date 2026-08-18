@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 260" font-family="sans-serif">
+  <text x="320" y="30" text-anchor="middle" font-size="17" font-weight="bold" fill="var(--fg)">Chrome / Chromium M152 の公式日程</text>
+
+  <!-- タイムライン軸 -->
+  <line x1="60" y1="140" x2="600" y2="140" stroke="var(--track)" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- 8/12 early stable -->
+  <circle cx="120" cy="140" r="10" fill="var(--new)"/>
+  <text x="120" y="110" text-anchor="middle" font-size="14" font-weight="bold" fill="var(--fg)">8/12</text>
+  <text x="120" y="170" text-anchor="middle" font-size="13" fill="var(--sub)">early stable</text>
+  <text x="120" y="188" text-anchor="middle" font-size="12" fill="var(--sub)">(WebView v152は</text>
+  <text x="120" y="204" text-anchor="middle" font-size="12" fill="var(--sub)">この範囲)</text>
+
+  <!-- 8/19 final beta + 今日 -->
+  <circle cx="290" cy="140" r="10" fill="var(--b)"/>
+  <text x="290" y="110" text-anchor="middle" font-size="14" font-weight="bold" fill="var(--fg)">8/19</text>
+  <text x="290" y="170" text-anchor="middle" font-size="13" fill="var(--sub)">final beta</text>
+  <text x="290" y="70" text-anchor="middle" font-size="13" font-weight="bold" fill="var(--b)">← 今日</text>
+
+  <!-- 8/25 stable -->
+  <circle cx="450" cy="140" r="12" fill="var(--new)"/>
+  <text x="450" y="110" text-anchor="middle" font-size="14" font-weight="bold" fill="var(--fg)">8/25</text>
+  <text x="450" y="170" text-anchor="middle" font-size="13" font-weight="bold" fill="var(--fg)">stable(全面展開)</text>
+  <text x="450" y="188" text-anchor="middle" font-size="12" fill="var(--sub)">152前提の検証は</text>
+  <text x="450" y="204" text-anchor="middle" font-size="12" fill="var(--sub)">ここまでに</text>
+
+  <!-- 9/8 late stable -->
+  <circle cx="580" cy="140" r="10" fill="var(--track)" stroke="var(--sub)" stroke-width="2"/>
+  <text x="580" y="110" text-anchor="middle" font-size="14" font-weight="bold" fill="var(--fg)">9/8</text>
+  <text x="580" y="170" text-anchor="middle" font-size="13" fill="var(--sub)">late stable</text>
+
+  <text x="320" y="242" text-anchor="middle" font-size="13" fill="var(--sub)">出典: Chromium Dash M152 (8/18取得)。WebView専用の配信日程を示す公式文書は無い</text>
+</svg>

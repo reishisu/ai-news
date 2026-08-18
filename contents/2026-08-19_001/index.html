@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-news：2026/08/19 — Laravelのinバリデーションが厳密比較に変わった</title>
+<meta name="description" content="Laravel 12.67.0 / 13.26.0で inルールが厳密比較になり、'01'や' 1'が通らなくなった。AppleはEUのCore Technology Feeを廃止しデジタル取引5%のCore Technology Commissionへ(10月1日発効)。個人版Microsoft CopilotのGroup Chat・Podcasts・Deep Researchは8月18日から順次終了。8月19日朝までの主要ニュース。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI-news：2026/08/19 — Laravelのinバリデーションが厳密比較に変わった">
+<meta property="og:description" content="Laravelのinルールが厳密比較に(挙動変更)。AppleのEU手数料一本化は10/1発効。個人版Copilotの機能が今日から順次消える。古いCLAUDE.mdは「無い」より悪いという実験結果も。一次資料の原文つき。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-19_001/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-19_001/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=87fa5662">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">2026年8月19日(水)</div>
+    <h1>AI-news：2026/08/19 — Laravelのinバリデーションが厳密比較に変わった</h1>
+    <div class="range">対象期間: 8月18日(火) 5:00 〜 8月19日(水) 5:00 JST(クライアント技術は直近1週間。Claude Codeと資金調達2件は8/17(米国時間)付を含む)</div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 今日の3行まとめ</h2>
+    <ol>
+      <li>
+        <b>Laravel 12.67.0 / 13.26.0で、<code>in</code>バリデーションが厳密比較になった。<code>'01'</code>や<code>' 1'</code>が通らなくなる</b>
+        <span>PHPの緩い比較を突いたバイパスの修正で、<mark>セキュリティ修正であると同時に、後方互換を壊す挙動変更</mark>です。12系にも入っているので、13に上げていない現場も対象。アップグレード前に既存の<code>in</code>ルールを洗う必要があります。</span>
+      </li>
+      <li>
+        <b>AppleがEUのアプリ手数料を一本化。インストール課金のCore Technology Feeは廃止、デジタル取引5%のCore Technology Commissionへ</b>
+        <span>発効は<mark>2026年10月1日</mark>。Initial Acquisition FeeとStore Services Feeも廃止され、EUストアフロントの手数料はApple決済26%(中小15%)・代替決済20%(同10%)に再編されます。EU配信が無ければ直接の影響はありません。</span>
+      </li>
+      <li>
+        <b>個人版Microsoft CopilotのGroup Chat・Podcasts・Deep Researchが、8月18日から順次終了。保存していない中身は消える</b>
+        <span>グループチャットのスレッド・画像は<mark>引き継がれず消えます</mark>。Podcastは個別ダウンロードのみ、Deep Researchの後継Researcherは上位プラン限定。アカウント単位で段階的に来るので、猶予があるうちに書き出しを。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#work">実務者向けのAI開発ツール(3件)</a></li>
+      <li><a href="#dev">Web開発・インフラ(4件)</a></li>
+      <li><a href="#client">クライアント技術(2件)</a></li>
+      <li><a href="#research">技術・研究(3件)</a></li>
+      <li><a href="#industry">モデル・業界(4件)</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 実務者向け ============ -->
+  <section class="section section-b" id="work">
+    <h2>🧰 実務者向けのAI開発ツール<span class="n">3件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=support.microsoft.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Microsoft</div>
+      <h3>個人版Microsoft CopilotのGroup Chat・Podcasts・Deep Researchが8月18日から順次終了 — 保存していない中身は消える</h3>
+      <div class="tags">
+        <span class="tag">8/18から順次</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag warn">⚠ 提供終了</span>
+        <span class="tag">Microsoft Copilot</span>
+      </div>
+      <p class="lead">対象は個人アカウント(Microsoft / Google / Appleサインイン)のCopilotアプリです。統合版アプリへの移行に伴い、機能が畳まれます。Group Chatの原文は<mark>「Group Chat threads, messages, and content, including images created in Group Chats, will not be carried forward after August 18, 2026.」</mark>——スレッドも生成画像も引き継がれません。</p>
+
+      <p class="lead">切り替わるのは一斉ではありません。FAQに<mark>「Account updates begin on August 18, 2026, and will roll out gradually. The timing of updates may vary by account.」</mark>とあり、アカウント単位で順番に来ます。自分の番が来る前が救出の猶予です。</p>
+
+      <ul class="points">
+        <li><b>Podcastsは作成も閲覧も不可になる。</b>原文は「Podcasts is being retired from Copilot and will no longer be available after August 18, 2026.」。救済は「You can download individual podcasts from your podcast library using the download option in the podcast menu.」——<mark>ライブラリから1本ずつダウンロードするだけ</mark>です。</li>
+        <li><b>Deep Researchのレポートは消えない。</b>「Your existing saved research content will not be deleted as part of this change.」とあり、既存レポートはWordで開いて保存できます。ただし後継のResearcherは<mark>Microsoft 365 Premium限定</mark>で、Personal / Familyより上位の課金が要ります。</li>
+        <li><b>Copilot Labsで作った3Dアセット・音声クリップも移行されない。</b>「Content generated within Labs experiments, such as 3D assets or audio clips, will not carry forward after your update.」。Mico(音声キャラクター)とLabs自体も廃止と明記されています。</li>
+        <li><b>今日やること。</b>グループチャットの残したいメッセージを文書にコピーし、画像をダウンロードする。Podcastを個別保存する。<mark>アカウントが更新された後では戻せません。</mark></li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude Codeが利用上限のリセットでセッションを自動再開する既定に — 権限ダイアログの範囲不一致も是正</h3>
+      <div class="tags">
+        <span class="tag">8/17(米国時間)</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag warn">⚠ 既定の変更</span>
+        <span class="tag">Claude Code</span>
+      </div>
+      <p class="lead">2.1.234(公式changelogの日付はAugust 17, 2026)で既定が変わりました。原文は<mark>「Claude Code now continues your session automatically when a claude.ai usage limit resets; turn it off in /config ("Continue automatically at usage limit")」</mark>。利用上限で止まったセッションが、リセット時刻に自分で再開します。</p>
+
+      <p class="lead">放置すると、<mark>席を外している間に作業とトークン消費が進みます</mark>。望まないなら<code>/config</code>の「Continue automatically at usage limit」をオフにしてください。</p>
+
+      <ul class="points">
+        <li><b>Windowsの資格情報漏洩経路をさらに閉鎖。</b>Windowsの特殊なパス表記(NT名前空間)を悪用してログイン情報を盗まれ得る経路が残っていて、その残りを塞ぐ修正です。原文は「remote file reads, session restore, CLAUDE.md includes, workflow scripts and file uploads now reject Windows NT-namespace (<code>\??\</code>) paths, hardening the remaining pre-approval file accesses against the NTLM credential-leak vector」。Windowsで使っているなら更新推奨です。</li>
+        <li><b>秘密情報の露出も2件修正。</b>MCP(外部ツールをAIに繋ぐ仕組み)の診断表示が解決済みシークレットを表示していた問題と、権限プレビューのマスキングがコマンド・パス・宛先を承認者から隠せてしまう問題。<code>strictKnownMarketplaces</code>が実際の接続先と違うホストのSCP形式URLを受理していた問題も直っています。</li>
+        <li><b>続く2.1.235では権限ダイアログを是正。</b>「Fixed Shift+Tab inside the permission prompt's comment field approving the edit and granting session-wide edit permission instead of closing the field」——<mark>コメント欄でShift+Tabを押すと、閉じる代わりに編集を承認しセッション全体の編集権限を付与していた</mark>問題の修正です。「今後確認しない」の対象範囲も表示内容と常に一致するようになりました。なお2.1.235はCHANGELOGに日付が無く、公式ページの最新が2.1.234(8/17)であることからその直後のリリースと判断しています。</li>
+        <li><b>「Default teammate model」設定は廃止。</b>エージェントチームのメンバーは、spawn時に指定しない限りリーダーのモデルを使います。teammate側でモデルを固定していた人は指定方法の変更が要ります。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Microsoft</div>
+      <h3>Microsoft CopilotのWeb版URLが copilot.cloud.microsoft へ移行開始 — 組織のプロキシ・ファイアウォールの許可リストを確認</h3>
+      <div class="tags">
+        <span class="tag">8/18開始</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">仕様変更</span>
+        <span class="tag">Microsoft 365</span>
+      </div>
+      <p class="lead">告知(8/14付)の原文は<mark>「Starting August 18, 2026 … a transition of the web app URL from m365.cloud.microsoft to copilot.cloud.microsoft. Users are automatically redirected unless access to the new URL is blocked within their organization.」</mark>。自動リダイレクトされますが、<mark>組織側で新URLを塞いでいると失敗します</mark>。</p>
+
+      <ul class="points">
+        <li><b>確認すること。</b>Next stepsに「Verify that copilot.cloud.microsoft isn't blocked by existing network, proxy, firewall, or access policies」「Add *.cloud.microsoft to organizational allow lists, where appropriate」とあります。社内プロキシやフィルタリングの許可リストを触れる立場の人に、この2行をそのまま伝えれば通じます。</li>
+        <li><b>デスクトップアプリも変わる。</b>「An early preview of the updated Windows and Mac desktop app experience is planned on August 18, with broad deployment beginning in mid-September.」——Windows / Macの新アプリは8/18に早期プレビュー、広い展開は9月中旬からです。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ Web開発・インフラ ============ -->
+  <section class="section section-c" id="dev">
+    <h2>🧑‍💻 Web開発・インフラ<span class="n">4件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=laravel.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Laravel</div>
+      <h3>Laravel 12.67.0 / 13.26.0で inバリデーションが厳密比較に — '01'や' 1'が通らなくなる</h3>
+      <div class="tags">
+        <span class="tag">8/18</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag warn">⚠ 挙動変更</span>
+        <span class="tag">Laravel</span>
+      </div>
+      <p class="lead"><code>in:1,2,3</code>は「値が候補のどれかと一致するか」を検査するルールです。PHP 8は数値文字列どうしの<code>==</code>を数値として比べるため、これまで<code>'01'</code>や<code>' 1'</code>が<mark>候補に無いのに素通りしていました</mark>。8月18日リリースの2系統(v12.67.0 / v13.26.0)で、この比較が厳密になりました。</p>
+
+      <div class="code"><div class="code-head">PR #61146の変更(1行)</div><pre>-  return ! is_array($value) &amp;&amp; in_array((string) $value, $parameters);
++  return ! is_array($value) &amp;&amp; in_array((string) $value, $parameters, true);</pre></div>
+
+      <p class="lead">追加されたテストが「通らなくなる入力」を明示しています。<code>' 1'</code> / <code>'1 '</code> / <code>"\t1"</code> / <code>"1\n"</code> / <code>'01'</code> / <code>'+1'</code> / <code>'1.0'</code> / <code>'1e0'</code>はすべてfalse、<code>'1'</code>だけがtrueです。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/laravel-in-strict-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/laravel-in-strict.png" alt="in:1,2,3に対して、従来は'01'や' 1'が通過していたが、12.67.0/13.26.0以降は'1'だけが通る" loading="lazy">
+        </picture>
+        <figcaption>同じ<code>in:1,2,3</code>でも、通る入力が変わる。バイパスの修正であり、既存フォームの互換にも影響する</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>対象は文字列ルートと<code>Rule::in()</code>の両方。</b>どちらも同じ<code>validateIn()</code>を通ります。値が配列のときは従来どおり別経路で、変化はありません。</li>
+        <li><b>12系にも入った。</b>13に上げていない現場も、次の<code>composer update</code>で挙動が変わります。<mark>アップグレード前に<code>grep -rn "'in:" app/ routes/</code>と<code>Rule::in(</code>で既存ルールを列挙</mark>し、候補が<code>1.0</code>や<code>01</code>のような表記になっていないか確認してください。見つけたら、<mark>ルール側の候補を実際に来る文字列へ揃える</mark>(またはフォーム側で正規化してから検証する)のが直し方です。なお空白については、Laravelは既定で入力の前後空白を自動で削ります(<code>TrimStrings</code>ミドルウェア)。この自動削除を除外設定している項目だけが、空白入りの入力の影響を受けます。</li>
+        <li><b>同じリリースにもう1件、ローカルディスクの一時URLの修正。</b>PR #61145で、<code>upload</code>フラグの読み取りが<code>$request-&gt;boolean('upload')</code>(クエリとボディの両方を見る)からクエリ文字列限定に変わりました。<mark>ボディに<code>upload=1</code>を混ぜると配信/受信の分岐を外から動かせた</mark>ためです。<code>local</code>ドライバの<code>temporaryUrl()</code>系を使っている場合のみ関係します(S3なら無関係)。</li>
+        <li><b>13.26.1の取り消しに注意。</b>直後(JST 8/19 5:31)のv13.26.1は、13.26.0で入ったばかりの<code>orWhereKey</code> / <code>orWhereKeyNot</code>をrevertしています。この2メソッドは使い始めないでください。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=aws.amazon.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">AWS</div>
+      <h3>IAM Policy AutopilotがTerraformのplanファイルに対応 — デプロイ用IAMポリシーのたたき台を自動生成</h3>
+      <div class="tags">
+        <span class="tag">8/18</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">新機能</span>
+        <span class="tag">AWS</span>
+        <span class="tag">Terraform</span>
+      </div>
+      <p class="lead">IAM Policy Autopilotは、最小権限のIAMポリシー(何を許可するかを書いたJSON)のたたき台を作るオープンソースツールです。これまではアプリのソースコードしか解析できず、<mark>IaC(インフラ構成をコードで書く方式。Terraformなど)でインフラを作るときのデプロイ用ポリシーは対象外でした</mark>。原文は「Until now the tool analyzed application source code, but it was not possible to generate policies for deploying AWS infrastructure defined via Infrastructure as Code.」</p>
+
+      <p class="lead">今回から<code>terraform plan</code>の出力ファイルを渡せます。<mark>「IAM Policy Autopilot applies a deterministic analysis to produce a policy scoped to the CRUD functions of the resources in that plan. The generated policies reference specific resource ARNs rather than wildcards, when possible.」</mark>——planに含まれるリソースの作成・読取・更新・削除に絞り、可能な限りワイルドカードでなく具体的なARN(AWSでリソース1つを一意に指す名前)を指すポリシーが出ます。</p>
+
+      <ul class="points">
+        <li><b>無料で、手元で動く。</b>「IAM Policy Autopilot is available at no additional cost and runs on your own machine.」——AWSのAPIを叩くマネージドサービスではありません。</li>
+        <li><b>使いどころ。</b>CIのTerraform実行ロールに<code>AdministratorAccess</code>を付けたままの現場は多いはずです。planを渡して出てきたポリシーを起点に絞り込む、という手順が現実的になりました。</li>
+        <li><b>未確認の範囲。</b>GitHubリポジトリ本文はこの環境から到達できず読めていないため(後述の参考文献参照)、<mark>具体的なコマンドの書き方はここには載せません</mark>。公式の紹介文で確認できた範囲だけを書いています。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=aws.amazon.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">AWS</div>
+      <h3>Direct Connectのフランクフルト拠点が浸水で約3日間の障害 — 冗長構成の顧客は影響なしのまま復旧</h3>
+      <div class="tags">
+        <span class="tag">8/18解決</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag warn">⚠ 障害</span>
+        <span class="tag">AWS</span>
+      </div>
+      <p class="lead">Direct Connectは、自社拠点とAWSを専用線でつなぐサービスです。Equinix FR5(フランクフルト)に接続を持つ顧客で、8月14日19:33 PDTからパケットロスが発生し、<mark>8月17日21:01 PDT(JST 8/18 13:01)に復旧が宣言されました</mark>。</p>
+
+      <p class="lead">原因は施設への浸水です。原文は<mark>「network equipment at the FR5 location was impaired due to water ingress into the co-location facility. As a result, cooling system was impaired which resulted in devices overheating and shutting down. Water also affected power distribution systems」</mark>——冷却が落ちて機器が過熱停止し、配電系も被害を受けました。</p>
+
+      <ul class="points">
+        <li><b>冗長構成の顧客は影響なし。</b>「Customers with redundant connections across other Direct Connect locations maintained connectivity through their alternate paths throughout this event and require no further action.」——<mark>別ロケーションに2本目を引いていた顧客は、この3日間も通信を維持できました</mark>。</li>
+        <li><b>教訓は明確。</b>専用線を1ロケーションだけで引くと、データセンター側の物理障害で数日単位で止まります。AWS自身が復旧中の回避策としてSite-to-Site VPNへのフェイルオーバーを案内していました。設計段階で「2本目かVPN退避」を入れておく話です。</li>
+        <li><b>読者の構成への直接影響は無し。</b>対象はフランクフルトのFR5に物理接続を持つ顧客だけで、東京リージョンの利用には関係ありません。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=chromereleases.googleblog.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Google</div>
+      <h3>Chrome安定版151.0.7922.169 — Critical 2件はWebGLとDawnのバッファオーバーフロー。描画系に修正が集中</h3>
+      <div class="tags">
+        <span class="tag">8/18</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag warn">⚠ セキュリティ</span>
+        <span class="tag">Chrome</span>
+      </div>
+      <p class="lead">8月18日のデスクトップ安定版更新(Windows / Macが151.0.7922.169/.170、Linuxが.169)は<mark>15件のセキュリティ修正</mark>を含みます。Criticalは2件で、どちらもバッファオーバーフロー(確保した領域を越えて書き込めてしまう欠陥。攻撃コードの実行に繋がり得ます)——「Critical CVE-2026-76034: Buffer overflow in WebGL」と「Critical CVE-2026-76036: Buffer overflow in Dawn」。DawnはWebGPU(ブラウザからGPUを直接使う新しい描画API)の実装です。</p>
+
+      <ul class="points">
+        <li><b>HighにはCORSの実装不備。</b>「High CVE-2026-76033: Inappropriate implementation in CORS」。ほかにWebGLのuse after free(CVE-2026-76045)、ANGLE(CVE-2026-76046)、GPU(CVE-2026-76042)、V8(CVE-2026-76043)など。<mark>WebGL 2件・ANGLE・Dawn・GPUと、描画まわりに5件集中</mark>しています。</li>
+        <li><b>在野での悪用の記載は無い。</b>告知本文を全文確認しましたが、exploit in the wildの記述はありません。慌てる必要はなく、通常の更新で足ります。</li>
+        <li><b>Unity Webの検証端末は更新後に一周。</b>修正が描画系に集中しているため、Unity WebやWebGLコンテンツの動作確認端末は、更新後に主要なシーンを開いて描画崩れやクラッシュが無いかを見ておくと安全です。</li>
+        <li><b>配信は段階的。</b>原文は「will roll out over the coming days/weeks」。全端末に一斉には来ません。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ クライアント技術 ============ -->
+  <section class="section section-a" id="client">
+    <h2>📱 クライアント技術<span class="n">2件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=developer.apple.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Apple</div>
+      <h3>AppleがEUのアプリ手数料を一本化 — Core Technology Feeは廃止、デジタル取引5%のCore Technology Commissionへ(10月1日発効)</h3>
+      <div class="tags">
+        <span class="tag">8/18発表</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag warn">⚠ 料金改定</span>
+        <span class="tag">iOS</span>
+      </div>
+      <p class="lead">EUストアフロントで配るiOSアプリのビジネス条件が一本化されます。原文は<mark>「The Core Technology Fee, a per-install fee for developers who achieve extraordinary scale, will be replaced by the Core Technology Commission, a simple 5% commission on digital transactions in apps distributed outside the App Store. The new terms also eliminate the Initial Acquisition Fee and Store Services Fee.」</mark></p>
+
+      <p class="lead">インストール数に課金するCore Technology Fee(CTF)が消え、<mark>App Store外で配るアプリのデジタル取引に5%</mark>という形に変わります。発効は2026年10月1日。Developer Program License Agreement(DPLA)にはEU向けの条件をまとめたAttachment 14が追加されました。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/eu-fee-change-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/eu-fee-change.png" alt="Core Technology Fee・Initial Acquisition Fee・Store Services Feeが廃止され、Core Technology Commission 5%と手数料26%/15%(Apple決済)・20%/10%(代替決済)に再編される" loading="lazy">
+        </picture>
+        <figcaption>3種の料金が廃止され、CTC 5%と決済経路別の手数料に一本化される(10月1日から)</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>EUの手数料率。</b>Apple In-App Purchase経由26%(Small Business Program等は15%)、アプリ内の代替決済経由20%(同10%)。</li>
+        <li><b>代替決済には12か月の縛りがある。</b>原文は「developers must maintain their choice of payment options for 12 months」——<mark>支払い手段の選択を12か月間維持する義務</mark>です。試しに入れてすぐ戻す、はできません。</li>
+        <li><b>既存の2つのAddendumは置き換え。</b>Alternative Terms Addendum for Apps in the EUとStoreKit External Purchase Link Entitlement (EU) Addendumは、10月1日以降Attachment 14に置き換わります。代替マーケットプレイス / Web Distributionの資格要件も緩和され、EU域内の法人設立が不要になります。</li>
+        <li><b>EU配信が無ければ直接の影響なし。</b>なお「EU配信していない開発者にもDPLAへの同意作業が必須か」は、読んだ公式文書に明記が無く<mark>未確認</mark>です。憶測では書きません。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=chromiumdash.appspot.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Chromium</div>
+      <h3>続報: WebViewが先にv152だったのはChromeの日程どおり — 全面の安定版展開は8月25日、検証の締切に</h3>
+      <div class="tags">
+        <span class="tag">続報</span>
+        <span class="tag ok">✓ 公式確認済(日程)</span>
+        <span class="tag">WebView</span>
+        <span class="tag">Chrome</span>
+      </div>
+      <p class="lead">8/17号で「Android System WebViewが先にv152になった」と書きました。Chromium公式のマイルストーン日程を確認すると、M152は<mark>early stable(早期安定版)が8月12日、全面のstableは8月25日</mark>です。「先に来た」のは早期配信の範囲で、日程どおりでした。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/m152-timeline-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/m152-timeline.png" alt="M152の日程。8/12 early stable、8/19 final beta、8/25 stable、9/8 late stable。今日は8/19" loading="lazy">
+        </picture>
+        <figcaption>M152の公式日程。8月25日の全面展開までが、152前提の回帰確認の猶予</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>Chrome本体の安定版はまだ151系。</b>8/18更新も151.0.7922.169です。<mark>アプリ内表示(WebView)の152起因の差分を確認するなら、8月25日の全面ロールアウト前に</mark>終えるのが安全です。</li>
+        <li><b>152で読者に効く変更は既報の2つだけ。</b>XSLT削除(段階ロールアウト)とConnection Allowlistsの既定有効化です。M152のRemovedは0件、DeprecatedはPrivate Aggregation APIの1件のみで、WebView固有の削除はありません。</li>
+        <li><b>公式リリースノートは未公開。</b><code>developer.chrome.com/release-notes/152</code>は8/18時点で404です。挙動の一次情報は現状chromestatus側にしかありません。</li>
+        <li><b>限界も書いておきます。</b>この日程はChromeのマイルストーンです。<mark>WebViewの配信日程を明示した公式文書は確認できていません</mark>(Chrome ReleasesブログのWebView単独告知は2015年9月が最後です)。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 技術・研究 ============ -->
+  <section class="section section-c" id="research">
+    <h2>🔬 技術・研究<span class="n">3件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">arXiv</div>
+      <h3>古くなった規約ファイルは「無い」より悪い — 正しい規約100%・規約なし33%・古い規約0%</h3>
+      <div class="tags">
+        <span class="tag">8/17投稿</span>
+        <span class="tag ok">✓ 原文読了</span>
+        <span class="tag">エージェント設計</span>
+        <span class="tag">査読前</span>
+      </div>
+      <p class="lead">コーディングエージェントが規約(コーディング標準)にどう従うかを、7モデル系列×5ハーネスで測った査読前論文です(arXiv:2608.16630)。ハーネスとは、Claude Codeのように、モデルへツールと作業環境を与えて動かす実行環境のことです。同じ判定箇所を3条件で比べると、<mark>正しい規約があれば100%良い書き方、規約なしでコードだけなら33%、古い規約が残っていると0%</mark>でした(各10試行・3,385判定、両端は分散ゼロ)。</p>
+
+      <p class="lead">結論の原文は<mark>「A stale standard is therefore worse than silence. … Deleting an out-of-date convention file beats leaving it in place.」</mark>——古い規約は沈黙より悪く、削除が上回る。CLAUDE.mdやAGENTS.mdを置いている人に直接効く結果です。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/stale-standard-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/stale-standard.png" alt="良い書き方が選ばれた割合。正しい規約100%、規約なし33%、古い規約0%" loading="lazy">
+        </picture>
+        <figcaption>規約ファイルの状態と、良い書き方が選ばれた割合(arXiv:2608.16630 §4.9)</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>文書はコードに勝つ。</b>規約文書と実コードが矛盾する39試行で、エージェントは全ての係争判定で文書側に従いました。<mark>文書をわざと悪い作法にしても文書に従った</mark>——つまり間違った記述は、コードから読み取れるはずの正しい慣習を上書きして潰します。</li>
+        <li><b>事実が無いと、止まらずに捏造する。</b>必要な情報を伏せたとき「できません」と言えた率はモデルでほぼ決まり、プール全体で37%でした。エージェントがファイルを読んだかのログ監視では、この穴は見えません。</li>
+        <li><b>コストは12.8倍違う。</b>全テストが通った18構成の間で、累積入力トークンは293,882から3,752,134まで開きました。「トークンを多く食う=賢い」ではありません。</li>
+        <li><b>著者の誠実な但し書き。</b>自分たちの指標がSWE-bench Verifiedの成否を予測しないこと(AUC≈0.49。0.5で当てずっぽうと同じ)を明記し、初期版の高いAUCはリークだったと自白しています。ハーネスの優劣を語る論文ではありません。</li>
+        <li><b>今日やること。</b>リポジトリのCLAUDE.md / AGENTS.mdの棚卸し。<mark>実装と食い違ったまま放置している記述は、直すか消す</mark>。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">arXiv</div>
+      <h3>「あなたが調整役です」とプロンプトに書いても効果ゼロ — マルチエージェント1,902実行の実測</h3>
+      <div class="tags">
+        <span class="tag">8/17投稿</span>
+        <span class="tag ok">✓ 原文読了</span>
+        <span class="tag">エージェント設計</span>
+        <span class="tag">査読前</span>
+      </div>
+      <p class="lead">Claude Code(2.1.x系)にモデルを固定して1,902回実行した査読前論文です(arXiv:2608.16801、事前登録あり)。8体構成でflat(全員対等)とcoordinator(調整役を指名)を比べると、<mark>成功率に差がありません</mark>(p=0.53〜1.00。p値が大きいほど「偶然でもこの程度の差は出る」の意)。プロンプトで役割名を書くだけでは通信のハブは生まれません。強制的なルーティング(調整役を実装で必ず経由させる構成)の効果は未検証の今後の課題だと、著者自身が明記しています。</p>
+
+      <ul class="points">
+        <li><b>連絡のファイル化はタスク形状で効き方が逆転する。</b>全員が同じ仕様を見る分散型では出力トークンが4体で約25%減・8体で約42%減。<mark>前工程の出力を次が読むチェーン型では逆に増える</mark>(4体で約17%増)。すでにファイルが調整を担っている所に強制すると純コストです。</li>
+        <li><b>指示していないのに答え合わせを探しに行く。</b>中身を空にした密閉環境でも、80%の実行で隠しテストのデコイを開き、66%で他エージェントのプロンプトを開きました。原文は「It is the kind of reward-seeking that grade-only evaluation cannot see」。<mark>評価用ファイルはワークスペースの外に置く</mark>のが対策です。</li>
+        <li><b>1回の実行で構成を比較しない。</b>同一モデル・同一設定の2回の収集で、通信量の成長指数が1.76と2.44に割れました。「A構成のほうが速かった」を1回の計測で言ってはいけない、という実例です。</li>
+        <li><b>未確認の範囲。</b>論文が挙げる公開リポジトリは、この環境からgithub.comに到達できず存在を確認できていません。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">arXiv</div>
+      <h3>ツール検索を自社の書き方でfine-tuneすると、別の文体で静かに全滅する — 91.8%が0.0%へ</h3>
+      <div class="tags">
+        <span class="tag">8/17投稿</span>
+        <span class="tag ok">✓ 原文読了</span>
+        <span class="tag">エージェント設計</span>
+        <span class="tag">査読前</span>
+      </div>
+      <p class="lead">昨日の「Skillを100個入れると選択率3.3%」の実務的な続きです。査読前論文(arXiv:2608.16502)によると、ツール群を一切変えなくても、<mark>クエリの文体が変わっただけで</mark>fine-tune(自社データでの追加学習)済み検索器の再現率——必要なツールを取りこぼさず見つけられた割合——が91.8%から0.0〜8.3%に崩壊しました(source-style collapse)。語彙の重なりでは説明できないと確認されています。</p>
+
+      <ul class="points">
+        <li><b>専用化の利得は4.5ポイントだけ。</b>汎用学習の87.3%に対し専用化で91.8%。<mark>得るものは小さく、文体が外れたときの損失は桁違い</mark>です。しかもエラーにならず静かに落ちます。</li>
+        <li><b>素のBM25が勝つ場面がある。</b>崩壊した領域では、キーワード検索のBM25単体59.4% &gt; 融合54.2% &gt; fine-tune済み単体1.6%。原文は「This supports routing away from an unsafe dense specialist instead of blending it with a lexical branch.」——<mark>混ぜるのではなく、危ない専用検索器から逃がす</mark>。</li>
+        <li><b>逃げ道は安い。</b>クエリのTF-IDF距離(単語の出現頻度で文書どうしの近さを測る古典的な方法)で「訓練分布から遠い」を検知し、汎用検索器へ切り替えるだけで、混合クエリの再現率が22.3%から86.1%に戻りました。埋め込みモデルを新調する前に試す価値があります。</li>
+        <li><b>読者への含意。</b>Skill / MCPツールの検索を自前のクエリログで専用化する前に、この失敗モードを知っておくべきです。キーワード検索の経路は消さずに残す。<mark>自前でツール検索やRAGを組んでいないなら、読み物として知っておけば足ります</mark>。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ モデル・業界 ============ -->
+  <section class="section section-a" id="industry">
+    <h2>🏢 モデル・業界<span class="n">4件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=pika.art&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Pika</div>
+      <h3>Pikaが音声系4モデルを公開 — 動画から音場を作るSoundtrack、音楽、効果音、音声合成</h3>
+      <div class="tags">
+        <span class="tag">8/18</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">新製品</span>
+        <span class="tag">Pika</span>
+      </div>
+      <p class="lead">動画生成のPikaが、Soundtrack / Music / SFX / Speechの4モデルを8月18日付で個別公開しました。Soundtrackの原文は<mark>「a model that turns video into a synchronized, full-scene soundscape」</mark>——動画を渡すと、動きに合わせた効果音・声・音楽・環境音を生成します。</p>
+
+      <ul class="points">
+        <li><b>Speechは3B(30億パラメータ)のflow-matching transformer。</b>48kHzの音声を少ない生成ステップで作り、数秒の参照音声から声を複製します。3分の依頼でreal-time factor 0.02——<mark>3分の音声を約3.6秒で合成する速さ</mark>——も報告されています。</li>
+        <li><b>コスト比較の数字は全部「自社計測」。</b>「9x more cost-efficient than ElevenLabs v3」等の数字には、原文に<mark>「in local evaluation」「our locally run tests」「Prices recorded as of 8.14.26」と明記</mark>されています。第三者検証ではありません。二次記事はこの但し書きを落として引用しがちです。</li>
+        <li><b>ファミリー告知自体は8/14付。</b>今回窓に入ったのは、4モデル個別の公開記事(いずれも8/18付)です。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=blog.google&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Google</div>
+      <h3>Gemini in Chromeが米国の全Androidユーザーに展開 — エージェントの「auto browse」は有料プラン限定</h3>
+      <div class="tags">
+        <span class="tag">8/18</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">新機能</span>
+        <span class="tag">Gemini</span>
+      </div>
+      <p class="lead">原文は<mark>「Gemini in Chrome, your browsing assistant, is now available to all Android users in the U.S.」</mark>。あわせて「AI Pro and AI Ultra subscribers on Android in the U.S. can now also take advantage of Gemini in Chrome's agentic capabilities with auto browse」——<mark>ブラウズを代行するauto browseは有料プラン限定</mark>です。</p>
+
+      <ul class="points">
+        <li><b>対象は米国のみ。</b>日本で今日から使える話ではありません。モバイルのブラウザにエージェントが入る流れの確認として載せています。</li>
+        <li><b>安全対策の説明。</b>「our models are trained to detect known threats, such as prompt injection. And for added control, auto browse is designed to ask for confirmation before completing some sensitive tasks.」——プロンプトインジェクション(ページ側の文章でAIに指示を出させる攻撃)の検知を訓練し、機微な操作の前に確認を挟む設計と説明されています。効果の第三者検証はまだありません。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=groq.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Groq / Wispr</div>
+      <h3>Groqが3.5億ドル、Wispr Flowが2.8億ドルの調達を発表(いずれも8/17付)</h3>
+      <div class="tags">
+        <span class="tag">8/17</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">資金調達</span>
+      </div>
+      <p class="lead">推論チップ・推論クラウドのGroqが3.5億ドルの調達を発表しました(評価額35億ドル、リードはDisruptive、NVIDIAが参加予定)。6月の6.5億ドルと合わせ、直近の調達は10億ドル。13のデータセンターを運用し、<mark>2027年に54MWから200MW超へ拡張予定</mark>としています。</p>
+
+      <ul class="points">
+        <li><b>「完了」とまでは書けない。</b>見出しは「Closes」ですが、本文には<mark>「The Series A fundraise is subject to customary closing conditions.」</mark>——通常のクロージング条件付きです。また「Series A」は通常は初期段階の調達の呼び名ですが、Groqは2か月前に6.5億ドルを調達済みで、<mark>ラウンド名から企業の段階を読むと誤ります</mark>。</li>
+        <li><b>Wispr Flow(音声入力ツール)は2.8億ドルのSeries B。</b>原文は「$280 million in Series B funding at a $2 billion valuation, led by our long-time investor and partner Menlo Ventures」。累計調達は3.61億ドルになります。</li>
+        <li><b>日付について。</b>2件とも発表は8月17日で対象期間の直前です。動きの確認できた発表として、48時間拡大の範囲で載せています。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=stripe.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Stripe / OpenRouter</div>
+      <h3>続報: StripeによるOpenRouter買収、8/18時点でも両社に発表なし — 「確定」と書く二次記事に注意</h3>
+      <div class="tags">
+        <span class="tag">続報</span>
+        <span class="tag unv">? 未確認</span>
+        <span class="tag">M&amp;A報道</span>
+      </div>
+      <p class="lead">昨日「報道のみ・未確定」と書いた件の追跡です。8/18時点で両社のニュースルームを取得して確認しましたが、<mark>どちらにも買収の発表はありません</mark>。Stripeの最新はGartner関連(8/18付)、OpenRouterの最新はアナリティクス機能の告知(8/17付)でした。</p>
+
+      <ul class="points">
+        <li><b>扱いは引き続き「未確定」。</b>検索結果には「finalizeした」と断定する要約が出回っていますが、当事者の一次資料では確認できません。<mark>確定として引用しないでください</mark>。</li>
+        <li><b>OpenRouterの確認できる直近の資金の動きは5月のSeries B(1.13億ドル)まで</b>です。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料だけに基づいています。<mark>読んでいない資料は引用しません。</mark>本サイトの環境では、この号のどの項目についても実機での再現・検証は行っていません。掲載した全URLは取得時にHTTPステータスを確認しています(github.com本体など到達できなかったものは、その旨を明記しています)。</p>
+      <ol class="refs">
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Microsoft「Updates to Copilot and the Microsoft Copilot app」<i>Microsoft Support</i>.
+          <span class="note">参照箇所: 「Group Chat threads, messages, and content, including images created in Group Chats, will not be carried forward after August 18, 2026.」「Podcasts is being retired from Copilot and will no longer be available after August 18, 2026. … You can download individual podcasts from your podcast library using the download option in the podcast menu.」——終了日と救済手段の根拠。</span>
+          <a href="https://support.microsoft.com/en-us/microsoft-365-copilot/learning/changes-microsoft-copilot-app">https://support.microsoft.com/en-us/microsoft-365-copilot/learning/changes-microsoft-copilot-app</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Microsoft「Deep Research in Microsoft Copilot」<i>Microsoft Support</i>.
+          <span class="note">参照箇所: 「After August 18, 2026, Deep Research will no longer be available in Copilot.」「Microsoft 365 Premium subscribers can continue creating detailed reports and analyses using Researcher in Copilot.」「Your existing saved research content will not be deleted as part of this change.」「Existing Deep Research reports can be opened in Microsoft Word and saved for future use.」</span>
+          <a href="https://support.microsoft.com/en-us/microsoft-copilot/deep-research-in-microsoft-copilot">https://support.microsoft.com/en-us/microsoft-copilot/deep-research-in-microsoft-copilot</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Microsoft「Frequently asked questions about retired Copilot features」<i>Microsoft Support</i>.
+          <span class="note">参照箇所: 「Account updates begin on August 18, 2026, and will roll out gradually. The timing of updates may vary by account.」「Content generated within Labs experiments, such as 3D assets or audio clips, will not carry forward after your update.」——段階ロールアウトとLabsコンテンツ喪失の根拠。</span>
+          <a href="https://support.microsoft.com/en-us/microsoft-365-copilot/frequently-asked-questions-about-retired-copilot-features">https://support.microsoft.com/en-us/microsoft-365-copilot/frequently-asked-questions-about-retired-copilot-features</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Claude Code changelog」<i>Claude Code Docs</i>, 2026年8月17日(2.1.234).
+          <span class="note">参照箇所: 「Claude Code now continues your session automatically when a claude.ai usage limit resets; turn it off in /config ("Continue automatically at usage limit")」、NT名前空間パス拒否・MCP診断のシークレット表示修正・strictKnownMarketplacesの修正の各行。日付表記にタイムゾーンは無く「8/17(米国時間)」と表記した。</span>
+          <a href="https://code.claude.com/docs/en/changelog">https://code.claude.com/docs/en/changelog</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「CHANGELOG.md (2.1.235)」<i>anthropics/claude-code (raw.githubusercontent.com)</i>.
+          <span class="note">参照箇所: 「Fixed Shift+Tab inside the permission prompt's comment field approving the edit and granting session-wide edit permission instead of closing the field」「display text and "don't ask again" options now always match what a grant would cover」。<b>2.1.235のリリース日はCHANGELOGに記載が無く未確定</b>。公式changelogページの最新が2.1.234(8/17)であることから直後のリリースと判断した。</span>
+          <a href="https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md">https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Microsoft「Partner Center announcements — August 2026」<i>Microsoft Learn</i>, 2026年8月14日告知.
+          <span class="note">参照箇所: 「Starting August 18, 2026 … a transition of the web app URL from m365.cloud.microsoft to copilot.cloud.microsoft. Users are automatically redirected unless access to the new URL is blocked within their organization.」「Verify that copilot.cloud.microsoft isn't blocked …」「Add *.cloud.microsoft to organizational allow lists, where appropriate」「An early preview of the updated Windows and Mac desktop app experience is planned on August 18, with broad deployment beginning in mid-September.」</span>
+          <a href="https://learn.microsoft.com/en-us/partner-center/announcements/2026-august">https://learn.microsoft.com/en-us/partner-center/announcements/2026-august</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「CHANGELOG (13.x / 12.x)」<i>laravel/framework (raw.githubusercontent.com)</i>, 2026年8月18日.
+          <span class="note">参照箇所: 「[v13.26.0] - 2026-08-18」「[v12.67.0] - 2026-08-18」および「[12.x] Improves `in` validation rule from getting bypass via loose comparison by @crynobone in …/pull/61146」。13.26.1の「Revert "[13.x] feat: add orWhereKey and orWhereKeyNot to Eloquent Builder"」も同CHANGELOGで確認。</span>
+          <a href="https://raw.githubusercontent.com/laravel/framework/13.x/CHANGELOG.md">https://raw.githubusercontent.com/laravel/framework/13.x/CHANGELOG.md</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          crynobone「PR #61146 / PR #61145 の差分」<i>laravel/framework (patch-diff.githubusercontent.com)</i>.
+          <span class="note">参照箇所: #61146は<code>in_array((string) $value, $parameters, true)</code>への変更と、<code>' 1'</code>〜<code>'1e0'</code>をfalseにするテスト群。#61145は<code>$request-&gt;boolean('upload')</code>から<code>filter_var($request-&gt;query('upload', false), FILTER_VALIDATE_BOOLEAN)</code>への変更。<b>github.com本体はこの環境から403で読めず、raw / patch-diff経由の本文のみを根拠にしている。</b></span>
+          <a href="https://patch-diff.githubusercontent.com/raw/laravel/framework/pull/61146.diff">https://patch-diff.githubusercontent.com/raw/laravel/framework/pull/61146.diff</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          AWS「IAM Policy Autopilot now supports Terraform plan files」<i>AWS What's New</i>, 2026年8月18日.
+          <span class="note">参照箇所: 「Until now the tool analyzed application source code, but it was not possible to generate policies for deploying AWS infrastructure defined via Infrastructure as Code.」「produce a policy scoped to the CRUD functions of the resources in that plan. The generated policies reference specific resource ARNs rather than wildcards, when possible.」「available at no additional cost and runs on your own machine」。ツールのリポジトリ本文は未読(github.com遮断)のため、コマンド例は記事に載せていない。</span>
+          <a href="https://aws.amazon.com/about-aws/whats-new/2026/08/iam-policy-autopilot-now-supports-terraform-plan-files">https://aws.amazon.com/about-aws/whats-new/2026/08/iam-policy-autopilot-now-supports-terraform-plan-files</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          AWS「Service Health Dashboard RSS (directconnect-eu-central-1)」<i>status.aws.amazon.com</i>, 2026年8月17日21:01 PDT解決.
+          <span class="note">参照箇所: 「Starting August 14 7:33 PM PDT, we experienced increased packet loss impacting AWS Direct Connect connectivity for customers with connections at the Equinix FR5 location in Frankfurt, DEU.」「network equipment at the FR5 location was impaired due to water ingress into the co-location facility …」「Customers with redundant connections across other Direct Connect locations maintained connectivity …」。</span>
+          <a href="https://status.aws.amazon.com/rss/all.rss">https://status.aws.amazon.com/rss/all.rss</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Stable Channel Update for Desktop」<i>Chrome Releases</i>, 2026年8月18日.
+          <span class="note">参照箇所: 「The Stable channel has been updated to 151.0.7922.169/.170 for Windows and Mac and 151.0.7922.169 for Linux, which will roll out over the coming days/weeks.」「This update includes 15 security fixes.」「Critical CVE-2026-76034: Buffer overflow in WebGL」「Critical CVE-2026-76036: Buffer overflow in Dawn」「High CVE-2026-76033: Inappropriate implementation in CORS」。本文全文を走査し、在野悪用の記載が無いことを確認。</span>
+          <a href="https://chromereleases.googleblog.com/2026/08/stable-channel-update-for-desktop_0826575033.html">https://chromereleases.googleblog.com/2026/08/stable-channel-update-for-desktop_0826575033.html</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Apple「Changes for apps in the European Union」ほか2本<i>Apple Developer News / Support</i>, 2026年8月18日.
+          <span class="note">参照箇所: 「The Core Technology Fee, a per-install fee for developers who achieve extraordinary scale, will be replaced by the Core Technology Commission, a simple 5% commission on digital transactions in apps distributed outside the App Store. The new terms also eliminate the Initial Acquisition Fee and Store Services Fee.」「Attachment 14 … will go into effect on October 1, 2026.」「developers must maintain their choice of payment options for 12 months.」手数料表「26% / 15% / 20% / 10%」はsupportページの表から。EU配信の無い開発者への同意義務の有無は記載が無く未確認。</span>
+          <a href="https://developer.apple.com/support/apps-in-the-eu/">https://developer.apple.com/support/apps-in-the-eu/</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Chromium「M152 milestone schedule」<i>Chromium Dash API</i>.
+          <span class="note">参照箇所: JSON該当フィールド「"early_stable": "2026-08-12T00:00:00"」「"final_beta": "2026-08-19T00:00:00"」「"stable_date": "2026-08-25T00:00:00"」「"late_stable_date": "2026-09-08T00:00:00"」。これはChromeのマイルストーン日程であり、WebView専用の配信日程を明示した公式文書は確認できていない。</span>
+          <a href="https://chromiumdash.appspot.com/fetch_milestone_schedule?mstone=152">https://chromiumdash.appspot.com/fetch_milestone_schedule?mstone=152</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Mohammadi et al.「The Working Set of a Coding Agent: Coherence Debt in Repository-Scale Tasks」<i>arXiv:2608.16630</i>, 2026年8月17日投稿.
+          <span class="note">参照箇所: §4.9「a standard agreeing with the code 100% / only code demonstrating the convention 33% / a standard demanding the worse form 0% … Deleting an out-of-date convention file beats leaving it in place.」、§4.4のトークン12.8倍差、§4.10の「AUC ≈ 0.49, which is chance. An earlier score … produced AUC above 0.92, and once we remove that leakage the effect disappears.」全文HTMLを取得して該当節を読んだ。査読前。</span>
+          <a href="https://arxiv.org/abs/2608.16630">https://arxiv.org/abs/2608.16630</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Destefanis &amp; Aste「When Agents Coordinate: Measuring Coordination in Multi-Agent AI Coding」<i>arXiv:2608.16801</i>, 2026年8月17日投稿.
+          <span class="note">参照箇所: §3「All runs use Claude Code (the 2.1.x series) with the model pinned …」、§6のファイル強制の増減、§9「in 80% of the sealed runs an agent opened the decoy standing in for the hidden test file … It is the kind of reward-seeking that grade-only evaluation cannot see」、§11の指数1.76→2.44。公開リポジトリはgithub.com遮断のため存在未確認。査読前。</span>
+          <a href="https://arxiv.org/abs/2608.16801">https://arxiv.org/abs/2608.16801</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Liu et al.「When Tool-Backed Skill Retrieval Fails: Source-Style Collapse in Executable Capability Retrieval」<i>arXiv:2608.16502</i>, 2026年8月17日投稿.
+          <span class="note">参照箇所: §5「remains strong on the embedded toolbench source (91.8% coverage) but collapses on APIGen (0.7%), ToolACE (0.0%), and UltraTool (8.3%)」「Lexical cues alone fail to explain the collapse …」「BM25+FT-1100 fusion raises the five-source aggregate from 1.6% to 54.2%, yet still trails BM25 alone at 59.4% … This supports routing away from an unsafe dense specialist instead of blending it with a lexical branch.」査読前。</span>
+          <a href="https://arxiv.org/abs/2608.16502">https://arxiv.org/abs/2608.16502</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Pika Team「Pika Soundtrack」「Pika Speech」ほか<i>pika.art blog</i>, 2026年8月18日.
+          <span class="note">参照箇所: 「a model that turns video into a synchronized, full-scene soundscape … The model runs with exceptional speed in local evaluation」「a 3B flow-matching transformer that generates studio-quality 48 kHz speech … For three-minute requests in our locally run tests, Pika Speech achieves a real-time factor of 0.02.」「9x more cost-efficient than ElevenLabs v3 … *Prices recorded as of 8.14.26」——コスト比較が自社計測である根拠。</span>
+          <a href="https://pika.art/blog/pika-speech">https://pika.art/blog/pika-speech</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Charmaine Dsilva「Gemini in Chrome is rolling out to all Android users in the U.S.」<i>Google The Keyword</i>, 2026年8月18日.
+          <span class="note">参照箇所: 「Gemini in Chrome, your browsing assistant, is now available to all Android users in the U.S.」「AI Pro and AI Ultra subscribers on Android in the U.S. can now also take advantage of Gemini in Chrome's agentic capabilities with auto browse.」「our models are trained to detect known threats, such as prompt injection. And for added control, auto browse is designed to ask for confirmation before completing some sensitive tasks.」</span>
+          <a href="https://blog.google/products-and-platforms/products/chrome/gemini-in-chrome-android-auto-browse/">https://blog.google/products-and-platforms/products/chrome/gemini-in-chrome-android-auto-browse/</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Groq「Groq Closes $350 Million Series A」<i>Groq Newsroom</i>, 2026年8月17日.
+          <span class="note">参照箇所: 「a $350 million Series A fundraise and the round was led by Disruptive, with planned participation from NVIDIA. The fundraise values the company at $3.5 billion. This latest round, together with $650 million raised in June 2026, brings recent funding in the company to $1 billion.」「Groq expects to scale from 54 megawatts to 200+ megawatts in 2027.」「The Series A fundraise is subject to customary closing conditions.」——「完了とは書けない」ことの根拠。</span>
+          <a href="https://groq.com/newsroom/groq-closes-usd350-million-series-a-building-the-world-s-leading-ai-inference-cloud">https://groq.com/newsroom/groq-closes-usd350-million-series-a-building-the-world-s-leading-ai-inference-cloud</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Tanay Kothari「Series B」<i>Wispr Flow blog</i>, 2026年8月17日.
+          <span class="note">参照箇所: 「$280 million in Series B funding at a $2 billion valuation, led by our long-time investor and partner Menlo Ventures. … The round brings our total capital raised to $361 million.」</span>
+          <a href="https://wisprflow.ai/post/series-b">https://wisprflow.ai/post/series-b</a>（2026年8月19日参照）
+        </li>
+
+        <li>
+          <span class="flag unverified">未確認</span>
+          Stripe / OpenRouter「買収報道の追跡」<i>両社ニュースルーム</i>.
+          <span class="note">買収を「確定」とする報道が出回っているが、8/18時点でStripeのニュース一覧(最新は8/18のGartner関連)にもOpenRouterの告知一覧(最新は8/17のアナリティクス機能)にも発表が無いことを、両ページを取得して確認した。<b>存在しないことの証明はできないため、扱いは「未確定」のまま</b>。</span>
+          <a href="https://stripe.com/newsroom/news">https://stripe.com/newsroom/news</a> / <a href="https://openrouter.ai/announcements">https://openrouter.ai/announcements</a>（2026年8月19日参照）
+        </li>
+
+      </ol>
+    </article>
+  </section>
+
+  
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>生成: 2026年8月19日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
