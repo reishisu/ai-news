@@ -496,9 +496,11 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
     drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff)
     drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff)
     drop-shadow(0 8px 0 rgba(0,0,0,.6));
-  /* 禁則: 文節で折り(auto-phrase)、行頭の小書き・長音を禁じる(strict)。
-     anywhere はどこでも割ってしまう(「フ/ック」の泣き別れが出る)ので使わない */
-  word-break:auto-phrase;line-break:strict;overflow-wrap:break-word;
+  /* 禁則: 行頭の小書き・長音・句読点を禁じる(strict)。
+     anywhere はどこでも割ってしまう(「フ/ック」の行頭ッが出る)ので使わない。
+     auto-phrase(文節折り)は行が埋まらず「…」潰れが7枚出たのでやめた(実測)。
+     英数字のトークンは nowrap_latin() が包むので泣き別れしない */
+  word-break:normal;line-break:strict;overflow-wrap:break-word;
   letter-spacing:-.01em;
   /* 行間は1.16。詰める(1.05)と最終行の下端と縁取りが overflow:hidden に切られる。
      padding で逃がす方式は line-clamp と干渉して、溢れた行の上端が覗く(実測)。
@@ -510,7 +512,7 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
 /* 補足。背景が明るいと白文字が負けるので、暗い下地を敷く */
 .sub{{
   color:#fff;font-weight:900;font-size:{sub_px}px;line-height:1.3;
-  word-break:auto-phrase;line-break:strict;overflow-wrap:break-word;
+  word-break:normal;line-break:strict;overflow-wrap:break-word;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }}
 .sub b{{
