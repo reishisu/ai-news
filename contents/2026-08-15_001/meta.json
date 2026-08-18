@@ -10,5 +10,9 @@
   "featured": false,
   "title": "AI-news：2026/08/15 — Claude Codeのサブエージェント背景実行とGLM-5.3の重み非公開",
   "summary": "Claude Code 2.1.232でサブエージェントの並行実行が既定化。PostgreSQLは28件の脆弱性を一括修正しPG14は11月にEOL。Z.aiの新モデルGLM-5.3は「オープンウェイト最強」を名乗りながら重みを2週間隠しました。WebView・Unity Web・VRChatの更新もまとめています。",
-  "thumbnail": "images/thumb.png"
+  "thumbnail": "images/thumb.png",
+  "thumb": {
+    "main": "サブエージェントが背景実行に",
+    "sub": "GLM-5.3 は重みを非公開のまま「最強」を名乗った"
+  }
 }

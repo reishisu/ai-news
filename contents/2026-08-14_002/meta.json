@@ -10,5 +10,9 @@
   "featured": true,
   "title": "AI-news：2026/08/14 号外 — Claude Codeの自動モード標準化とCopilotの機能終了",
   "summary": "Claude Codeの自動モードがPro/Max/Teamで標準になり、承認ポップアップが消えました。止まるのは「不可逆・破壊的・環境の外に向かう」操作だけです。Geminiアプリは月間10億人を突破。Grok 4.6は総合指標でGPT-5.6 Solに並びつつ出力価格は5分の1。Manus利用者は8月23日朝までにデータ退避が必要です。",
-  "thumbnail": "images/thumb.png"
+  "thumbnail": "images/thumb.png",
+  "thumb": {
+    "main": "自動モードが標準に",
+    "sub": "承認ポップアップが消えた。Copilotは一部機能を終了"
+  }
 }

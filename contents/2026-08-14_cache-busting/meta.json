@@ -11,7 +11,7 @@
   "summary": "CSSを直してpushしたのにサイトが崩れたまま。原因をヘッドレスブラウザで再現し、GitHub Pagesが返す実物のヘッダーまで確認しました。F5もデプロイし直しも効きません。シークレットウィンドウでだけ直って見える罠と、8文字で直す方法まで。",
   "thumbnail": "images/thumb.png",
   "thumb": {
-    "main": "GitHub Pages で CSS が反映されない",
-    "sub": "原因はキャッシュ。実測と対策まで"
+    "main": "CSS が反映されない",
+    "sub": "GitHub Pages のキャッシュを実測した"
   }
 }
