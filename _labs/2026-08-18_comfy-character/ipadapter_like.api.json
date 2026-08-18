@@ -1,0 +1,12 @@
+{
+  "10": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "dummy-anime.safetensors"}},
+  "11": {"class_type": "LoadImage", "inputs": {"image": "置き換えられるはず.png"}},
+  "12": {"class_type": "CLIPTextEncode", "inputs": {"text": "元の肯定プロンプト", "clip": ["10", 1]}},
+  "13": {"class_type": "CLIPTextEncode", "inputs": {"text": "元の否定プロンプト", "clip": ["10", 1]}},
+  "14": {"class_type": "EmptyLatentImage", "inputs": {"width": 512, "height": 512, "batch_size": 1}},
+  "15": {"class_type": "KSampler", "inputs": {"seed": 0, "steps": 20, "cfg": 7.0,
+         "sampler_name": "euler", "scheduler": "normal", "denoise": 1.0,
+         "model": ["10", 0], "positive": ["12", 0], "negative": ["13", 0], "latent_image": ["14", 0]}},
+  "16": {"class_type": "VAEDecode", "inputs": {"samples": ["15", 0], "vae": ["10", 2]}},
+  "17": {"class_type": "SaveImage", "inputs": {"filename_prefix": "test", "images": ["16", 0]}}
+}

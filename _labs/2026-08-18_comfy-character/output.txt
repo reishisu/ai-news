@@ -1,0 +1,117 @@
+### 1) つながるか / モデルはあるか
+接続先: http://127.0.0.1:8188
+  デバイス: fake-cpu / VRAM 0GB
+  入っているモデル: 2個
+  recipe.json のモデル『JANKUTrainedChenkinNoobai_v777\JANKUTrainedChenkinNoobai_v777.safetensors』: **ありません**
+  入っているのは次のものです。recipe.json の checkpoint を書き換えてください:
+    dummy-anime.safetensors
+    dummy-sdxl.safetensors
+  作るもの: キャラ5人 × ポーズ5種 = 25枚
+  IPAdapter: 入っていません(素の txt2img は動きます。顔を揃えたいときだけ必要)
+-- 終了コード 0
+
+### 1b) IPAdapter の有無を見る(顔を揃えたいとき用)
+-- ノードだけ入っている場合
+  作るもの: キャラ2人 × ポーズ2種 = 4枚
+  IPAdapter: 入っています(preset 6種)
+    clip_vision: **見つかりません**
+      ファイルはあるのに名前がパターンに合っていません: CLIP-ViT-H-14-laion2B-s32B-b79K\model.safetensors
+      → models/clip_vision/ の直下に『CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors』の名前で置いてください
+      (Unified Loader はサブフォルダ内の model.safetensors を拾えません)
+    ipadapter: ip-adapter-plus-face_sdxl_vit-h.safetensors で見つかります
+-- モデルも入っている場合
+  IPAdapter: 入っています(preset 6種)
+    clip_vision: CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors で見つかります
+    ipadapter: ip-adapter-plus-face_sdxl_vit-h.safetensors で見つかります
+
+### 2) recipe.json のモデルが無いとき
+[1/1] default / base (seed=1)
+  ComfyUI がワークフローを受け付けませんでした (HTTP 400)
+  {
+  "type": "prompt_outputs_failed_validation",
+  "message": "Prompt outputs failed validation"
+}
+  ノード 1: {"errors": [{"type": "value_not_in_list", "message": "Value not in list: ckpt_name: '存在しないモデル.safetensors' not in ['dummy-anime.safetensors', 'dummy-sdxl.safetensors']"}]}
+-- 終了コード 1
+
+### 3) キャラ2人 × ポーズ2種
+[1/4] labhina / wave (seed=1001)
+   生成中… 0秒                                生成中… 2秒                                完了(4秒)                              
+    → _assets/character/_candidates/labhina/wave.png (8KB)
+[2/4] labhina / point (seed=1002)
+   生成中… 0秒                                生成中… 2秒                                完了(4秒)                              
+    → _assets/character/_candidates/labhina/point.png (9KB)
+[3/4] labkuru / wave (seed=2001)
+   生成中… 0秒                                生成中… 2秒                                完了(4秒)                              
+    → _assets/character/_candidates/labkuru/wave.png (9KB)
+[4/4] labkuru / point (seed=2002)
+   生成中… 0秒                                生成中… 2秒                                完了(4秒)                              
+    → _assets/character/_candidates/labkuru/point.png (9KB)
+
+候補を4枚受け取りました(所要 16秒)。**Read で開いて選んでください。**
+採用する1枚ごとに取り込みます(背景が透過していない場合は --matte を付ける):
+  python3 _prepare_character.py _assets/character/_candidates/labhina/wave.png --cast labhina --as wave --matte
+-- 終了コード 0
+
+### 4) 自分で書き出したワークフロー＋参照画像
+中止: 条件に合うものがありません。--who / --pose の名前を確認してください。
+      キャラ: labhina, labkuru
+      ポーズ: wave, point
+
+### 4b) --face(顔揃え。ワークフローはこちらで組む)
+参照画像: wave.png を ComfyUI に送りました
+ノードとモデルを確認しました(weight=0.8, preset=PLUS FACE (portraits))
+[1/1] labhina / point (seed=1002)
+   生成中… 0秒                                生成中… 2秒                                完了(4秒)                              
+    → _assets/character/_candidates/labhina/point.png (9KB)
+
+### 4c) IPAdapter が無いサーバーに --face したとき
+-- 終了コード 1
+参照画像: wave.png を ComfyUI に送りました
+中止: この ComfyUI では顔揃えの準備ができていません。
+  - ノード『PrepImageForClipVision』が入っていません
+  - ノード『IPAdapterUnifiedLoader』が入っていません
+  - ノード『IPAdapter』が入っていません
+  対処は _assets/character/comfy/README.md の「2. 顔を揃えたいなら IPAdapter を入れる」を見てください。
+
+### 5) 差し替えの中身(単体で確認)
+差し替えた: negative positive reference seed size
+seed    : 1002
+size    : 768 x 1344
+参照画像: base.png
+肯定    : masterpiece, best quality, 1girl, original, solo, blonde hai …
+否定    : worst quality, lowres
+
+### 6) 透過していない画像は受け付けない
+-- 終了コード 1
+中止: _assets/character/_candidates/labhina/wave.png は背景が透過していません(透明 0.0%)。
+      背景透過のPNGで書き出し直してください。白背景のまま置くと、サムネイルの右に四角い板が出ます。
+      ・VRoid Studio: 「撮影・エクスポート」で背景を透過にして書き出す
+
+### 7) --matte で背景を抜いて cast に入れる
+  保存しました: _assets/character/cast/labhina/wave.png (5KB)
+    サムネイル上: 401x432px(上から42%を使用)  文字の幅が 401px 狭まります
+  保存しました: _assets/character/cast/labhina/point.png (5KB)
+    サムネイル上: 401x432px(上から42%を使用)  文字の幅が 401px 狭まります
+  保存しました: _assets/character/cast/labkuru/wave.png (5KB)
+    サムネイル上: 401x432px(上から42%を使用)  文字の幅が 401px 狭まります
+  保存しました: _assets/character/cast/labkuru/point.png (5KB)
+    サムネイル上: 401x432px(上から42%を使用)  文字の幅が 401px 狭まります
+
+### 8) 記事ごとに誰のどのポーズが選ばれるか
+2026-08-18_001           → hinata/present.png
+2026-08-17_001           → hinata/point.png
+2026-08-16_001           → hinata/wave.png
+2026-08-15_laravel-first → shirase/thumbsup.png
+
+### 9) サムネイルを撮る
+  2026-08-18_001: 749KB
+サムネイルを1枚生成しました。**Read で開いて目視確認すること。**
+
+### 10) 後片付け(テスト用キャラだけ消して撮り直す)
+  2026-08-18_001: 749KB
+サムネイルを1枚生成しました。**Read で開いて目視確認すること。**
+サムネイル用のキャラクター画像を取り込む。
+(表示できる箱は 幅440px × 高さ660px。元画像の上から42%だけを使います)
+
+_assets/character/cast/aoi: 5枚 (point, present, think, thumbsup, wave)

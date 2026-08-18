@@ -1,0 +1,8 @@
+{
+  "checkpoint": "dummy-anime.safetensors",
+  "positive": "1girl, original character, standing, plain flat white background",
+  "negative": "text, watermark, blurry",
+  "width": 832, "height": 1216, "seed": 100,
+  "steps": 28, "cfg": 6.0,
+  "sampler": "euler_ancestral", "scheduler": "normal"
+}

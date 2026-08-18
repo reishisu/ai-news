@@ -40,6 +40,7 @@ python3 _render_thumbs.py --stale            # 記事HTMLより古いものだ�
 import base64
 import html as htmlmod
 import json
+import os
 import re
 import subprocess
 import sys
@@ -51,7 +52,31 @@ from PIL import Image
 HERE = Path(__file__).resolve().parent
 CONTENTS = HERE / "contents"
 FONTS = HERE / "_assets" / "fonts"
-CHROMIUM = "/opt/pw-browsers/chromium"
+def find_chromium():
+    """撮影に使うブラウザを探す。
+
+    この実行環境では /opt/pw-browsers/chromium に居ますが、手元のPCで走らせる人も
+    いるので、見つからなければ PATH と Mac の既定の場所も見ます。
+    環境変数 CHROMIUM で明示することもできます。
+    """
+    import shutil
+    env = os.environ.get("CHROMIUM")
+    if env:
+        return env
+    for c in ("/opt/pw-browsers/chromium",
+              "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+              "/Applications/Chromium.app/Contents/MacOS/Chromium"):
+        if Path(c).exists():
+            return c
+    for name in ("chromium", "chromium-browser", "google-chrome",
+                 "google-chrome-stable", "chrome"):
+        found = shutil.which(name)
+        if found:
+            return found
+    return "/opt/pw-browsers/chromium"      # 見つからないときは元の場所を返す
+
+
+CHROMIUM = find_chromium()
 # YouTube と同じ 16:9。SNSカード(OGP)の推奨は 1.91:1 なので、
 # X や Facebook では上下がわずかに切られることがある。
 WIDTH, HEIGHT = 1280, 720
@@ -59,7 +84,13 @@ WIDTH, HEIGHT = 1280, 720
 # _assets/character/<カテゴリ名>.png があればそれを、無ければ default.png を使う。
 # **画像を置くまではキャラ無しで組む**(文字が広く使えるので、そのほうが読める)。
 CHARA_DIR = HERE / "_assets" / "character"
-CHARA_W = 268                      # 画像を置いたときに右側で占める幅
+CHARA_W = 440                      # 画像を置いたときに右側で占める幅の上限
+CHARA_H = 660                      # 同じく高さの上限(上に文字用の余白を残す)
+# 置いてある画像は全身の立ち絵だが、そのまま縮めると**顔が10px程度になり表情が分からない**。
+# 描画時に上から CHARA_CROP のぶんだけ切り出して(=胸から上)、大きく見せる。
+# 元画像は全身のまま残してあるので、この数字を変えて撮り直すだけで比率を変えられる。
+CHARA_CROP = 0.42
+CAST_DIR = CHARA_DIR / "cast"      # キャラ複数 × ポーズ複数を置く場所
 
 # カテゴリごとの配色。一覧に並べたとき、色だけで種類が分かるようにする。
 #   bg1/bg2 = 背景のグラデーション、accent = 決め文句の色、chip = カテゴリ札の色
@@ -118,23 +149,31 @@ def _mix(hex_color, other, ratio):
     return "#%02x%02x%02x" % tuple(int(x + (y - x) * ratio) for x, y in zip(a, b))
 
 
+def day_number(dirname):
+    """記事ディレクトリ名から、日替わりの通し番号を出す。
+
+    背景の柄と、キャラのポーズの選択に使う。乱数は使わないので、
+    同じ記事を撮り直しても必ず同じ結果になる。
+    """
+    import datetime
+    m = re.match(r"^(\d{4})-(\d{2})-(\d{2})", dirname)
+    if not m:
+        return sum(dirname.encode())
+    n = datetime.date(*map(int, m.groups())).toordinal()
+    # 同日に複数号あるとき用のずらし。翌日とぶつからないよう、
+    # 1号ぶんではなく柄の総数の約半分だけ動かす。
+    tail = re.search(r"_(\d+)$", dirname)
+    if tail:
+        n += (int(tail.group(1)) - 1) * 3
+    return n
+
+
 def variant_for(dirname):
     """記事ごとの柄・色味を、日付から決める。
 
     連続する日が必ず違う柄になるよう、日付の通し番号をそのまま使う。
-    同じ記事を撮り直しても結果は変わらない(再現性のため乱数は使わない)。
     """
-    import datetime
-    m = re.match(r"^(\d{4})-(\d{2})-(\d{2})", dirname)
-    if m:
-        n = datetime.date(*map(int, m.groups())).toordinal()
-        # 同日に複数号あるとき用のずらし。翌日とぶつからないよう、
-        # 1号ぶんではなく柄の総数の約半分だけ動かす。
-        tail = re.search(r"_(\d+)$", dirname)
-        if tail:
-            n += (int(tail.group(1)) - 1) * 3
-    else:
-        n = sum(dirname.encode())
+    n = day_number(dirname)
     return PATTERN_KEYS[n % len(PATTERN_KEYS)], TONES[(n // len(PATTERN_KEYS)) % len(TONES)]
 
 
@@ -209,19 +248,113 @@ def emphasize(text, terms, e):
     return "".join(out)
 
 
-def character_img(category):
-    """右に置くキャラクター画像を返す。無ければ (空文字, 0)。
+def fit_chara(w, h):
+    """元画像の大きさから、サムネイル上での表示サイズを決める。
 
-    `_assets/character/<カテゴリ名>.png` を優先し、無ければ `default.png`。
-    背景透過・縦長(600x840程度以上)のPNGを想定しています。
-    画像を置いていない間はキャラ無しで組み、文字を広く使います。
+    幅 CHARA_W・高さ CHARA_H の箱に収める。高さを見ずに幅だけ固定すると、
+    縦長すぎる画像で頭が上の黒帯に切られる(bottom 基準で置いているため)。
+    拡大はしない(粗くなるだけなので、小さい画像はそのまま小さく置く)。
     """
+    if w <= 0 or h <= 0:
+        return CHARA_W, CHARA_H
+    scale = min(CHARA_W / w, CHARA_H / h, 1.0)
+    return max(1, round(w * scale)), max(1, round(h * scale))
+
+
+def cast_folder(category):
+    """カテゴリの担当キャラのフォルダを返す。無ければ None。
+
+    決め方は次の順。
+      1. `cast/cast.json` に書いてある割り当て(手で決めたいとき)
+      2. `comfy/recipe.json` の cast[].category(生成時に決めた担当をそのまま使う)
+      3. どちらも無ければ None(呼び出し側で日替わりに回す)
+    """
+    if not CAST_DIR.is_dir():
+        return None
+    for path, get in ((CAST_DIR / "cast.json", lambda d: d.get(category)),
+                      (CHARA_DIR / "comfy" / "recipe.json",
+                       lambda d: next((c["name"] for c in d.get("cast", [])
+                                       if c.get("category") == category), None))):
+        if not path.is_file():
+            continue
+        try:
+            name = get(json.loads(path.read_text(encoding="utf-8")))
+        except (json.JSONDecodeError, OSError, KeyError, TypeError):
+            continue
+        if name and (CAST_DIR / name).is_dir():
+            return CAST_DIR / name
+    return None
+
+
+def character_path(category, dirname):
+    """使うキャラクター画像のパスを返す。無ければ None。
+
+    探す順:
+      1. `cast/<担当キャラ>/*.png` … カテゴリごとに担当を決めているとき。
+         同じキャラの中から、記事の日付でポーズを選ぶ(連続する日は別のポーズ)
+      2. `cast/*/*.png` … 担当を決めていないときは、キャラもポーズも日替わり
+      3. `<カテゴリ名>.png` → `default.png` … 1枚だけ置く従来の形
+    """
+    n = day_number(dirname)
+    folder = cast_folder(category)
+    if folder is None and CAST_DIR.is_dir():
+        folders = sorted(p for p in CAST_DIR.iterdir() if p.is_dir())
+        if folders:
+            folder = folders[n % len(folders)]
+    if folder is not None:
+        shots = sorted(folder.glob("*.png"))
+        if shots:
+            return shots[n % len(shots)]
     for name in (f"{category}.png", "default.png"):
         path = CHARA_DIR / name
         if path.is_file():
-            b64 = base64.b64encode(path.read_bytes()).decode("ascii")
-            return f'<img class="chara" src="data:image/png;base64,{b64}" alt="">', CHARA_W
-    return "", 0
+            return path
+    return None
+
+
+def chara_view(path):
+    """置いてある画像を、サムネイルに出す形(胸から上)にして返す。
+
+    戻り値は (PNGのバイト列, 表示幅, 表示高さ)。開けなければ None。
+    """
+    import io
+    try:
+        with Image.open(path) as raw:
+            im = raw.convert("RGBA")
+    except OSError:
+        return None
+    if 0 < CHARA_CROP < 1:
+        im = im.crop((0, 0, im.width, max(1, int(im.height * CHARA_CROP))))
+        box = im.getchannel("A").getbbox()      # 切ったぶん左右に余白が出ることがある
+        if box:
+            im = im.crop(box)
+    disp_w, disp_h = fit_chara(*im.size)
+    buf = io.BytesIO()
+    im.save(buf, "PNG", optimize=True)
+    return buf.getvalue(), disp_w, disp_h
+
+
+def character_img(category, dirname):
+    """右に置くキャラクター画像を返す。無ければ (空文字, 0)。
+
+    背景透過・縦長(600x840程度以上)のPNGを想定しています。
+    画像を置いていない間はキャラ無しで組み、文字を広く使います。
+    画像の縦横比に合わせて表示サイズを決めるので、正方形でも横長でも
+    はみ出しません(文字の幅も、実際に占める幅ぶんだけ狭まります)。
+    取り込みは `_prepare_character.py` を使ってください。
+    """
+    path = character_path(category, dirname)
+    if path is None:
+        return "", 0
+    view = chara_view(path)
+    if view is None:
+        print(f"  警告: {path.name} を画像として開けません。キャラ無しで組みます。",
+              file=sys.stderr)
+        return "", 0
+    blob, disp_w, disp_h = view
+    b64 = base64.b64encode(blob).decode("ascii")
+    return (f'<img class="chara" src="data:image/png;base64,{b64}" alt="" '
+            f'style="width:{disp_w}px;height:{disp_h}px">'), disp_w
 
 
 def build_html(meta, dirname):
@@ -246,19 +379,19 @@ def build_html(meta, dirname):
     cat = meta.get("category", "")
     e = htmlmod.escape
 
-    chara, chara_w = character_img(cat)
+    chara, chara_w = character_img(cat, dirname)
     pat_key, tone = variant_for(dirname)
     pattern = PATTERNS[pat_key].format(a=t["accent"])
     bg1 = _mix(t["bg1"], t["chip"], tone["mix"])
     bg2 = _mix(t["bg2"], t["accent"], tone["mix"] * 0.6)
 
-    # 使える横幅。左右パディング26px + 枠12px + キャラのぶんを引く
-    avail = WIDTH - 2 * 12 - 2 * 26 - chara_w
+    # 使える横幅。左右パディング26px + キャラのぶんを引く
+    avail = WIDTH - 2 * 26 - chara_w
     card_px = 30
     hook_px = size_for(hook, avail, 78, 52, 28, 1, 1.06)[0] if hook else 0
 
-    # 上下の帯・フック・カード・補足・フッターを引いた残りが主役の高さ
-    used = 26 * 2 + 14 + 12                      # 黒帯 + 上下パディング
+    # フック・カード・補足・フッターを引いた残りが主役の高さ
+    used = 14 + 12                               # 上下パディング
     used += int(hook_px * 1.06) + 6 if hook else 0
     used += (card_px + 18 + 6) if cards_src else 0
     used += 34 + 6                               # フッター
@@ -286,8 +419,6 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
   background:
     radial-gradient({tone['glow']}, {t['accent']}66 0%, transparent 56%),
     linear-gradient(135deg, {bg1} 0%, {bg2} 100%);
-  border-top:26px solid #000;border-bottom:26px solid #000;
-  border-left:12px solid {t['accent']};border-right:12px solid {t['accent']};
 }}
 /* 背景の柄。日付で切り替わる(PATTERNS) */
 .pat{{position:absolute;inset:0;background:{pattern};pointer-events:none}}
@@ -297,13 +428,6 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
   background:
     linear-gradient(108deg, transparent 30%, #ffffff26 42%, transparent 52%),
     linear-gradient(108deg, transparent 58%, #ffffff1a 66%, transparent 74%);
-}}
-/* 上下の黒帯の内側に、色の細線を1本入れて締める */
-.frame::before{{
-  content:"";position:absolute;left:0;right:0;top:0;height:5px;background:{t['accent']};
-}}
-.frame::after{{
-  content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:{t['accent']};
 }}
 .stack{{
   position:absolute;inset:0;z-index:3;
@@ -362,7 +486,8 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
   box-shadow:0 3px 0 rgba(0,0,0,.5);
 }}
 .site{{color:#ffffffbb;font-weight:900;font-size:19px;letter-spacing:.04em;white-space:nowrap}}
-.chara{{position:absolute;right:14px;bottom:26px;width:{chara_w}px;height:auto;z-index:2}}
+/* 大きさは画像ごとに決まるので style 属性で入れる(fit_chara) */
+.chara{{position:absolute;right:10px;bottom:0;z-index:2;object-fit:contain}}
 </style></head><body><div class="frame">
   <div class="pat"></div>
   <div class="shine"></div>

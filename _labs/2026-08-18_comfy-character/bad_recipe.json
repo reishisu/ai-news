@@ -1,0 +1,7 @@
+{
+  "checkpoint": "存在しないモデル.safetensors",
+  "positive": "1girl", "negative": "text",
+  "width": 832, "height": 1216, "seed": 1,
+  "steps": 20, "cfg": 6.0,
+  "sampler": "euler", "scheduler": "normal"
+}

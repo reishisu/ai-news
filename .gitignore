@@ -9,9 +9,16 @@ crash.log
 **/vendor/
 **/node_modules/
 
+# キャラクターの生成候補 — 採用した1枚だけを _assets/character/ に置く
+_assets/character/_candidates/
+
 # 実行時に生成されるもの
 **/access.log
 **/api.log
 *.pyc
 __pycache__/
 .DS_Store
+
+# 動画パイプラインの出力 — MP4は大きいのでコミットしない(_video/README.md)
+_video_out/
+
