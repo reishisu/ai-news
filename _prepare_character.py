@@ -54,6 +54,36 @@ MIN_H = 500
 VALID_NAMES = ["default"] + list(THEMES)
 
 
+def chroma_cut(im, lo=40, hi=110):
+    """背景が緑一色のときの切り抜き。色の距離だけで抜くので、
+    髪と肩の間のような**囲まれた背景も完全に消える**。
+
+    背景色は四隅から取る。lo/hi は「背景色からの距離」のしきい値で、
+    lo 以下は完全に透明、hi 以上は完全に不透明、間は滑らかに繋ぐ
+    (髪の輪郭のアンチエイリアスを保つため)。
+    縁に残る緑かぶりは、緑が赤・青の大きいほうを超えないよう抑える。
+    """
+    im = im.convert("RGBA")
+    w, h = im.size
+    px = bytearray(im.tobytes())
+    corners = [(3, 3), (w - 4, 3), (3, h - 4), (w - 4, h - 4)]
+    bg = [sorted(px[(y * w + x) * 4 + c] for x, y in corners)[2] for c in range(3)]
+    if max(bg) - min(bg) < 50:
+        return None          # 背景が単色の彩色(緑など)ではない
+    for i in range(w * h):
+        j = i * 4
+        d = (abs(px[j] - bg[0]) + abs(px[j + 1] - bg[1]) + abs(px[j + 2] - bg[2]))
+        if d <= lo:
+            px[j + 3] = 0
+        elif d < hi:
+            a = (d - lo) * 255 // (hi - lo)
+            px[j + 3] = min(px[j + 3], a)
+            m = max(px[j], px[j + 2])
+            if px[j + 1] > m:               # 縁の緑かぶりを抑える
+                px[j + 1] = m
+    return Image.frombytes("RGBA", (w, h), bytes(px))
+
+
 def cut_out(im):
     """背景除去モデル(rembg)で切り抜く。無ければ None を返す。
 
@@ -62,13 +92,25 @@ def cut_out(im):
 
         python3 -m pip install rembg onnxruntime
 
-    初回はモデル(u2net, 176MB)を取りに行きます。以降は ~/.rembg に残ります。
+    初回はモデル(birefnet-general-lite, 224MB)を取りに行きます。以降は ~/.rembg に残ります。
     """
+    # 背景が緑一色なら、モデルを使わず色で抜く(囲まれた背景まで完全に消える)。
+    # 2026/8/18 の recipe から背景は green background で生成している。
+    keyed = chroma_cut(im)
+    if keyed is not None:
+        return keyed
     try:
         from rembg import new_session, remove
     except ImportError:
         return None
-    return remove(im, session=new_session("u2net"))
+    # birefnet-general-lite を使う。4つ実測して決めた:
+    #   u2net            … 髪の外周に白いモヤが残る
+    #   isnet-anime      … 外周は綺麗だが、髪と肩の間のような「囲まれた背景」を残す
+    #   birefnet-general … 囲まれた背景まで抜けるが、推論中に約14GB使いOOMで落ちた
+    #   birefnet-general-lite … 品質は同等で約7.6GB(採用)
+    # 「囲まれた背景」を色で消すのは不可能(池も白い服も同じ 253〜254 の白。実測)。
+    # CPUで1枚50秒程度かかるが、品質を優先する。
+    return remove(im, session=new_session("birefnet-general-lite"))
 
 
 def matte(im, tol=32):

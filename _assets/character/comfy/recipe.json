@@ -1,6 +1,5 @@
 {
   "_説明": "サムネイルのマスコットを ComfyUI に作らせるときの設定。カテゴリごとに1人ずつ担当を決め、それぞれにポーズ・衣装の違いを作ります。ここを固定すれば同じ絵をあとから再現できます。",
-
   "checkpoint": "JANKUTrainedChenkinNoobai_v777\\JANKUTrainedChenkinNoobai_v777.safetensors",
   "width": 768,
   "height": 1344,
@@ -8,12 +7,10 @@
   "cfg": 5.0,
   "sampler": "euler_ancestral",
   "scheduler": "normal",
-
   "quality": "masterpiece, best quality, newest, absurdres, highres, safe",
   "subject": "1girl, original, solo",
-  "framing": "full body, standing, looking at viewer, simple background, white background",
-  "negative": "nsfw, worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro, gradient background, scenery, multiple views, cropped",
-
+  "framing": "full body, standing, looking at viewer, simple background, green background",
+  "negative": "nsfw, worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro, gradient background, scenery, multiple views, cropped, shadow, drop shadow, floor, wall, reflection, outdoors, depth of field, blurry background",
   "cast": [
     {
       "name": "hinata",
@@ -46,28 +43,34 @@
       "tags": "dark blue hair, medium hair, low ponytail, glasses, amber eyes, soft smile"
     }
   ],
-
   "variations": [
-    { "name": "wave",     "tags": "waving, open hand, smile, hoodie" },
-    { "name": "point",    "tags": "pointing at viewer, open mouth, dress shirt, necktie" },
-    { "name": "think",    "tags": "hand on own chin, closed mouth, cardigan, long sleeves" },
-    { "name": "thumbsup", "tags": "thumbs up, grin, t-shirt, jacket" },
-    { "name": "present",  "tags": "presenting, both hands up, labcoat, white shirt" }
+    {
+      "name": "wave",
+      "tags": "waving, open hand, smile, hoodie"
+    },
+    {
+      "name": "point",
+      "tags": "pointing at viewer, open mouth, dress shirt, necktie"
+    },
+    {
+      "name": "think",
+      "tags": "hand on own chin, closed mouth, cardigan, long sleeves"
+    },
+    {
+      "name": "thumbsup",
+      "tags": "thumbs up, grin, t-shirt, jacket"
+    },
+    {
+      "name": "present",
+      "tags": "presenting, both hands up, labcoat, white shirt"
+    }
   ],
-
   "_キャラの割り当て": "cast の category は、サムネイルの色分けと揃えてあります(デイリー=青 / AIで作る技術=マゼンタ / Web開発・インフラ=橙 / クライアント技術=緑 / チームで作る技術=黄)。髪の色は、その背景色に埋もれないものを選んでいます(黄色テーマに金髪を置くと溶けるため、そこは濃い青髪)。名前・髪型・目の色は好きに書き換えて構いません。",
-
   "_seedの決まり": "実際に使う seed は『そのキャラの seed + バリエーションの並び順』です(例: hinata の point は 1001 + 1 = 1002)。乱数は使わないので、同じ recipe なら何度でも同じ絵が出ます。全部を振り直したいときは --seed-offset で全体をずらします。",
-
   "_設定の出どころ": "steps 30 / cfg 5 / Euler a / scheduler normal / 768x1344 は、JANKU 本体の配布ページ(Civitai model id 1277670『JANKU Trained + Chenkin & NoobAI + RouWei Illustrious XL』v7.77)の Recommended Settings から。作者の記載は Steps 25-30(本人は30)、CFG 3-5(本人は5)、Sampler Euler / Euler A、Scheduler Normal or Simple、推奨解像度 768x1344 / 832x1216 / 768x1280 / 704x1408 / 1024x1536。",
-
   "_品質タグの出どころ": "quality と negative の前半は、系列元である NoobAI-XL 1.1 の公式モデルカード(https://huggingface.co/Laxhar/noobai-XL-1.1)の Prompt Prefix / Negative Prompt をそのまま使っています。JANKU の配布ページに『専用の埋め込みを使わないなら、通常の NoobAI / Illustrious の品質トリガーを使えばよい』と明記されているため、この借用は作者の案内に沿ったものです。negative の末尾4つ(gradient background, scenery, multiple views, cropped)はサムネイル用にこちらで足しました。",
-
   "_顔を揃えることについて": "素の txt2img では、ポーズや衣装を変えると顔も少しずつ変わります(タグと seed を固定してもドリフトします)。厳密に揃えたい場合は IPAdapter 系のカスタムノードを使い、基準にする1枚を参照させてください。手順は _assets/character/comfy/README.md に書いてあります。",
-
-  "_背景について": "背景を単色の白で平坦に出すよう指示しています(simple background, white background)。`_prepare_character.py --matte` が四隅から同じ色を塗りつぶして透過にするので、背景に模様やグラデーションが入ると綺麗に抜けません。背景除去のカスタムノード(rembg など)を入れているなら、そちらで透過PNGにするほうが髪の輪郭は綺麗です。",
-
-  "_構図について": "サムネイルの枠は 幅268px × 高さ660px と縦に細長いので、full body の立ち絵がいちばん大きく収まります。バストアップだと横幅で頭打ちになり、小さく見えます。",
-
+  "_背景について": "背景は緑一色(green background)で生成します。白だと、髪と肩の間のような「囲まれた背景」がキャラの白い服と同じ色になり、どの背景除去モデルでも取り切れないことが実測で分かったためです(_labs/2026-08-18_comfy-character/)。緑なら `_prepare_character.py --rembg` が色で完全に抜きます(モデル不要・囲まれた背景も消える)。キャラの色に緑を使わないこと(kurumi の目は green eyes ですが、背景の蛍光緑とは距離があるため実害はありません。念のため取り込み後に目視確認すること)。 影と床は negative(shadow, drop shadow, floor, wall, reflection)で抑えています。背景に影が落ちると、その部分だけ緑が暗くなって色で抜けなくなるためです。それでも薄い影が出たら、chroma_cut のしきい値(lo/hi)を上げるより生成し直すこと。",
+  "_構図について": "サムネイルには元画像の上から42%(胸から上)だけが、幅440px × 高さ660px の箱に収まる形で出ます。full body の立ち絵で作っておけば、切り出し比率を変えるだけで全身にも戻せます(_render_thumbs.py の CHARA_CROP)。",
   "_権利について": "特定の作品のキャラクターを狙って出すプロンプトやLoRAは使わないこと(CLAUDE.md 第6節)。original character として自作してください。"
 }
