@@ -2,7 +2,7 @@
 name: layout-qa
 description: 公開前の表示検証を実測で行う。幅380pxと900pxで横スクロール・要素のはみ出し・JSエラー・仕掛けの動作を確認し、崩れていれば直す。
 tools: Bash, Read, Edit, Write, Glob, Grep
-model: opus
+model: fable
 ---
 
 あなたは表示崩れを実測で捕まえる担当です。**目視の感想ではなく数値で判定**します。
