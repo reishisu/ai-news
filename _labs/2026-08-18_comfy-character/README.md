@@ -14,6 +14,7 @@
 | `/view` から PNG を受け取って候補に置く | キャラ2人 × ポーズ2種 = 4枚受け取れた |
 | 手元で書き出したワークフローへの差し替え | seed / サイズ / 肯定 / 否定 / 参照画像 の5つを差し替えられた |
 | 参照画像を `POST /upload/image` で送る | 送って LoadImage に差し込めた（IPAdapter で顔を揃えるときの経路） |
+| IPAdapter が入っているかの判定 | 無い / ノードだけ / モデルもある の3状態を出し分けられた |
 | 透過していない画像を弾く | 中止した（終了コード1） |
 | `--matte` で単色背景を抜く | 全体の66%を透過にした。**服の中の白は残った** |
 | 縦横比に合わせてサムネイルに収まる | 401×1030 → 257×660 で配置、文字幅が257px狭まった |
@@ -39,7 +40,8 @@ comfyanonymous/ComfyUI の master を 2026年8月18日に取得して確認し�
 |---|---|
 | `server.py` | `@routes.post("/prompt")`（リクエストとレスポンスの形、400のとき）、`@routes.get("/history/{prompt_id}")`、`@routes.get("/view")`（`filename` / `subfolder` / `type`）、`@routes.post("/upload/image")`（multipart の `image` / `type` / `subfolder` / `overwrite` と、戻り値の `name` / `subfolder` / `type`）、`@routes.get("/object_info")` |
 | `execution.py` | `history_result` の中身（`outputs`）、`task_done()` が入れる `status`（`status_str` / `completed` / `messages`） |
-| `nodes.py` | `SaveImage.save_images()` の戻り値 `{"ui": {"images": [{"filename","subfolder","type"}]}}` |
+| `nodes.py` | `SaveImage.save_images()` の戻り値 `{"ui": {"images": [{"filename","subfolder","type"}]}}`、`CLIPVisionLoader` の入力 `clip_name` |
+| `cubiq/ComfyUI_IPAdapter_plus` の `IPAdapterPlus.py` | `IPAdapterUnifiedLoader` の `preset`、`IPAdapterModelLoader` の `ipadapter_file`（`--check` が見る項目） |
 
 ## 動かし方
 

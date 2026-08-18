@@ -21,6 +21,7 @@
 """
 
 import json
+import os
 import re
 import sys
 import time
@@ -35,6 +36,11 @@ CHECKPOINTS = ["dummy-anime.safetensors", "dummy-sdxl.safetensors"]
 DELAY = 4          # 生成にかかる時間のつもり(ポーリングが動くことの確認用)
 JOBS = {}
 UPLOADED = []
+# IPAdapter が入っているかの再現。none=入っていない / nomodels=ノードだけ / full=モデルもある
+IPA = os.environ.get("FAKE_IPA", "none")
+IPA_PRESETS = ["LIGHT - SD1.5 only (low strength)", "STANDARD (medium strength)",
+               "VIT-G (medium strength)", "PLUS (high strength)",
+               "PLUS FACE (portraits)", "FULL FACE - SD1.5 only (portraits stronger)"]
 
 
 def dummy_png(seed, w=832, h=1216):
@@ -79,6 +85,25 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/object_info/CheckpointLoaderSimple":
             return self._send(200, {"CheckpointLoaderSimple": {
                 "input": {"required": {"ckpt_name": [CHECKPOINTS, {}]}}}})
+        if u.path.startswith("/object_info/IPAdapter"):
+            if IPA == "none":
+                return self._send(404, {"error": "not found"})
+            node = u.path.rsplit("/", 1)[1]
+            if node == "IPAdapterUnifiedLoader":
+                return self._send(200, {node: {
+                    "input": {"required": {"model": ["MODEL", {}],
+                                           "preset": [IPA_PRESETS, {}]}}}})
+            if node == "IPAdapterModelLoader":
+                files = (["ip-adapter-plus-face_sdxl_vit-h.safetensors"]
+                         if IPA == "full" else [])
+                return self._send(200, {node: {
+                    "input": {"required": {"ipadapter_file": [files, {}]}}}})
+            return self._send(200, {node: {"input": {"required": {}}}})
+        if u.path == "/object_info/CLIPVisionLoader":
+            names = (["CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors"]
+                     if IPA == "full" else ["some-other-clip.safetensors"])
+            return self._send(200, {"CLIPVisionLoader": {
+                "input": {"required": {"clip_name": [names, {}]}}}})
         if u.path.startswith("/history/"):
             pid = u.path.rsplit("/", 1)[1]
             job = JOBS.get(pid)

@@ -21,6 +21,21 @@ python3 _comfy_character.py --check
 echo "-- 終了コード $?"
 
 echo
+echo "### 1b) IPAdapter の有無を見る(顔を揃えたいとき用)"
+FAKE_IPA=nomodels python3 "$LAB/fake_comfy.py" 8189 >/dev/null 2>&1 &
+NOMODELS=$!
+FAKE_IPA=full python3 "$LAB/fake_comfy.py" 8190 >/dev/null 2>&1 &
+FULL=$!
+trap 'kill $FAKE $NOMODELS $FULL 2>/dev/null' EXIT
+sleep 2
+echo "-- ノードだけ入っている場合"
+python3 _comfy_character.py --check --url http://127.0.0.1:8189 \
+  --recipe $LAB/cast_recipe.json | tail -7
+echo "-- モデルも入っている場合"
+python3 _comfy_character.py --check --url http://127.0.0.1:8190 \
+  --recipe $LAB/cast_recipe.json | tail -3
+
+echo
 echo "### 2) recipe.json のモデルが無いとき"
 python3 _comfy_character.py \
   --recipe $LAB/bad_recipe.json 2>&1

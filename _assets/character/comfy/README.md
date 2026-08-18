@@ -56,6 +56,15 @@ clone してもよい）。配布元は「IPAdapter は常に最新の ComfyUI �
 配布元は「まず `weight` を 0.8 以下に下げ、ステップ数を増やすとよい。プロンプトへの
 追従を上げたいなら `IPAdapter Advanced` の weight type を変える」としています。
 
+### 入っているか確かめる
+
+```bash
+python3 _comfy_character.py --check --url http://127.0.0.1:8001
+```
+
+ノードの有無と、上の2つのモデルが見えているかを表示します。
+**ノードだけ入れてもモデルが無いと動きません。**
+
 ### 手順
 
 1. ComfyUI の画面で、txt2img のワークフローに IPAdapter のノードを足して組む

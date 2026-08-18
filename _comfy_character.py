@@ -333,7 +333,56 @@ def check(url, recipe_path=None):
     jobs = jobs_from(recipe)
     print(f"  作るもの: キャラ{len(recipe.get('cast') or [1])}人 × "
           f"ポーズ{len(recipe.get('variations') or [1])}種 = {len(jobs)}枚")
+    check_ipadapter(url)
     return 0
+
+
+# IPAdapter で顔を揃えるときに要るもの。名前は配布元(cubiq/ComfyUI_IPAdapter_plus)の
+# README に載っているもので、Unified Loader はこの名前でないと見つけられない。
+IPA_WANT = {
+    "clip_vision": "CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors",
+    "ipadapter": ("ip-adapter-plus-face_sdxl_vit-h.safetensors",
+                  "ip-adapter-plus_sdxl_vit-h.safetensors"),
+}
+
+
+def options_of(url, node, field):
+    """そのノードが選べる値の一覧を返す。ノードが無ければ None。"""
+    try:
+        info = api(url, f"/object_info/{node}", timeout=60)
+    except (urllib.error.HTTPError, urllib.error.URLError, OSError):
+        return None
+    try:
+        return info[node]["input"]["required"][field][0]
+    except (KeyError, IndexError, TypeError):
+        return None
+
+
+def check_ipadapter(url):
+    """IPAdapter を使う準備ができているかを見る(顔を揃えたいとき用)。
+
+    ノードだけ入れてもモデルが無いと動きません。両方見ます。
+    """
+    presets = options_of(url, "IPAdapterUnifiedLoader", "preset")
+    if presets is None:
+        print("  IPAdapter: 入っていません"
+              "(素の txt2img は動きます。顔を揃えたいときだけ必要)")
+        return
+    print(f"  IPAdapter: 入っています(preset {len(presets)}種)")
+    for kind, node, field in (("clip_vision", "CLIPVisionLoader", "clip_name"),
+                              ("ipadapter", "IPAdapterModelLoader", "ipadapter_file")):
+        have = options_of(url, node, field) or []
+        want = IPA_WANT[kind]
+        want = (want,) if isinstance(want, str) else want
+        ok = [w for w in want if w in have]
+        if ok:
+            print(f"    {kind}: {ok[0]} あり")
+        else:
+            print(f"    {kind}: **ありません**。次のどれかを置いてください:")
+            for w in want:
+                print(f"      {w}")
+            if have:
+                print(f"    (いま入っているもの: {', '.join(have[:5])})")
 
 
 def probe_ports(host="127.0.0.1", ports=(8188, 8000, 8001, 8080, 8189)):
