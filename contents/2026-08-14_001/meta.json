@@ -10,5 +10,9 @@
   "featured": true,
   "title": "AI-news：2026/08/14 — DeepSeekの値上げとChatGPTの作業履歴機能",
   "summary": "DeepSeekが旗艦V4-Proを正式公開すると同時に、API料金をピーク時最大12倍へ値上げしました。ChatGPTのMac版はPC上の作業履歴を記録・検索できるようになっています。AnthropicはAIエージェント同士が妨害し合う実験結果を公開。Gemini 3.7 Flashの性能と価格もまとめました。",
-  "thumbnail": "images/thumb.png"
+  "thumbnail": "images/thumb.png",
+  "thumb": {
+    "main": "DeepSeek が最大12倍の値上げ",
+    "sub": "ChatGPT は PC の作業履歴を記録"
+  }
 }

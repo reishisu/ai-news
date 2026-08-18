@@ -9,5 +9,9 @@
   "featured": false,
   "title": "Unity Webのマルチスレッドに必要なHTTPヘッダー",
   "summary": "Unity Webでマルチスレッドを有効にすると、配信サーバーが返すHTTPヘッダーが要ります。その条件だけを変えて実測し、SharedArrayBufferが存在ごと消えることを確認しました。Unity公式マニュアルの原文と突き合わせ、適用条件・サーバー別の設定・確認できなかったことまで。",
-  "thumbnail": "images/thumb.png"
+  "thumbnail": "images/thumb.png",
+  "thumb": {
+    "main": "Unity Web のマルチスレッド",
+    "sub": "配信サーバーが返す HTTP ヘッダーが要る"
+  }
 }

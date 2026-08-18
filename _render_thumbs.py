@@ -53,15 +53,22 @@ CONTENTS = HERE / "contents"
 FONTS = HERE / "_assets" / "fonts"
 CHROMIUM = "/opt/pw-browsers/chromium"
 WIDTH, HEIGHT = 1200, 630
+CHARA_W = 268                      # 右側にキャラクターが占める幅
+CHARA_H = int(CHARA_W * 420 / 360)  # viewBox の比率を保つ
 
 # カテゴリごとの配色。一覧に並べたとき、色だけで種類が分かるようにする。
 #   bg1/bg2 = 背景のグラデーション、accent = 決め文句の色、chip = カテゴリ札の色
 THEMES = {
-    "デイリーダイジェスト": dict(bg1="#0b1f3a", bg2="#123a6b", accent="#4da3ff", chip="#2a78d6"),
-    "AIで作る技術":        dict(bg1="#2a0b2e", bg2="#5a1450", accent="#ff5ec7", chip="#c9308f"),
-    "Web開発・インフラ":   dict(bg1="#2b1405", bg2="#5e2f08", accent="#ffa43d", chip="#e07b1a"),
-    "クライアント技術":     dict(bg1="#04241b", bg2="#0a4f39", accent="#3ede9f", chip="#12996b"),
-    "チームで作る技術":     dict(bg1="#2c2405", bg2="#5c4c0a", accent="#ffd93d", chip="#d0a611"),
+    "デイリーダイジェスト": dict(bg1="#0b1f3a", bg2="#123a6b", accent="#4da3ff", chip="#2a78d6",
+                          h1="#7fc4ff", h2="#2a6fd0", hi="#cfe8ff", iris="#1b64c4", pupil="#0b2a52", brow="#3a6ea8"),
+    "AIで作る技術":        dict(bg1="#2a0b2e", bg2="#5a1450", accent="#ff5ec7", chip="#c9308f",
+                          h1="#ffa8e4", h2="#c9308f", hi="#ffd9f2", iris="#b3247a", pupil="#4a0c30", brow="#a8407e"),
+    "Web開発・インフラ":   dict(bg1="#2b1405", bg2="#5e2f08", accent="#ffa43d", chip="#e07b1a",
+                          h1="#ffcf8a", h2="#d97a12", hi="#ffeccc", iris="#c06a10", pupil="#4a2a04", brow="#b5761f"),
+    "クライアント技術":     dict(bg1="#04241b", bg2="#0a4f39", accent="#3ede9f", chip="#12996b",
+                          h1="#8ff0c6", h2="#12996b", hi="#d6fdec", iris="#0e7a52", pupil="#03301f", brow="#2f8f68"),
+    "チームで作る技術":     dict(bg1="#2c2405", bg2="#5c4c0a", accent="#ffd93d", chip="#d0a611",
+                          h1="#ffe98a", h2="#c99f0d", hi="#fff6cc", iris="#a8830a", pupil="#3d2f01", brow="#a8871f"),
 }
 DEFAULT_THEME = THEMES["デイリーダイジェスト"]
 
@@ -100,20 +107,16 @@ def dwidth(text):
 
 
 def size_for(text, avail_px, avail_h, cap, floor, max_lines=3, lh=1.16):
-    """avail_px x avail_h に収まる最大の文字サイズと、必要な行数を返す。
+    """avail_px x avail_h に max_lines 行で収まる最大の文字サイズを返す。
 
-    横だけで決めると、行が増えたときに縦がはみ出す。両方で抑える。
-    折り返し位置は実際には読点や英単語で決まるので、横は少し余裕(0.92)を見る。
+    行数は常に max_lines を許す。行数を減らして字を大きくしようとすると、
+    "Fargate" のような分割できない英単語が来たときに折り返しが読めず、
+    末尾が "…" で切れる。行数に余裕を持たせ、縦幅で頭打ちにするほうが安全。
     """
     w = dwidth(text) or 1
-    best = (floor, max_lines)
-    for lines in range(1, max_lines + 1):
-        by_w = int(2 * avail_px * lines * 0.92 / w)      # lines 行に収まる大きさ
-        by_h = int(avail_h / (lines * lh))               # lines 行が縦に収まる大きさ
-        px = min(cap, by_w, by_h)
-        if px > best[0]:
-            best = (px, lines)
-    return max(floor, best[0]), best[1]
+    by_w = int(2 * avail_px * max_lines * 0.92 / w)   # max_lines 行に収まる大きさ
+    by_h = int(avail_h / (max_lines * lh))            # max_lines 行が縦に収まる大きさ
+    return max(floor, min(cap, by_w, by_h)), max_lines
 
 
 def emphasize(text, terms, e):
@@ -140,6 +143,152 @@ def emphasize(text, terms, e):
     return "".join(out)
 
 
+FACES = {
+    # 0=笑顔 / 1=驚き / 2=ウインク。記事ごとに変えて、並べたとき単調にならないようにする
+    0: """<ellipse cx="142" cy="160" rx="21" ry="26" fill="{ac}"/>
+       <ellipse cx="218" cy="160" rx="21" ry="26" fill="{ac}"/>
+       <ellipse cx="149" cy="150" rx="7" ry="9" fill="#fff"/>
+       <ellipse cx="225" cy="150" rx="7" ry="9" fill="#fff"/>
+       <path d="M162 198 q18 18 36 0" stroke="{ac}" stroke-width="9" stroke-linecap="round" fill="none"/>""",
+    1: """<circle cx="142" cy="158" r="25" fill="{ac}"/>
+       <circle cx="218" cy="158" r="25" fill="{ac}"/>
+       <circle cx="150" cy="148" r="8" fill="#fff"/>
+       <circle cx="226" cy="148" r="8" fill="#fff"/>
+       <ellipse cx="180" cy="203" rx="16" ry="13" fill="{ac}"/>""",
+    2: """<ellipse cx="142" cy="160" rx="21" ry="26" fill="{ac}"/>
+       <ellipse cx="149" cy="150" rx="7" ry="9" fill="#fff"/>
+       <path d="M198 160 q20 -18 40 0" stroke="{ac}" stroke-width="10" stroke-linecap="round" fill="none"/>
+       <path d="M158 196 q22 24 44 0" stroke="{ac}" stroke-width="9" stroke-linecap="round" fill="none"/>""",
+}
+
+
+FACES = {
+    # 0=笑顔 / 1=驚き / 2=ウインク。記事ごとに変えて、並べたとき単調にならないようにする
+    0: """<ellipse cx="142" cy="160" rx="21" ry="26" fill="{ac}"/>
+       <ellipse cx="218" cy="160" rx="21" ry="26" fill="{ac}"/>
+       <ellipse cx="149" cy="150" rx="7" ry="9" fill="#fff"/>
+       <ellipse cx="225" cy="150" rx="7" ry="9" fill="#fff"/>
+       <path d="M162 198 q18 18 36 0" stroke="{ac}" stroke-width="9" stroke-linecap="round" fill="none"/>""",
+    1: """<circle cx="142" cy="158" r="25" fill="{ac}"/>
+       <circle cx="218" cy="158" r="25" fill="{ac}"/>
+       <circle cx="150" cy="148" r="8" fill="#fff"/>
+       <circle cx="226" cy="148" r="8" fill="#fff"/>
+       <ellipse cx="180" cy="203" rx="16" ry="13" fill="{ac}"/>""",
+    2: """<ellipse cx="142" cy="160" rx="21" ry="26" fill="{ac}"/>
+       <ellipse cx="149" cy="150" rx="7" ry="9" fill="#fff"/>
+       <path d="M198 160 q20 -18 40 0" stroke="{ac}" stroke-width="10" stroke-linecap="round" fill="none"/>
+       <path d="M158 196 q22 24 44 0" stroke="{ac}" stroke-width="9" stroke-linecap="round" fill="none"/>""",
+}
+
+
+def mascot_svg(t, variant):
+    """サムネイルに置くマスコット(自作のベクター画像)。
+
+    テーマ色で塗り分け、表情を記事ごとに変える。
+    外部の画像は使わない(他人の著作物を持ち込まないため)。
+    """
+    face = MASCOT_FACES[variant % len(MASCOT_FACES)].format(ac=t["accent"])
+    return f"""<svg class="mascot" viewBox="0 0 360 400" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <circle cx="180" cy="170" r="150" fill="{t['accent']}" opacity=".18"/>
+  <path d="M92 400 v-64 a88 88 0 0 1 176 0 v64Z" fill="#f2f6ff" stroke="#0d1526" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M150 330 l30 34 30-34" fill="none" stroke="{t['chip']}" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="163" y="284" width="34" height="34" rx="12" fill="#d7e2f5" stroke="#0d1526" stroke-width="9"/>
+  <line x1="180" y1="56" x2="180" y2="26" stroke="#0d1526" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="180" cy="20" r="16" fill="{t['accent']}" stroke="#0d1526" stroke-width="9"/>
+  <rect x="60" y="56" width="240" height="216" rx="70" fill="#ffffff" stroke="#0d1526" stroke-width="10"/>
+  <rect x="88" y="92" width="184" height="144" rx="48" fill="#12203a"/>
+  {face}
+  <rect x="26" y="120" width="46" height="96" rx="22" fill="{t['chip']}" stroke="#0d1526" stroke-width="9"/>
+  <rect x="288" y="120" width="46" height="96" rx="22" fill="{t['chip']}" stroke="#0d1526" stroke-width="9"/>
+</svg>"""
+
+
+# 表情の差分。記事ごとに変えて、一覧が単調にならないようにする。
+FACES = {
+    0: """<path d="M118 168 q26 -26 52 0 q-26 34 -52 0Z" fill="#fff"/>
+  <path d="M190 168 q26 -26 52 0 q-26 34 -52 0Z" fill="#fff"/>
+  <ellipse cx="144" cy="172" rx="19" ry="23" fill="{iris}"/>
+  <ellipse cx="216" cy="172" rx="19" ry="23" fill="{iris}"/>
+  <ellipse cx="144" cy="176" rx="11" ry="14" fill="{pupil}"/>
+  <ellipse cx="216" cy="176" rx="11" ry="14" fill="{pupil}"/>
+  <circle cx="151" cy="163" r="7" fill="#fff"/><circle cx="223" cy="163" r="7" fill="#fff"/>
+  <circle cx="138" cy="185" r="4" fill="#fff" opacity=".85"/>
+  <circle cx="210" cy="185" r="4" fill="#fff" opacity=".85"/>
+  <path d="M116 160 q28 -24 56 -2" stroke="#2b1a12" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path d="M188 158 q28 -22 56 2" stroke="#2b1a12" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path d="M114 156 l-8 -12" stroke="#2b1a12" stroke-width="8" stroke-linecap="round"/>
+  <path d="M246 156 l8 -12" stroke="#2b1a12" stroke-width="8" stroke-linecap="round"/>
+  <path d="M166 228 q14 14 28 0" stroke="#c2544f" stroke-width="6" fill="none" stroke-linecap="round"/>""",
+    1: """<path d="M118 168 q26 -26 52 0 q-26 34 -52 0Z" fill="#fff"/>
+  <path d="M190 168 q26 -26 52 0 q-26 34 -52 0Z" fill="#fff"/>
+  <ellipse cx="144" cy="172" rx="20" ry="25" fill="{iris}"/>
+  <ellipse cx="216" cy="172" rx="20" ry="25" fill="{iris}"/>
+  <ellipse cx="144" cy="176" rx="12" ry="15" fill="{pupil}"/>
+  <ellipse cx="216" cy="176" rx="12" ry="15" fill="{pupil}"/>
+  <circle cx="152" cy="162" r="8" fill="#fff"/><circle cx="224" cy="162" r="8" fill="#fff"/>
+  <path d="M116 158 q28 -26 56 -4" stroke="#2b1a12" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path d="M188 154 q28 -22 56 4" stroke="#2b1a12" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path d="M114 156 l-8 -12" stroke="#2b1a12" stroke-width="8" stroke-linecap="round"/>
+  <path d="M246 156 l8 -12" stroke="#2b1a12" stroke-width="8" stroke-linecap="round"/>
+  <ellipse cx="180" cy="230" rx="12" ry="11" fill="#c2544f"/>""",
+    2: """<path d="M118 168 q26 -26 52 0 q-26 34 -52 0Z" fill="#fff"/>
+  <ellipse cx="144" cy="172" rx="19" ry="23" fill="{iris}"/>
+  <ellipse cx="144" cy="176" rx="11" ry="14" fill="{pupil}"/>
+  <circle cx="151" cy="163" r="7" fill="#fff"/>
+  <circle cx="138" cy="185" r="4" fill="#fff" opacity=".85"/>
+  <path d="M116 160 q28 -24 56 -2" stroke="#2b1a12" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path d="M114 156 l-8 -12" stroke="#2b1a12" stroke-width="8" stroke-linecap="round"/>
+  <path d="M192 172 q24 -20 48 0" stroke="#2b1a12" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path d="M246 156 l8 -12" stroke="#2b1a12" stroke-width="8" stroke-linecap="round"/>
+  <path d="M164 226 q16 18 32 0" stroke="#c2544f" stroke-width="6" fill="none" stroke-linecap="round"/>""",
+}
+
+
+def character_svg(t, variant, uid):
+    """サムネイルに置くキャラクター(自作のベクター画像)。
+
+    テーマ色で髪と瞳を塗り分け、表情を記事ごとに変える。
+    **外部の画像・他人のイラストは使いません。**
+    グラデーションのidは記事ごとに変える(同一ページに複数置いても混ざらないように)。
+    """
+    face = FACES[variant % len(FACES)].format(iris=t["iris"], pupil=t["pupil"])
+    g = f"hair{uid}"
+    return f"""<svg class="chara" viewBox="0 0 360 420" xmlns="http://www.w3.org/2000/svg">
+ <defs><linearGradient id="{g}" x1="0" y1="0" x2="0" y2="1">
+   <stop offset="0" stop-color="{t['h1']}"/><stop offset="1" stop-color="{t['h2']}"/></linearGradient></defs>
+ <circle cx="180" cy="185" r="165" fill="{t['accent']}" opacity=".16"/>
+ <path d="M62 205 C58 105 108 44 180 44 C252 44 302 105 298 205 C296 262 306 316 316 360
+          C300 344 286 332 274 326 C282 268 276 232 268 208 L92 208
+          C84 232 78 268 86 326 C74 332 60 344 44 360 C54 316 64 262 62 205Z" fill="url(#{g})"/>
+ <path d="M156 258 h48 v52 h-48Z" fill="#f2c9a8"/>
+ <path d="M156 258 h48 v22 c-14 12-34 12-48 0Z" fill="#dda887"/>
+ <path d="M92 420 v-38 c0-40 34-60 64-72 l24 26 24-26 c30 12 64 32 64 72 v38Z" fill="#ffffff"/>
+ <path d="M156 310 l24 26 24-26 -24-14Z" fill="#eef3fb"/>
+ <path d="M92 420 v-38 c0-16 6-28 15-37 l10 75Z" fill="#e3ebf7"/>
+ <path d="M268 420 v-38 c0-16-6-28-15-37 l-10 75Z" fill="#e3ebf7"/>
+ <path d="M180 322 l-30 -12 6 30Z" fill="{t['chip']}"/>
+ <path d="M180 322 l30 -12 -6 30Z" fill="{t['chip']}"/>
+ <circle cx="180" cy="324" r="9" fill="{t['accent']}"/>
+ <path d="M104 168 C104 102 146 74 180 74 C214 74 256 102 256 168
+          C256 222 220 268 180 268 C140 268 104 222 104 168Z" fill="#fbdcc2"/>
+ <ellipse cx="130" cy="205" rx="17" ry="10" fill="#f7a9a0" opacity=".75"/>
+ <ellipse cx="230" cy="205" rx="17" ry="10" fill="#f7a9a0" opacity=".75"/>
+ {face}
+ <path d="M180 200 l6 8 -6 2" stroke="#d9a183" stroke-width="4" fill="none" stroke-linecap="round"/>
+ <path d="M100 172 C96 100 138 58 180 58 C222 58 264 100 260 172
+          C254 140 246 122 236 112 C222 132 206 142 186 144
+          L196 96 C168 104 142 122 128 148 L120 118 C110 130 104 148 100 172Z" fill="url(#{g})"/>
+ <path d="M126 134 q22 -10 40 -1" stroke="{t['brow']}" stroke-width="5" fill="none" stroke-linecap="round" opacity=".9"/>
+ <path d="M194 133 q18 -9 40 1" stroke="{t['brow']}" stroke-width="5" fill="none" stroke-linecap="round" opacity=".9"/>
+ <path d="M100 168 C92 210 92 250 98 282 C86 258 78 214 82 176Z" fill="url(#{g})"/>
+ <path d="M260 168 C268 210 268 250 262 282 C274 258 282 214 278 176Z" fill="url(#{g})"/>
+ <path d="M132 96 q40 -22 84 -6" stroke="{t['hi']}" stroke-width="9" fill="none" stroke-linecap="round" opacity=".8"/>
+ <path d="M74 178 a106 106 0 0 1 212 0" stroke="{t['chip']}" stroke-width="13" fill="none" stroke-linecap="round"/>
+ <rect x="52" y="164" width="46" height="76" rx="22" fill="{t['chip']}" stroke="#12203a" stroke-width="6"/>
+ <rect x="262" y="164" width="46" height="76" rx="22" fill="{t['chip']}" stroke="#12203a" stroke-width="6"/>
+</svg>"""
+
+
 def build_html(meta, dirname):
     t = THEMES.get(meta.get("category"), DEFAULT_THEME)
     title = meta.get("title") or dirname
@@ -151,7 +300,7 @@ def build_html(meta, dirname):
 
     # タグは下段に置くが、長いと右側のサイト名とぶつかる。
     # 表示幅の合計で打ち切る(全角1文字=2)。
-    tags, budget = [], 30
+    tags, budget = [], 20
     for x in (meta.get("tags") or []):
         x = str(x)
         if dwidth(x) + 3 > budget:
@@ -163,8 +312,9 @@ def build_html(meta, dirname):
     cat = meta.get("category", "")
     e = htmlmod.escape
 
-    # 内側の使える大きさ。枠16px + 左右パディング52px、上下は帯96+84を引く
-    avail = WIDTH - 2 * 16 - 2 * 52
+    # 内側の使える大きさ。枠16px + 左右パディング52px、上下は帯96+84を引く。
+    # 右にキャラクターを置くので、そのぶんも文字から引く
+    avail = WIDTH - 2 * 16 - 2 * 52 - CHARA_W
     mid_h = HEIGHT - 2 * 16 - 96 - 84
     sub_px, sub_lines = size_for(sub, avail, 120, 40, 26, 2, 1.35) if sub else (0, 0)
     sub_box = int(sub_px * 1.35 * sub_lines) + 22 if sub else 0
@@ -173,6 +323,10 @@ def build_html(meta, dirname):
     faces = (font_face("NotoJP", "NotoSansJP-Black.ttf", 900)
              + font_face("NotoJP", "NotoSansJP-Regular.ttf", 400))
 
+    import hashlib
+    import hashlib
+    uid = hashlib.sha256(dirname.encode()).hexdigest()[:8]
+    chara = character_svg(t, int(uid, 16), uid)
     chips = "".join(f'<span class="tag">{e(x)}</span>' for x in tags)
     main_html = emphasize(main, [str(x) for x in (meta.get("tags") or [])], e)
     return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>
@@ -193,7 +347,7 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:{t['bg1']}}}
   content:"";position:absolute;inset:0;pointer-events:none;
   background:linear-gradient(102deg, transparent 60%, {t['accent']}22 60%, {t['accent']}22 69%, transparent 69%);
 }}
-.row{{position:relative;z-index:2;display:flex;align-items:center;gap:18px;min-width:0}}
+.row{{position:relative;z-index:2;padding-right:{CHARA_W}px;display:flex;align-items:center;gap:18px;min-width:0}}
 .cat{{
   background:{t['chip']};color:#fff;font-weight:900;font-size:27px;
   padding:9px 22px;border-radius:999px;white-space:nowrap;
@@ -205,10 +359,11 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:{t['bg1']}}}
 }}
 .mid{{
   position:relative;z-index:2;display:flex;flex-direction:column;
-  justify-content:center;gap:22px;min-width:0;
+  justify-content:center;gap:22px;min-width:0;padding-right:{CHARA_W}px;
 }}
 .main{{
   color:#fff;font-weight:900;line-height:1.14;font-size:{main_px}px;
+  overflow-wrap:anywhere;
   -webkit-text-stroke:14px {t['bg1']};paint-order:stroke fill;
   text-shadow:0 5px 0 rgba(0,0,0,.45);
   display:-webkit-box;-webkit-line-clamp:{main_lines};-webkit-box-orient:vertical;overflow:hidden;
@@ -220,7 +375,11 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:{t['bg1']}}}
   text-shadow:0 2px 6px rgba(0,0,0,.7);
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }}
-.bot{{justify-content:space-between}}
+.bot{{justify-content:space-between;padding-right:{CHARA_W}px}}
+.chara{{
+  position:absolute;right:18px;bottom:0;width:{CHARA_W}px;height:{CHARA_H}px;z-index:1;
+  filter:drop-shadow(0 8px 20px rgba(0,0,0,.5));
+}}
 .tags{{display:flex;gap:12px;overflow:hidden;min-width:0;flex:1 1 auto}}
 .tag{{
   background:#fff;color:{t['bg1']};font-weight:900;font-size:25px;
@@ -229,6 +388,7 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:{t['bg1']}}}
 }}
 .site{{flex:0 0 auto;color:#ffffffd0;font-weight:900;font-size:23px;letter-spacing:.05em;white-space:nowrap}}
 </style></head><body><div class="frame">
+  {chara}
   <div class="row">
     <span class="cat">{e(cat)}</span>
     {f'<span class="hook">{e(hook)}</span>' if hook else ''}
