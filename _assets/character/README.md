@@ -51,7 +51,7 @@ _assets/character/クライアント技術.png   # カテゴリ別(あればこ�
 透過の確認・余白のトリム・縮小・**サムネイル上で実際に何pxで出るか**を一度に見ます。
 
 ```bash
-python3 _prepare_character.py <画像> --cast hinata --as wave --matte   # cast に入れる
+python3 _prepare_character.py <画像> --cast hinata --as wave --rembg   # cast に入れる
 python3 _prepare_character.py <画像>                                   # default.png として置く
 python3 _prepare_character.py <画像> クライアント技術                    # カテゴリ別に置く
 python3 _prepare_character.py --check                                  # いまの状態を見るだけ
@@ -64,8 +64,11 @@ python3 -m pip install pillow
 ```
 
 - **背景が透過していない画像は受け付けません。** 右に四角い板が出るためです
-- 背景が単色なら `--matte` を付けると、外周から繋がった背景だけを抜きます
-  （服の白や目のハイライトには穴が開きません。ただし髪の輪郭に薄く縁が残ります）
+- `--rembg` を付けると背景除去モデルで切り抜きます。**床の影も、脚の間のように
+  囲まれた背景も抜けます**（`python3 -m pip install rembg onnxruntime`。
+  初回だけモデル176MBを取得。1枚あたり約1.2秒）
+- `--matte` は追加なしで動く簡易版です。単色背景の外周から繋がった部分だけを塗ります
+  （服の白や目のハイライトに穴は開きませんが、**影と囲まれた白は残ります**）
 - 収まる箱は **幅268px × 高さ660px**。縦横比は保ったまま、この箱に収まる大きさで置かれます
 - 実際に占めた幅のぶんだけ、文字に使える幅が自動で狭まります
 
@@ -88,7 +91,7 @@ python3 _render_thumbs.py <記事ディレクトリ名>
 python3 _comfy_character.py --check                  # つながるか / モデルはあるか
 python3 _comfy_character.py                          # cast 全員 × ポーズ全種
 python3 _prepare_character.py _assets/character/_candidates/hinata/wave.png \
-  --cast hinata --as wave --matte
+  --cast hinata --as wave --rembg
 ```
 
 顔を揃えるための IPAdapter の手順も含めて、詳しくは `comfy/README.md` にあります。

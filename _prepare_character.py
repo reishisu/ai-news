@@ -20,8 +20,9 @@
     # キャラ複数 × ポーズ複数(cast)に入れる。記事の日付で1枚が選ばれる
     python3 _prepare_character.py <画像> --cast hinata --as wave --matte
 
-    # 単色背景の画像を透過にしてから取り込む(ComfyUI の素の出力など)
-    python3 _prepare_character.py _assets/character/_candidates/seed1-7-0.png --matte
+    # 背景を抜いてから取り込む(ComfyUI の素の出力など)
+    python3 _prepare_character.py <画像> --rembg    # 影も抜ける(rembg が要る)
+    python3 _prepare_character.py <画像> --matte    # 単色背景だけ(追加なしで動く)
 
     # いま置いてある画像を検査するだけ(書き換えない)
     python3 _prepare_character.py --check
@@ -50,6 +51,23 @@ MAX_STORE_H = 1320
 MIN_H = 500
 
 VALID_NAMES = ["default"] + list(THEMES)
+
+
+def cut_out(im):
+    """背景除去モデル(rembg)で切り抜く。無ければ None を返す。
+
+    `--matte` の塗りつぶしと違い、**床の影**と**脚の間のように囲まれた背景**も抜けます。
+    ComfyUI の素の出力はどちらも出るので、入っているならこちらを使ってください。
+
+        python3 -m pip install rembg onnxruntime
+
+    初回はモデル(u2net, 176MB)を取りに行きます。以降は ~/.rembg に残ります。
+    """
+    try:
+        from rembg import new_session, remove
+    except ImportError:
+        return None
+    return remove(im, session=new_session("u2net"))
 
 
 def matte(im, tol=32):
@@ -139,12 +157,22 @@ def describe(path):
         print(f"    警告: 縦が{h}pxしかありません({MIN_H}px以上を推奨)。")
 
 
-def prepare(src, dst, do_matte=False, tol=32):
+def prepare(src, dst, do_matte=False, tol=32, do_rembg=False):
     with Image.open(src) as raw:
         im = raw.convert("RGBA")
     before = im.size
 
-    if do_matte:
+    if do_rembg:
+        cut = cut_out(im)
+        if cut is None:
+            print("中止: rembg が入っていません。次で入れるか、--matte を使ってください:",
+                  file=sys.stderr)
+            print("      python3 -m pip install rembg onnxruntime", file=sys.stderr)
+            return 1
+        im = cut
+        ratio, _ = alpha_report(im)
+        print(f"  背景を抜きました(rembg): 全体の {ratio * 100:.0f}% を透過にしました")
+    elif do_matte:
         im, removed = matte(im, tol)
         print(f"  背景を抜きました: 全体の {removed * 100:.0f}% を透過にしました"
               f"(許容差 {tol})")
@@ -159,7 +187,7 @@ def prepare(src, dst, do_matte=False, tol=32):
               "白背景のまま置くと、サムネイルの右に四角い板が出ます。", file=sys.stderr)
         print("      ・VRoid Studio: 「撮影・エクスポート」で背景を透過にして書き出す",
               file=sys.stderr)
-        print("      ・ComfyUI の素の出力など、背景が単色なら --matte を付けて実行する",
+        print("      ・ComfyUI の素の出力なら --rembg(影も抜ける) か --matte(単色のみ)",
               file=sys.stderr)
         return 1
 
@@ -255,7 +283,8 @@ def main():
             return 1
         dst = CHARA_DIR / f"{name}.png"
 
-    return prepare(src, dst, do_matte="--matte" in argv, tol=int(flags["--tolerance"]))
+    return prepare(src, dst, do_matte="--matte" in argv, tol=int(flags["--tolerance"]),
+                   do_rembg="--rembg" in argv)
 
 
 if __name__ == "__main__":

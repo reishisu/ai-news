@@ -108,8 +108,11 @@ python3 _comfy_character.py \
 
 ```bash
 python3 _prepare_character.py \
-  _assets/character/_candidates/hinata/wave.png --cast hinata --as wave --matte
+  _assets/character/_candidates/hinata/wave.png --cast hinata --as wave --rembg
 ```
+
+**`--rembg` を使ってください。** ComfyUI の素の出力には床の影が入ることが多く、
+`--matte`（単色の塗りつぶし）では影と、脚の間のように囲まれた白が残ります（実測）。
 
 `_assets/character/cast/<キャラ名>/<ポーズ名>.png` に入り、記事の日付で自動的に選ばれます。
 詳しくは1つ上の階層の `README.md` を見てください。
