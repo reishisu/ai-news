@@ -59,7 +59,8 @@ WIDTH, HEIGHT = 1280, 720
 # _assets/character/<カテゴリ名>.png があればそれを、無ければ default.png を使う。
 # **画像を置くまではキャラ無しで組む**(文字が広く使えるので、そのほうが読める)。
 CHARA_DIR = HERE / "_assets" / "character"
-CHARA_W = 268                      # 画像を置いたときに右側で占める幅
+CHARA_W = 268                      # 画像を置いたときに右側で占める幅の上限
+CHARA_H = 660                      # 同じく高さの上限(上下の黒帯 26px ずつを避ける)
 
 # カテゴリごとの配色。一覧に並べたとき、色だけで種類が分かるようにする。
 #   bg1/bg2 = 背景のグラデーション、accent = 決め文句の色、chip = カテゴリ札の色
@@ -209,19 +210,53 @@ def emphasize(text, terms, e):
     return "".join(out)
 
 
-def character_img(category):
-    """右に置くキャラクター画像を返す。無ければ (空文字, 0)。
+def fit_chara(w, h):
+    """元画像の大きさから、サムネイル上での表示サイズを決める。
+
+    幅 CHARA_W・高さ CHARA_H の箱に収める。高さを見ずに幅だけ固定すると、
+    縦長すぎる画像で頭が上の黒帯に切られる(bottom 基準で置いているため)。
+    拡大はしない(粗くなるだけなので、小さい画像はそのまま小さく置く)。
+    """
+    if w <= 0 or h <= 0:
+        return CHARA_W, CHARA_H
+    scale = min(CHARA_W / w, CHARA_H / h, 1.0)
+    return max(1, round(w * scale)), max(1, round(h * scale))
+
+
+def character_path(category):
+    """使うキャラクター画像のパスを返す。無ければ None。
 
     `_assets/character/<カテゴリ名>.png` を優先し、無ければ `default.png`。
-    背景透過・縦長(600x840程度以上)のPNGを想定しています。
-    画像を置いていない間はキャラ無しで組み、文字を広く使います。
     """
     for name in (f"{category}.png", "default.png"):
         path = CHARA_DIR / name
         if path.is_file():
-            b64 = base64.b64encode(path.read_bytes()).decode("ascii")
-            return f'<img class="chara" src="data:image/png;base64,{b64}" alt="">', CHARA_W
-    return "", 0
+            return path
+    return None
+
+
+def character_img(category):
+    """右に置くキャラクター画像を返す。無ければ (空文字, 0)。
+
+    背景透過・縦長(600x840程度以上)のPNGを想定しています。
+    画像を置いていない間はキャラ無しで組み、文字を広く使います。
+    画像の縦横比に合わせて表示サイズを決めるので、正方形でも横長でも
+    はみ出しません(文字の幅も、実際に占める幅ぶんだけ狭まります)。
+    取り込みは `_prepare_character.py` を使ってください。
+    """
+    path = character_path(category)
+    if path is None:
+        return "", 0
+    try:
+        with Image.open(path) as im:
+            disp_w, disp_h = fit_chara(*im.size)
+    except OSError:
+        print(f"  警告: {path.name} を画像として開けません。キャラ無しで組みます。",
+              file=sys.stderr)
+        return "", 0
+    b64 = base64.b64encode(path.read_bytes()).decode("ascii")
+    return (f'<img class="chara" src="data:image/png;base64,{b64}" alt="" '
+            f'style="width:{disp_w}px;height:{disp_h}px">'), disp_w
 
 
 def build_html(meta, dirname):
@@ -362,7 +397,8 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
   box-shadow:0 3px 0 rgba(0,0,0,.5);
 }}
 .site{{color:#ffffffbb;font-weight:900;font-size:19px;letter-spacing:.04em;white-space:nowrap}}
-.chara{{position:absolute;right:14px;bottom:26px;width:{chara_w}px;height:auto;z-index:2}}
+/* 大きさは画像ごとに決まるので style 属性で入れる(fit_chara) */
+.chara{{position:absolute;right:14px;bottom:26px;z-index:2;object-fit:contain}}
 </style></head><body><div class="frame">
   <div class="pat"></div>
   <div class="shine"></div>

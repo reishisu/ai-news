@@ -1,0 +1,15 @@
+{
+  "_説明": "サムネイルのマスコットを ComfyUI に作らせるときの設定。ここを固定すれば同じ顔が再現できます。checkpoint は手元に入っているモデル名に書き換えてください(`python3 _comfy_character.py --check` で一覧が出ます)。",
+  "checkpoint": "ここに手元のモデルのファイル名を書く.safetensors",
+  "positive": "1girl, original character, upper body to knees, standing, facing viewer, friendly smile, short hair, hoodie, anime style, clean lineart, cel shading, soft even lighting, plain flat white background, no shadow on background, high quality, masterpiece",
+  "negative": "text, watermark, signature, logo, multiple views, cropped, extra limbs, bad hands, blurry, gradient background, busy background, scenery, lowres, jpeg artifacts",
+  "width": 832,
+  "height": 1216,
+  "seed": 1,
+  "steps": 28,
+  "cfg": 6.0,
+  "sampler": "euler_ancestral",
+  "scheduler": "normal",
+  "_背景について": "背景を単色の白で平坦に出すよう指示しています。`_prepare_character.py --matte` が四隅から同じ色を塗りつぶして透過にするので、背景に模様やグラデーションが入ると綺麗に抜けません。背景除去のカスタムノード(rembg など)を入れているなら、そちらで透過PNGにしてから取り込むほうが髪の輪郭は綺麗です。",
+  "_権利について": "特定の作品のキャラクターを狙って出すプロンプトやLoRAは使わないこと(CLAUDE.md 第6節)。original character として自作してください。"
+}
