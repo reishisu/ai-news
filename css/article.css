@@ -393,3 +393,23 @@ details .body a { word-break: break-all; }
   .points { padding: 14px 16px; }
   .code pre { font-size: 12px; padding: 12px 13px; }
 }
+
+/* ---- 動画版へのリンクカード(_build_index.py が youtube ありの号に注入) ---- */
+.video-link {
+  display: flex; align-items: center; gap: 16px;
+  margin: 26px 0; padding: 14px 16px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: var(--shadow);
+  text-decoration: none; color: var(--text);
+}
+.video-link:hover { border-color: var(--accent); }
+.video-link img {
+  width: 150px; aspect-ratio: 16 / 9; border-radius: 8px;
+  object-fit: cover; flex: 0 0 auto;
+}
+.video-link .vl-t { font-weight: 700; }
+.video-link .vl-s { display: block; font-size: 13px; color: var(--sub); margin-top: 4px; }
+@media (max-width: 480px) {
+  .video-link img { width: 104px; }
+  .video-link .vl-s { font-size: 12px; }
+}

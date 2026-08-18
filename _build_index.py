@@ -246,6 +246,47 @@ SHARE_BAR = """
 """
 
 
+VIDEO_LINK_MARK = "ai-news-video-link"
+
+
+def video_link_html(youtube_id):
+    """動画版へのリンクカード。
+
+    iframe埋め込みは使わない。読み込んだだけでYouTubeのスクリプトが走り、
+    このサイトの「追跡スクリプトを入れない」方針に反するため。
+    サムネイルは記事自身のものを使い、クリックして初めてYouTubeへ行く。
+    """
+    return f"""
+<!-- {VIDEO_LINK_MARK} -->
+<a class="video-link" href="https://www.youtube.com/watch?v={youtube_id}" target="_blank" rel="noopener">
+  <img src="images/thumb.png" alt="" loading="lazy">
+  <span class="vl-body"><span class="vl-t">▶ この号の動画版を見る</span>
+  <span class="vl-s">キャラクターの読み上げと図解つき・YouTubeで開きます</span></span>
+</a>
+"""
+
+
+def apply_video_link(html, youtube_id):
+    """動画リンクカードを注入・更新・除去する。
+
+    meta.json に youtube(動画ID)があれば、最初のセクション(3行まとめ)の直後に置く。
+    IDを変えたら差し替え、消したらカードも消える。
+    """
+    if youtube_id and not re.fullmatch(r"[A-Za-z0-9_-]{6,20}", str(youtube_id)):
+        print(f"  警告: youtube の値が動画IDに見えません: {youtube_id!r}(無視します)")
+        youtube_id = None
+    has = VIDEO_LINK_MARK in html
+    block = re.compile(rf"\n?<!-- {VIDEO_LINK_MARK} -->.*?</a>\n?", flags=re.DOTALL)
+    if not youtube_id:
+        return block.sub("\n", html, count=1) if has else html
+    if has:
+        return block.sub("\n" + video_link_html(youtube_id).strip() + "\n", html, count=1)
+    m = re.search(r"</section>", html)
+    if m:
+        return html[:m.end()] + "\n" + video_link_html(youtube_id).strip() + html[m.end():]
+    return html
+
+
 def inject_before_body(html, snippet):
     if re.search(r"</body>", html, flags=re.IGNORECASE):
         return re.sub(r"</body>", lambda m: snippet + "</body>", html, count=1, flags=re.IGNORECASE)
@@ -290,6 +331,9 @@ def enhance_issue(issue, meta):
     # アクセス解析(site.json にコードがあるときだけ)
     if ANALYTICS and "goatcounter" not in html:
         html = inject_before_body(html, ANALYTICS)
+
+    # 動画版へのリンク(meta.json に youtube: "<動画ID>" があるときだけ)
+    html = apply_video_link(html, meta.get("youtube"))
 
     # OGP画像は、その記事自身のサムネイルを指す。
     # 共通の ogp.png のままだと、どの記事をシェアしても同じ絵になって見分けが付かない。
