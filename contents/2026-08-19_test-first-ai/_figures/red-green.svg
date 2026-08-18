@@ -1,0 +1,54 @@
+<svg viewBox="0 0 640 302" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="10" y="26" font-size="15" font-weight="700" fill="var(--fg)">先に赤(red)を見てから、緑(green)にする</text>
+
+  <!-- ① テストを書く -->
+  <rect x="10" y="48" width="140" height="150" rx="12" fill="var(--track)"/>
+  <circle cx="36" cy="72" r="13" fill="var(--sub)"/>
+  <text x="36" y="77" font-size="14" font-weight="700" fill="var(--bg)" text-anchor="middle">1</text>
+  <text x="56" y="77" font-size="12.5" font-weight="700" fill="var(--fg)">テストを書く</text>
+  <text x="24" y="106" font-size="11.5" fill="var(--sub)">境界値4件</text>
+  <text x="24" y="124" font-size="11.5" fill="var(--sub)">＋ 例外1件</text>
+  <text x="24" y="168" font-size="11" font-family="ui-monospace, monospace" fill="var(--sub)">test_strong.py</text>
+
+  <!-- ② 空実装で回す -->
+  <rect x="170" y="48" width="140" height="150" rx="12" fill="var(--track)"/>
+  <circle cx="196" cy="72" r="13" fill="var(--c)"/>
+  <text x="196" y="77" font-size="14" font-weight="700" fill="var(--bg)" text-anchor="middle">2</text>
+  <text x="216" y="77" font-size="12.5" font-weight="700" fill="var(--fg)">空実装で回す</text>
+  <text x="184" y="106" font-size="11.5" fill="var(--sub)">pass だけの実装</text>
+  <text x="184" y="124" font-size="11.5" fill="var(--sub)">落ちる能力を確認</text>
+  <text x="184" y="162" font-size="12.5" font-family="ui-monospace, monospace" fill="var(--c)">FFFFF</text>
+  <text x="184" y="182" font-size="13" font-weight="700" fill="var(--c)">5 failed</text>
+
+  <!-- ③ 実装する -->
+  <rect x="330" y="48" width="140" height="150" rx="12" fill="var(--track)"/>
+  <circle cx="356" cy="72" r="13" fill="var(--sub)"/>
+  <text x="356" y="77" font-size="14" font-weight="700" fill="var(--bg)" text-anchor="middle">3</text>
+  <text x="376" y="77" font-size="12.5" font-weight="700" fill="var(--fg)">実装する</text>
+  <text x="344" y="106" font-size="11.5" fill="var(--sub)">仕様どおりに書く</text>
+  <text x="344" y="124" font-size="11.5" fill="var(--sub)">AIに任せてよい</text>
+  <text x="344" y="168" font-size="11" font-family="ui-monospace, monospace" fill="var(--sub)">shipping.py</text>
+
+  <!-- ④ もう一度回す -->
+  <rect x="490" y="48" width="140" height="150" rx="12" fill="var(--track)"/>
+  <circle cx="516" cy="72" r="13" fill="var(--a)"/>
+  <text x="516" y="77" font-size="14" font-weight="700" fill="var(--bg)" text-anchor="middle">4</text>
+  <text x="536" y="77" font-size="12.5" font-weight="700" fill="var(--fg)">もう一度回す</text>
+  <text x="504" y="106" font-size="11.5" fill="var(--sub)">テストは変えない</text>
+  <text x="504" y="124" font-size="11.5" fill="var(--sub)">同じコマンド</text>
+  <text x="504" y="162" font-size="12.5" font-family="ui-monospace, monospace" fill="var(--a)">.....</text>
+  <text x="504" y="182" font-size="13" font-weight="700" fill="var(--a)">5 passed</text>
+
+  <!-- 矢印 -->
+  <line x1="153" y1="123" x2="164" y2="123" stroke="var(--sub)" stroke-width="2"/>
+  <polygon points="167,123 159,118.5 159,127.5" fill="var(--sub)"/>
+  <line x1="313" y1="123" x2="324" y2="123" stroke="var(--sub)" stroke-width="2"/>
+  <polygon points="327,123 319,118.5 319,127.5" fill="var(--sub)"/>
+  <line x1="473" y1="123" x2="484" y2="123" stroke="var(--sub)" stroke-width="2"/>
+  <polygon points="487,123 479,118.5 479,127.5" fill="var(--sub)"/>
+
+  <!-- 注記 -->
+  <rect x="10" y="216" width="620" height="72" rx="12" fill="var(--track)"/>
+  <text x="28" y="246" font-size="13" font-weight="700" fill="var(--c)">一度も落ちたことがないテストは、何も検査していないかもしれない</text>
+  <text x="28" y="270" font-size="12" fill="var(--sub)">2 を飛ばすと、4 の緑が「実装が正しい」のか「テストが常に通る」のか区別できない。</text>
+</svg>

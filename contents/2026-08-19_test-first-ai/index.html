@@ -214,7 +214,6 @@ if (B == 4 &amp;&amp; T == 64) {
       <p class="lead">弱いテストの問題は件数だけではありません。<mark>どの値を聞くか</mark>です。5000円は境界(3000円)から遠く、どんな雑な実装でも当てやすい。</p>
       <p class="lead">Claude Code公式のCommon workflowsも、網羅性の文脈で「エラー条件・<mark>境界値</mark>・見落としやすい想定外の入力」のテストを挙げています(原文: <i>“tests for error conditions, boundary values, and unexpected inputs that are easy to overlook”</i>)。</p>
 
-      <!-- FIGURE: net.png 左に「弱いテスト」= 目の粗い網(5000円の1点だけ)を return 0 のズルい実装がすり抜ける絵、右に「強いテスト」= 2999/3000/3001/0/負の金額の細かい網でズルい実装が引っかかる絵。左右対比の図 -->
       <figure>
         <picture>
           <source srcset="images/net-dark.png" media="(prefers-color-scheme: dark)">
@@ -389,11 +388,10 @@ $ python3 -m pytest -q
 <span class="ok-line">6 passed in 0.01s</span></pre>
       </div>
 
-      <!-- FIGURE: red-green.png 3コマの流れ図: (1) 強いテストを書く → (2) 空実装で回して5件全部落ちる(red)のを確認 → (3) 実装して5件通す(green)。「一度も落ちていないテストは検査しているか分からない」という注記付き -->
       <figure>
         <picture>
           <source srcset="images/red-green-dark.png" media="(prefers-color-scheme: dark)">
-          <img src="images/red-green.png" alt="テストを先に書き、空実装で全件失敗するのを確認してから、実装して全件成功させる3段階の流れ図" loading="lazy">
+          <img src="images/red-green.png" alt="空実装で5件全部落ちる(red)のを先に見ておくと、実装後の5 passedが「テストが働いている証拠」になることを示す4段階の流れ図" loading="lazy">
         </picture>
         <figcaption>先に赤を見る。赤くなれないテストは、緑の意味を保証できない</figcaption>
       </figure>

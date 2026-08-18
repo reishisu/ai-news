@@ -1,0 +1,59 @@
+<svg viewBox="0 0 640 332" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="8" y="24" font-size="15" font-weight="700" fill="var(--fg)">同じ「ズルい実装 = return 0」を、2つのテストにかける</text>
+
+  <!-- ===== 左: 弱いテスト ===== -->
+  <rect x="8" y="40" width="300" height="256" rx="12" fill="var(--track)"/>
+  <text x="24" y="68" font-size="13.5" font-weight="700" fill="var(--fg)">弱いテスト — 例が1つ</text>
+  <text x="24" y="90" font-size="11.5" font-family="ui-monospace, monospace" fill="var(--fg)">assert shipping(5000) == 0</text>
+  <text x="24" y="108" font-size="11.5" fill="var(--sub)">聞く値は5000円の1つだけ</text>
+
+  <rect x="70" y="120" width="176" height="28" rx="14" fill="var(--old)"/>
+  <text x="158" y="139" font-size="12.5" font-weight="700" fill="var(--fg)" text-anchor="middle">ズルい実装 = return 0</text>
+
+  <line x1="158" y1="152" x2="82" y2="215" stroke="var(--c)" stroke-width="2.5"/>
+  <polygon points="74,222 79.2,211.2 85.6,218.8" fill="var(--c)"/>
+
+  <line x1="28" y1="196" x2="288" y2="196" stroke="var(--sub)" stroke-width="1.5" opacity="0.45"/>
+  <rect x="246" y="183" width="8" height="26" rx="4" fill="var(--sub)"/>
+  <text x="250" y="224" font-size="11.5" font-family="ui-monospace, monospace" fill="var(--sub)" text-anchor="middle">5000</text>
+  <text x="250" y="242" font-size="12" font-weight="700" fill="var(--sub)" text-anchor="middle">通</text>
+
+  <text x="24" y="266" font-size="12.5" font-family="ui-monospace, monospace" fill="var(--a)">1 passed</text>
+  <text x="24" y="288" font-size="13" font-weight="700" fill="var(--c)">→ ズルがすり抜ける</text>
+
+  <!-- ===== 右: 強いテスト ===== -->
+  <rect x="332" y="40" width="300" height="256" rx="12" fill="var(--track)"/>
+  <text x="348" y="68" font-size="13.5" font-weight="700" fill="var(--fg)">強いテスト — 境界値4件+例外1件</text>
+  <text x="348" y="90" font-size="11.5" font-family="ui-monospace, monospace" fill="var(--fg)">2999 / 3000 / 3001 / 0</text>
+  <text x="348" y="108" font-size="11.5" fill="var(--sub)">＋ 負の金額は ValueError</text>
+
+  <rect x="394" y="120" width="176" height="28" rx="14" fill="var(--old)"/>
+  <text x="482" y="139" font-size="12.5" font-weight="700" fill="var(--fg)" text-anchor="middle">ズルい実装 = return 0</text>
+
+  <line x1="482" y1="152" x2="390" y2="175" stroke="var(--c)" stroke-width="2.5"/>
+  <polygon points="378,178 388.3,169.8 390.9,180.4" fill="var(--c)"/>
+
+  <line x1="352" y1="196" x2="612" y2="196" stroke="var(--sub)" stroke-width="1.5" opacity="0.45"/>
+  <rect x="374" y="183" width="8" height="26" rx="4" fill="var(--a)"/>
+  <rect x="426" y="183" width="8" height="26" rx="4" fill="var(--sub)"/>
+  <rect x="478" y="183" width="8" height="26" rx="4" fill="var(--sub)"/>
+  <rect x="530" y="183" width="8" height="26" rx="4" fill="var(--a)"/>
+  <rect x="582" y="183" width="8" height="26" rx="4" fill="var(--a)"/>
+
+  <text x="378" y="224" font-size="11.5" font-family="ui-monospace, monospace" fill="var(--a)" text-anchor="middle">2999</text>
+  <text x="430" y="224" font-size="11.5" font-family="ui-monospace, monospace" fill="var(--sub)" text-anchor="middle">3000</text>
+  <text x="482" y="224" font-size="11.5" font-family="ui-monospace, monospace" fill="var(--sub)" text-anchor="middle">3001</text>
+  <text x="534" y="224" font-size="11.5" font-family="ui-monospace, monospace" fill="var(--a)" text-anchor="middle">0</text>
+  <text x="586" y="224" font-size="11.5" font-family="ui-monospace, monospace" fill="var(--a)" text-anchor="middle">-1</text>
+
+  <text x="378" y="242" font-size="12" font-weight="700" fill="var(--a)" text-anchor="middle">捕</text>
+  <text x="430" y="242" font-size="12" font-weight="700" fill="var(--sub)" text-anchor="middle">通</text>
+  <text x="482" y="242" font-size="12" font-weight="700" fill="var(--sub)" text-anchor="middle">通</text>
+  <text x="534" y="242" font-size="12" font-weight="700" fill="var(--a)" text-anchor="middle">捕</text>
+  <text x="586" y="242" font-size="12" font-weight="700" fill="var(--a)" text-anchor="middle">捕</text>
+
+  <text x="348" y="266" font-size="12.5" font-family="ui-monospace, monospace" fill="var(--c)">3 failed, 2 passed</text>
+  <text x="348" y="288" font-size="13" font-weight="700" fill="var(--a)">→ 2999円で捕まる</text>
+
+  <text x="8" y="320" font-size="11.5" fill="var(--sub)">捕＝ズルを捕まえた値。通＝ズルが返す0が期待値と偶然一致して通った値。</text>
+</svg>
