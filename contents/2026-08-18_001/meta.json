@@ -11,9 +11,5 @@
   "featured": false,
   "title": "AI-news：2026/08/18 — GitHub ActionsのAIレビューが見逃したスクリプトインジェクション",
   "summary": "Wiz Researchが、GitHub公式が推奨するenv:経由のパターンをPRが壊し、AI支援セキュリティレビューが見逃した実例を公開。ACMのメール検証は2027年9月30日で更新終了、NVIDIAの1050億ドルはSEC 8-Kでは貸主SB Energyへの残存価値保証だった。Agent Skills・DeepSeek-V4-Pro-0813・GLM-5.3の重み公開など、技術・研究とモデル・業界も厚めに扱う。8月18日朝までの主要ニュース。",
-  "thumbnail": "images/thumb.png",
-  "thumb": {
-    "main": "AIレビューが見逃した",
-    "sub": "GitHub Actions のスクリプトインジェクション"
-  }
+  "thumbnail": "images/thumb.png"
 }

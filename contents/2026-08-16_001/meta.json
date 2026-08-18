@@ -13,7 +13,7 @@
   "summary": "Claude Code 2.1.233が前日のBash権限修正を明示的に差し戻し、TodoWriteも新しいモデルから外れました。DeepSeekの新料金は8月17日01:00 JSTに発効し、オフピークでも現行より高くなります。GitHubはOAuth Appの「リダイレクトURIが1つならワイルドカード照合」という既存挙動を公表。Laravelのqueue:pauseは実機で確かめました。",
   "thumbnail": "images/thumb.png",
   "thumb": {
-    "main": "権限修正を差し戻し",
+    "main": "Claude Code が権限修正を差し戻し",
     "sub": "DeepSeek の新料金も本日発効"
   }
 }

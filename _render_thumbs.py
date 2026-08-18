@@ -178,9 +178,7 @@ def size_for(text, avail_px, avail_h, cap, floor, max_lines=3, lh=1.16):
     import math
     w = dwidth(text) or 1
     for px in range(cap, floor - 1, -2):
-        # auto-phrase は文節で折るため、行末に余りが出て1行の実効量が減る。
-        # 係数を甘くすると3行に収まらず末尾が "…" で切れる(実測して下げた)。
-        per_line = 2 * avail_px / px * 0.78
+        per_line = 2 * avail_px / px * 0.82      # 1行に入る表示幅(余裕を見る)
         lines = max(1, math.ceil(w / per_line))
         if lines <= max_lines and lines * px * lh <= avail_h:
             return px, lines
@@ -232,9 +230,6 @@ def build_html(meta, dirname):
     thumb = meta.get("thumb") or {}
     hook, main, sub = split_title(title)
     hook = thumb.get("hook", hook)
-    # デイリー以外はフックが空。下段のカテゴリ札を廃止したので、ここに置く。
-    if not hook:
-        hook = meta.get("category", "")
     main = thumb.get("main", main)
     sub = thumb.get("sub", sub)
 
@@ -258,32 +253,25 @@ def build_html(meta, dirname):
     bg2 = _mix(t["bg2"], t["accent"], tone["mix"] * 0.6)
 
     # 使える横幅。左右パディング26px + 枠12px + キャラのぶんを引く
-    avail = WIDTH - 2 * 12 - 2 * 14 - chara_w
-    card_px = 44
-    hook_px = size_for(hook, avail, 84, 64, 32, 1, 1.06)[0] if hook else 0
+    avail = WIDTH - 2 * 12 - 2 * 26 - chara_w
+    card_px = 30
+    hook_px = size_for(hook, avail, 78, 52, 28, 1, 1.06)[0] if hook else 0
 
     # 上下の帯・フック・カード・補足・フッターを引いた残りが主役の高さ
-    used = 26 * 2 + 12 + 10                      # 黒帯 + 上下パディング
-    used += int(hook_px * 1.06) + 4 if hook else 0
-    used += (card_px + 24 + 4) if cards_src else 0
-    sub_px = size_for(sub, avail, 120, 50, 30, 2, 1.5)[0] if sub else 0
-    used += int(sub_px * 1.5) + 4 if sub else 0
-    main_h = max(190, HEIGHT - used)
-    # lh は CSS の line-height と必ず揃える。ズレると文字が小さく見積もられる
-    main_px, main_lines = size_for(main, avail, main_h, 200, 58, 3, 0.98)
-    stroke_px = max(16, int(main_px * 0.21))      # 色の内縁(太くする。ここが主役)
-    white_px = max(24, int(main_px * 0.31))       # 白の外縁
-    grad_dark = _mix(t["accent"], "#000000", 0.35)  # グラデ下端
+    used = 26 * 2 + 14 + 12                      # 黒帯 + 上下パディング
+    used += int(hook_px * 1.06) + 6 if hook else 0
+    used += (card_px + 18 + 6) if cards_src else 0
+    used += 34 + 6                               # フッター
+    sub_px = size_for(sub, avail, 108, 38, 24, 2, 1.15)[0] if sub else 0
+    used += int(sub_px * 1.15 * 2) + 6 if sub else 0
+    main_h = max(170, HEIGHT - used)
+    main_px, main_lines = size_for(main, avail, main_h, 150, 54)
+    stroke_px = max(9, int(main_px * 0.13))
     # 縁の色。chip をそのまま使うと、黄色系のテーマで背景と同化して読めない。
     # 黒を混ぜて必ず背景より暗くする。
-    # 内縁は必ず背景より暗くする。テーマ色をそのまま使うと、黄・橙・緑・
-    # マゼンタのテーマで背景と同系色になり、文字が溶けて読めなくなる(実測)。
-    stroke_col = _mix(t["chip"], "#000000", 0.52)
+    stroke_col = _mix(t["chip"], "#000000", 0.42)
 
-    # 参考にしたサムネの書体は、線の太さが均一で角が丸く、字幅が広い。
-    # Noto Sans JP Black は角ばっていて字幅が狭く、並べると明らかに細く見える。
-    # M PLUS Rounded 1c の Black に差し替えた(実際に並べて比較して決めた)。
-    faces = (font_face("Thumb", "MPLUSRounded1c-Black.ttf", 900)
+    faces = (font_face("NotoJP", "NotoSansJP-Black.ttf", 900)
              + font_face("NotoJP", "NotoSansJP-Regular.ttf", 400))
 
     cards = "".join(f'<span class="card">{e(x)}</span>' for x in cards_src)
@@ -292,7 +280,7 @@ def build_html(meta, dirname):
 {faces}
 *{{margin:0;padding:0;box-sizing:border-box}}
 html,body{{width:{WIDTH}px;height:{HEIGHT}px}}
-body{{font-family:'Thumb','NotoJP','IPAGothic',sans-serif;background:#000}}
+body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
 .frame{{
   position:relative;width:{WIDTH}px;height:{HEIGHT}px;overflow:hidden;
   background:
@@ -304,15 +292,6 @@ body{{font-family:'Thumb','NotoJP','IPAGothic',sans-serif;background:#000}}
 /* 背景の柄。日付で切り替わる(PATTERNS) */
 .pat{{position:absolute;inset:0;background:{pattern};pointer-events:none}}
 /* 斜めの光沢。ギラつきを足す */
-/* 主役文字の後ろだけ暗くする幕。
-   参考にしたサムネは、背景全体は明るいのに**パンチラインの裏だけ暗い**。
-   これがないと極太の白フチが明るい背景に溶けて、まったく飛び出さない。 */
-.scrim{{
-  position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(180deg,
-    transparent 0%, rgba(0,0,0,.18) 24%, rgba(0,0,0,.80) 44%,
-    rgba(0,0,0,.88) 76%, rgba(0,0,0,.72) 100%);
-}}
 .shine{{
   position:absolute;inset:0;pointer-events:none;
   background:
@@ -328,7 +307,7 @@ body{{font-family:'Thumb','NotoJP','IPAGothic',sans-serif;background:#000}}
 }}
 .stack{{
   position:absolute;inset:0;z-index:3;
-  padding:10px 14px 8px;display:flex;flex-direction:column;gap:4px;justify-content:center;
+  padding:14px 26px 12px;display:flex;flex-direction:column;gap:8px;justify-content:center;
   padding-right:{26 + chara_w}px;
 }}
 /* 黄色の極太フック。黒の太縁で抜く */
@@ -342,52 +321,31 @@ body{{font-family:'Thumb','NotoJP','IPAGothic',sans-serif;background:#000}}
 .cards{{display:flex;gap:10px;align-items:center;overflow:hidden}}
 .card{{
   background:#fff;color:#111;font-weight:900;font-size:{card_px}px;line-height:1;
-  padding:12px 20px;border-radius:10px;white-space:nowrap;
-  box-shadow:0 5px 0 rgba(0,0,0,.6);
+  padding:9px 16px;border-radius:8px;white-space:nowrap;
+  box-shadow:0 4px 0 rgba(0,0,0,.55);
 }}
 /* 主役。白抜き＋テーマ色の極太縁＋黒のフチ */
 .main{{
-  position:relative;font-weight:900;font-size:{main_px}px;line-height:0.98;
-  letter-spacing:-.012em;
-  word-break:auto-phrase;line-break:strict;overflow-wrap:break-word;
-}}
-/* 参考にしたサムネの文字は、外から順に
-   「暗いグロー → 極太の白フチ → 暗い内縁 → 白〜テーマ色のグラデ塗り」の4層。
-   1つの要素では作れないので、同じ文字を3枚重ねる。
-   (1枚で background-clip:text と太い text-stroke を併用すると文字が潰れる) */
-.main span{{
-  display:block;
-  word-break:auto-phrase;line-break:strict;overflow-wrap:break-word;
-  -webkit-line-clamp:{main_lines};-webkit-box-orient:vertical;
-  display:-webkit-box;overflow:hidden;
-}}
-.main .l1, .main .l2{{position:absolute;top:0;left:0;width:100%}}
-.main .l3{{position:relative}}
-/* 1枚目: 極太の白フチ＋発光＋落ち影 */
-.main .l1{{
-  color:transparent;-webkit-text-stroke:{white_px}px #fff;paint-order:stroke;
+  font-weight:900;font-size:{main_px}px;line-height:1.05;
+  /* 塗りは白。内側に暗い縁を入れ、外側に白フチ＋発光を足す。
+     background-clip:text でグラデーションにすると、太い text-stroke と
+     干渉して文字が潰れる(実測)。塗りは単色に留める。 */
+  color:#fff;
+  -webkit-text-stroke:{stroke_px}px {stroke_col};paint-order:stroke fill;
+  /* 外側に白のフチを4方向から。さらにテーマ色で発光させる */
   filter:
-    drop-shadow(0 0 18px {t['accent']})
-    drop-shadow(0 10px 0 rgba(0,0,0,.45)) drop-shadow(0 14px 8px rgba(0,0,0,.4));
+    drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff)
+    drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff)
+    drop-shadow(0 0 22px {t['accent']}) drop-shadow(0 0 44px {t['accent']})
+    drop-shadow(0 8px 2px rgba(0,0,0,.6));
+  overflow-wrap:anywhere;letter-spacing:-.01em;
+  display:-webkit-box;-webkit-line-clamp:{main_lines};-webkit-box-orient:vertical;overflow:hidden;
 }}
-/* 2枚目: 暗い内縁 */
-.main .l2{{
-  color:transparent;-webkit-text-stroke:{stroke_px}px {stroke_col};paint-order:stroke;
-}}
-/* 3枚目: 白→テーマ色のグラデーション塗り */
-.main .l3{{
-  background:linear-gradient(180deg,#ffffff 0%,#ffffff 46%,{t['accent']} 72%,{grad_dark} 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-}}
-.main .l1 em, .main .l2 em{{font-style:normal}}
-.main .l3 em{{
-  font-style:normal;
-  background:linear-gradient(180deg,#fffbe0 0%,#ffe83d 42%,#ffa800 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-}}
+.main em{{font-style:normal;color:#ffe83d}}
+/* 補足。白＋黒縁 */
+/* 補足。背景が明るいと白文字が負けるので、暗い下地を敷く */
 .sub{{
   color:#fff;font-weight:900;font-size:{sub_px}px;line-height:1.5;
-  word-break:auto-phrase;line-break:strict;overflow-wrap:break-word;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }}
 .sub b{{
@@ -395,17 +353,26 @@ body{{font-family:'Thumb','NotoJP','IPAGothic',sans-serif;background:#000}}
   padding:2px 10px;border-radius:4px;
   box-decoration-break:clone;-webkit-box-decoration-break:clone;
 }}
+.foot{{
+  position:absolute;left:26px;bottom:12px;display:flex;align-items:center;gap:12px;
+}}
+.cat{{
+  background:{t['chip']};color:#fff;font-weight:900;font-size:22px;
+  padding:6px 16px;border-radius:6px;white-space:nowrap;
+  box-shadow:0 3px 0 rgba(0,0,0,.5);
+}}
+.site{{color:#ffffffbb;font-weight:900;font-size:19px;letter-spacing:.04em;white-space:nowrap}}
 .chara{{position:absolute;right:14px;bottom:26px;width:{chara_w}px;height:auto;z-index:2}}
 </style></head><body><div class="frame">
   <div class="pat"></div>
-  <div class="scrim"></div>
   <div class="shine"></div>
   {chara}
   <div class="stack">
     {f'<div class="hook">{e(hook)}</div>' if hook else ''}
     {f'<div class="cards">{cards}</div>' if cards else ''}
-    <div class="main"><span class="l1">{main_html}</span><span class="l2">{main_html}</span><span class="l3">{main_html}</span></div>
+    <div class="main">{main_html}</div>
     {f'<div class="sub"><b>{e(sub)}</b></div>' if sub else ''}
+    <div class="foot"><span class="cat">{e(cat)}</span><span class="site">AIニュース デイリーダイジェスト</span></div>
   </div>
 </div></body></html>"""
 
