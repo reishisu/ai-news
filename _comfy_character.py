@@ -446,6 +446,29 @@ def fetch_images(url, outputs, job):
     return saved
 
 
+# つながらなかったときに、近くのポートを軽く叩いてみる先。
+# 既定の8188のほか、複数起動時の8189、--port で変えがちな番号を並べている。
+PROBE_PORTS = (8188, 8189, 8000, 8001, 8080, 8081, 8888)
+
+
+def probe_ports(host="127.0.0.1"):
+    """近くのポートに ComfyUI が居ないか探す。見つけたURLの一覧を返す。
+
+    つながらなかったときの案内に使うだけなので、失敗は全部飲み込みます。
+    ComfyUI かどうかは /system_stats が JSON を返すかで判定します。
+    """
+    hits = []
+    for port in PROBE_PORTS:
+        url = f"http://{host}:{port}"
+        try:
+            stats = api(url, "/system_stats", timeout=1)
+        except (urllib.error.HTTPError, urllib.error.URLError, OSError, ValueError):
+            continue
+        if isinstance(stats, dict) and ("system" in stats or "devices" in stats):
+            hits.append(url)
+    return hits
+
+
 def check(url, recipe_path=None):
     """つながるか、必要なモデルが入っているかを見る。"""
     print(f"接続先: {url}")
@@ -518,7 +541,7 @@ def options_of(url, node, field):
 
 
 def check_ipadapter(url):
-    """IPAdapter を使う準備ができているかを見る(顔を揃えたいとき用)。
+    r"""IPAdapter を使う準備ができているかを見る(顔を揃えたいとき用)。
 
     ノードだけ入れてもモデルが無いと動きません。両方見ます。
     サブフォルダに入れた場合、名前がパターンに合わず**見つけてもらえない**ことがあるので、
