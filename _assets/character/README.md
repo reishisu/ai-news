@@ -25,6 +25,12 @@ python3 _prepare_character.py ~/Downloads/chara_g.png クライアント技術  
 python3 _prepare_character.py --check                               # いまの状態を見るだけ
 ```
 
+このスクリプトだけ **Pillow が要ります**（`_comfy_character.py` は標準ライブラリのみ）。
+
+```bash
+python3 -m pip install pillow
+```
+
 - **背景が透過していない画像は受け付けません。** 右に四角い板が出るためです
 - 背景が単色なら `--matte` を付けると、外周から繋がった背景だけを抜きます
   （服の白や目のハイライトには穴が開きません。ただし髪の輪郭に薄く縁が残ります）

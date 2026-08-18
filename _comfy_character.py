@@ -21,6 +21,9 @@
     # 3. 候補を4枚出す(seed は 1 ずつずれる)
     python3 _comfy_character.py --batch 4
 
+    # モデルだけ一時的に変えて試す(recipe.json は書き換えない)
+    python3 _comfy_character.py --batch 2 --checkpoint waiIllustriousSDXL_v160.safetensors
+
     # 4. 気に入った1枚を選んで取り込む(透過・トリム・リサイズ)
     python3 _prepare_character.py _assets/character/_candidates/<選んだ.png> --matte
 
@@ -276,6 +279,15 @@ def main():
         return 1
     if "--seed" in argv:
         recipe["seed"] = int(opt("--seed"))
+    if "--checkpoint" in argv:
+        recipe["checkpoint"] = opt("--checkpoint")
+    if "ここに手元の" in recipe["checkpoint"]:
+        # 雛形のまま投げると ComfyUI 側で 400 になる。手前で止めて案内する。
+        print("中止: recipe.json の checkpoint が雛形のままです。", file=sys.stderr)
+        print("      次で一覧を出して、実際のファイル名に書き換えてください:", file=sys.stderr)
+        print(f"      python3 _comfy_character.py --check --url {url}", file=sys.stderr)
+        print("      一時的に試すだけなら --checkpoint で上書きできます。", file=sys.stderr)
+        return 1
     batch = int(opt("--batch", "1"))
 
     if "--workflow" in argv:

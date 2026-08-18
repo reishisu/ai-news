@@ -1,15 +1,23 @@
 {
   "_説明": "サムネイルのマスコットを ComfyUI に作らせるときの設定。ここを固定すれば同じ顔が再現できます。checkpoint は手元に入っているモデル名に書き換えてください(`python3 _comfy_character.py --check` で一覧が出ます)。",
-  "checkpoint": "ここに手元のモデルのファイル名を書く.safetensors",
-  "positive": "1girl, original character, upper body to knees, standing, facing viewer, friendly smile, short hair, hoodie, anime style, clean lineart, cel shading, soft even lighting, plain flat white background, no shadow on background, high quality, masterpiece",
-  "negative": "text, watermark, signature, logo, multiple views, cropped, extra limbs, bad hands, blurry, gradient background, busy background, scenery, lowres, jpeg artifacts",
+  "checkpoint": "animagineXL40_v4Opt.safetensors",
+  "positive": "1girl, original, solo, safe, full body, standing, looking at viewer, smile, short hair, hoodie, simple background, white background, masterpiece, high score, great score, absurdres",
+  "negative": "lowres, bad anatomy, bad hands, text, error, missing finger, extra digits, fewer digits, cropped, worst quality, low quality, low score, bad score, average score, signature, watermark, username, blurry, gradient background, scenery, multiple views",
   "width": 832,
   "height": 1216,
   "seed": 1,
   "steps": 28,
-  "cfg": 6.0,
+  "cfg": 5.0,
   "sampler": "euler_ancestral",
   "scheduler": "normal",
-  "_背景について": "背景を単色の白で平坦に出すよう指示しています。`_prepare_character.py --matte` が四隅から同じ色を塗りつぶして透過にするので、背景に模様やグラデーションが入ると綺麗に抜けません。背景除去のカスタムノード(rembg など)を入れているなら、そちらで透過PNGにしてから取り込むほうが髪の輪郭は綺麗です。",
+
+  "_設定の出どころ": "steps 28 / cfg 5 / Euler Ancestral / 832x1216 と、末尾の品質タグ(masterpiece, high score, great score, absurdres)、negative の前半は Animagine XL 4.0 の公式モデルカードの推奨値です。https://huggingface.co/cagliostrolab/animagine-xl-4.0 の『Optimal Settings』『Quality Enhancement Tags』『Recommended Negative Prompt』『Recommended Resolutions』。negative の後半3つ(gradient background, scenery, multiple views)はサムネイル用にこちらで足したものです。",
+
+  "_モデルを変えるとき": "推奨のタグや書式はモデルごとに違います(Illustrious系・NoobAI系・Pony系はそれぞれ別の品質タグを使います)。切り替えるときは、そのモデルの配布ページを見て positive/negative の末尾を差し替えてください。CLI から一時的に変えるなら --checkpoint で上書きできます。",
+
+  "_背景について": "背景を単色の白で平坦に出すよう指示しています(simple background, white background)。`_prepare_character.py --matte` が四隅から同じ色を塗りつぶして透過にするので、背景に模様やグラデーションが入ると綺麗に抜けません。背景除去のカスタムノード(rembg など)を入れているなら、そちらで透過PNGにしてから取り込むほうが髪の輪郭は綺麗です。",
+
+  "_構図について": "サムネイルの枠は 幅268px × 高さ660px と縦に細長いので、full body の立ち絵がいちばん収まります(縦に長い絵ほど大きく写ります)。バストアップだと横幅で頭打ちになり、小さく見えます。",
+
   "_権利について": "特定の作品のキャラクターを狙って出すプロンプトやLoRAは使わないこと(CLAUDE.md 第6節)。original character として自作してください。"
 }
