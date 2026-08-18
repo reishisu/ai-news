@@ -1,0 +1,14 @@
+{
+  "category": "デイリーダイジェスト",
+  "tags": [
+    "WebView",
+    "VRChat",
+    "Android",
+    "セキュリティ",
+    "公式ドキュメント"
+  ],
+  "featured": false,
+  "title": "AI-news：2026/08/17 — 週末はAI各社の動きなし、更新はWebViewとVRChatだけ",
+  "summary": "対象期間が日曜から月曜早朝のため、AI開発ツール・Web開発インフラ・技術研究・モデル業界は一次情報の更新がゼロでした。動いたのはクライアント技術だけです。Android System WebViewがv152へ切り替わり始め、直前のChrome 151系にはHigh 5件の修正。VRChat 2026.3.1はVRC_Pickupのアウトラインを戻しましたが、直すSDKが同梱されていません。",
+  "thumbnail": "images/thumb.png"
+}

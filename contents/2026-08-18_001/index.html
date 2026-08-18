@@ -1,0 +1,978 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-news：2026/08/18 — GitHub ActionsのAIレビューが見逃したスクリプトインジェクション</title>
+<meta name="description" content="Wiz Researchが、snowflakedb/snowflake-connector-netで実際に成立していたGitHub Actionsのスクリプトインジェクションを公開。GitHub公式が「推奨」と書くenv:経由のパターンがPRで壊され、AI支援セキュリティレビューは指摘しなかった。ACMのメール検証は2027年9月30日で更新終了。NVIDIAの1050億ドルの保証は、SEC 8-Kでは相手がSB Energyでの残存価値保証だった。8月18日朝までの主要ニュース。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI-news：2026/08/18 — GitHub ActionsのAIレビューが見逃したスクリプトインジェクション">
+<meta property="og:description" content="GitHub公式が推奨するenv:経由のパターンをPRが壊し、AIレビューは指摘しなかった実例。ACMメール検証の廃止スケジュール、androidx.webkitで削除されたAPI、NVIDIAの1050億ドル保証をSEC 8-Kの原文で確認。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-18_001/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-18_001/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=87fa5662">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">2026年8月18日(火)</div>
+    <h1>AI-news：2026/08/18 — GitHub ActionsのAIレビューが見逃したスクリプトインジェクション</h1>
+    <div class="range">対象期間: 8月17日(月) 5:00 〜 8月18日(火) 5:00 JST(クライアント技術は直近1週間)</div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 今日の3行まとめ</h2>
+    <ol>
+      <li>
+        <b>GitHub公式が「推奨」と書いているワークフローの書き方が、マージされたPRで壊されていた。AI支援のセキュリティレビューは指摘しなかった</b>
+        <span>Wiz Researchの報告です。対象は<code>snowflakedb/snowflake-connector-net</code>。<mark>Issueのタイトルに仕込むだけで、認証不要の第三者がGitHub Actionsのランナー上で任意コマンドを実行できました。</mark>あなたの<code>.github/workflows/</code>は、今日そのまま点検できます。</span>
+      </li>
+      <li>
+        <b>AWS Certificate Managerのメール検証が廃止される。既存証明書の更新は2027年9月30日で止まる</b>
+        <span>ALBやCloudFrontに付けている証明書が対象です。移行先はDNS検証。<mark>ACMが出すCNAMEレコードを72時間以内にDNSへ足す</mark>作業で、DNSを持っている会社と証明書を持っている会社が別なら、今日から段取りが要ります。</span>
+      </li>
+      <li>
+        <b>NVIDIAの1050億ドルは、OpenAIに直接渡る資金ではない。SEC提出書類の契約相手は貸主のSB Energy</b>
+        <span>NVIDIA自身はこの仕組みを「credit support(信用供与)」と呼んでいますが、契約(残存価値保証)の相手はSB Energyです。8-K本文に<mark>「OpenAI has agreed to reimburse and indemnify NVIDIA for any and all amounts actually paid by NVIDIA to the Lessor」</mark>とあり、NVIDIAが払った分はOpenAIが戻す契約です。ただし発動条件はOpenAIの不払い・破綻時なので、そのとき補償がどこまで実効性を持つかは書類だけでは分かりません。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#work">実務者向けのAI開発ツール(3件)</a></li>
+      <li><a href="#dev">Web開発・インフラ(4件)</a></li>
+      <li><a href="#client">クライアント技術(3件)</a></li>
+      <li><a href="#research">技術・研究(4件)</a></li>
+      <li><a href="#industry">モデル・業界(4件)</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 実務者向け ============ -->
+  <section class="section section-b" id="work">
+    <h2>🧰 実務者向けのAI開発ツール<span class="n">3件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude Consoleの旧Workbenchは昨日で終了 — 保存したプロンプト・変数・evalは新画面に引き継がれない</h3>
+      <div class="tags">
+        <span class="tag">8/17失効</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag warn">⚠ 提供終了</span>
+        <span class="tag">Claude Console</span>
+      </div>
+      <p class="lead">Workbenchは、ブラウザ上でプロンプトを試せるAnthropicの管理画面です。<mark>その旧版が2026年8月17日でアクセス終了しました。</mark>原文は「The legacy Workbench (platform.claude.com/workbench) in the Claude Console is being sunset with access ending on August 17, 2026.」</p>
+
+      <p class="lead">移行先は<code>platform.claude.com/playground</code>です。ただし同じ文の続きが本題になります。<mark>「Saved prompts, variables, and evals are not supported in the updated Workbench」</mark>——保存済みのプロンプト・変数・評価は、新しい画面では扱われません。</p>
+
+      <ul class="points">
+        <li><b>実験的なプロンプトAPIも同時に廃止。</b>原文は「The experimental prompt tools APIs for generating, improving, and templatizing prompts (<code>/v1/experimental/generate_prompt</code>, <code>/v1/experimental/improve_prompt</code>, and <code>/v1/experimental/templatize_prompt</code>) are being retired along with the Workbench on August 17, 2026.」</li>
+        <li><b>削除後は「エラーが返る」と明記されている。</b>「After removal, requests to these endpoints will return an error.」<mark>静かに無視されるのではなく落ちます。</mark>APIとは、プログラム同士が決まった形でやり取りするための窓口のことです。エンドポイントはその窓口ごとのURLを指します。これらのエンドポイントを社内ツールから叩いているなら、今日から壊れている可能性があります。</li>
+        <li><b>APIの単価やモデルの話ではありません。</b>影響範囲はConsoleの画面と、上記3本のエンドポイントだけです。通常の<code>/v1/messages</code>には関係しません。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=cursor.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Cursor</div>
+      <h3>Cursorが自前のコードホスティング「Origin」を全有料プランに配布開始 — 既定でオンなので、Enterpriseは止めるかどうかの判断が要る</h3>
+      <div class="tags">
+        <span class="tag">8/17</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag warn">⚠ 早期ベータ</span>
+        <span class="tag">Cursor</span>
+      </div>
+      <p class="lead">Cursor(Anysphere)が、リポジトリ・プルリクエスト・コード閲覧・GitHub同期を持つホスティングを出しました。リポジトリはコードを保存しておく置き場、プルリクエスト(PR)は「この変更を取り込んでください」とレビューを依頼する仕組みのことです。原文は<mark>「Origin begins rolling out today in early beta on all paid plans. We're starting with the essentials, designed for agent scale: repos, pull requests, code browsing, and GitHub sync. Agent-native features ship soon.」</mark></p>
+
+      <p class="lead">いきなりGitHubから引っ越す話ではありません。<mark>「Pull requests on synced repos sync both ways: comment in Cursor and it posts to GitHub, react or reply on GitHub and it shows up in Cursor within seconds.」</mark>——双方向に同期します。</p>
+
+      <ul class="points">
+        <li><b>配布は既定でオン。</b>原文は「Origin is rolling out in early beta to all paid plan users starting today, except enterprise orgs whose admins opt out.」<mark>Enterprise組織の管理者が明示的にopt-outしない限り、有料プランの利用者には配られます。</mark>ソースコードの置き場が増えることになるので、社内規程がある会社は判断が要ります。</li>
+        <li><b>「Agent-native features ship soon」は、まだ来ていない。</b>公式が「essentials」として挙げているのはリポジトリ・PR・コード閲覧・GitHub同期です(Vercel・Depot・Buildkiteとの連携はすでに利用可能)。<mark>エージェント前提の機能はこれからで、まだ来ていません。</mark></li>
+      </ul>
+
+      <details>
+        <summary>この項目で書いていないこと</summary>
+        <div class="body">
+          <dl>
+            <dt>買収の噂について</dt>
+            <dd>調査中に「CursorがSpaceXに買収された」という検索結果の要約を観測しましたが、<mark>cursor.comのchangelog本文に該当する記述はありませんでした。</mark>本文を確認できていないため、この記事では扱いません。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://cursor.com/changelog/origin-code-hosting">Cursor Changelog — Origin</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=ai.google.dev&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Google</div>
+      <h3>Gemini APIのImagen 4系3モデルが8月17日でシャットダウン</h3>
+      <div class="tags">
+        <span class="tag">8/17失効</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag warn">⚠ 提供終了</span>
+        <span class="tag">Gemini</span>
+      </div>
+      <p class="lead">changelogの原文はこうです。「Deprecation announcement: The following image generation models are being deprecated and will be shut down on August 17, 2026: <code>imagen-4.0-generate-001</code> / <code>imagen-4.0-ultra-generate-001</code> / <code>imagen-4.0-fast-generate-001</code>」</p>
+
+      <p class="lead">公式のdeprecationsページを別途取得して確認しました。<mark>3モデルとも推奨移行先は<code>gemini-3.1-flash-image</code>です。</mark>ページの表に「imagen-4.0-generate-001 | June 24, 2025 | August 17, 2026 | gemini-3.1-flash-image」のように、Recommended replacementの列として明記されています。</p>
+    </article>
+  </section>
+
+  <!-- ============ Web開発・インフラ ============ -->
+  <section class="section section-c" id="dev">
+    <h2>🧑‍💻 Web開発・インフラ<span class="n">4件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=wiz.io&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Wiz Research</div>
+      <h3>Issueのタイトルを書くだけでCIのランナーを乗っ取れた — 壊されたのは、GitHub公式が「推奨」と書いている書き方</h3>
+      <div class="tags">
+        <span class="tag">8/17公開</span>
+        <span class="tag ok">✓ 一次資料確認済</span>
+        <span class="tag warn">⚠ 修正済み(6/23)</span>
+        <span class="tag">GitHub Actions</span>
+        <span class="tag">セキュリティ</span>
+      </div>
+
+      <p class="lead">Wiz Researchの報告です。原文はこうです。<mark>「Wiz Red Agent identified a script injection vulnerability in snowflakedb/snowflake-connector-net. The issue allowed an unauthenticated user to execute arbitrary commands within a GitHub Actions runner by opening a GitHub issue with a specially crafted title.」</mark></p>
+
+      <p class="lead">GitHub Actionsは、リポジトリに置いたYAML(設定を書くためのファイル形式)の手順を実行するCI(継続的インテグレーション。コードの変更を自動でチェック・処理する仕組み)です。ランナーとは、その手順を実際に走らせるマシンのこと。Issueは、GitHub上で「この機能が欲しい」「ここが動かない」と報告・要望を書くためのチケットで、誰でもタイトルを自由に付けられます。<b>ログイン不要の第三者がIssueを立てるだけで、そのマシン上でコマンドが動きました。</b>混入は6月18日、発見と修正は6月23日、公開が8月17日です。</p>
+
+      <p class="lead">おもしろいのは、脆弱性が<b>入った経緯</b>のほうです。原文を引きます。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Wiz Research — 混入の経緯(原文)</div>
+<pre>The merged PR replaced the repository's
+sanitized input pattern with direct
+string expansion, yet GitHub's
+AI-assisted security review did not
+flag the resulting critical
+vulnerability.</pre>
+      </div>
+
+      <p class="lead"><mark>もともと安全だった書き方が、マージされたPRで直接展開に置き換わり、AI支援のセキュリティレビューはそれを指摘しなかった</mark>——という二重の失敗です。差分はこうなっていました。マージとは、提案された変更を本体に取り込むことです。以下の<code>-</code>で始まる行は削除された行、<code>+</code>で始まる行は追加された行を表します(この記法をdiffと呼びます)。</p>
+
+      <div class="code">
+        <div class="code-head">安全な書き方が、直接展開に置き換わった</div>
+<pre>- env:
+-   ISSUE_TITLE: ${{ github.event.issue.title }}
+- run: jq -n --arg title "$ISSUE_TITLE" ...
++ run: TITLE=$(echo '${{ github.event.issue.title }}' | sed ...)</pre>
+      </div>
+
+      <p class="lead">これはGitHub Actionsの設定ファイル(YAML形式)の一部です。<code>${{ }}</code>はGitHubが値を実際の文字列に置き換える書き方で、<code>jq</code>や<code>sed</code>はその文字列を安全に加工するためのコマンドです。<b>変更前は、Issueのタイトルを一度<code>env:</code>の中間変数に入れてから使っていました。</b>変更後は、タイトルの文字列を直接コマンドの中に埋め込んでいます。</p>
+
+      <p class="lead">一見すると<code>sed</code>で<b>エスケープ</b>(記号を無害な文字列として扱わせる処理)しているので安全に見えます。<b>順番が逆です。</b>原文は<mark>「The sed escaping runs after GitHub's template expansion, a single quote in the title breaks out of <code>echo '...'</code> and allows arbitrary command execution.」</mark></p>
+
+      <figure>
+        <picture>
+          <source srcset="images/injection-chain-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/injection-chain.png" alt="Issueのタイトルはシェルに渡る前にGitHubのテンプレート展開でYAMLへ埋め込まれるため、シェル側のsedエスケープは間に合わない。env:経由なら文字列は環境変数の値のままシェルに渡る" loading="lazy">
+        </picture>
+        <figcaption>GitHubのテンプレート展開はシェルより先に走る。だからシェル側でいくらエスケープしても、その時点でもう文字列はスクリプトの一部になっている</figcaption>
+      </figure>
+
+      <p class="lead">では正解は何か。<b>GitHub公式のドキュメントに、そのまま書いてあります。</b></p>
+
+      <div class="code wrap">
+        <div class="code-head">GitHub Docs「Security hardening for GitHub Actions」— 原文</div>
+<pre>Use an intermediate environment
+variable - For inline scripts, the
+preferred approach to handling
+untrusted input is to set the value of
+the expression to an intermediate
+environment variable.</pre>
+      </div>
+
+      <div class="code">
+        <div class="code-head">GitHub Docsが示している書き方</div>
+<pre>- name: Check PR title
+  env:
+    TITLE: ${{ github.event.pull_request.title }}
+  run: |
+    if [[ "$TITLE" =~ ^octocat ]]; then</pre>
+      </div>
+
+      <p class="lead"><mark>「実際にこう壊れた」の直後に、「公式はこう書けと言っている」が並びます。</mark>壊れたPRが消したのは、まさにこの<code>env:</code>経由のパターンでした。なお同じページは、インラインスクリプトより先に「アクションを使う」こと自体を最も推奨する方法として挙げています。<code>env:</code>経由は、インラインスクリプトを使う場合の中での推奨です。</p>
+
+      <p class="lead"><b>もう1つ、効いていなかったガードがあります。</b>同じワークフローには実行を絞るための<code>if:</code>が付いていました。<mark>書いてあるのに、常にtrueでした。</mark>読んでみてください。</p>
+
+      <div class="code wrap">
+        <div class="code-head">効いていなかった <code>if:</code> の条件</div>
+<pre>if: (github.event_name == 'issues' &amp;&amp; github.event.pull_request.user.login != 'whitesource-for-github-com[bot]')</pre>
+      </div>
+
+      <div class="quiz">
+        <p class="q">Q. この<code>if:</code>は「特定のbot以外を弾く」ガードに見える。issuesイベントで実際にはどうなる?</p>
+        <button class="opt" type="button" data-correct="false">botのログイン名と一致しないユーザーは弾かれる</button>
+        <button class="opt" type="button" data-correct="false">botだけが通り、人間のユーザーは弾かれる</button>
+        <button class="opt" type="button" data-correct="true">全員通る。参照しているフィールドが存在しないので、条件が常にtrueになる</button>
+        <p class="ans" hidden>正解。Wiz Researchの原文はこうです。「on issues events, <code>github.event.pull_request</code> is always null. So the condition reduces to <code>(null != 'whitesource-for-github-com[bot]')</code>. This is always true, and every GitHub user passes the gate.」ペイロードとは、そのイベントが運んでくるデータの中身のことです。<b>issuesイベントのペイロードに<code>pull_request</code>は入っていません。</b>存在しないフィールドを<code>!=</code>で比較しているので、条件は必ず成立します。「<code>if:</code>が書いてある＝絞られている」と読むと外します。読むべきは、そのイベントのペイロードにそのフィールドが実在するかどうかです。</p>
+      </div>
+
+      <p class="lead">今日のうちに終わる点検はこの3つです。<span class="cl-count">0 / 3</span></p>
+      <ul class="checklist" data-key="gha-injection-2026-08-18">
+        <li><label><input type="checkbox"><span><code>.github/workflows/</code>を検索し、<code>${{ github.event.</code>が<code>run:</code>の中に直接書かれている箇所を洗い出した</span></label></li>
+        <li><label><input type="checkbox"><span>その箇所を<code>env:</code>の中間環境変数に置き換えた(GitHub Docsの推奨パターン)</span></label></li>
+        <li><label><input type="checkbox"><span><code>if:</code>のガードが参照しているフィールドが、そのイベントのペイロードに実在するか確認した</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 「AIが直したから安全」を前提にしない状態になりました</div>
+
+      <details>
+        <summary>この記事が言っていないこと</summary>
+        <div class="body">
+          <dl>
+            <dt>誰がそのPRを書いたか</dt>
+            <dd>Wiz Researchの本文には<mark>「The final squash commit credits "Copilot Autofix powered by AI" as a co-author.」</mark>という記載があり、<b>「an AI "autofix" commit created the very injection vector」</b>とも書かれています。一方で、Wiz自身が2026年8月17日19:57 UTCに追記した更新注記には<mark>「It's unclear whether the code-change was AI-assisted」</mark>ともあります。<b>共著者としての表示と、Wiz自身による「不明」という留保が両方存在する</b>ため、本記事の見出しは「AIレビューが見逃した」という確実な部分に絞り、「AIが書いた」と断定はしていません。</dd>
+            <dt>再現はしていません</dt>
+            <dd>本サイトの環境で、この脆弱性を再現する検証は行っていません。<b>すでに修正済み(2026年6月23日)のため、実行する意味も理由もありません。</b>記載はすべてWiz Researchの本文とGitHub公式ドキュメントの本文からの引用です。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://www.wiz.io/blog/red-agent-snowflake-copilot-cicd-bug">Wiz Research</a> / <a href="https://docs.github.com/en/actions/reference/security/secure-use">GitHub Docs — Secure use reference</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=aws.amazon.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">AWS</div>
+      <h3>ACMのメール検証が廃止される — 既存証明書の更新が止まるのは2027年9月30日</h3>
+      <div class="tags">
+        <span class="tag">8/13公開 / 8/17再掲</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag warn">⚠ 提供終了</span>
+        <span class="tag">ACM</span>
+        <span class="tag">CloudFront / ALB</span>
+      </div>
+
+      <p class="lead">ACM(AWS Certificate Manager)は、HTTPSの証明書を無料で発行・自動更新してくれるAWSのサービスです。ALB(Application Load Balancer、アクセスを複数のサーバーに振り分ける仕組み)やCloudFront(AWSのCDN)に付けている証明書は、たいていこれです。発行するとき、そのドメインが自分のものだと証明する方法が2つあります。<b>メール検証とDNS検証。</b>前者が廃止されます。</p>
+
+      <p class="lead">原文はこうです。<mark>「AWS Certificate Manager (ACM) will discontinue support for email-validated public certificates by September 30, 2027. If you use email validation for your ACM public certificates, you need to migrate to DNS validation before that date.」</mark></p>
+
+      <figure>
+        <picture>
+          <source srcset="images/acm-timeline-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/acm-timeline.png" alt="2027年1月1日に新リージョンで提供終了、3月31日に全リージョンで新規発行終了、9月30日に既存証明書の更新終了、2028年3月15日にCA/B Forum全体で発行・更新不可という4つの期日" loading="lazy">
+        </picture>
+        <figcaption>効いてくるのは3番目。既存証明書の「更新」が止まると、有効期限が来た時点でHTTPSが切れる</figcaption>
+      </figure>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>期日</th><th>何が終わるか</th></tr></thead>
+          <tbody>
+            <tr><td>2027年1月1日</td><td data-label="何が終わるか">新しいAWSリージョンで、メール検証の新規提供を終了</td></tr>
+            <tr><td>2027年3月31日</td><td data-label="何が終わるか">全リージョンで、新規証明書へのメール検証提供を終了</td></tr>
+            <tr><td>2027年9月30日</td><td data-label="何が終わるか">メール検証を使う既存証明書の<b>更新</b>を終了</td></tr>
+            <tr><td>2028年3月15日</td><td data-label="何が終わるか">CA/B Forum全体でメール検証による発行・更新が不可(発行済みは有効期限まで有効)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">最後の1行はAWSの都合ではありません。CA/B Forumは、認証局とブラウザベンダーが証明書の運用ルールを決めている業界団体です。原文は<mark>「In November 2025, they voted to end support for email-based domain validation effective March 15, 2028.」</mark>——業界全体の決定なので、AWS以外に移しても同じ話になります。</p>
+
+      <p class="lead">移行手順そのものは短いです。ただし<b>時間制限があります。</b></p>
+
+      <div class="code wrap">
+        <div class="code-head">AWS Security Blog — 移行手順(原文)</div>
+<pre>When you update a certificate to DNS
+validation, ACM provides a CNAME record
+to add to your DNS configuration, and
+you have 72 hours to add that record.
+During this window, the certificate
+continues to function normally on email
+validation.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>72時間の壁は、会社をまたぐと現実的な制約になる。</b>DNSは、ドメイン名とサーバーの場所を対応させる仕組みです。そのドメインの設定(ゾーン)を管理する場所を「DNSのゾーン」、そこに追加する1件の設定を「レコード」、AWSが要求する形式のレコードを「CNAMEレコード」と呼びます。ACMを触るのはインフラ担当の会社、DNSのゾーンを持っているのは別の会社(あるいは自社の情シス)、というのはよくある構成です。<mark>「CNAMEを1本足してください」を72時間以内に通せる連絡経路があるか</mark>を、期日ではなく今日確認しておくのが安全です(これは筆者の運用上の意見です)。</li>
+        <li><b>切り替え中もHTTPSは切れない。</b>原文に「During this window, the certificate continues to function normally on email validation.」とあります。CNAMEを足すまでの間、メール検証のまま動き続けます。ダウンタイムを心配して先延ばしする理由にはなりません。</li>
+        <li><b>DNS検証は自動更新される。</b>そもそもメール検証は、更新のたびにドメイン連絡先のメールを人間が開いて承認する必要がありました。DNS検証にすればその作業が消えます。<mark>廃止は、実質的に「手作業をやめろ」という話です。</mark></li>
+      </ul>
+
+      <details>
+        <summary>この項目で実行していないこと</summary>
+        <div class="body">
+          <dl>
+            <dt>AWS上での確認はしていません</dt>
+            <dd>本サイトの環境には<mark>AWSの認証情報がなく、ACMのAPIを呼べません。</mark>証明書の作成・更新・DNS検証への切り替えは一切行っていません。上記はすべてAWS Security Blogの本文からの引用です。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://aws.amazon.com/blogs/security/aws-certificate-manager-will-discontinue-email-validation-to-prove-domain-validation-for-certificates/">AWS Security Blog</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=aws.amazon.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">AWS</div>
+      <h3>AWSのサインイン画面が段階的に変わる — 原則対応不要、画面を操作して自動ログインさせている人だけ点検</h3>
+      <div class="tags">
+        <span class="tag">8/17</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">AWS</span>
+        <span class="tag">段階展開</span>
+      </div>
+      <p class="lead">原文は「Amazon Web Services (AWS) is gradually introducing updates to the AWS Sign-In and sign-up experience to a limited number of customers.」<mark>一部の顧客に段階的に、と書かれているだけで、完了期日はありません。</mark></p>
+
+      <ul class="points">
+        <li><b>点検が要るのは1つの条件だけ。</b>原文は「If your organization relies on the current sign-in interface for browser automation or scripted workflows, review these updates to understand how they might affect your configuration.」<mark>サインイン画面をブラウザ自動化やスクリプトで叩いているなら影響しうる</mark>、という話です。画面の部品の並び(DOM)が変われば、その部品を名前や位置(セレクタ)で拾って自動入力するスクリプトは壊れます。</li>
+        <li><b>IAM Identity Centerやフェデレーションを使っているなら、何も変わらない。</b>IAM Identity Centerは複数のAWSアカウントへのログインを1か所にまとめる仕組み、フェデレーションは社内の認証基盤(社員IDなど)でAWSにログインする仕組みです。原文は「If your organization uses AWS IAM Identity Center or IAM federation to access AWS, continue signing in through your organization's access portal or federation URL. Your existing sign-in process doesn't change.」</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=docker.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Docker</div>
+      <h3>Docker Hardened Imagesが「イメージの中のパッケージ」まで対象を広げた — 無料化の話とは別件</h3>
+      <div class="tags">
+        <span class="tag">8/17 13:00 UTC</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">Docker</span>
+        <span class="tag">Enterprise限定</span>
+      </div>
+      <p class="lead">DHI(Docker Hardened Images)は、脆弱性を減らす方向で作り直されたベースイメージ群です。ベースイメージとは、コンテナを組み立てるときの土台になるイメージのこと。今回の変更は<mark>その土台の「中に入っているパッケージ」まで対象を広げた</mark>という話です。</p>
+
+      <p class="lead">原文はこうです。「Docker Hardened System Packages take hardening below the image, to the packages inside it, across both Alpine and Debian... DHI Enterprise customers can point <code>apt</code> or <code>apk</code> directly at Docker's hardened package repository」</p>
+
+      <ul class="points">
+        <li><b>「全カタログが無料になった」と混同しないこと。</b>この記事は無料提供に現在形で言及していますが、<mark>DHIのイメージが無料・オープンソースで公開されたのは2025年12月17日のプレスリリース(「Docker Makes Hardened Images Free Open and Transparent for Everyone」)が発表元で、今日の新情報ではありません。</mark>8月17日に新しくなったのは「パッケージ層まで対象拡大」の部分だけです。</li>
+        <li><b>パッケージリポジトリの利用はEnterprise顧客向け。</b>原文が「DHI Enterprise customers can point <code>apt</code> or <code>apk</code>...」と限定しています。無料枠で<code>apt</code>の向き先を変えられる、という話ではありません。</li>
+        <li><b>EU域内ホスティングは9月。</b>「For organizations whose data-residency requirements keep images inside the EU, EU-hosted customizations arrive in September.」日本の読者には直接関係しませんが、データの置き場所に条件がある案件では材料になります。</li>
+      </ul>
+
+      <details>
+        <summary>この項目で実行していないこと</summary>
+        <div class="body">
+          <dl>
+            <dt>コンテナを動かしていません</dt>
+            <dd>本サイトの環境にはDocker CLIはありますが<mark>デーモンが動いておらず、<code>docker build</code>も<code>docker run</code>もできません。</mark>DHIのイメージを引いて中身を確認する、といった検証は一切行っていません。記載はすべてDocker公式ブログの本文からの引用です。</dd>
+            <dt>出典</dt>
+            <dd><a href="https://www.docker.com/blog/make-zero-cves-your-new-default/">Docker Blog</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <p class="none">Laravel / TiDB / Terraformは特筆すべき動きなし(いずれも直近のリリースは対象期間より前)</p>
+  </section>
+
+  <!-- ============ クライアント技術 ============ -->
+  <section class="section section-a" id="client">
+    <h2>📱 クライアント技術<span class="n">3件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=developer.android.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Android</div>
+      <h3>androidx.webkit 1.17.0で<code>Profile#setOriginMatchedHeader</code>が削除された — 追加ヘッダーを付けているアプリはコード修正が要る</h3>
+      <div class="tags">
+        <span class="tag">8/12(直近1週間)</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag warn">⚠ API削除</span>
+        <span class="tag">WebView</span>
+        <span class="tag">Android</span>
+      </div>
+      <p class="lead"><a href="../2026-08-15_001/">8月15日のダイジェスト</a>で、1.17.0の<code>WebViewCompat#navigate()</code>とlintルールを扱いました。<mark>今日足すのは「消えたAPI」のほうです。</mark>追加されたものは無視できますが、削除されたものは無視するとビルドが通りません。</p>
+
+      <p class="lead">原文はこうです。<mark>「Removed experimental <code>Profile#setOriginMatchedHeader</code> (superseded by <code>Profile#addCustomHeader</code> in 1.15.0).」</mark>実験的APIなので予告なく消える枠ではありますが、移行先は同じリリースノートに書かれています。1.15.0で入った<code>Profile#addCustomHeader</code>です。</p>
+
+      <ul class="points">
+        <li><b>これは会社をまたぐ話に直結します。</b>ヘッダーとは、通信のやり取りに添える付加情報のことです。WebView内のページからサーバー側のAPIを叩くとき、認証トークンやテナント識別子をリクエストヘッダーで足す構成はよくあります。<mark>そのヘッダーを`Profile#setOriginMatchedHeader`で付けているアプリは、1.17.0に上げた瞬間にビルドが落ちます。</mark>気づかずに放置できる変更ではなく、今のうちに`Profile#addCustomHeader`へ移しておく必要があります。サーバー側(別会社)にとっては「クライアントが更新を止めている」理由の1つとして知っておく価値があります。</li>
+        <li><b><code>navigate()</code>が潰した問題も、ヘッダーの話です。</b>原文は「Introduces a modern replacement for <code>WebView#loadUrl</code>. Key capabilities include replacing history entries, returning a trackable <code>Navigation</code> object, and <b>consistent header persistence during state save/restore</b>.」<mark>状態の保存・復元をまたいでもヘッダーが維持される</mark>と明記されています。<code>loadUrl(url, extraHeaders)</code>で付けたヘッダーが復元後に消える、という挙動への対処です。</li>
+        <li><b><code>SpeculativeLoadingParameters</code>が非推奨に。</b>「Deprecated <code>SpeculativeLoadingParameters</code> in favor of <code>PrerenderParameters</code> / <code>PrefetchParameters</code>」。先読みの設定を分離した形です。今すぐ壊れはしませんが、次に触るときに直す対象です。</li>
+        <li><b>lintルールは「新しく警告が出る」タイプの変更。</b>「Adds an AndroidX lint check that flags missing <code>onRenderProcessGone</code> implementations when a custom <code>WebViewClient</code> is attached」。<mark>既存プロジェクトのビルドで、コードを1行も変えていないのに警告が増えます。</mark></li>
+      </ul>
+
+      <details>
+        <summary>実機での確認はしていません</summary>
+        <div class="body">
+          <dl>
+            <dt>注意</dt>
+            <dd>本サイトの環境にAndroid端末もAndroid SDKもありません。<b>ライブラリを上げてビルドが落ちることを確かめたわけではなく、記載はすべてandroidx.webkitの公式リリースノート本文からの引用です。</b></dd>
+            <dt>出典</dt>
+            <dd><a href="https://developer.android.com/jetpack/androidx/releases/webkit">androidx.webkit リリースノート(公式)</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=developer.chrome.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Chrome</div>
+      <h3>ブラウザ側のXSLTがChrome 158で消える — 登録すればChrome 175まで、約9か月だけ延ばせる</h3>
+      <div class="tags">
+        <span class="tag">8/12(直近1週間)</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag warn">⚠ 提供終了</span>
+        <span class="tag">Chrome 152</span>
+      </div>
+      <p class="lead">XSLTは、XMLを別の形式(HTMLなど)に変換するための言語です。ブラウザがその変換を実行する仕組み(client-side XSLT)が、Chromeから消えます。RSSやサイトマップのXMLに<code>xml-stylesheet</code>を付けて、ブラウザ上で見やすく整形している構成が直撃します。</p>
+
+      <p class="lead">原文はこうです。<mark>「Chrome has deprecated client-side XSLT, and is getting close to removing it from the browser, in Chrome 158. A deprecation (origin) trial has been set up to allow sites to extend the migration time away from XSLT by about nine months, to Chrome 175.」</mark></p>
+
+      <ul class="points">
+        <li><b>削除はChrome 158。</b>Chrome 152のベータ告知に書かれた予定です。日付ではなくバージョン番号で示されている点に注意してください。</li>
+        <li><b>オリジントライアルに登録すれば、Chrome 175まで延命できる。</b>オリジントライアルは、特定のサイトだけ機能の有効・無効を切り替えられるGoogleの仕組みです。<mark>公式が示している猶予は「約9か月」。</mark>それ以上は伸びません。</li>
+        <li><b>移行先は「サーバー側で変換する」こと。</b>ブラウザに変換させるのをやめて、配る前にHTMLへ変換しておく形になります。<mark>ただし具体的な移行手順は、今回Chrome公式の該当ページ以外を取得していないため、この記事では書きません。</mark></li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=developer.chrome.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Chrome</div>
+      <h3>Connection AllowlistsはChrome 152のベータ告知本文にも載っていた — 昨日の「Proposedのまま」から一歩進んだ</h3>
+      <div class="tags">
+        <span class="tag">8/12(直近1週間)</span>
+        <span class="tag ok">✓ 公式確認済</span>
+        <span class="tag">Connection Allowlists</span>
+        <span class="tag">WebView</span>
+      </div>
+      <p class="lead"><a href="../2026-08-17_001/">昨日のダイジェスト</a>では、Chrome StatusのエントリでConnection Allowlistsが<b>「Proposed」「<code>is_released</code>は<code>false</code>」</b>だったため、「152に必ず載ると確定したわけではない」と書きました。<mark>Chrome 152のベータ告知本文にも記載を確認できたので、続報として足します。</mark></p>
+
+      <div class="code wrap">
+        <div class="code-head">Chrome 152 beta — Connection Allowlists(原文)</div>
+<pre>Connection Allowlists provides explicit
+control over external endpoints by
+restricting connections initiated
+through the Fetch API or other web
+platform APIs from a document or
+worker. Servers distribute an
+authorized endpoint list through an
+HTTP response header.</pre>
+      </div>
+
+      <p class="lead">要約すると、<mark>サーバーがレスポンスヘッダーで「接続してよい相手先の一覧」を配り、ブラウザがそれ以外への接続(<code>fetch()</code>など)を止める仕組みです。</mark>Fetch APIは、ページの中からJavaScriptで別のURLにアクセスするための標準の仕組みのことです。</p>
+
+      <ul class="points">
+        <li><b>WebViewも同じ152で対象。</b>Chrome StatusのAPIを直接叩いて確認しました。<code>"desktop": 152, "android": 152, "webview": 152</code>。<mark>Android System WebViewに入るということは、アプリ側では止められません。</mark></li>
+        <li><b>Chrome for Android 152は8月12日から一部ユーザーへ。</b>原文は「We've just released Chrome 152 (152.0.7977.42) for Android to a small percentage of users.」<b>まだ全端末には来ていません。</b></li>
+        <li><b>効いてくる構図は昨日と同じです。</b>ヘッダーを付けるのはサーバー側(別会社)、落ちるのはクライアント側の<code>fetch()</code>。CORSとは判定の層が違うので、CORSの設定を直しても通りません。詳しくは<a href="../2026-08-17_001/">昨日の記事</a>に書いています。</li>
+      </ul>
+    </article>
+
+    <p class="none">Unity Webは特筆すべき動きなし(6000.5.8f1・6000.6.0b8ともWeb/WebGLの新規項目ゼロ)</p>
+    <p class="none">VRChat 2026.3.1(Build 1885)は<a href="../2026-08-17_001/">8月17日のダイジェスト</a>で扱ったため、この号では繰り返しません</p>
+  </section>
+
+  <!-- ============ 技術・研究 ============ -->
+  <section class="section section-c" id="research">
+    <h2>🔬 技術・研究<span class="n">4件</span></h2>
+
+    <p class="lead">arXivは週末の投稿がゼロのため、<mark>この号で扱えるのは実質8月13〜14日投稿分が最新</mark>です。日付が数日前なのはそのためです。</p>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">arXiv</div>
+      <h3>Skillを100個入れると、正しく選ばれる割合が3.3%まで落ちる — Skillは知識を注ぐ道具ではなく、手順を固定する錨だった</h3>
+      <div class="tags">
+        <span class="tag">8/14</span>
+        <span class="tag warn">⚠ 査読前(プレプリント)</span>
+        <span class="tag warn">⚠ 要旨のみ確認</span>
+        <span class="tag">エージェント設計</span>
+      </div>
+      <p class="lead">Agent Skillは、エージェントに手順書を渡して振る舞いを揃える仕組みです。「知識を足すため」に使っている人が多いはずですが、<mark>この論文は「そうではない」と数字で言っています。</mark></p>
+
+      <p class="lead">要旨の原文です。<mark>「Procedural anchoring accounts for 65.7% of skill cases, versus 4.5% for explicit knowledge injection, showing that skills stabilize action rather than inject missing facts.」</mark>——手順を固定する働きが65.7%、知識の明示的な注入は4.5%。Skillは行動を安定させるものであって、足りない事実を注ぐものではない、という主張です。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/skill-pool-precision-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/skill-pool-precision.png" alt="Skillのプールが5個から100個に増えると、実際に使われたSkillの精度が29.6%から3.3%まで低下する" loading="lazy">
+        </picture>
+        <figcaption>Skillを増やすほど、正しいSkillが選ばれなくなる。5個で29.6%、100個で3.3%</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>選択の精度は増やすほど落ちる。</b>原文は「as pools grow from 5 to 100, actual-use precision falls from 29.6% to 3.3%.」<mark>Skillの数を20倍にすると、選択の精度が約9分の1になります。</mark>「便利そうだから全部入れておく」は、正しいSkillが選ばれる確率を確実に下げます。</li>
+        <li><b>ただし、タスクの成功率自体は落ちていないと論文は書いています。</b>要旨には「Confusable distractors impair offline identification, yet downstream success remains stable」ともあります。<mark>選択精度は落ちても、最終的にタスクをこなせるかどうかは安定している、という意味です。</mark>「Skillを増やすと性能が落ちる」と単純化しないほうが正確です。</li>
+        <li><b>5個の時点で29.6%しかない、という点も見落とさないこと。</b>プールが小さくても、正しいSkillが選ばれるのは3回に1回以下です。「Skillを置いたから使われるはず」という前提は、この数字とは合いません。</li>
+        <li><b>数値は著者の自己申告です。</b>査読前のプレプリントで、本サイトは<mark>要旨のみを確認しており、全文は取得していません。</mark>再現もしていません。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">arXiv</div>
+      <h3>自己改善するエージェントは「たまたま成功した危険な手順」をSkillとして保存し、次のセッションで再利用する</h3>
+      <div class="tags">
+        <span class="tag">8/13</span>
+        <span class="tag warn">⚠ 査読前(プレプリント)</span>
+        <span class="tag warn">⚠ 要旨のみ確認</span>
+        <span class="tag">セキュリティ</span>
+        <span class="tag">エージェント設計</span>
+      </div>
+      <p class="lead">上の論文と対で読む価値があります。要旨の一文がこうです。<mark>「An unsafe success can thereby become reusable policy after its triggering input disappears.」</mark>——危険な成功が、それを引き起こした入力が消えたあとに、再利用可能な方針になってしまう。</p>
+
+      <p class="lead">つまり<b>攻撃の痕跡は残らないのに、攻撃の成果だけがSkillやメモリとして残る</b>という構図です。次のセッションでは、もう悪意ある入力は要りません。</p>
+
+      <ul class="points">
+        <li><b>21構成すべてで危険な成果物が作られた。</b>原文は「Across 25 agent-method configurations, each covering 525 tasks in 25 episodes, all 21 evolved configurations author unsafe artifacts, while only fifteen lead to fresh-session harm.」<mark>自己改善する21構成は全部が危険な成果物を書き出し、そのうち15構成では新しいセッションでも実害が出た</mark>と読めます。</li>
+        <li><b>悪性タスクが3件混ざるだけで、持ち越しの成功率が倍以上に。</b>原文は「In the exposure sweep, three malicious tasks raise carryover ASR from 16.0% to 35.3%.」ASRは攻撃成功率(attack success rate)のことです。<mark>16.0%から35.3%。</mark>大量に汚染される必要はありません。</li>
+        <li><b>論文自身が対策(SafeEvolve)を提案しています。</b>要旨には「a wrapper that repairs unsafe content and governs subsequent reuse」とあり、<mark>不安全な内容を書き込み時に修復し、その後の再利用も管理する</mark>という2段構えの仕組みです。「不安全な取得を26.7ポイント、新セッションでの実害を17.3ポイント削減し、通常時の有用性の低下は0.4ポイントに留まる」とも報告されています。</li>
+        <li><b>数値は著者の自己申告です。</b>査読前のプレプリントで、本サイトは要旨のみを確認しており、全文は取得していません。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=huggingface.co&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">DeepSeek</div>
+      <h3>DeepSeek-V4-Pro-0813がMITライセンスで正式公開 — ただしチャットテンプレートが同梱されていない</h3>
+      <div class="tags">
+        <span class="tag">8/13</span>
+        <span class="tag ok">✓ モデルカード確認済</span>
+        <span class="tag">オープンウェイト</span>
+        <span class="tag">DeepSeek</span>
+      </div>
+      <p class="lead">プレビュー版を置き換える正式リリースです。原文は「DeepSeek-V4-Pro-0813 is the official release of DeepSeek-V4-Pro, superseding the preview version, with greatly enhanced agentic capabilities」。「オープンウェイト」とは、モデルの中身である重み(パラメータの数値)そのものをダウンロードできる形で公開することです。ライセンスは<mark>「This repository and the model weights are licensed under the MIT License.」</mark>——重みまでMITです。</p>
+
+      <p class="lead">先に運用上の落とし穴を書きます。モデルカードにこの1行があります。<mark>「This release does not include a Jinja-format chat template.」</mark></p>
+
+      <p class="lead">チャットテンプレートは、会話の履歴をモデルが読める1本のテキストに組み立てる型のことです。<b>これが無いと、一般的な推論サーバーの標準的な読み込み方では、すぐには会話形式で使えません。</b>ただしDeepSeekは代替手段を用意しています。原文は<mark>「Instead, we provide a dedicated <code>encoding</code> folder with Python scripts and test cases demonstrating how to encode messages in OpenAI-compatible format into input strings for the model, and how to parse the model's text output.」</mark>——OpenAI互換形式のメッセージをモデル用の入力文字列に変換し、出力を解析するためのPythonスクリプトとテストケースが、専用の<code>encoding</code>フォルダに同梱されています。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>ベンチマーク</th><th>プレビュー版</th><th>0813(正式版)</th></tr></thead>
+          <tbody>
+            <tr><td>Terminal Bench 2.1</td><td data-label="プレビュー版">72.1</td><td data-label="0813(正式版)">87.9</td></tr>
+            <tr><td>DeepSWE</td><td data-label="プレビュー版">12.8</td><td data-label="0813(正式版)">62.7</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead"><mark>この数値はすべてDeepSeek自身がモデルカードに載せた自己申告値です。</mark>本サイトは再現していません。特にDeepSWEの12.8→62.7という動き方は、プレビュー版側に何らかの実装上の問題があった可能性も考えられますが、<b>モデルカードにその説明は書かれていないため、理由は書きません。</b></p>
+
+      <p class="lead">なお、DeepSeekのAPI料金が改定された件は<a href="../2026-08-16_001/">8月16日のダイジェスト</a>で扱っています。<b>今回はオープンウェイト側の話で、API料金とは別です。</b></p>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">arXiv</div>
+      <h3>SWE-Bench ProMax — 7言語170件のリファクタリング課題で、最良モデルでも41.2%。「6割が欠陥テスト」は先行監査からの引用</h3>
+      <div class="tags">
+        <span class="tag">8/10(やや古い)</span>
+        <span class="tag warn">⚠ 査読前(プレプリント)</span>
+        <span class="tag warn">⚠ 要旨のみ確認</span>
+        <span class="tag">テスト</span>
+      </div>
+      <p class="lead">SWE-benchは、GitHubの実際のIssueをモデルに直させて正解率を測るベンチマークです。モデルの「コードが書ける度合い」の指標としてよく引用されます。<mark>SWE-Bench ProMaxは、その引用のしかたに冷や水をかける事実を要旨の冒頭で紹介したうえで、自分たちの新しいベンチマークを提案しています。</mark></p>
+
+      <ul class="points">
+        <li><b>「6割近くが欠陥テスト」は、この論文自身の監査結果ではありません。</b>要旨は「a recent audit found that nearly 60% of unsolved SWE-bench Verified instances contain flawed tests」と、<mark>先行する別の監査結果を背景として引用しています。</mark>ProMax自身の貢献は、この問題を踏まえた新しいベンチマークの提案です。</li>
+        <li><b>ProMax自身の貢献は、7言語・170件のリファクタリング課題。</b>実際のコミットから集めた、Python・Java・TypeScript・Go・C・C++・Rustにまたがるコードリファクタリングのベンチマークです。<mark>そのうえで、最良モデルでも41.2%しか解けなかった</mark>と報告されています。</li>
+        <li><b>ベンチマークのスコアは、問題の作り方で大きく動きます。</b>異なるベンチマークのスコアを横に並べて比べるのは、そもそも成立しません。SWE-bench Verifiedの数字とProMaxの41.2%を単純比較しないでください。</li>
+        <li><b>日付が対象期間より前です。</b>2026年8月10日の投稿で、この号の対象期間(8月17〜18日)には入りません。arXivが週末投稿ゼロで材料が薄いため、上の3件と関連する話として拾いました。<mark>数値は著者の自己申告で、本サイトは要旨のみを確認しており、全文は取得していません。</mark></li>
+      </ul>
+    </article>
+
+    <p class="none">Anthropicのテキスト透かし(SynthID-Text方式)は<a href="../2026-08-16_001/">8月16日のダイジェスト</a>で扱ったため、この号では繰り返しません</p>
+  </section>
+
+  <!-- ============ モデル・業界 ============ -->
+  <section class="section section-a" id="industry">
+    <h2>🏢 モデル・業界<span class="n">4件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=sec.gov&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">SEC EDGAR</div>
+      <h3>NVIDIAの1050億ドルは、OpenAIへの直接融資ではなく貸主への保証だった — 払った分はOpenAIが戻す契約だが、発動条件はOpenAIの不払い時</h3>
+      <div class="tags">
+        <span class="tag">8/17</span>
+        <span class="tag ok">✓ SEC提出書類で確認</span>
+        <span class="tag">データセンター</span>
+        <span class="tag">OpenAI / NVIDIA</span>
+      </div>
+
+      <p class="lead">NVIDIAが8月17日にSECへ提出した8-K(重要事象の臨時報告書)を、EDGARから直接取って読みました。<mark>「NVIDIAがOpenAIに資金を出す」という見出しの印象と、書類に書かれた契約の相手・仕組みが噛み合いません。</mark>まず原文です。</p>
+
+      <div class="code wrap">
+        <div class="code-head">NVIDIA 8-K(2026年8月17日) — 契約の相手と対象</div>
+<pre>On August 17, 2026, NVIDIA entered into
+multiple residual value guaranties
+(collectively, the "Agreements") with
+SB Energy (the "Lessor") relating to
+leases for approximately 4.25 gigawatts
+of IT load in the aggregate at the
+Portsmouth Site.</pre>
+      </div>
+
+      <p class="lead">残存価値保証とは、リース期間が終わったときに資産の価値が想定を下回った場合、その差額を埋める約束のことです。<mark>契約の相手は貸主(Lessor)であるSB Energy。OpenAIと直接結んだ契約ではありません。</mark>金額の上限も書かれています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">上限額と、条件が満たされ始める時期</div>
+<pre>NVIDIA's aggregate payment obligation
+is cumulatively capped at $105 billion
+for its initial commitment under the
+Agreements. ... expected beginning in
+2028.</pre>
+      </div>
+
+      <p class="lead">この「2028年」は<mark>NVIDIAの支払いが始まる時期ではありません。</mark>原文は支払い義務が「貸主がリース対象物件のready-for-service条件を満たしたこと」を前提にすると書いたうえで、その条件が満たされ始めるのが2028年だとしています。支払い自体がいつ発生するかは、この条件が満たされるかどうか次第です。</p>
+
+      <p class="lead">保証が実際に発動する条件も原文に書かれています。<mark>「in the event of (i) OpenAI's insolvency resulting in a default under a lease, or (ii) OpenAI's failure to make payments under a lease」</mark>——NVIDIAが貸主に払うのは、OpenAIがリースの支払いを怠るか、破綻したときだけです。</p>
+
+      <div class="quiz">
+        <p class="q">Q. この1050億ドルの保証で、最終的に負担を負う可能性が高いのはどこ?</p>
+        <button class="opt" type="button" data-correct="false">NVIDIA。上限1050億ドルまで支払う義務を負っているから</button>
+        <button class="opt" type="button" data-correct="false">SB Energy。データセンターを建てて所有する側がリスクを持つから</button>
+        <button class="opt" type="button" data-correct="true">条件次第。契約上はOpenAIが全額補償するが、その条件はOpenAI自身の不払い・破綻</button>
+        <p class="ans" hidden>正解。8-Kにこの一文があります。<b>「OpenAI has agreed to reimburse and indemnify NVIDIA for any and all amounts actually paid by NVIDIA to the Lessor under the Agreements.」</b>NVIDIAが貸主に払った額は、契約上はOpenAIが戻します。<mark>ただしNVIDIAが実際に払うのは、OpenAIがリースの支払いを怠るか破綻したときだけです。</mark>その状況で「全額補償」がどこまで機能するかは、この書類だけでは判断できません。NVIDIA自身はこの仕組みを「credit support(信用供与)」と呼んでおり、性質としては信用の提供です。「NVIDIAがOpenAIに直接1050億ドルを渡す」わけではない、という違いだけは書類から確実に言えます。</p>
+      </div>
+
+      <figure>
+        <picture>
+          <source srcset="images/nvidia-openai-flow-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/nvidia-openai-flow.png" alt="NVIDIAは貸主SB Energyに残存価値保証を出し、SB Energyは20年リースでOpenAIにデータセンターを貸す。NVIDIAが払った額はOpenAIが全額補償する" loading="lazy">
+        </picture>
+        <figcaption>保証はNVIDIA→貸主SB Energy。NVIDIAが払った分はOpenAIが戻す。3者が輪になっている</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>NVIDIAの出資額は15億ドル。</b>8-Kに添付されたNVIDIA自身のプレスリリース(Exhibit 99.1)に「NVIDIA to invest $1.5B in SB Energy now」とあります。保証の上限額(1050億ドル)とは桁が2つ違う、別の話です。</li>
+        <li><b>建てて持って運営するのはSB Energy。</b>「SB Energy will build, own and operate the data center under a 20-year lease to OpenAI.」<mark>20年リースです。</mark>NVIDIAはチップの供給元であると同時に、その調達を成立させるための信用も出している、という構図になります。</li>
+        <li><b>本文と添付資料で端数の書き方が違うが、合計は一致する。</b>本文は「approximately an additional 3.8 gigawatts」(概数)、添付のExhibit 99.1は「remaining 3.75 IT-GW」。<mark>4.25 + 3.75 = 8.00で、OpenAI公式が発表した合計8ギガワットと一致します。</mark>3.8は3.75の概数表記と見るのが妥当で、実質的な食い違いではありません。</li>
+        <li><b>OpenAI側の発表では合計8ギガワット。</b>「OpenAI has entered into an agreement to secure approximately 8 gigawatts-IT at the PORTS-Pike Technology Campus in Pike County, Ohio, working with SB Energy, NVIDIA, and the U.S. Department of Energy.」8-Kが扱う4.25ギガワットは、この一部です。</li>
+        <li><b>地元向けの数字も出ている。</b>「The project is expected to create 35,000 construction jobs during its six-year buildout through 2032 and 2,500 long-term operating jobs.」加えて「OpenAI will make up to $84 million in credits for Codex available to approximately 844,000 eligible Ohio college, community college, and technical school students」。</li>
+      </ul>
+
+      <details>
+        <summary>この記事で確認していないこと</summary>
+        <div class="body">
+          <dl>
+            <dt>報道の金額とは比較していません</dt>
+            <dd>この件を扱った報道各社の記事本文を、本サイトは取得していません。<mark>そのため「報道は◯◯億ドルと書いた」という比較は一切書いていません。</mark>上に並べた数字は、すべてSEC EDGARから取得した8-K本文・添付のプレスリリース・OpenAI公式ページの本文からの引用です。</dd>
+            <dt>OpenAI公式ページ・SEC EDGARの取得方法</dt>
+            <dd><code>openai.com/index/*</code> の直URLは、このセッションから403が返ります。<b>テキスト変換プロキシ経由で本文を取得して読みました。</b>SEC EDGARの2本のURLも、このセッションからは403が返ることを確認しています(ブラウザのUser-Agentを付けても403でした)。<mark>読者が同じURLを開いたときに403になる可能性があります。</mark></dd>
+            <dt>出典</dt>
+            <dd><a href="https://www.sec.gov/Archives/edgar/data/1045810/000104581026000069/nvda-20260817.htm">NVIDIA 8-K (SEC EDGAR)</a> / <a href="https://www.sec.gov/Archives/edgar/data/1045810/000104581026000069/sbeoainvidia-portsrelease.htm">Exhibit 99.1</a> / <a href="https://openai.com/index/openai-joins-ports-pike-project/">OpenAI公式</a></dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=openai.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">OpenAI / Z.ai</div>
+      <h3>GLM-5.3の重みが8月末に公開される — OpenAIは文中で社名を出さず、リンクでZ.aiのブログを指して警告し、Z.ai自身も「予想より速かった」と認めている</h3>
+      <div class="tags">
+        <span class="tag">8/14 / 8/17</span>
+        <span class="tag ok">✓ 両社の本文を確認</span>
+        <span class="tag">オープンウェイト</span>
+        <span class="tag">セキュリティ</span>
+      </div>
+      <p class="lead"><a href="../2026-08-15_001/">8月15日のダイジェスト</a>で、GLM-5.3が「オープンウェイト最強」を名乗りながら当日は重みを公開していなかったことを扱いました。<mark>その公開時期に、OpenAIが8月17日付で言及しています。</mark></p>
+
+      <p class="lead">OpenAIの原文はこうです。<mark>「Since then, various companies have released open weight models with cyber capabilities only a few months behind the frontier. The most recent of these models appears slated to be released at the end of August, and seems likely to significantly accelerate the threat landscape.」</mark>——8月末に出る予定のモデルが、脅威の状況を大きく加速させそうだ、と書いています。</p>
+
+      <p class="lead">文章の中に企業名・モデル名は出てきません。<mark>ただし「slated to be released」の部分は、Z.aiのGLM-5.3ブログ記事へ直接ハイパーリンクされています。</mark>名指しはしていませんが、どのモデルを指しているかはリンク先で分かる書き方です。</p>
+
+      <p class="lead">これは「片方が煽っている」話ではありません。<b>Z.ai自身が、同じことを認めています。</b></p>
+
+      <div class="code wrap">
+        <div class="code-head">Z.ai — GLM-5.3の公式ブログ(原文)</div>
+<pre>As we scaled post-training, cyber
+capability developed faster than we
+expected. GLM-5.3 is state of the art
+on CyberGym for vulnerability
+discovery, and its gains are largest
+further up the exploitation chain,
+where it more than doubles GLM-5.2 on
+exploitation benchmarks.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>重みの公開は「安全評価と堅牢化のあと」と説明されている。</b>原文は「We will release the weights in two weeks after launch, once safety evaluation and hardening are complete.」<mark>8月14日のローンチから2週間なので、8月末です。</mark>OpenAIの言う時期と一致します。</li>
+        <li><b>両者の主張は矛盾していません。</b>Z.aiは「脆弱性の発見でCyberGymの最高水準」「エクスプロイト系のベンチではGLM-5.2の2倍以上」と自ら書いています。<mark>能力の高さを売りにしている当事者と、それを警戒する側が、同じ事実を指しています。</mark></li>
+        <li><b>読者への影響は間接的です。</b>この記事を読んで今日やることは特にありません。ただし<mark>脆弱性を探す側の能力が上がるということは、公開しているエンドポイントに対する試行が増えるということ</mark>です。上のGitHub Actionsの点検を、今日のうちにやっておく理由にはなります(これは筆者の意見です)。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=techcrunch.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">報道</div>
+      <h3>StripeがOpenRouterを70億ドル超で買収と報道 — 両社とも発表しておらず、確定していない</h3>
+      <div class="tags">
+        <span class="tag">8/16報道</span>
+        <span class="tag warn">⚠ 未確認(両社未発表)</span>
+        <span class="tag">業界</span>
+      </div>
+      <p class="lead"><b>先に結論を書きます。これは報道ベースの話で、両社とも発表していません。</b>本サイトが確認したのは次の2点です。</p>
+
+      <ul class="points">
+        <li><b>Stripeの公式ニュースルームに「OpenRouter」の記載はゼロ件。</b>ページ本文を取得して検索しました。</li>
+        <li><b>OpenRouterの公式アナウンス一覧に「Stripe」「acquisition」「acquire」の記載はゼロ件。</b><mark>8月17日に別件の投稿はしているので、更新が止まっているわけではありません。</mark></li>
+      </ul>
+
+      <p class="lead">報道の書き方にも温度差があります。TechCrunchの見出しは<mark>「will reportedly acquire」</mark>と慎重ですが、本文の書き出しは「Stripe has finalized a deal to acquire OpenRouter, according to a new report in Bloomberg.」——<mark>Bloombergの報道を引用する形で、より断定的に書かれています。</mark>Stripe広報は「憶測にはコメントしない」と答えたとも書かれています。</p>
+
+      <p class="lead"><b>ここから先が注意点です。</b>見出しでは慎重に書いていても、本文では断定に近い書き方になっている記事があります。<mark>この温度差自体が「まだ確定していない」ことの表れです。</mark>OpenRouterはAIモデルを横断して呼ぶためのゲートウェイなので、使っている人には無関係ではありません。ただし<b>今日の時点で両社の公式発表は無いので、契約や移行の判断材料にはできません。</b></p>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=prnewswire.com&sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Higgsfield</div>
+      <h3>Higgsfieldが4億ドルのシリーズBを調達、評価額54億ドル — リードはDST Global単独</h3>
+      <div class="tags">
+        <span class="tag">8/17</span>
+        <span class="tag ok">✓ プレスリリース確認済</span>
+        <span class="tag">資金調達</span>
+      </div>
+      <p class="lead">プレスリリース本文から数字だけ拾います。<b>調達額4億ドル(シリーズB)、評価額54億ドル。</b>シリーズA時点の13億ドルから約4倍です。年換算収益は今月7億ドルに達したと書かれています。原文は<mark>「driving more than 20 million content generations per month」</mark>——月間のコンテンツ生成数は2000万件超。ユーザーは3000万人超、238の国と地域。</p>
+
+      <ul class="points">
+        <li><b>リードはDST Global単独です。</b>一部の報道がGoldmanやIntelを並列に書いていますが、<mark>プレスリリース本文でリードとされているのはDST Globalだけ</mark>です。</li>
+        <li><b>年換算収益は「annualized revenue」の訳です。</b>年間の実績値ではなく、直近の実績を12か月換算した数字を指す用語です。<mark>年商とは意味が違います。</mark></li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料だけに基づいています。<mark>読んでいない資料は引用しません。</mark>本サイトの環境では、この号のどの項目についても実機での再現・検証は行っていません(該当箇所に明記しています)。</p>
+      <ol class="refs">
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Release Notes — Overview」<i>Claude Docs</i>.
+          <span class="note">参照箇所: 「The legacy Workbench (platform.claude.com/workbench) in the Claude Console is being sunset with access ending on August 17, 2026. Saved prompts, variables, and evals are not supported in the updated Workbench (platform.claude.com/playground).」および「The experimental prompt tools APIs for generating, improving, and templatizing prompts (<code>/v1/experimental/generate_prompt</code>, <code>/v1/experimental/improve_prompt</code>, and <code>/v1/experimental/templatize_prompt</code>) are being retired along with the Workbench on August 17, 2026. After removal, requests to these endpoints will return an error.」——「8月17日終了」「保存済みプロンプト・変数・evalは引き継がれない」「エンドポイントはエラーを返す」の根拠。</span>
+          <a href="https://platform.claude.com/docs/en/release-notes/overview">https://platform.claude.com/docs/en/release-notes/overview</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Cursor (Anysphere)「Origin — Code hosting」<i>Cursor Changelog</i>, 2026年8月17日.
+          <span class="note">参照箇所: 「Origin begins rolling out today in early beta on all paid plans. We're starting with the essentials, designed for agent scale: repos, pull requests, code browsing, and GitHub sync. Agent-native features ship soon.」「Origin is rolling out in early beta to all paid plan users starting today, except enterprise orgs whose admins opt out.」「Pull requests on synced repos sync both ways: comment in Cursor and it posts to GitHub, react or reply on GitHub and it shows up in Cursor within seconds.」——「既定でオン」「Enterpriseはopt-out」「双方向同期」の根拠。<b>「CursorがSpaceXに買収された」という検索結果の要約は、このページ本文に根拠が無かったため記事では扱っていません。</b></span>
+          <a href="https://cursor.com/changelog/origin-code-hosting">https://cursor.com/changelog/origin-code-hosting</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Gemini API — Changelog」<i>Google AI for Developers</i>.
+          <span class="note">参照箇所: 「Deprecation announcement: The following image generation models are being deprecated and will be shut down on August 17, 2026: <code>imagen-4.0-generate-001</code> / <code>imagen-4.0-ultra-generate-001</code> / <code>imagen-4.0-fast-generate-001</code>」。</span>
+          <a href="https://ai.google.dev/gemini-api/docs/changelog">https://ai.google.dev/gemini-api/docs/changelog</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Gemini API — Deprecations」<i>Google AI for Developers</i>.
+          <span class="note">参照箇所: 表の該当行「<code>imagen-4.0-generate-001</code> | June 24, 2025 | August 17, 2026 | <code>gemini-3.1-flash-image</code>」、「<code>imagen-4.0-ultra-generate-001</code> | June 24, 2025 | August 17, 2026 | <code>gemini-3.1-flash-image</code>」、「<code>imagen-4.0-fast-generate-001</code> | June 24, 2025 | August 17, 2026 | <code>gemini-3.1-flash-image</code>」。——3モデルの推奨移行先がすべて<code>gemini-3.1-flash-image</code>であることの根拠。</span>
+          <a href="https://ai.google.dev/gemini-api/docs/deprecations">https://ai.google.dev/gemini-api/docs/deprecations</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Gal Nagli / Wiz Research「Wiz Red Agent — snowflake connector CI/CD bug」<i>Wiz Blog</i>, 2026年8月17日公開（混入 6月18日、発見・修正 6月23日）.
+          <span class="note">参照箇所: 「Wiz Red Agent identified a script injection vulnerability in <code>snowflakedb/snowflake-connector-net</code>. The issue allowed an unauthenticated user to execute arbitrary commands within a GitHub Actions runner by opening a GitHub issue with a specially crafted title.」、「The merged PR replaced the repository's sanitized input pattern with direct string expansion, yet GitHub's AI-assisted security review did not flag the resulting critical vulnerability.」、「The sed escaping runs after GitHub's template expansion, a single quote in the title breaks out of <code>echo '...'</code> and allows arbitrary command execution.」、<code>if:</code> ガードについて「on issues events, <code>github.event.pull_request</code> is always null. So the condition reduces to <code>(null != 'whitesource-for-github-com[bot]')</code>. This is always true, and every GitHub user passes the gate.」、PRの作成について「The final squash commit credits "Copilot Autofix powered by AI" as a co-author.」「an AI "autofix" commit created the very injection vector」、および8月17日19:57 UTC追記の更新注記「It's unclear whether the code-change was AI-assisted」、記事に貼った差分。</span>
+          <a href="https://www.wiz.io/blog/red-agent-snowflake-copilot-cicd-bug">https://www.wiz.io/blog/red-agent-snowflake-copilot-cicd-bug</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          GitHub「Secure use reference（Security hardening for GitHub Actions）」<i>GitHub Docs</i>.
+          <span class="note">参照箇所: 「Use an intermediate environment variable — For inline scripts, the preferred approach to handling untrusted input is to set the value of the expression to an intermediate environment variable.」と、その直後のコード例（<code>- name: Check PR title</code> / <code>env: TITLE: ${{ github.event.pull_request.title }}</code> / <code>run: |</code> / <code>if [[ "$TITLE" =~ ^octocat ]]; then</code>）。——「公式が推奨しているのは <code>env:</code> 経由」の根拠。</span>
+          <a href="https://docs.github.com/en/actions/reference/security/secure-use">https://docs.github.com/en/actions/reference/security/secure-use</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「AWS Certificate Manager will discontinue email validation to prove domain validation for certificates」<i>AWS Security Blog</i>, 2026年8月13日（8月17日の AWS Weekly Roundup で再掲）.
+          <span class="note">参照箇所: 「AWS Certificate Manager (ACM) will discontinue support for email-validated public certificates by September 30, 2027. If you use email validation for your ACM public certificates, you need to migrate to DNS validation before that date.」、CA/B Forum について「In November 2025, they voted to end support for email-based domain validation effective March 15, 2028.」、移行手順「When you update a certificate to DNS validation, ACM provides a CNAME record to add to your DNS configuration, and you have 72 hours to add that record. During this window, the certificate continues to function normally on email validation.」、および記事の表に載せた4つの期日（2027年1月1日／2027年3月31日／2027年9月30日／2028年3月15日）。</span>
+          <a href="https://aws.amazon.com/blogs/security/aws-certificate-manager-will-discontinue-email-validation-to-prove-domain-validation-for-certificates/">https://aws.amazon.com/blogs/security/aws-certificate-manager-will-discontinue-email-validation-to-prove-domain-validation-for-certificates/</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Updates to your AWS sign-in experience」<i>AWS Security Blog</i>, 2026年8月17日.
+          <span class="note">参照箇所: 「Amazon Web Services (AWS) is gradually introducing updates to the AWS Sign-In and sign-up experience to a limited number of customers.」、「If your organization relies on the current sign-in interface for browser automation or scripted workflows, review these updates to understand how they might affect your configuration.」、「If your organization uses AWS IAM Identity Center or IAM federation to access AWS, continue signing in through your organization's access portal or federation URL. Your existing sign-in process doesn't change.」——「原則対応不要」「自動化を持つ場合だけ点検」の根拠。<b>完了期日は本文に記載がないため書いていません。</b></span>
+          <a href="https://aws.amazon.com/blogs/security/updates-to-your-aws-sign-in-experience/">https://aws.amazon.com/blogs/security/updates-to-your-aws-sign-in-experience/</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Docker「Make zero CVEs your new default」<i>Docker Blog</i>, 2026年8月17日 13:00 UTC.
+          <span class="note">参照箇所: 「Docker Hardened System Packages take hardening below the image, to the packages inside it, across both Alpine and Debian... DHI Enterprise customers can point <code>apt</code> or <code>apk</code> directly at Docker's hardened package repository」、「For organizations whose data-residency requirements keep images inside the EU, EU-hosted customizations arrive in September.」——「パッケージ層まで拡大」「Enterprise限定」「EUホスティングは9月」の根拠。</span>
+          <a href="https://www.docker.com/blog/make-zero-cves-your-new-default/">https://www.docker.com/blog/make-zero-cves-your-new-default/</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Docker, Inc.「Docker Makes Hardened Images Free Open and Transparent for Everyone」<i>プレスリリース</i>, 2025年12月17日.
+          <span class="note">参照箇所: 発表日「PALO ALTO, Calif. – December 17, 2025」とタイトル。8月17日のDockerブログが無料提供に現在形で言及しているため、読者が「今日無料になった」と誤解しないよう、この発表が今回の対象期間より前の別件であることの根拠として確認しました。<b>本文全体は取得しておらず、日付・タイトル・冒頭のdatelineのみ確認済みです。</b></span>
+          <a href="https://www.docker.com/press-release/docker-makes-hardened-images-free-open-and-transparent-for-everyone/">https://www.docker.com/press-release/docker-makes-hardened-images-free-open-and-transparent-for-everyone/</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Webkit（androidx.webkit）リリースノート — Version 1.17.0」<i>Android Developers</i>, 2026年8月12日（安定版）.
+          <span class="note">参照箇所: 「Removed experimental <code>Profile#setOriginMatchedHeader</code> (superseded by <code>Profile#addCustomHeader</code> in 1.15.0).」、「Enhanced Navigation Capabilities (<code>WebViewCompat#navigate</code>): Introduces a modern replacement for <code>WebView#loadUrl</code>. Key capabilities include replacing history entries, returning a trackable <code>Navigation</code> object, and consistent header persistence during state save/restore.」、「Deprecated <code>SpeculativeLoadingParameters</code> in favor of <code>PrerenderParameters</code> / <code>PrefetchParameters</code>.」、「Proactive Crash Prevention Lint Rule: Adds an AndroidX lint check that flags missing <code>onRenderProcessGone</code> implementations when a custom <code>WebViewClient</code> is attached」。<b>「削除されたAPIを使っているとビルドが落ちる」という実機での確認は行っていません。</b></span>
+          <a href="https://developer.android.com/jetpack/androidx/releases/webkit">https://developer.android.com/jetpack/androidx/releases/webkit</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Chrome 152 beta」<i>Chrome for Developers Blog</i>.
+          <span class="note">参照箇所: XSLT について「Chrome has deprecated client-side XSLT, and is getting close to removing it from the browser, in Chrome 158. A deprecation (origin) trial has been set up to allow sites to extend the migration time away from XSLT by about nine months, to Chrome 175.」。Connection Allowlists について「Connection Allowlists provides explicit control over external endpoints by restricting connections initiated through the Fetch API or other web platform APIs from a document or worker. Servers distribute an authorized endpoint list through an HTTP response header.」。<b>XSLTの具体的な移行手順は本文に記載がないため、記事でも書いていません。</b></span>
+          <a href="https://developer.chrome.com/blog/chrome-152-beta">https://developer.chrome.com/blog/chrome-152-beta</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Chrome Releases（2026年8月）」<i>Chrome Releases Blog</i>.
+          <span class="note">参照箇所: 「We've just released Chrome 152 (152.0.7977.42) for Android to a small percentage of users.」——「8月12日から一部ユーザー向けの early stable」の根拠。</span>
+          <a href="https://chromereleases.googleblog.com/2026/08/">https://chromereleases.googleblog.com/2026/08/</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Chrome Status「Connection Allowlists（feature id 5175745573945344）」<i>ChromeStatus API</i>.
+          <span class="note">参照箇所: <code>https://chromestatus.com/api/v0/features/5175745573945344</code> をHTTPで直接取得（200）し、マイルストーンが <code>"desktop": 152, "android": 152, "webview": 152</code> であることを確認しました。——「WebViewも同じ152で対象」の根拠。</span>
+          <a href="https://chromestatus.com/feature/5175745573945344">https://chromestatus.com/feature/5175745573945344</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Zhiyuan Jiang ほか8名「Agent Skills の効き方に関する分析」<i>arXiv:2608.14036</i>, 2026年8月14日投稿.
+          <span class="note">参照箇所（<b>要旨のみ。全文は未取得</b>）: 「Procedural anchoring accounts for 65.7% of skill cases, versus 4.5% for explicit knowledge injection, showing that skills stabilize action rather than inject missing facts.」、「as pools grow from 5 to 100, actual-use precision falls from 29.6% to 3.3%.」、「Confusable distractors impair offline identification, yet downstream success remains stable; exact ground-truth invocation is neither sufficient nor necessary.」。<b>査読前のプレプリントであり、数値は著者の自己申告値です。本サイトは再現していません。</b>記事の見出しは原題の邦訳ではなく、内容を表現したものです。</span>
+          <a href="https://arxiv.org/abs/2608.14036">https://arxiv.org/abs/2608.14036</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Xutao Mao ほか3名「自己改善エージェントにおける不安全な成果物の再利用に関する研究」<i>arXiv:2608.12851</i>, 2026年8月13日投稿.
+          <span class="note">参照箇所（<b>要旨のみ。全文は未取得</b>）: 「An unsafe success can thereby become reusable policy after its triggering input disappears.」、「Across 25 agent-method configurations, each covering 525 tasks in 25 episodes, all 21 evolved configurations author unsafe artifacts, while only fifteen lead to fresh-session harm.」、「In the exposure sweep, three malicious tasks raise carryover ASR from 16.0% to 35.3%.」、「SafeEvolve, a wrapper that repairs unsafe content and governs subsequent reuse」、「SafeEvolve reduces unsafe retrieval and fresh-session harm by 26.7 and 17.3 percentage points, respectively, while mean benign utility changes by only 0.4 points.」。<b>査読前のプレプリントであり、数値は著者の自己申告値です。</b></span>
+          <a href="https://arxiv.org/abs/2608.12851">https://arxiv.org/abs/2608.12851</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          DeepSeek「deepseek-ai/DeepSeek-V4-Pro-0813」<i>Hugging Face モデルカード</i>, 2026年8月13日.
+          <span class="note">参照箇所: 「DeepSeek-V4-Pro-0813 is the official release of DeepSeek-V4-Pro, superseding the preview version, with greatly enhanced agentic capabilities」、「This repository and the model weights are licensed under the MIT License.」、「This release does not include a Jinja-format chat template. Instead, we provide a dedicated <code>encoding</code> folder with Python scripts and test cases demonstrating how to encode messages in OpenAI-compatible format into input strings for the model, and how to parse the model's text output.」、およびベンチマーク表の Terminal Bench 2.1（プレビュー 72.1 → 87.9）と DeepSWE（プレビュー 12.8 → 62.7）。<b>ベンチマーク値はすべてDeepSeekによる自己申告で、本サイトは再現していません。</b>DeepSWEの伸び幅の理由はモデルカードに記載が無いため書いていません。</span>
+          <a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro-0813">https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro-0813</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          「SWE-Bench ProMax」<i>arXiv:2608.09802</i>, 2026年8月10日投稿.
+          <span class="note">参照箇所（<b>要旨のみ。全文は未取得</b>）: 「a recent audit found that nearly 60% of unsolved SWE-bench Verified instances contain flawed tests」(<b>この論文自身の監査結果ではなく、先行研究の引用</b>)、ProMax自身の貢献である7言語170件のリファクタリングベンチマークの説明、および最良モデルのスコアが 41.2% であること。<b>査読前のプレプリントであり、数値は著者の自己申告値です。</b>投稿日が本号の対象期間（8月17〜18日）より前であることは記事本文にも明記しています。</span>
+          <a href="https://arxiv.org/abs/2608.09802">https://arxiv.org/abs/2608.09802</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          NVIDIA Corporation「Form 8-K（<code>nvda-20260817.htm</code>）」<i>SEC EDGAR</i>, 2026年8月17日提出.
+          <span class="note">参照箇所: 「On August 17, 2026, NVIDIA entered into multiple residual value guaranties (collectively, the "Agreements") with SB Energy (the "Lessor") relating to leases for approximately 4.25 gigawatts of IT load in the aggregate at the Portsmouth Site.」、「NVIDIA's aggregate payment obligation is cumulatively capped at $105 billion for its initial commitment under the Agreements. ... expected beginning in 2028.」、「OpenAI has agreed to reimburse and indemnify NVIDIA for any and all amounts actually paid by NVIDIA to the Lessor under the Agreements.」、発動条件について「in the event of (i) OpenAI's insolvency resulting in a default under a lease, or (ii) OpenAI's failure to make payments under a lease」、「Through the partnership and the credit support described below」(NVIDIA自身がこの仕組みを credit support と呼んでいる箇所)、本文の「approximately an additional 3.8 gigawatts」。<b>SEC EDGARから直接取得して全文を読みました。このURLはこのセッションから403が返るため(ブラウザのUser-Agentを付けても403)、読者が開くと403になる可能性があります。</b></span>
+          <a href="https://www.sec.gov/Archives/edgar/data/1045810/000104581026000069/nvda-20260817.htm">https://www.sec.gov/Archives/edgar/data/1045810/000104581026000069/nvda-20260817.htm</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          NVIDIA / SB Energy / OpenAI「共同プレスリリース（8-K Exhibit 99.1）」<i>SEC EDGAR</i>, 2026年8月17日.
+          <span class="note">参照箇所: 「NVIDIA to invest $1.5B in SB Energy now」、「SB Energy will build, own and operate the data center under a 20-year lease to OpenAI.」、「remaining 3.75 IT-GW」。<b>本文の「approximately an additional 3.8 gigawatts」は、この添付の「remaining 3.75 IT-GW」の概数表記と見られます(4.25+3.75=8.00がOpenAI公式の合計8ギガワットと一致するため)。</b></span>
+          <a href="https://www.sec.gov/Archives/edgar/data/1045810/000104581026000069/sbeoainvidia-portsrelease.htm">https://www.sec.gov/Archives/edgar/data/1045810/000104581026000069/sbeoainvidia-portsrelease.htm</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          OpenAI「OpenAI joins PORTS-Pike project」<i>openai.com</i>.
+          <span class="note">参照箇所: 「OpenAI has entered into an agreement to secure approximately 8 gigawatts-IT at the PORTS-Pike Technology Campus in Pike County, Ohio, working with SB Energy, NVIDIA, and the U.S. Department of Energy.」、「The project is expected to create 35,000 construction jobs during its six-year buildout through 2032 and 2,500 long-term operating jobs.」、「OpenAI will make up to $84 million in credits for Codex available to approximately 844,000 eligible Ohio college, community college, and technical school students」。<b>この直URLはこのセッションから403が返るため、テキスト変換プロキシ経由で本文を取得して読みました。読者が同じURLを開くと403になる可能性があります。</b></span>
+          <a href="https://openai.com/index/openai-joins-ports-pike-project/">https://openai.com/index/openai-joins-ports-pike-project/</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          OpenAI「The defenders' window」<i>openai.com</i>, 2026年8月17日.
+          <span class="note">参照箇所: 「Since then, various companies have released open weight models with cyber capabilities only a few months behind the frontier. The most recent of these models appears slated to be released at the end of August, and seems likely to significantly accelerate the threat landscape.」。<b>OpenAIはこの文で特定の企業名・モデル名を文字では挙げていませんが、「slated to be released」の部分が <code>z.ai/blog/glm-5.3</code> へ直接ハイパーリンクされています。</b>記事でGLM-5.3と結び付けているのは、このリンクとZ.aiが「2週間後にウェイトを公開する」と書いている時期が一致するためです。この直URLもこのセッションから403のため、テキスト変換プロキシ経由で本文を取得しています(リンク先URLはプロキシ経由の本文からそのまま確認できました)。</span>
+          <a href="https://openai.com/index/the-defenders-window/">https://openai.com/index/the-defenders-window/</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Z.ai「GLM-5.3」<i>z.ai/blog</i>, 2026年8月14日.
+          <span class="note">参照箇所: 「As we scaled post-training, cyber capability developed faster than we expected. GLM-5.3 is state of the art on CyberGym for vulnerability discovery, and its gains are largest further up the exploitation chain, where it more than doubles GLM-5.2 on exploitation benchmarks.」、「We will release the weights in two weeks after launch, once safety evaluation and hardening are complete.」。<b>CyberGymのスコアはZ.ai自身の申告値で、本サイトは検証していません。</b>本文はテキスト変換プロキシ経由で取得しました。</span>
+          <a href="https://z.ai/blog/glm-5.3">https://z.ai/blog/glm-5.3</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Stripe「Newsroom」／ OpenRouter「Announcements」（いずれも公式ページ本文）.
+          <span class="note">参照箇所: 買収報道の裏取りとして、両ページの本文を取得して全文検索しました。<b>Stripe Newsroom に「OpenRouter」の記載は0件、OpenRouter の Announcements に「Stripe」「acquisition」「acquire」の記載は0件</b>です（OpenRouter側は8月17日に別件の投稿があり、更新自体は続いています）。——「両社とも未発表」の根拠。</span>
+          <a href="https://openrouter.ai/announcements">https://openrouter.ai/announcements</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag unverified">未確認（報道。事実確定の根拠には使用していません）</span>
+          TechCrunch「Stripe will reportedly acquire AI gateway startup OpenRouter for $7B」, 2026年8月16日.
+          <span class="note">なぜ未確認か: <b>これは報道であり、当事者の発表ではありません。</b>見出しは「will reportedly acquire」と慎重ですが、本文の書き出しは「Stripe has finalized a deal to acquire OpenRouter, according to a new report in Bloomberg.」と、Bloombergの報道を引用する形でより断定的です。Stripe広報が憶測にコメントしないと答えたことも書かれています。本記事ではこの報道を「そういう報道がある」という事実の提示にのみ使い、<mark>買収の成立・金額・時期を確定した事実としては扱っていません。</mark></span>
+          <a href="https://techcrunch.com/2026/08/16/stripe-will-reportedly-acquire-ai-gateway-startup-openrouter-for-7b/">https://techcrunch.com/2026/08/16/stripe-will-reportedly-acquire-ai-gateway-startup-openrouter-for-7b/</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag primary">一次資料</span>
+          Higgsfield「Higgsfield Raises $400 Million Series B Financing at $5.4 Billion Valuation with Annualized Revenue Reaching $700 Million」<i>PR Newswire（企業プレスリリース）</i>, 2026年8月17日.
+          <span class="note">参照箇所: 「This month, the company also reached $700 million in annualized revenue.」、「driving more than 20 million content generations per month」、調達額 $400M（Series B）、評価額 $5.4B（Series A の $1.3B から）、リード投資家は DST Global、ユーザー3000万人超・238の国と地域。<b>企業自身の発表であり、第三者による検証ではありません。</b>「一部報道がGoldman / Intelをリードと並列に書いている」という点は、本サイトがそれらの報道本文を取得していないため、媒体名を挙げず「リードはDST Global単独」とだけ書いています。</span>
+          <a href="https://www.prnewswire.com/news-releases/higgsfield-raises-400-million-series-b-financing-at-5-4-billion-valuation-with-annualized-revenue-reaching-700-million-302852430.html">https://www.prnewswire.com/news-releases/higgsfield-raises-400-million-series-b-financing-at-5-4-billion-valuation-with-annualized-revenue-reaching-700-million-302852430.html</a>（2026年8月18日参照）
+        </li>
+
+        <li>
+          <span class="flag self">自分の意見</span>
+          「72時間以内にCNAMEを通せる連絡経路を今日確認しておく」「GLM-5.3のウェイト公開を、ワークフロー点検を今日やる理由にする」といった<mark>優先度づけと運用指針は、各社の発表に書かれていることではなく筆者の判断</mark>です。
+          <span class="note">各資料が示しているのは、変更内容・期日・数値そのものまでです。<b>この記事の執筆にあたり、AWS上でのリソース作成・API呼び出しは一切行っていません。</b>Dockerのコンテナ起動、Androidの実機ビルド、arXiv論文の再現、GitHub Actionsの脆弱性の再現も行っていません。この号は<mark>すべて公開資料の本文からの引用と要約で構成されており、本サイトの実測値は含まれていません。</mark></span>
+        </li>
+
+        <li>
+          <span class="flag self">編集上の判断</span>
+          VRChat 2026.3.1、Anthropicのテキスト透かし、Chrome 152 / Connection Allowlists の基礎説明は、<mark>本サイトの過去記事で扱い済みのため、この号では繰り返していません。</mark>
+          <span class="note">それぞれ <a href="../2026-08-17_001/">8月17日</a>（VRChat、Connection Allowlists）、<a href="../2026-08-16_001/">8月16日</a>（テキスト透かし）、<a href="../2026-08-15_001/">8月15日</a>（androidx.webkit 1.17.0 の追加API側）で扱っています。本号ではそれぞれ<b>前回書いていない部分だけ</b>を足しました。件数を揃えるために同じ内容を再掲するのは、読者の時間を使わせるだけなので行いません。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>生成: 2026年8月18日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

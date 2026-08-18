@@ -1,0 +1,50 @@
+<svg viewBox="0 0 640 254" xmlns="http://www.w3.org/2000/svg" role="img">
+
+  <text x="320" y="22" fill="var(--fg)" font-size="13.5" font-weight="800" text-anchor="middle">ACMのメール検証 — 4つの期日と、実際に効いてくる1つ</text>
+
+  <!-- 期間ブラケット -->
+  <text x="244" y="62" fill="var(--sub)" font-size="11.5" font-weight="700" text-anchor="middle">今日から約13か月</text>
+  <path d="M52 70 L52 80 M52 70 L436 70 M436 70 L436 80" fill="none" stroke="var(--sub)" stroke-width="1.3"/>
+
+  <!-- 日付ピル -->
+  <rect x="70" y="104" width="116" height="26" rx="13" fill="var(--track)"/>
+  <text x="128" y="122" fill="var(--fg)" font-size="11.5" font-weight="700" text-anchor="middle">2027年1月1日</text>
+  <rect x="224" y="104" width="116" height="26" rx="13" fill="var(--track)"/>
+  <text x="282" y="122" fill="var(--fg)" font-size="11.5" font-weight="700" text-anchor="middle">2027年3月31日</text>
+  <rect x="378" y="104" width="116" height="26" rx="13" fill="var(--new)"/>
+  <text x="436" y="122" fill="#ffffff" font-size="11.5" font-weight="800" text-anchor="middle">2027年9月30日</text>
+  <rect x="526" y="104" width="104" height="26" rx="13" fill="var(--track)"/>
+  <text x="578" y="122" fill="var(--fg)" font-size="11.5" font-weight="700" text-anchor="middle">2028年3月15日</text>
+
+  <line x1="128" y1="130" x2="128" y2="143" stroke="var(--track)" stroke-width="1.5"/>
+  <line x1="282" y1="130" x2="282" y2="143" stroke="var(--track)" stroke-width="1.5"/>
+  <line x1="436" y1="130" x2="436" y2="140" stroke="var(--new)" stroke-width="1.8"/>
+  <line x1="578" y1="130" x2="578" y2="143" stroke="var(--track)" stroke-width="1.5"/>
+
+  <!-- 帯 -->
+  <rect x="40" y="147" width="570" height="6" rx="3" fill="var(--track)"/>
+  <rect x="52" y="147" width="384" height="6" rx="3" fill="var(--old)"/>
+
+  <circle cx="52" cy="150" r="5" fill="var(--sub)"/>
+  <text x="52" y="138" fill="var(--sub)" font-size="11" font-weight="700" text-anchor="middle">今日</text>
+  <circle cx="128" cy="150" r="7" fill="var(--sub)"/>
+  <circle cx="282" cy="150" r="7" fill="var(--sub)"/>
+  <circle cx="436" cy="150" r="10" fill="var(--new)"/>
+  <circle cx="578" cy="150" r="7" fill="var(--sub)"/>
+
+  <!-- 説明 -->
+  <text x="128" y="176" fill="var(--sub)" font-size="11.5" text-anchor="middle">新しいリージョンで</text>
+  <text x="128" y="194" fill="var(--fg)" font-size="11.5" text-anchor="middle">メール検証の提供終了</text>
+
+  <text x="282" y="176" fill="var(--sub)" font-size="11.5" text-anchor="middle">全リージョンで</text>
+  <text x="282" y="194" fill="var(--fg)" font-size="11.5" text-anchor="middle">新規発行への提供終了</text>
+
+  <text x="436" y="176" fill="var(--new)" font-size="11.5" font-weight="700" text-anchor="middle">既存証明書の</text>
+  <text x="436" y="194" fill="var(--new)" font-size="12" font-weight="800" text-anchor="middle">更新が終了</text>
+
+  <text x="578" y="176" fill="var(--sub)" font-size="11.5" text-anchor="middle">CA/B Forum全体で</text>
+  <text x="578" y="194" fill="var(--fg)" font-size="11.5" text-anchor="middle">発行・更新が不可</text>
+
+  <line x1="16" y1="214" x2="624" y2="214" stroke="var(--track)" stroke-width="1.5"/>
+  <text x="320" y="234" fill="var(--fg)" font-size="12" font-weight="700" text-anchor="middle">止まるのは「更新」。既存の証明書は期限までは動き、その先で切れる</text>
+</svg>
