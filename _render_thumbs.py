@@ -84,8 +84,12 @@ WIDTH, HEIGHT = 1280, 720
 # _assets/character/<カテゴリ名>.png があればそれを、無ければ default.png を使う。
 # **画像を置くまではキャラ無しで組む**(文字が広く使えるので、そのほうが読める)。
 CHARA_DIR = HERE / "_assets" / "character"
-CHARA_W = 268                      # 画像を置いたときに右側で占める幅の上限
+CHARA_W = 440                      # 画像を置いたときに右側で占める幅の上限
 CHARA_H = 660                      # 同じく高さの上限(上下の黒帯 26px ずつを避ける)
+# 置いてある画像は全身の立ち絵だが、そのまま縮めると**顔が10px程度になり表情が分からない**。
+# 描画時に上から CHARA_CROP のぶんだけ切り出して(=胸から上)、大きく見せる。
+# 元画像は全身のまま残してあるので、この数字を変えて撮り直すだけで比率を変えられる。
+CHARA_CROP = 0.42
 CAST_DIR = CHARA_DIR / "cast"      # キャラ複数 × ポーズ複数を置く場所
 
 # カテゴリごとの配色。一覧に並べたとき、色だけで種類が分かるようにする。
@@ -308,6 +312,28 @@ def character_path(category, dirname):
     return None
 
 
+def chara_view(path):
+    """置いてある画像を、サムネイルに出す形(胸から上)にして返す。
+
+    戻り値は (PNGのバイト列, 表示幅, 表示高さ)。開けなければ None。
+    """
+    import io
+    try:
+        with Image.open(path) as raw:
+            im = raw.convert("RGBA")
+    except OSError:
+        return None
+    if 0 < CHARA_CROP < 1:
+        im = im.crop((0, 0, im.width, max(1, int(im.height * CHARA_CROP))))
+        box = im.getchannel("A").getbbox()      # 切ったぶん左右に余白が出ることがある
+        if box:
+            im = im.crop(box)
+    disp_w, disp_h = fit_chara(*im.size)
+    buf = io.BytesIO()
+    im.save(buf, "PNG", optimize=True)
+    return buf.getvalue(), disp_w, disp_h
+
+
 def character_img(category, dirname):
     """右に置くキャラクター画像を返す。無ければ (空文字, 0)。
 
@@ -320,14 +346,13 @@ def character_img(category, dirname):
     path = character_path(category, dirname)
     if path is None:
         return "", 0
-    try:
-        with Image.open(path) as im:
-            disp_w, disp_h = fit_chara(*im.size)
-    except OSError:
+    view = chara_view(path)
+    if view is None:
         print(f"  警告: {path.name} を画像として開けません。キャラ無しで組みます。",
               file=sys.stderr)
         return "", 0
-    b64 = base64.b64encode(path.read_bytes()).decode("ascii")
+    blob, disp_w, disp_h = view
+    b64 = base64.b64encode(blob).decode("ascii")
     return (f'<img class="chara" src="data:image/png;base64,{b64}" alt="" '
             f'style="width:{disp_w}px;height:{disp_h}px">'), disp_w
 

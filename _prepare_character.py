@@ -40,7 +40,8 @@ from pathlib import Path
 
 from PIL import Image
 
-from _render_thumbs import CAST_DIR, CHARA_DIR, CHARA_H, CHARA_W, THEMES, fit_chara
+from _render_thumbs import (CAST_DIR, CHARA_CROP, CHARA_DIR, CHARA_H, CHARA_W,
+                            THEMES, chara_view)
 
 HERE = Path(__file__).resolve().parent
 
@@ -144,11 +145,14 @@ def describe(path):
     with Image.open(path) as im:
         w, h = im.size
         ratio, has_alpha = alpha_report(im)
-    disp_w, disp_h = fit_chara(w, h)
+    # サムネイルでは上から CHARA_CROP のぶん(胸から上)だけを使うので、
+    # 表示サイズもその切り出し後で出す(_render_thumbs と同じ計算)。
+    _, disp_w, disp_h = chara_view(path)
     print(f"  {path.name}: {w}x{h}px / 透明 {ratio * 100:.0f}%"
           f"{'' if has_alpha else ' (アルファチャンネル無し)'}")
     print(f"    サムネイル上: {disp_w}x{disp_h}px"
-          f"  文字に使える幅が {disp_w}px 狭まります")
+          f"(上から{CHARA_CROP * 100:.0f}%を使用)"
+          f"  文字の幅が {disp_w}px 狭まります")
     if not has_alpha:
         print("    警告: 背景が透過していません。右に四角い板が出ます。")
     elif ratio < 0.05:
@@ -260,7 +264,8 @@ def main():
     if "--check" in argv or not args:
         if not args:
             print(__doc__.strip().splitlines()[0])
-            print(f"(表示できる箱は 幅{CHARA_W}px × 高さ{CHARA_H}px です)\n")
+            print(f"(表示できる箱は 幅{CHARA_W}px × 高さ{CHARA_H}px。"
+                  f"元画像の上から{CHARA_CROP * 100:.0f}%だけを使います)\n")
         return check()
 
     src = Path(args[0]).expanduser()
