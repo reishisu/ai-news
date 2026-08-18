@@ -2,13 +2,13 @@
   "1": {
     "class_type": "CheckpointLoaderSimple",
     "inputs": {
-      "ckpt_name": "ここに手元のモデルのファイル名を書く.safetensors"
+      "ckpt_name": "JANKUTrainedChenkinNoobai_v777\\JANKUTrainedChenkinNoobai_v777.safetensors"
     }
   },
   "2": {
     "class_type": "CLIPTextEncode",
     "inputs": {
-      "text": "1girl, original character, upper body to knees, standing, facing viewer, friendly smile, short hair, hoodie, anime style, clean lineart, cel shading, soft even lighting, plain flat white background, no shadow on background, high quality, masterpiece",
+      "text": "masterpiece, best quality, newest, absurdres, highres, safe, 1girl, original, solo, blonde hair, long hair, twintails, blunt bangs, sidelocks, hair bow, blue bow, blue eyes, tareme, cheerful smile, petite, waving, open hand, smile, hoodie, full body, standing, looking at viewer, simple background, green background",
       "clip": [
         "1",
         1
@@ -18,7 +18,7 @@
   "3": {
     "class_type": "CLIPTextEncode",
     "inputs": {
-      "text": "text, watermark, signature, logo, multiple views, cropped, extra limbs, bad hands, blurry, gradient background, busy background, scenery, lowres, jpeg artifacts",
+      "text": "nsfw, worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro, gradient background, scenery, multiple views, cropped, 2girls, multiple girls, shadow, drop shadow, reflection, reflective floor, floor, wall, wooden floor, tile floor, grass, pavement, road, dirt, outdoors, indoors, depth of field, blurry background, patterned background, checkered background, striped background, polka dot background, floral background, abstract background, two-tone background, english text, clothes writing",
       "clip": [
         "1",
         1
@@ -28,17 +28,17 @@
   "4": {
     "class_type": "EmptyLatentImage",
     "inputs": {
-      "width": 832,
-      "height": 1216,
+      "width": 768,
+      "height": 1344,
       "batch_size": 1
     }
   },
   "5": {
     "class_type": "KSampler",
     "inputs": {
-      "seed": 1,
-      "steps": 28,
-      "cfg": 6.0,
+      "seed": 1001,
+      "steps": 30,
+      "cfg": 5.0,
       "sampler_name": "euler_ancestral",
       "scheduler": "normal",
       "denoise": 1.0,

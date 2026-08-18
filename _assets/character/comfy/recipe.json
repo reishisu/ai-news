@@ -1,5 +1,6 @@
 {
   "_説明": "サムネイルのマスコットを ComfyUI に作らせるときの設定。カテゴリごとに1人ずつ担当を決め、それぞれにポーズ・衣装の違いを作ります。ここを固定すれば同じ絵をあとから再現できます。",
+
   "checkpoint": "JANKUTrainedChenkinNoobai_v777\\JANKUTrainedChenkinNoobai_v777.safetensors",
   "width": 768,
   "height": 1344,
@@ -7,70 +8,76 @@
   "cfg": 5.0,
   "sampler": "euler_ancestral",
   "scheduler": "normal",
+
   "quality": "masterpiece, best quality, newest, absurdres, highres, safe",
   "subject": "1girl, original, solo",
   "framing": "full body, standing, looking at viewer, simple background, green background",
-  "negative": "nsfw, worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro, gradient background, scenery, multiple views, cropped, shadow, drop shadow, floor, wall, reflection, outdoors, depth of field, blurry background",
+  "negative": "nsfw, worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro, gradient background, scenery, multiple views, cropped, 2girls, multiple girls, shadow, drop shadow, reflection, reflective floor, floor, wall, wooden floor, tile floor, grass, pavement, road, dirt, outdoors, indoors, depth of field, blurry background, patterned background, checkered background, striped background, polka dot background, floral background, abstract background, two-tone background, english text, clothes writing",
+
   "cast": [
     {
       "name": "hinata",
       "category": "デイリーダイジェスト",
       "seed": 1001,
-      "tags": "blonde hair, twintails, long hair, blue eyes, cheerful smile, small ribbon"
+      "tags": "blonde hair, long hair, twintails, blunt bangs, sidelocks, hair bow, blue bow, blue eyes, tareme, cheerful smile, petite"
     },
     {
       "name": "kurumi",
       "category": "AIで作る技術",
       "seed": 2001,
-      "tags": "brown hair, bob cut, short hair, green eyes, energetic, headphones around neck"
+      "tags": "brown hair, short hair, bob cut, parted bangs, green eyes, headphones, headphones around neck, energetic"
     },
     {
       "name": "shirase",
       "category": "Web開発・インフラ",
       "seed": 3001,
-      "tags": "silver hair, long straight hair, purple eyes, calm expression, expressionless"
+      "tags": "silver hair, white hair, very long hair, straight hair, hair between eyes, sidelocks, purple eyes, pale skin, tall female, calm expression, expressionless"
     },
     {
       "name": "kotoha",
       "category": "クライアント技術",
       "seed": 4001,
-      "tags": "black hair, very long hair, hime cut, red eyes, gentle smile"
+      "tags": "black hair, very long hair, straight hair, hime cut, blunt bangs, sidelocks, red eyes, gentle smile"
     },
     {
       "name": "aoi",
       "category": "チームで作る技術",
       "seed": 5001,
-      "tags": "dark blue hair, medium hair, low ponytail, glasses, amber eyes, soft smile"
+      "tags": "dark blue hair, blue hair, medium hair, low ponytail, swept bangs, hair between eyes, glasses, round eyewear, black-framed eyewear, amber eyes, orange eyes, soft smile"
     }
   ],
+
   "variations": [
-    {
-      "name": "wave",
-      "tags": "waving, open hand, smile, hoodie"
-    },
-    {
-      "name": "point",
-      "tags": "pointing at viewer, open mouth, dress shirt, necktie"
-    },
-    {
-      "name": "think",
-      "tags": "hand on own chin, closed mouth, cardigan, long sleeves"
-    },
-    {
-      "name": "thumbsup",
-      "tags": "thumbs up, grin, t-shirt, jacket"
-    },
-    {
-      "name": "present",
-      "tags": "presenting, both hands up, labcoat, white shirt"
-    }
+    { "name": "wave",     "tags": "waving, open hand, smile, hoodie" },
+    { "name": "point",    "tags": "pointing at viewer, open mouth, dress shirt, necktie" },
+    { "name": "think",    "tags": "hand on own chin, closed mouth, cardigan, long sleeves" },
+    { "name": "thumbsup", "tags": "thumbs up, grin, t-shirt, jacket" },
+    { "name": "present",  "tags": "hands up, lab coat, white shirt" }
   ],
-  "_キャラの割り当て": "cast の category は、サムネイルの色分けと揃えてあります(デイリー=青 / AIで作る技術=マゼンタ / Web開発・インフラ=橙 / クライアント技術=緑 / チームで作る技術=黄)。髪の色は、その背景色に埋もれないものを選んでいます(黄色テーマに金髪を置くと溶けるため、そこは濃い青髪)。名前・髪型・目の色は好きに書き換えて構いません。",
+
+  "_キャラの割り当て": "cast の category は、サムネイルの色分けと揃えてあります(デイリー=青 / AIで作る技術=マゼンタ / Web開発・インフラ=橙 / クライアント技術=緑 / チームで作る技術=黄)。髪の色は、その背景色に埋もれないものを選んでいます(黄色テーマに金髪を置くと溶けるため、そこは濃い青髪)。名前・髪型・目の色は書き換えて構いませんが、(1) Danbooru に実在するタグかを照合してから書くこと(実在しない語は効きが弱く、ぶれの原因になります)、(2) すでに cast/ に採用画像があるキャラの特徴を書き換えると、次の生成から別人になることに注意してください。",
+
   "_seedの決まり": "実際に使う seed は『そのキャラの seed + バリエーションの並び順』です(例: hinata の point は 1001 + 1 = 1002)。乱数は使わないので、同じ recipe なら何度でも同じ絵が出ます。全部を振り直したいときは --seed-offset で全体をずらします。",
+
   "_設定の出どころ": "steps 30 / cfg 5 / Euler a / scheduler normal / 768x1344 は、JANKU 本体の配布ページ(Civitai model id 1277670『JANKU Trained + Chenkin & NoobAI + RouWei Illustrious XL』v7.77)の Recommended Settings から。作者の記載は Steps 25-30(本人は30)、CFG 3-5(本人は5)、Sampler Euler / Euler A、Scheduler Normal or Simple、推奨解像度 768x1344 / 832x1216 / 768x1280 / 704x1408 / 1024x1536。",
-  "_品質タグの出どころ": "quality と negative の前半は、系列元である NoobAI-XL 1.1 の公式モデルカード(https://huggingface.co/Laxhar/noobai-XL-1.1)の Prompt Prefix / Negative Prompt をそのまま使っています。JANKU の配布ページに『専用の埋め込みを使わないなら、通常の NoobAI / Illustrious の品質トリガーを使えばよい』と明記されているため、この借用は作者の案内に沿ったものです。negative の末尾4つ(gradient background, scenery, multiple views, cropped)はサムネイル用にこちらで足しました。",
+
+  "_品質タグの出どころ": "quality の先頭5つと、negative の前半(nsfw〜semi-anthro)は、系列元である NoobAI-XL 1.1 の公式モデルカード(https://huggingface.co/Laxhar/noobai-XL-1.1)の Prompt Prefix / Negative Prompt をそのまま使っています(quality 末尾の safe だけは、同カードが説明している rating タグをこちらで足したもの)。JANKU の配布ページに『専用の埋め込みを使わないなら、通常の NoobAI / Illustrious の品質トリガーを使えばよい』と明記されているため、この借用は作者の案内に沿ったものです。gradient background 以降はサムネイル用にこちらで足したもので、目的は4つ。(1) gradient background / scenery / multiple views / cropped と patterned background〜two-tone background: 背景を無地に保つ(柄・グラデーション・風景の禁止)。(2) shadow〜blurry background: 影・地面・壁・背景のボケの禁止(下の_影と床について)。(3) english text / clothes writing: 服に出る偽ロゴの禁止。8/18時点の採用25枚では5人中4人の服に意味不明の英字が出ていました(絵ごとに違う文字になる)。これもぶれの一因です。(4) 2girls / multiple girls: 1人だけを描かせる保険(subject の solo の裏打ち)。",
+
+  "_影と床について": "2026/8/18 追加。生成直後の絵は、ほぼ全員の足元に床の影が描かれていました。影は背景除去の失敗原因になります(--matte では影がそのまま残る。背景除去を経た採用済みの hinata/wave.png にも、足元に影の断片が残っています)。緑背景(下の_背景について)でも事情は同じで、影が落ちた部分だけ緑が暗くなり、色で抜けなくなります。そのため negative で、影(shadow, drop shadow, reflection, reflective floor)と、地面・床・壁(floor, wall, wooden floor, tile floor, grass, pavement, road, dirt, outdoors, indoors)、背景のボケ(depth of field, blurry background)を明示的に禁止しています。副作用の可能性が2つ: 人物の陰影がいくらか浅くなるかもしれない点と、reflection が眼鏡のレンズの光沢まで抑えるかもしれない点(aoi)。どちらも切り抜いて使う用途では、影が無いことのほうが重要という判断です。次に生成したら旧25枚と見比べてください。",
+
+  "_キャラを固定するために": "2026/8/18 に、cast の tags を採用済みの絵(_assets/character/cast/)の見た目に合わせて細かく固定し直しました。方針は3つ。(1) 書いていない特徴は seed ごとに違う絵になるので、生成のたびに変わり得る特徴(リボンの色、眼鏡の形と縁の色、前髪、もみあげ、目つき、肌、体格)を全部タグで書き切る。(2) タグは Danbooru に実在する一般タグだけを使う(2026/8/18 に danbooru.donmai.us のタグAPIで全タグを照合済み)。このモデル系列(NoobAI/Illustrious)は Danbooru タグで学習されているため、実在しない語は CLIP の自然言語解釈頼みになり、効きが弱く、ぶれの原因になります。旧 recipe の silver hair / dark blue hair / amber eyes / long straight hair / small ribbon は実在タグではありませんでした(エイリアスも無し。同日に照合)。ただし採用画像はその語で生成されているので、色味を変えないよう原則残し、同じ意味の実在タグ(white hair / blue hair / orange eyes など)を隣に並べて錨にしています。例外は small ribbon だけ外しました(採用画像のリボンは小さくない紺のリボン結びで、語が実物と食い違うため。hair bow, blue bow に置き換え)。long straight hair は同義の実在タグ2つ(very long hair, straight hair)に分解しました。cheerful smile / energetic / calm expression / gentle smile / soft smile は実在タグではありませんが、性格付けとして意図どおりなので残しています(実際の表情はポーズ側のタグが決めます)。(3) それでも素の txt2img では顔は完全には揃いません。厳密に揃えるのは IPAdapter(--face)の仕事です(下の_顔を揃えることについて)。",
+
+  "_ポーズのタグについて": "variations も 2026/8/18 に実在タグへ寄せました(labcoat→lab coat、both hands up→hands up)。presenting は外しました(Danbooru の一般タグに存在せず、効かないため。ポーズ自体は hands up が表しています)。それ以外のポーズ・衣装タグは全て実在を照合済みです。",
+
+  "_タグの数について": "positive はおおむね75トークンごとに区切って読まれます(CLIPの仕様。ComfyUI は超えたぶんを次の区切りとして繋ぎます)。タグを足すほど後方(ポーズや背景指定)が2つ目の区切りに落ちて、効き方が変わることがあります。いまの分量は aoi のような長い組み合わせで既にこの境界の付近です。キャラのタグをこれ以上増やすときは、代わりにどれかを削ってください。",
+
+  "_プロンプト変更の履歴": "2026/8/18 に2つの変更を入れました。(a) 背景を白から緑一色へ(白い服と、髪と肩の間のような囲まれた背景が同じ白になり、色でもモデルでも取り切れないことが実測で分かったため。下の_背景について)。(b) 影・床・壁・背景の柄・服の英字を negative で禁止し、cast の tags を厳密化(上の2項)。cast/ にある採用済みの25枚は**どちらの変更よりも前のプロンプト**で生成したものなので、いまの recipe で同じ seed を回しても同じ25枚は出ません。旧25枚を作った設定が要るときは、git の履歴からこのファイルの旧版を取り出してください。",
+
   "_顔を揃えることについて": "素の txt2img では、ポーズや衣装を変えると顔も少しずつ変わります(タグと seed を固定してもドリフトします)。厳密に揃えたい場合は IPAdapter 系のカスタムノードを使い、基準にする1枚を参照させてください。手順は _assets/character/comfy/README.md に書いてあります。",
-  "_背景について": "背景は緑一色(green background)で生成します。白だと、髪と肩の間のような「囲まれた背景」がキャラの白い服と同じ色になり、どの背景除去モデルでも取り切れないことが実測で分かったためです(_labs/2026-08-18_comfy-character/)。緑なら `_prepare_character.py --rembg` が色で完全に抜きます(モデル不要・囲まれた背景も消える)。キャラの色に緑を使わないこと(kurumi の目は green eyes ですが、背景の蛍光緑とは距離があるため実害はありません。念のため取り込み後に目視確認すること)。 影と床は negative(shadow, drop shadow, floor, wall, reflection)で抑えています。背景に影が落ちると、その部分だけ緑が暗くなって色で抜けなくなるためです。それでも薄い影が出たら、chroma_cut のしきい値(lo/hi)を上げるより生成し直すこと。",
+
+  "_背景について": "背景は緑一色(green background)で生成します。白だと、髪と肩の間のような「囲まれた背景」がキャラの白い服と同じ色になり、どの背景除去モデルでも取り切れないことが実測で分かったためです(_labs/2026-08-18_comfy-character/)。緑なら `_prepare_character.py --rembg` が色で完全に抜きます(モデル不要・囲まれた背景も消える)。キャラの色に緑を使わないこと(kurumi の目は green eyes ですが、背景の蛍光緑とは距離があるため実害はありません。念のため取り込み後に目視確認すること)。影・床・背景の柄は negative で明示的に禁止しています(上の_影と床について)。背景に影が落ちると、その部分だけ緑が暗くなって色で抜けなくなるためです。それでも薄い影が出たら、chroma_cut のしきい値(lo/hi)を上げるより生成し直すこと。",
+
   "_構図について": "サムネイルには元画像の上から42%(胸から上)だけが、幅440px × 高さ660px の箱に収まる形で出ます。full body の立ち絵で作っておけば、切り出し比率を変えるだけで全身にも戻せます(_render_thumbs.py の CHARA_CROP)。",
+
   "_権利について": "特定の作品のキャラクターを狙って出すプロンプトやLoRAは使わないこと(CLAUDE.md 第6節)。original character として自作してください。"
 }
