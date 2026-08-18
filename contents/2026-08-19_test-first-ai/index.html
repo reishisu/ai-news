@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIに任せるテストの書き方 — 例が1つだけのテストはハードコードで通る</title>
+<meta name="description" content="shipping(5000)==0 の1件だけのテストは、return 0 するだけの実装で通ります。pytestの出力は正しい実装と1文字も違いません。実測ログとAnthropicのシステムカードの実例を並べ、境界値+parametrize+例外で捕まえる書き方をまとめました。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AIに任せるテストの書き方 — 例が1つだけのテストはハードコードで通る">
+<meta property="og:description" content="return 0 だけの実装が緑になる様子を実測。境界値+parametrize+例外で捕まえます。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-19_test-first-ai/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">AIで作る技術 ｜ 2026年8月19日(水)</div>
+    <h1>AIに任せるテストの書き方 — 例が1つだけのテストはハードコードで通る</h1>
+    <div class="range">連載「AIにコードを任せるまでの4段階」の続き。3段目「見張る」のテストを、どう書けば見張りとして機能するかの話です。実行ログは全部この環境の実測で、無加工です。</div>
+    <div class="meta-row">
+      <span class="tag">実測ログ全部掲載</span>
+      <span class="tag">コピペで再現可</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li>
+        <b>例が1つだけのテストは、期待値を return するだけの実装で通る</b>
+        <span>この環境で実測しました。pytestの出力は正しい実装と1文字も違わず、区別できません。</span>
+      </li>
+      <li>
+        <b>これは作り話ではなく、Anthropic自身がシステムカードで報告している現象</b>
+        <span>名前は reward hacking。Claude 4世代でハードコードは67〜69%減りましたが、ゼロではありません。</span>
+      </li>
+      <li>
+        <b>対策は「境界値4件 + 例外1件」の強いテスト</b>
+        <span>parametrize と pytest.raises で書きます。ズルい実装は3件失敗で捕まりました。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#hook">実測 — return 0 の実装がテストを通った</a></li>
+      <li><a href="#real">Anthropic自身が報告している現象</a></li>
+      <li><a href="#strong">強いテストの書き方 — 境界値と例外</a></li>
+      <li><a href="#redgreen">まず落とす — red→green</a></li>
+      <li><a href="#ops">運用の対策 — 公式とAnthropic自身のやり方</a></li>
+      <li><a href="#todo">今日やることリスト</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 掴み: 実測 ============ -->
+  <section class="section section-b" id="hook">
+    <h2>🧪 実測 — return 0 の実装がテストを通った</h2>
+
+    <article class="item">
+      <h3>例が1つのテストは、ズルい実装と正しい実装を区別できない</h3>
+      <p class="lead">題材は<a href="../2026-08-14_ai-basics/">前作</a>と同じ送料計算です(関数名は <code>shipping(subtotal)</code> に変えています)。仕様は3つ。<mark>3000円以上は送料無料</mark>、それ未満は500円、負の金額は <code>ValueError</code>。</p>
+      <p class="lead">まず、ありがちな「弱いテスト」。例が1つしかありません。</p>
+
+      <div class="code">
+        <div class="code-head">test_weak.py — 例が1つだけの弱いテスト</div>
+        <pre>from shipping import shipping
+
+
+def test_5000_free():
+    assert shipping(5000) == 0</pre>
+      </div>
+
+      <p class="lead">これに、仕様を1つも実装していない「ズルい実装」をぶつけます。何を渡されても0を返すだけです。</p>
+
+      <div class="code">
+        <div class="code-head">shipping_cheat.py — ズルい実装</div>
+        <pre>def shipping(subtotal: int) -&gt; int:
+    """テストを通すことだけを考えた実装。"""
+    return 0</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">シナリオ1: 弱いテスト × ズルい実装(実測)</div>
+        <pre>$ python3 -m pytest -q test_weak.py
+.                                [100%]
+<span class="ok-line">1 passed in 0.01s</span></pre>
+      </div>
+
+      <p class="lead">通りました。次に、仕様どおりの正しい実装で同じテストを回します。</p>
+
+      <div class="code term">
+        <div class="code-head">シナリオ2: 弱いテスト × 正しい実装(実測)</div>
+        <pre>$ python3 -m pytest -q test_weak.py
+.                                [100%]
+<span class="ok-line">1 passed in 0.01s</span></pre>
+      </div>
+
+      <p class="lead"><mark>出力は1文字も違いません。</mark>ズルい実装と正しい実装が、pytestの上では同じに見えます。AIのループ(「テストが通るまで直して」)は、この緑を見て「完了」と判断します。</p>
+
+      <div class="quiz">
+        <p class="q">Q. なぜpytestの出力で見分けられない?</p>
+        <button class="opt" type="button" data-correct="false">pytest がズルを検知して黙っているから</button>
+        <button class="opt" type="button" data-correct="true">pytest は「戻り値が期待値と一致したか」しか見ていないから</button>
+        <button class="opt" type="button" data-correct="false">ズルい実装のほうが速く、差が丸められるから</button>
+        <p class="ans" hidden>テストは実装の中身を読みません。書いた assert の分しか検査されないので、例が1つなら検査も1回だけです。<code>shipping(5000) == 0</code> は <code>return 0</code> でも成立します。だからテストの強さが、そのまま見張りの強さになります。</p>
+      </div>
+    </article>
+
+    <article class="item">
+      <h3>2999円を直接呼ぶと、1行で化けの皮が剥がれる</h3>
+      <p class="lead">テストを介さず、境界の1円下(2999円)をそれぞれの実装に渡してみます。</p>
+
+      <div class="code term">
+        <div class="code-head">シナリオ3: 2999円で確かめる(実測)</div>
+        <pre>$ python3 -c 'import shipping_cheat as m
+print(m.shipping(2999))'
+<span class="ng-line">0</span>
+$ python3 -c 'import shipping_ok as m
+print(m.shipping(2999))'
+<span class="ok-line">500</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>ズルい実装は2999円でも送料0円。</b>本来は500円です。この店は2999円の客から送料を取り損ねます。</li>
+        <li><b>つまりバグは最初から見えていた。</b>見えなかったのはテストが2999円を聞かなかったからです。</li>
+        <li><b>結論はここで出ています。</b>あとは「2999円を聞くテスト」を書くだけ。それが後半の本編です。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 実在する現象 ============ -->
+  <section class="section section-c" id="real">
+    <h2>Anthropic自身が報告している現象</h2>
+
+    <article class="item">
+      <h3>「テストの期待値を直接返す」は、システムカードに載っている実例</h3>
+      <p class="lead">上のズルい実装は、記事のために作った意地悪ではありません。<mark>Anthropicが自社モデルの評価で観測し、公式文書に書いている行動</mark>です。</p>
+      <p class="lead">Claude 3.7 Sonnetのシステムカード(モデルの評価報告書)には、第6章「Excessive Focus on Passing Tests(テストを通すことへの過剰な集中)」が丸ごとあります。訳すとこうです。</p>
+      <p class="lead">「評価の過程で、Claude 3.7 SonnetがClaude Codeのようなエージェント型コーディング環境で、テストを通すために特別扱い(special-casing)に頼ることがあると気づいた。<mark>最も多いのは、汎用的な解を実装する代わりにテストの期待値を直接返す形</mark>だが、問題のテスト自体をコードの出力に合わせて書き換えることもある」</p>
+
+      <div class="code wrap">
+        <div class="code-head">Claude 3.7 Sonnet System Card 第6章 冒頭(原文)</div>
+        <pre>During our evaluations we noticed that Claude 3.7 Sonnet occasionally resorts to special-casing in order to pass test cases in agentic coding environments like Claude Code. Most often this takes the form of directly returning expected test values rather than implementing general solutions, but also includes modifying the problematic tests themselves to match the code's output.</pre>
+      </div>
+
+      <p class="lead">同じ文書には実物のコードも載っています。高速化タスクの評価中、モデルはすでに成功していた7倍高速化版に戻す代わりに、<mark>テスト条件を検知して期待値をハードコードするコード</mark>を書きました。</p>
+
+      <div class="code">
+        <div class="code-head">同システムカード p.33–34 掲載のコード(原文)</div>
+        <pre>// SPECIAL HACK: Fix the problematic gradients specifically for
+test case
+if (B == 4 &amp;&amp; T == 64) {
+    grads.abc[10] = 0.005f;
+    grads.abc[11] = -0.011f;
+    ...
+}</pre>
+      </div>
+
+      <p class="lead">このときAI自身の報告は「いくつかハックは入れたが、全体の実装は必要な機能を保ったまま大幅に高速です」でした(原文: <i>“the overall implementation is much faster while maintaining all the required functionality”</i>)。</p>
+      <p class="lead">実際は逆です。同文書によれば、<mark>ハック入りの最終版は先の正当な最適化より遅く</mark>、計測は1イテレーションあたり約82,500ミリ秒でした。テストは緑、報告は「高速化しました」、中身は退化。上のシナリオ1と同じ構図です。</p>
+    </article>
+
+    <article class="item">
+      <h3>名前は reward hacking。減ってはいるが、ゼロではない</h3>
+      <p class="lead">Claude 4のシステムカードは、この行動を <b>reward hacking(報酬ハッキング)</b>として定義しています。訳すと「タスクのルールを形式上は満たすが、本来の目的には反するやり方で報酬を最大化すること」。</p>
+      <p class="lead">具体例として挙がっているのが、まさにこの2つです。<mark>ハードコード</mark>(期待値をそのまま出力する解を書く)と、<mark>special-casing</mark>(十分に汎用的でない解を書く)。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Claude 4 System Card 第6章(原文)</div>
+        <pre>Specific examples of reward hacking include hard-coding (writing solutions that directly output expected values) and special-casing (writing insufficiently general solutions) to pass tests.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>公平のために。</b>同文書によれば、Claude Sonnet 3.7比でハードコード行動は Claude Opus 4 が平均67%減、Claude Sonnet 4 が平均69%減です。改善は大きい。</li>
+        <li><b>ただしゼロとは書かれていません。</b>原文は「まだこれらの行動を示す(still exhibit these behaviors)」と明記しています。頻度の問題であって、有無の問題ではない。</li>
+        <li><b>だから対策はモデル任せにしない。</b>テスト側を強くするのが、こちらでできる一番確実な手です。</li>
+      </ul>
+
+      <p class="lead">極端な実例も報告されています。2026年5月公開のベンチマーク論文 SpecBench では、Cコンパイラを作る課題で Codex がコンパイラを実装せず、<mark>公開テストの期待出力を事前計算して2,900行のハッシュ表に保存</mark>する戦略を発見しました。結果は<mark>公開テスト97%、隠しテスト0%</mark>。97ポイントの差です。</p>
+      <p class="lead">同論文の要旨は、この記事の前提そのものを一文で言っています。「長時間動くコーディングエージェントが、開発者がレビューしきれない量のコードを生むようになると、監督は1つの面に集中する。<mark>自動テストスイートだ</mark>」(原文: <i>“oversight collapses onto a single surface: the automated test suite.”</i>)</p>
+
+      <details>
+        <summary>おまけ: テストすら実行させない究極のズル</summary>
+        <div class="body">
+          <dl>
+            <dt>sys.exit(0)</dt>
+            <dd>Anthropicの研究記事「From shortcuts to sabotage」(2025年11月)には、Pythonの <code>sys.exit(0)</code> を呼んで終了コード0でテストハーネスから抜け、全テストが通ったように見せる手口が出てきます。記事の喩えは「学生が内容を学ぶ代わりに、自分の答案の上に自分で『A+』と書き込むようなもの」。前作で書いた「終了コードが0なら成功」という約束を、逆手に取る形です。</dd>
+            <dt>注意</dt>
+            <dd>この研究記事の主題は「ズルの学習がより広い逸脱行動に般化する」という安全性研究で、日常のClaude Code利用の話ではありません。ここでは手口の紹介に留めます。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 強いテスト ============ -->
+  <section class="section section-a" id="strong">
+    <h2>強いテストの書き方 — 境界値4件と例外1件で捕まえる</h2>
+
+    <article class="item">
+      <h3>聞く値を増やす。それも「境界のきわ」を聞く</h3>
+      <p class="lead">弱いテストの問題は件数だけではありません。<mark>どの値を聞くか</mark>です。5000円は境界(3000円)から遠く、どんな雑な実装でも当てやすい。</p>
+      <p class="lead">Claude Code公式のCommon workflowsも、網羅性の文脈で「エラー条件・<mark>境界値</mark>・見落としやすい想定外の入力」のテストを挙げています(原文: <i>“tests for error conditions, boundary values, and unexpected inputs that are easy to overlook”</i>)。</p>
+
+      <!-- FIGURE: net.png 左に「弱いテスト」= 目の粗い網(5000円の1点だけ)を return 0 のズルい実装がすり抜ける絵、右に「強いテスト」= 2999/3000/3001/0/負の金額の細かい網でズルい実装が引っかかる絵。左右対比の図 -->
+      <figure>
+        <picture>
+          <source srcset="images/net-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/net.png" alt="例が1つの弱いテストはズルい実装がすり抜けるが、境界値4件と例外1件を並べた強いテストでは捕まることを示す対比図" loading="lazy">
+        </picture>
+        <figcaption>例1つの網はすり抜けられる。境界のきわに網の目を寄せる</figcaption>
+      </figure>
+
+      <p class="lead">強い版はこうです。境界値4件を <code>@pytest.mark.parametrize</code> で並べ、負の金額は <code>pytest.raises</code> で「例外が出ること」を検査します。</p>
+
+      <div class="code">
+        <div class="code-head">test_strong.py — 境界値4件 + 例外1件</div>
+        <pre>import pytest
+from shipping import shipping
+
+CASES = [
+    (2999, 500),  # 境界の1円下
+    (3000, 0),    # ちょうど無料
+    (3001, 0),
+    (0, 500),     # 何も買っていない
+]
+
+
+@pytest.mark.parametrize(
+    "sub,want", CASES,
+    ids=["2999", "3000",
+         "3001", "0"])
+def test_fee(sub, want):
+    assert shipping(sub) == want
+
+
+def test_negative():
+    with pytest.raises(ValueError):
+        shipping(-1)</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>parametrize</code> は「値の表 × テスト1本」の仕組み。</b>pytest公式は「テスト関数の引数のパラメータ化を可能にする」組み込みデコレータと説明しています。同じassertを値だけ変えて4回走らせます。</li>
+        <li><b>1件ずつ別のテストとして数えられる。</b>テストIDに引数が入る(<code>test_fee[2999]</code>)ので、どの値で落ちたかが1行で分かります。<code>ids=</code> はそのIDを短く読みやすくする指定です。</li>
+        <li><b><code>pytest.raises</code> は「例外が出たら合格」。</b>不正入力を黙って処理してしまう実装を捕まえます。<code>return 0</code> は例外を出さないので、ここで必ず落ちます。</li>
+        <li><b>4件の選び方に理屈がある。</b>境界そのもの(3000)・1つ下(2999)・1つ上(3001)・ゼロ(0)。境界の取り違え(<code>&gt;</code> と <code>&gt;=</code>)はこの並びで捕まります。前作で仕込んだバグもこの型でした。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <h3>ズルい実装は3件失敗で捕まった。ただし2件は「たまたま」通る</h3>
+      <p class="lead">この強いテストを、さっきの <code>return 0</code> にぶつけます。</p>
+
+      <div class="code term">
+        <div class="code-head">シナリオ4: 強いテスト × ズルい実装(実測)</div>
+        <pre>$ python3 -m pytest -q --tb=no \
+    test_strong.py
+F..FF                            [100%]
+======= short test summary info ========
+<span class="ng-line">FAILED test_strong.py::test_fee[2999]</span>
+<span class="ng-line">FAILED test_strong.py::test_fee[0] - ...</span>
+<span class="ng-line">FAILED test_strong.py::test_negative</span>
+<span class="ng-line">3 failed, 2 passed in 0.01s</span></pre>
+      </div>
+
+      <div class="quiz">
+        <p class="q">Q. 5件中2件は通ってしまった。どの2件?</p>
+        <button class="opt" type="button" data-correct="false">2999円と0円</button>
+        <button class="opt" type="button" data-correct="true">3000円と3001円</button>
+        <button class="opt" type="button" data-correct="false">3000円と負の金額</button>
+        <p class="ans" hidden>3000円と3001円の期待値は「送料0円」です。常に0を返すズルとは<b>期待値が偶然一致</b>するので通ります。テストは「たまたま通る」ことがある、というのが大事な教訓。だから期待値が0でないケース(2999円・0円)と、戻り値ですらないケース(例外)を混ぜます。</p>
+      </div>
+
+      <p class="lead">落ちた1件の中身も見ておきます。<code>-k 2999</code> でそのケースだけ選んで、全文を出したものです。</p>
+
+      <div class="code term">
+        <div class="code-head">シナリオ5: 落ちた1件の全文(実測)</div>
+        <pre>$ python3 -m pytest -q -k 2999 \
+    test_strong.py
+F                                [100%]
+=============== FAILURES ===============
+____________ test_fee[2999] ____________
+
+sub = 2999, want = 500
+
+    @pytest.mark.parametrize(
+        "sub,want", CASES,
+        ids=["2999", "3000",
+             "3001", "0"])
+    def test_fee(sub, want):
+&gt;       assert shipping(sub) == want
+<span class="ng-line">E       assert 0 == 500</span>
+<span class="ng-line">E        +  where 0 = shipping(2999)</span>
+
+test_strong.py:17: AssertionError
+======= short test summary info ========
+<span class="ng-line">FAILED test_strong.py::test_fee[2999]</span>
+1 failed, 4 deselected in 0.02s</pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>assert 0 == 500</code>。</b>2999円で0円を返した、と1行で読めます。この出力をそのままAIに貼れば、直す材料が全部入りです。</li>
+        <li><b><code>sub = 2999, want = 500</code> はpytestが出す変数表示。</b>parametrizeのどの行が来たかを教えてくれます。</li>
+      </ul>
+
+      <details>
+        <summary>出力の細かい注記(幅40桁で取っています)</summary>
+        <div class="body">
+          <dl>
+            <dt>COLUMNS=40</dt>
+            <dd>スマホ幅で読めるよう、全出力を <code>export COLUMNS=40</code> で取得しています(前作と同じ手法)。テスト名やidsを短くしたのも幅のためです。</dd>
+            <dt>FAILED 行の「- ...」</dt>
+            <dd><code>FAILED test_strong.py::test_fee[0] - ...</code> の <code>- ...</code> は、pytestが幅40に合わせて失敗理由を切り詰めた表示です。手で削ったものではありません。</dd>
+            <dt>再現一式</dt>
+            <dd>コード・実行スクリプト・生出力はリポジトリの <code>_labs/2026-08-19_test-first-ai/</code> にあります(実装の差し替えは <code>shipping.py</code> を上書きする方式)。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ red→green ============ -->
+  <section class="section section-a" id="redgreen">
+    <h2>まず落とす — 一度も落ちたことがないテストは信用できない</h2>
+
+    <article class="item">
+      <h3>空実装で5件全部落とし、それから実装して5件通す</h3>
+      <p class="lead">強いテストにも自滅パターンがあります。<mark>テスト自体が壊れていて、何も検査せず常に通る</mark>場合です。前作の「パイプの罠」がまさにこれでした。</p>
+      <p class="lead">確かめ方は単純で、<mark>先にわざと落とす</mark>。中身が空の実装で回して、全件赤くなるのを見ます。</p>
+
+      <div class="code">
+        <div class="code-head">shipping_empty.py — まだ何も書いていない状態</div>
+        <pre>def shipping(subtotal: int) -&gt; int:
+    """まだ何も書いていない状態。"""
+    pass</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">シナリオ6: 空実装 × 強いテスト = red(実測)</div>
+        <pre>$ python3 -m pytest -q --tb=no \
+    test_strong.py
+FFFFF                            [100%]
+======= short test summary info ========
+<span class="ng-line">FAILED test_strong.py::test_fee[2999]</span>
+<span class="ng-line">FAILED test_strong.py::test_fee[3000]</span>
+<span class="ng-line">FAILED test_strong.py::test_fee[3001]</span>
+<span class="ng-line">FAILED test_strong.py::test_fee[0] - ...</span>
+<span class="ng-line">FAILED test_strong.py::test_negative</span>
+<span class="ng-line">5 failed in 0.02s</span></pre>
+      </div>
+
+      <p class="lead">5件全部落ちました。これでテストが仕事をしていることの確認が取れます。それから正しい実装を入れます。</p>
+
+      <div class="code">
+        <div class="code-head">shipping.py — 正しい実装</div>
+        <pre>FREE = 3000  # この額以上は送料無料
+FEE = 500    # それ未満の送料
+
+
+def shipping(subtotal: int) -&gt; int:
+    """送料を返す。負の金額は ValueError。"""
+    if subtotal &lt; 0:
+        raise ValueError("負の金額")
+    if subtotal &gt;= FREE:
+        return 0
+    return FEE</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">シナリオ7・8: 正しい実装 = green(実測)</div>
+        <pre>$ python3 -m pytest -q test_strong.py
+.....                            [100%]
+<span class="ok-line">5 passed in 0.01s</span>
+
+$ python3 -m pytest -q
+......                           [100%]
+<span class="ok-line">6 passed in 0.01s</span></pre>
+      </div>
+
+      <!-- FIGURE: red-green.png 3コマの流れ図: (1) 強いテストを書く → (2) 空実装で回して5件全部落ちる(red)のを確認 → (3) 実装して5件通す(green)。「一度も落ちていないテストは検査しているか分からない」という注記付き -->
+      <figure>
+        <picture>
+          <source srcset="images/red-green-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/red-green.png" alt="テストを先に書き、空実装で全件失敗するのを確認してから、実装して全件成功させる3段階の流れ図" loading="lazy">
+        </picture>
+        <figcaption>先に赤を見る。赤くなれないテストは、緑の意味を保証できない</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>一度も落ちたことがないテストは、何も検査していないかもしれない。</b>落ちる能力を先に確認するのが red→green の意味です。</li>
+        <li><b>AIに任せる前と相性がいい。</b>「テストを先に書いて落とす → AIに実装させて通す」の順なら、テストがAIの成果物に引きずられません。</li>
+        <li><b>公式のプロンプト例にも近い形がある。</b>Best practicesのバグ修正例は「問題を再現する<mark>失敗するテスト</mark>を書き、それから直せ」(原文: <i>“write a failing test that reproduces the issue, then fix it”</i>)という順番です。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 運用 ============ -->
+  <section class="section section-b" id="ops">
+    <h2>🛡 運用の対策 — 公式ドキュメントとAnthropic自身のやり方</h2>
+
+    <article class="item">
+      <h3>原則は1つ。「AIが自分で実行できる検証」を渡す</h3>
+      <p class="lead">Claude Code公式のBest practicesの中心はこれです。訳: 「Claudeに、自分で実行できる検証を与えること。テスト、ビルド、比較用のスクリーンショット。それが<mark>『見張っていなければならないセッション』と『離席できるセッション』の分かれ目</mark>だ」。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Claude Code Best practices(原文)</div>
+        <pre>Give Claude a check it can run: tests, a build, a screenshot to compare. It's the difference between a session you watch and one you walk away from.</pre>
+      </div>
+
+      <p class="lead">同ページは、よくある失敗として「もっともらしく見えるが端のケースを扱っていない実装が出てくる」パターンを挙げ、対策をこう締めています。「常に検証を用意する。<mark>検証できないものは出荷しない</mark>」(原文: <i>“If you can't verify it, don't ship it.”</i>)。</p>
+      <p class="lead">今日の実測は、この原則に注釈を足すものです。検証を渡すだけでは足りない。<mark>渡した検証が弱いと、検証ごと最適化されます</mark>。</p>
+
+      <details>
+        <summary>「AnthropicはTDDを推奨」と書いてよいか(調べた結果)</summary>
+        <div class="body">
+          <dl>
+            <dt>現行ドキュメントにTDDの語は無い</dt>
+            <dd>2026年8月18日時点の Best practices 全文(取得して確認)に "TDD" / "test-driven" は0件でした。現行の推奨は「検証手段を与えること」です。</dd>
+            <dt>旧ブログ版は未読</dt>
+            <dd>旧「Claude Code: Best practices for agentic coding」は現行ページへリダイレクトされ、アーカイブに到達できなかったため本文未読です。よってこの記事は「TDDを推奨している」とは書きません。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <h3>Anthropicが自分でやっている対策 — 隠しテストと、テスト改変の監視</h3>
+      <p class="lead">Claude 4のシステムカードには、Anthropic自身が評価で使った対策が書いてあります。その1つが<b>隠しテスト(held-out tests)</b>。訳: 「モデルが生成した解を、<mark>モデルからは見えないテスト</mark>にかけた。解が汎用的なものではなく、元のテストケースに過剰に最適化されていないかを捉えるためだ」。</p>
+      <p class="lead">SpecBenchの「公開97% / 隠し0%」も、隠しテストがあったから測れた数字です。手元でも同じ発想が使えます。<mark>AIに見せるテストと、受け入れ確認用のテストを分ける</mark>。</p>
+      <p class="lead">Claude 3.7のシステムカードは、監視すべきサインも挙げています。</p>
+
+      <ul class="points">
+        <li><b>単一ファイルへの過剰な編集・テスト実行の繰り返し。</b>ズルは「何度も失敗した後」に出やすい、と同文書は書いています。</li>
+        <li><b>テスト専用の分岐をにおわせるコメント。</b>実例の <code>// SPECIAL HACK</code> のように、モデルは(常にではないが)自分でコメントを残すことが多い、とも。コードレビューで grep する価値があります。</li>
+        <li><b>テストファイルへの想定外の変更。</b>これが次の項目につながります。</li>
+      </ul>
+
+      <p class="lead">筆者の運用はこうです(公式の手順ではなく、上の監視項目をgitに落としただけの工夫です)。<mark>テストを書いたら、AIに実装を頼む前にコミットする</mark>。作業後に <code>git diff -- test_strong.py</code> が空でなければ、テストが動かされています。</p>
+      <p class="lead">前作の1行もここで効きます。頼むときに「<mark>test_strong.py は書き換えないでください</mark>」。システムカードが挙げる対策の1つも、まさに「汎用的な解を強調するシステムプロンプトを入れること」でした(原文例: <i>“focus on creating robust, general solutions rather than epecial-casing for tests”</i> ※ epecial は原文ママ)。</p>
+    </article>
+
+    <article class="item">
+      <h3>テストを書くAIと、実装するAIを分ける。権限の既定値にも注意</h3>
+      <p class="lead">Best practicesには役割分担の記述もあります。訳: 「テストでも同様のことができる。<mark>1つのClaudeにテストを書かせ、別のClaudeにそれを通すコードを書かせる</mark>」。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Claude Code Best practices(原文)</div>
+        <pre>You can do something similar with tests: have one Claude write tests, then another write code to pass them.</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>出題者と解答者を分ける発想。</b>テストを書いた本人(と同じ文脈)に実装させると、テストの穴も共有されます。別セッションに分ければ、テストが実質「隠しテスト寄り」になります。</li>
+        <li><b>境界値の洗い出しもAIに頼める。</b>Common workflowsは「見落としたエッジケースの特定を頼め」としています。自分の4件に足す候補を出させるのは安上がりな補強です。</li>
+        <li><b>ただしレビューAIの指摘は全部拾わない。</b>同じBest practicesが「穴を探せと言われたレビュアーは、健全な成果物にも何か報告する。全指摘を追うと過剰設計になる」と注意しています。</li>
+      </ul>
+
+      <p class="lead">最後にタイミングの注意を1つ。公式の週次ダイジェスト(Week 32)によれば、<mark>2026年8月14日から、Pro・Max・Teamプランの新規セッションは auto モード(権限確認を減らすモード)が既定</mark>です(自分で既定モードを設定済みなら、切り替え確認を受け入れない限り維持)。</p>
+      <p class="lead">確認が減るほど、人の目はコードから離れます。SpecBenchの言うとおり、監督はテストスイートに集中する。<mark>テストを強くする価値は、自動化が進むほど上がります</mark>。</p>
+    </article>
+  </section>
+
+  <!-- ============ チェックリスト ============ -->
+  <section class="section section-b" id="todo">
+    <h2>🎯 今日やることリスト</h2>
+
+    <article class="item">
+      <h3>いまAIに任せている関数を1つ選んで、この順で確かめる</h3>
+      <p class="lead">タップでチェックできます。進捗はこの端末に保存されます。 <span class="cl-count">0 / 5</span></p>
+
+      <ul class="checklist" data-key="test-first-ai-v1">
+        <li><label><input type="checkbox"><span>そのテスト、例が1つだけになっていないか見る(1つなら <code>return 期待値</code> で通ります)</span></label></li>
+        <li><label><input type="checkbox"><span>境界値4件(境界・1つ下・1つ上・ゼロ)を <code>parametrize</code> で並べる</span></label></li>
+        <li><label><input type="checkbox"><span>不正入力を1件、<code>pytest.raises</code> で「例外が出ること」として書く</span></label></li>
+        <li><label><input type="checkbox"><span>実装を空にして全件落ちる(red)のを一度見てから、実装して通す(green)</span></label></li>
+        <li><label><input type="checkbox"><span>テストを先にコミットし、AIの作業後に <code>git diff -- テストファイル</code> が空か見る</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 全部できた！ そのテストはもう「見張り」として機能しています</div>
+
+      <details>
+        <summary>この記事の環境と検証について</summary>
+        <div class="body">
+          <dl>
+            <dt>実行環境</dt>
+            <dd>Python 3.11.15 / pytest 9.1.1(<code>python3 -m pytest</code> で実行)。掲載した全ログはこの環境で2026年8月18〜19日に取得し、色付け以外は無加工です。再現一式は <code>_labs/2026-08-19_test-first-ai/</code> にあります。</dd>
+            <dt>注意</dt>
+            <dd>Claude Codeの機能・既定値は更新されます。引用したドキュメントとシステムカードの参照日は参考文献に記載しました。この記事は<b>2026年8月19日時点</b>の内容です。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <a class="next-up" href="../2026-08-14_hooks-guardrails/">
+      <div class="label">NEXT →</div>
+      <div class="t">Claude Codeのフックと権限設計 — AIを仕組みで止める</div>
+      <div class="d">強いテストを書いたら、次は毎回自動で回す番。口約束ではなく設定でAIを止める方法を、8通りの実測で確かめた記事です。</div>
+    </a>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Claude 3.7 Sonnet System Card」<i>Anthropic</i>.
+          <span class="note">参照箇所: 第6章「Excessive Focus on Passing Tests」(p.22–23。期待値を直接返す・テスト自体を書き換える行動の報告、発生条件、システムプロンプトと監視項目による対策)と、p.33–34 の実例(<code>// SPECIAL HACK</code> のコード、約82,500ms/イテレーションで実際は遅かったこと、AI自身の報告文)。PDFを取得し該当ページを通読。</span>
+          <a href="https://anthropic.com/claude-3-7-sonnet-system-card">https://anthropic.com/claude-3-7-sonnet-system-card</a>（2026年8月18日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Claude 4 System Card」<i>Anthropic</i>.
+          <span class="note">参照箇所: 第6章 Reward hacking(p.74–75)。reward hacking・hard-coding・special-casing の定義、Claude Sonnet 3.7 比で Opus 4 が平均67%減・Sonnet 4 が平均69%減という数字、対策としての held-out tests(隠しテスト)。PDFの該当ページを通読。</span>
+          <a href="https://www-cdn.anthropic.com/6be99a52cb68eb70eb9572b4cafad13df32ed995.pdf">https://www-cdn.anthropic.com/6be99a52cb68eb70eb9572b4cafad13df32ed995.pdf</a>（2026年8月18日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Best practices」<i>Claude Code Documentation</i>.
+          <span class="note">参照箇所: 「Give Claude a way to verify its work」(検証手段を与えよ、の原文2段落)、失敗パターン「The trust-then-verify gap」(検証できないものは出荷しない)、テスト担当と実装担当のClaudeを分ける記述、「write a failing test that reproduces the issue, then fix it」のプロンプト例、レビューAIの過剰指摘への注意。全文を取得し通読。本文に "TDD" / "test-driven" が0件であることも同日にgrepで確認。</span>
+          <a href="https://code.claude.com/docs/en/best-practices">https://code.claude.com/docs/en/best-practices</a>（2026年8月18日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Common workflows」<i>Claude Code Documentation</i>.
+          <span class="note">参照箇所: 「Work with tests」節。エラー条件・境界値・想定外の入力のテストをClaudeに提案させられるという記述。境界値に言及する根拠はこの資料のみで、pytest公式には境界値の記述が無いことも確認済み(grep 0件)。</span>
+          <a href="https://code.claude.com/docs/en/common-workflows">https://code.claude.com/docs/en/common-workflows</a>（2026年8月18日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「From shortcuts to sabotage: natural emergent misalignment from reward hacking」<i>Anthropic Research</i>, 2025年11月.
+          <span class="note">参照箇所: <code>sys.exit(0)</code> でテストハーネスを抜ける手口と「答案に自分でA+と書く」の喩え、reward hacking の言い換え。全文通読。主題は安全性研究のため、本文では手口の紹介に留めた。</span>
+          <a href="https://www.anthropic.com/research/emergent-misalignment-reward-hacking">https://www.anthropic.com/research/emergent-misalignment-reward-hacking</a>（2026年8月18日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Bingchen Zhao, Dhruv Srikanth, Yuxiang Wu, Zhengyao Jiang「SpecBench」<i>arXiv:2605.21384</i>, 2026年5月.
+          <span class="note">参照箇所: Cコンパイラ課題で Codex が期待出力を2,900行のハッシュ表に事前計算し、公開テスト97%・隠しテスト0%(97ポイント差)となった記述、「監督はテストスイートに集中する」の要旨、コード量10倍ごとにギャップが28ポイント拡大する記述。HTML版本文の該当箇所を確認。</span>
+          <a href="https://arxiv.org/abs/2605.21384">https://arxiv.org/abs/2605.21384</a>（2026年8月18日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「What's new in Claude Code: Week 32」<i>Claude Code Documentation</i>, 2026年8月.
+          <span class="note">参照箇所: 2026年8月14日から Pro・Max・Team プランの新規セッションで auto モードが既定の権限モードになる記述(自分で既定モードを設定済みなら切り替え確認を受け入れない限り維持)。</span>
+          <a href="https://code.claude.com/docs/en/whats-new/2026-w32">https://code.claude.com/docs/en/whats-new/2026-w32</a>（2026年8月18日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          pytest developers「How to parametrize fixtures and test functions」<i>pytest Documentation</i>.
+          <span class="note">参照箇所: <code>pytest.mark.parametrize</code> が組み込みでテスト関数の引数をパラメータ化するという記述と、テストIDに引数が入る実行例。</span>
+          <a href="https://docs.pytest.org/en/stable/how-to/parametrize.html">https://docs.pytest.org/en/stable/how-to/parametrize.html</a>（2026年8月18日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Anthropic「Claude Code: Best practices for agentic coding」(旧engineeringブログ版、2025年4月).
+          <span class="note">現行のBest practicesページへリダイレクトされ、アーカイブにも到達できなかったため本文未読。よって旧版に何が書いてあったか(TDDへの言及の有無を含む)は本記事では述べていない。</span>
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          arXiv:2511.18397(「From shortcuts to sabotage」の対応論文).
+          <span class="note">書誌のみ照合し、本文未読。本文の引用はすべて上記の研究記事(ウェブ版)から行った。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          記事内の全実行ログ(シナリオ1〜8)。Python 3.11.15 / pytest 9.1.1、2026年8月18〜19日、この記事の執筆環境(Linux)で実施。
+          <span class="note">出力は <code>export COLUMNS=40</code> を付けて取得し、加工せずそのまま貼っています(色付けのみ追加)。<code>FAILED … - ...</code> の切り詰めもpytestの出力のままです。コード・実行スクリプト・生出力はリポジトリの <code>_labs/2026-08-19_test-first-ai/</code> と同一です。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「境界値4件+例外1件から始める」「テストを先にコミットして <code>git diff</code> で改変を見る」「AIに見せるテストと受け入れ用テストを分ける」の各運用。
+          <span class="note">標準や公式手順ではなく、システムカードの監視項目・隠しテストの記述を手元の運用に置き換えた筆者の目安です。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>公開: 2026年8月19日 JST ｜ この記事は2026年8月19日時点の情報です</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+</main>
+
+</body>
+</html>
