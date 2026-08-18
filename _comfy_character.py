@@ -116,6 +116,58 @@ def api(url, path, data=None, raw=False, timeout=TIMEOUT, body=None, ctype=None)
     return out if raw else json.loads(out.decode("utf-8"))
 
 
+def png_has_alpha(path):
+    """PNGにアルファチャンネルがあるかを、ヘッダだけ読んで判定する(標準ライブラリのみ)。
+
+    IHDR の color type が 4(グレー+α) か 6(RGBA) なら透過あり。
+    """
+    head = Path(path).read_bytes()[:33]
+    return len(head) >= 26 and head[25] in (4, 6)
+
+
+def flatten_reference(path):
+    """基準にする画像が透過PNGなら、白背景に合成した一時ファイルを返す。
+
+    **透過のまま参照に渡すと、壊れた絵が出ます(実機で発生)。**
+    ComfyUI の LoadImage は画像を RGB に変換するだけなので、透明部分の
+    下に残っている色がそのまま「参照すべき絵」として IPAdapter に入るためです。
+    背景除去(rembg)を通した cast の絵はすべて透過なので、ここで必ず埋めます。
+
+    合成には Pillow が要ります。無ければ None を返すので、呼び出し側で止めること。
+    """
+    path = Path(path)
+    if not png_has_alpha(path):
+        return path
+    try:
+        from PIL import Image
+    except ImportError:
+        return None
+    import tempfile
+    with Image.open(path) as im:
+        im = im.convert("RGBA")
+        bg = Image.new("RGB", im.size, (255, 255, 255))
+        bg.paste(im, (0, 0), im)
+    tmp = Path(tempfile.mkstemp(suffix=".png")[1])
+    bg.save(tmp, "PNG")
+    return tmp
+
+
+def upload_reference(url, path):
+    """基準の画像を、透過を白で埋めてから ComfyUI に送る。"""
+    flat = flatten_reference(path)
+    if flat is None:
+        print(f"中止: {path} は透過PNGです。透過のまま参照に渡すと壊れた絵が出るため、",
+              file=sys.stderr)
+        print("      白背景に合成してから送る必要があります。次のどちらかで:", file=sys.stderr)
+        print("        python3 -m pip install pillow   # 自動で合成できるようになる",
+              file=sys.stderr)
+        print("        --reference で背景付き(生成直後)の画像を渡す", file=sys.stderr)
+        return None
+    if flat != Path(path):
+        print(f"  (透過を白背景で埋めました: {Path(path).name})")
+    return upload_image(url, flat)
+
+
 def upload_image(url, path):
     """画像を ComfyUI の input フォルダに送る。LoadImage から使えるようになる。
 
@@ -561,9 +613,11 @@ def main():
                   file=sys.stderr)
             return 1
         try:
-            reference = upload_image(url, opt("--reference"))
+            reference = upload_reference(url, opt("--reference"))
         except (urllib.error.URLError, OSError) as e:
             print(f"中止: 参照画像を送れませんでした: {e}", file=sys.stderr)
+            return 1
+        if reference is None:
             return 1
         print(f"参照画像: {reference} を ComfyUI に送りました")
 
@@ -592,10 +646,13 @@ def main():
                       file=sys.stderr)
                 return 1
             try:
-                refs[who] = upload_image(url, path)
+                sent = upload_reference(url, path)
             except (urllib.error.URLError, OSError) as e:
                 print(f"中止: 基準の顔を送れませんでした: {e}", file=sys.stderr)
                 return 1
+            if sent is None:
+                return 1
+            refs[who] = sent
             print(f"基準の顔: {who} ← {path.relative_to(HERE)}")
 
         # 投げる前に、必要なノードとモデルが揃っているかを確かめて日本語で出す
