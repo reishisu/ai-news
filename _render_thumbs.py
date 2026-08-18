@@ -53,8 +53,11 @@ CONTENTS = HERE / "contents"
 FONTS = HERE / "_assets" / "fonts"
 CHROMIUM = "/opt/pw-browsers/chromium"
 WIDTH, HEIGHT = 1200, 630
-CHARA_W = 268                      # 右側にキャラクターが占める幅
-CHARA_H = int(CHARA_W * 420 / 360)  # viewBox の比率を保つ
+# 右にキャラクターを置きたくなったとき用。
+# _assets/character/<カテゴリ名>.png があればそれを、無ければ default.png を使う。
+# **画像を置くまではキャラ無しで組む**(文字が広く使えるので、そのほうが読める)。
+CHARA_DIR = HERE / "_assets" / "character"
+CHARA_W = 268                      # 画像を置いたときに右側で占める幅
 
 # カテゴリごとの配色。一覧に並べたとき、色だけで種類が分かるようにする。
 #   bg1/bg2 = 背景のグラデーション、accent = 決め文句の色、chip = カテゴリ札の色
@@ -143,89 +146,19 @@ def emphasize(text, terms, e):
     return "".join(out)
 
 
-FACES = {
-    0: """<path d="M118 168 q26 -26 52 0 q-26 34 -52 0Z" fill="#fff"/>
-  <path d="M190 168 q26 -26 52 0 q-26 34 -52 0Z" fill="#fff"/>
-  <ellipse cx="144" cy="172" rx="19" ry="23" fill="{iris}"/>
-  <ellipse cx="216" cy="172" rx="19" ry="23" fill="{iris}"/>
-  <ellipse cx="144" cy="176" rx="11" ry="14" fill="{pupil}"/>
-  <ellipse cx="216" cy="176" rx="11" ry="14" fill="{pupil}"/>
-  <circle cx="151" cy="163" r="7" fill="#fff"/><circle cx="223" cy="163" r="7" fill="#fff"/>
-  <circle cx="138" cy="185" r="4" fill="#fff" opacity=".85"/>
-  <circle cx="210" cy="185" r="4" fill="#fff" opacity=".85"/>
-  <path d="M116 160 q28 -24 56 -2" stroke="#2b1a12" stroke-width="9" fill="none" stroke-linecap="round"/>
-  <path d="M188 158 q28 -22 56 2" stroke="#2b1a12" stroke-width="9" fill="none" stroke-linecap="round"/>
-  <path d="M114 156 l-8 -12" stroke="#2b1a12" stroke-width="8" stroke-linecap="round"/>
-  <path d="M246 156 l8 -12" stroke="#2b1a12" stroke-width="8" stroke-linecap="round"/>
-  <path d="M166 228 q14 14 28 0" stroke="#c2544f" stroke-width="6" fill="none" stroke-linecap="round"/>""",
-    1: """<path d="M118 168 q26 -26 52 0 q-26 34 -52 0Z" fill="#fff"/>
-  <path d="M190 168 q26 -26 52 0 q-26 34 -52 0Z" fill="#fff"/>
-  <ellipse cx="144" cy="172" rx="20" ry="25" fill="{iris}"/>
-  <ellipse cx="216" cy="172" rx="20" ry="25" fill="{iris}"/>
-  <ellipse cx="144" cy="176" rx="12" ry="15" fill="{pupil}"/>
-  <ellipse cx="216" cy="176" rx="12" ry="15" fill="{pupil}"/>
-  <circle cx="152" cy="162" r="8" fill="#fff"/><circle cx="224" cy="162" r="8" fill="#fff"/>
-  <path d="M116 158 q28 -26 56 -4" stroke="#2b1a12" stroke-width="9" fill="none" stroke-linecap="round"/>
-  <path d="M188 154 q28 -22 56 4" stroke="#2b1a12" stroke-width="9" fill="none" stroke-linecap="round"/>
-  <path d="M114 156 l-8 -12" stroke="#2b1a12" stroke-width="8" stroke-linecap="round"/>
-  <path d="M246 156 l8 -12" stroke="#2b1a12" stroke-width="8" stroke-linecap="round"/>
-  <ellipse cx="180" cy="230" rx="12" ry="11" fill="#c2544f"/>""",
-    2: """<path d="M118 168 q26 -26 52 0 q-26 34 -52 0Z" fill="#fff"/>
-  <ellipse cx="144" cy="172" rx="19" ry="23" fill="{iris}"/>
-  <ellipse cx="144" cy="176" rx="11" ry="14" fill="{pupil}"/>
-  <circle cx="151" cy="163" r="7" fill="#fff"/>
-  <circle cx="138" cy="185" r="4" fill="#fff" opacity=".85"/>
-  <path d="M116 160 q28 -24 56 -2" stroke="#2b1a12" stroke-width="9" fill="none" stroke-linecap="round"/>
-  <path d="M114 156 l-8 -12" stroke="#2b1a12" stroke-width="8" stroke-linecap="round"/>
-  <path d="M192 172 q24 -20 48 0" stroke="#2b1a12" stroke-width="9" fill="none" stroke-linecap="round"/>
-  <path d="M246 156 l8 -12" stroke="#2b1a12" stroke-width="8" stroke-linecap="round"/>
-  <path d="M164 226 q16 18 32 0" stroke="#c2544f" stroke-width="6" fill="none" stroke-linecap="round"/>""",
-}
+def character_img(category):
+    """右に置くキャラクター画像を返す。無ければ (空文字, 0)。
 
-
-def character_svg(t, variant, uid):
-    """サムネイルに置くキャラクター(自作のベクター画像)。
-
-    テーマ色で髪と瞳を塗り分け、表情を記事ごとに変える。
-    **外部の画像・他人のイラストは使いません。**
-    グラデーションのidは記事ごとに変える(同一ページに複数置いても混ざらないように)。
+    `_assets/character/<カテゴリ名>.png` を優先し、無ければ `default.png`。
+    背景透過・縦長(600x840程度以上)のPNGを想定しています。
+    画像を置いていない間はキャラ無しで組み、文字を広く使います。
     """
-    face = FACES[variant % len(FACES)].format(iris=t["iris"], pupil=t["pupil"])
-    g = f"hair{uid}"
-    return f"""<svg class="chara" viewBox="0 0 360 420" xmlns="http://www.w3.org/2000/svg">
- <defs><linearGradient id="{g}" x1="0" y1="0" x2="0" y2="1">
-   <stop offset="0" stop-color="{t['h1']}"/><stop offset="1" stop-color="{t['h2']}"/></linearGradient></defs>
- <circle cx="180" cy="185" r="165" fill="{t['accent']}" opacity=".16"/>
- <path d="M62 205 C58 105 108 44 180 44 C252 44 302 105 298 205 C296 262 306 316 316 360
-          C300 344 286 332 274 326 C282 268 276 232 268 208 L92 208
-          C84 232 78 268 86 326 C74 332 60 344 44 360 C54 316 64 262 62 205Z" fill="url(#{g})"/>
- <path d="M156 258 h48 v52 h-48Z" fill="#f2c9a8"/>
- <path d="M156 258 h48 v22 c-14 12-34 12-48 0Z" fill="#dda887"/>
- <path d="M92 420 v-38 c0-40 34-60 64-72 l24 26 24-26 c30 12 64 32 64 72 v38Z" fill="#ffffff"/>
- <path d="M156 310 l24 26 24-26 -24-14Z" fill="#eef3fb"/>
- <path d="M92 420 v-38 c0-16 6-28 15-37 l10 75Z" fill="#e3ebf7"/>
- <path d="M268 420 v-38 c0-16-6-28-15-37 l-10 75Z" fill="#e3ebf7"/>
- <path d="M180 322 l-30 -12 6 30Z" fill="{t['chip']}"/>
- <path d="M180 322 l30 -12 -6 30Z" fill="{t['chip']}"/>
- <circle cx="180" cy="324" r="9" fill="{t['accent']}"/>
- <path d="M104 168 C104 102 146 74 180 74 C214 74 256 102 256 168
-          C256 222 220 268 180 268 C140 268 104 222 104 168Z" fill="#fbdcc2"/>
- <ellipse cx="130" cy="205" rx="17" ry="10" fill="#f7a9a0" opacity=".75"/>
- <ellipse cx="230" cy="205" rx="17" ry="10" fill="#f7a9a0" opacity=".75"/>
- {face}
- <path d="M180 200 l6 8 -6 2" stroke="#d9a183" stroke-width="4" fill="none" stroke-linecap="round"/>
- <path d="M100 172 C96 100 138 58 180 58 C222 58 264 100 260 172
-          C254 140 246 122 236 112 C222 132 206 142 186 144
-          L196 96 C168 104 142 122 128 148 L120 118 C110 130 104 148 100 172Z" fill="url(#{g})"/>
- <path d="M126 134 q22 -10 40 -1" stroke="{t['brow']}" stroke-width="5" fill="none" stroke-linecap="round" opacity=".9"/>
- <path d="M194 133 q18 -9 40 1" stroke="{t['brow']}" stroke-width="5" fill="none" stroke-linecap="round" opacity=".9"/>
- <path d="M100 168 C92 210 92 250 98 282 C86 258 78 214 82 176Z" fill="url(#{g})"/>
- <path d="M260 168 C268 210 268 250 262 282 C274 258 282 214 278 176Z" fill="url(#{g})"/>
- <path d="M132 96 q40 -22 84 -6" stroke="{t['hi']}" stroke-width="9" fill="none" stroke-linecap="round" opacity=".8"/>
- <path d="M74 178 a106 106 0 0 1 212 0" stroke="{t['chip']}" stroke-width="13" fill="none" stroke-linecap="round"/>
- <rect x="52" y="164" width="46" height="76" rx="22" fill="{t['chip']}" stroke="#12203a" stroke-width="6"/>
- <rect x="262" y="164" width="46" height="76" rx="22" fill="{t['chip']}" stroke="#12203a" stroke-width="6"/>
-</svg>"""
+    for name in (f"{category}.png", "default.png"):
+        path = CHARA_DIR / name
+        if path.is_file():
+            b64 = base64.b64encode(path.read_bytes()).decode("ascii")
+            return f'<img class="chara" src="data:image/png;base64,{b64}" alt="">', CHARA_W
+    return "", 0
 
 
 def build_html(meta, dirname):
@@ -251,9 +184,11 @@ def build_html(meta, dirname):
     cat = meta.get("category", "")
     e = htmlmod.escape
 
+    chara, chara_w = character_img(meta.get("category", ""))
+
     # 内側の使える大きさ。枠16px + 左右パディング52px、上下は帯96+84を引く。
-    # 右にキャラクターを置くので、そのぶんも文字から引く
-    avail = WIDTH - 2 * 16 - 2 * 52 - CHARA_W
+    # キャラクター画像がある場合だけ、そのぶんも文字から引く
+    avail = WIDTH - 2 * 16 - 2 * 52 - chara_w
     mid_h = HEIGHT - 2 * 16 - 96 - 84
     sub_px, sub_lines = size_for(sub, avail, 120, 40, 26, 2, 1.35) if sub else (0, 0)
     sub_box = int(sub_px * 1.35 * sub_lines) + 22 if sub else 0
@@ -263,9 +198,6 @@ def build_html(meta, dirname):
              + font_face("NotoJP", "NotoSansJP-Regular.ttf", 400))
 
     import hashlib
-    import hashlib
-    uid = hashlib.sha256(dirname.encode()).hexdigest()[:8]
-    chara = character_svg(t, int(uid, 16), uid)
     chips = "".join(f'<span class="tag">{e(x)}</span>' for x in tags)
     main_html = emphasize(main, [str(x) for x in (meta.get("tags") or [])], e)
     return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>
@@ -286,7 +218,7 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:{t['bg1']}}}
   content:"";position:absolute;inset:0;pointer-events:none;
   background:linear-gradient(102deg, transparent 60%, {t['accent']}22 60%, {t['accent']}22 69%, transparent 69%);
 }}
-.row{{position:relative;z-index:2;padding-right:{CHARA_W}px;display:flex;align-items:center;gap:18px;min-width:0}}
+.row{{position:relative;z-index:2;padding-right:{chara_w}px;display:flex;align-items:center;gap:18px;min-width:0}}
 .cat{{
   background:{t['chip']};color:#fff;font-weight:900;font-size:27px;
   padding:9px 22px;border-radius:999px;white-space:nowrap;
@@ -298,7 +230,7 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:{t['bg1']}}}
 }}
 .mid{{
   position:relative;z-index:2;display:flex;flex-direction:column;
-  justify-content:center;gap:22px;min-width:0;padding-right:{CHARA_W}px;
+  justify-content:center;gap:22px;min-width:0;padding-right:{chara_w}px;
 }}
 .main{{
   color:#fff;font-weight:900;line-height:1.14;font-size:{main_px}px;
@@ -314,9 +246,9 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:{t['bg1']}}}
   text-shadow:0 2px 6px rgba(0,0,0,.7);
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }}
-.bot{{justify-content:space-between;padding-right:{CHARA_W}px}}
+.bot{{justify-content:space-between;padding-right:{chara_w}px}}
 .chara{{
-  position:absolute;right:18px;bottom:0;width:{CHARA_W}px;height:{CHARA_H}px;z-index:1;
+  position:absolute;right:18px;bottom:0;width:{chara_w}px;height:auto;z-index:1;
   filter:drop-shadow(0 8px 20px rgba(0,0,0,.5));
 }}
 .tags{{display:flex;gap:12px;overflow:hidden;min-width:0;flex:1 1 auto}}
