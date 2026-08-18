@@ -94,14 +94,16 @@ class Handler(BaseHTTPRequestHandler):
                     "input": {"required": {"model": ["MODEL", {}],
                                            "preset": [IPA_PRESETS, {}]}}}})
             if node == "IPAdapterModelLoader":
-                files = (["ip-adapter-plus-face_sdxl_vit-h.safetensors"]
-                         if IPA == "full" else [])
+                files = ["ip-adapter-plus-face_sdxl_vit-h.safetensors"]
                 return self._send(200, {node: {
                     "input": {"required": {"ipadapter_file": [files, {}]}}}})
             return self._send(200, {node: {"input": {"required": {}}}})
         if u.path == "/object_info/CLIPVisionLoader":
-            names = (["CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors"]
-                     if IPA == "full" else ["some-other-clip.safetensors"])
+            # nomodels は実機で出た状態の再現。ファイルはあるがサブフォルダの中にあり、
+            # 名前が Unified Loader のパターンに合わない。
+            names = (["CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors"] if IPA == "full" else
+                     ["CLIP-ViT-H-14-laion2B-s32B-b79K\\model.safetensors",
+                      "CLIP-ViT-H-14-laion2B-s32B-b79K\\open_clip_model.safetensors"])
             return self._send(200, {"CLIPVisionLoader": {
                 "input": {"required": {"clip_name": [names, {}]}}}})
         if u.path.startswith("/history/"):

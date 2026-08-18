@@ -12,17 +12,17 @@
 
 ### 1b) IPAdapter の有無を見る(顔を揃えたいとき用)
 -- ノードだけ入っている場合
+  作るもの: キャラ2人 × ポーズ2種 = 4枚
   IPAdapter: 入っています(preset 6種)
-    clip_vision: **ありません**。次のどれかを置いてください:
-      CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors
-    (いま入っているもの: some-other-clip.safetensors)
-    ipadapter: **ありません**。次のどれかを置いてください:
-      ip-adapter-plus-face_sdxl_vit-h.safetensors
-      ip-adapter-plus_sdxl_vit-h.safetensors
+    clip_vision: **見つかりません**
+      ファイルはあるのに名前がパターンに合っていません: CLIP-ViT-H-14-laion2B-s32B-b79K\model.safetensors
+      → models/clip_vision/ の直下に『CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors』の名前で置いてください
+      (Unified Loader はサブフォルダ内の model.safetensors を拾えません)
+    ipadapter: ip-adapter-plus-face_sdxl_vit-h.safetensors で見つかります
 -- モデルも入っている場合
   IPAdapter: 入っています(preset 6種)
-    clip_vision: CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors あり
-    ipadapter: ip-adapter-plus-face_sdxl_vit-h.safetensors あり
+    clip_vision: CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors で見つかります
+    ipadapter: ip-adapter-plus-face_sdxl_vit-h.safetensors で見つかります
 
 ### 2) recipe.json のモデルが無いとき
 [1/1] default / base (seed=1)

@@ -337,12 +337,15 @@ def check(url, recipe_path=None):
     return 0
 
 
-# IPAdapter で顔を揃えるときに要るもの。名前は配布元(cubiq/ComfyUI_IPAdapter_plus)の
-# README に載っているもので、Unified Loader はこの名前でないと見つけられない。
-IPA_WANT = {
-    "clip_vision": "CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors",
-    "ipadapter": ("ip-adapter-plus-face_sdxl_vit-h.safetensors",
-                  "ip-adapter-plus_sdxl_vit-h.safetensors"),
+# IPAdapter が「使えるか」の判定。配布元(cubiq/ComfyUI_IPAdapter_plus)の utils.py にある
+# get_clipvision_file() / get_ipadapter_file() と**同じ正規表現**を使う。
+# あちらは固定のファイル名ではなく名前のパターンで探すので、こちらも同じにしないと
+# 「あるのに無いと言う」ことになる。preset は顔を寄せる PLUS FACE、SDXL 前提。
+IPA_PATTERNS = {
+    "clip_vision": (r"(ViT.H.14.*s32B.b79K|ipadapter.*sd15|sd1.?5.*model)\.(bin|safetensors)",
+                    "CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors"),
+    "ipadapter": (r"plus.face.sdxl.vit.h\.(safetensors|bin)$",
+                  "ip-adapter-plus-face_sdxl_vit-h.safetensors"),
 }
 
 
@@ -362,7 +365,11 @@ def check_ipadapter(url):
     """IPAdapter を使う準備ができているかを見る(顔を揃えたいとき用)。
 
     ノードだけ入れてもモデルが無いと動きません。両方見ます。
+    サブフォルダに入れた場合、名前がパターンに合わず**見つけてもらえない**ことがあるので、
+    そこまで判定します(実例: `CLIP-ViT-H-14-laion2B-s32B-b79K\model.safetensors` は不可)。
     """
+    import re
+
     presets = options_of(url, "IPAdapterUnifiedLoader", "preset")
     if presets is None:
         print("  IPAdapter: 入っていません"
@@ -372,33 +379,22 @@ def check_ipadapter(url):
     for kind, node, field in (("clip_vision", "CLIPVisionLoader", "clip_name"),
                               ("ipadapter", "IPAdapterModelLoader", "ipadapter_file")):
         have = options_of(url, node, field) or []
-        want = IPA_WANT[kind]
-        want = (want,) if isinstance(want, str) else want
-        ok = [w for w in want if w in have]
+        pattern, want = IPA_PATTERNS[kind]
+        ok = [e for e in have if re.search(pattern, e, re.IGNORECASE)]
         if ok:
-            print(f"    {kind}: {ok[0]} あり")
+            print(f"    {kind}: {ok[0]} で見つかります")
+            continue
+        print(f"    {kind}: **見つかりません**")
+        near = [e for e in have if re.search(want.split(".safetensors")[0].replace("-", ".")[:20],
+                                             e, re.IGNORECASE)]
+        if near:
+            print(f"      ファイルはあるのに名前がパターンに合っていません: {near[0]}")
+            print(f"      → models/{kind}/ の直下に『{want}』の名前で置いてください")
+            print("      (Unified Loader はサブフォルダ内の model.safetensors を拾えません)")
         else:
-            print(f"    {kind}: **ありません**。次のどれかを置いてください:")
-            for w in want:
-                print(f"      {w}")
+            print(f"      → models/{kind}/ に『{want}』を置いてください")
             if have:
-                print(f"    (いま入っているもの: {', '.join(have[:5])})")
-
-
-def probe_ports(host="127.0.0.1", ports=(8188, 8000, 8001, 8080, 8189)):
-    """よく使われるポートを順に叩いて、ComfyUI が居るところを探す。
-
-    既定の 8188 以外で起動している人が多いので、繋がらなかったときに候補を出す。
-    """
-    found = []
-    for p in ports:
-        u = f"http://{host}:{p}"
-        try:
-            api(u, "/system_stats", timeout=2)
-            found.append(u)
-        except (urllib.error.URLError, OSError, json.JSONDecodeError):
-            pass
-    return found
+                print(f"      (いま入っているもの: {', '.join(have[:3])})")
 
 
 def main():

@@ -46,12 +46,25 @@ seed は「そのキャラの seed ＋ ポーズの並び順」です。乱数�
 ノード本体は ComfyUI-Manager から入れられます（`ComfyUI/custom_nodes/` に直接
 clone してもよい）。配布元は「IPAdapter は常に最新の ComfyUI を要求する」としています。
 
-モデルは手で置きます。**ファイル名を下記のとおりにしないと Unified Model Loader が認識しません。**
+モデルは手で置きます。**名前が合っていないと Unified Loader が見つけられません。**
 
 | 置き場所 | ファイル |
 |---|---|
 | `ComfyUI/models/clip_vision` | `CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors`（h94/IP-Adapter の `models/image_encoder/model.safetensors` を落としてリネーム） |
 | `ComfyUI/models/ipadapter` | `ip-adapter-plus-face_sdxl_vit-h.safetensors`（顔を寄せる用。SDXL系はこれか `ip-adapter-plus_sdxl_vit-h.safetensors`） |
+
+Unified Loader は固定のファイル名ではなく**正規表現**で探します（配布元 `utils.py` の
+`get_clipvision_file()` / `get_ipadapter_file()`）。PLUS FACE ＋ SDXL のときはこうです。
+
+| 種類 | パターン |
+|---|---|
+| clip_vision | `(ViT.H.14.*s32B.b79K|ipadapter.*sd15|sd1.?5.*model)\.(bin|safetensors)` |
+| ipadapter | `plus.face.sdxl.vit.h\.(safetensors|bin)$` |
+
+**ここでハマりやすいのがサブフォルダです。** リポジトリごと落とすと
+`CLIP-ViT-H-14-laion2B-s32B-b79K\model.safetensors` のような名前になり、
+末尾が `b79K.safetensors` でないためパターンに合いません（実機で発生）。
+`models/clip_vision/` の直下に、上の名前で置いてください。
 
 配布元は「まず `weight` を 0.8 以下に下げ、ステップ数を増やすとよい。プロンプトへの
 追従を上げたいなら `IPAdapter Advanced` の weight type を変える」としています。
