@@ -215,9 +215,12 @@ def jobs_from(recipe, who=None, pose=None, offset=0):
         for i, v in enumerate(variations):
             if pose and v["name"] != pose:
                 continue
+            # 連結順はキャラ→構図・背景→ポーズ。CLIPは75トークンごとに区切って
+            # 読むため、キャラの身元と背景指定(green background)を必ず1区切り目に
+            # 収める並びにしている(長いキャラはポーズの後半が2区切り目に落ちる)。
             prompt = ", ".join(x for x in (recipe.get("quality"), recipe.get("subject"),
-                                           c.get("tags"), v.get("tags"),
-                                           recipe.get("framing")) if x)
+                                           c.get("tags"), recipe.get("framing"),
+                                           v.get("tags")) if x)
             out.append({"who": c["name"], "pose": v["name"], "category": c.get("category", ""),
                         "positive": prompt, "seed": int(c.get("seed", 1)) + i + offset})
     return out

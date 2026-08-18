@@ -46,7 +46,7 @@ python3 _comfy_character.py --face --url http://127.0.0.1:8001
 | `_prepare_character.py` | 取り込み。透過チェック・余白トリム・縮小・`--matte`（単色背景を抜く） |
 | `_comfy_character.py` | 手元の ComfyUI に投げて候補を受け取る（キャラ × ポーズを一括） |
 | `_assets/character/comfy/recipe.json` | 生成の設定。カテゴリごとの担当キャラ5人とポーズ5種 |
-| `_assets/character/comfy/README.md` | IPAdapter で顔を揃える手順（**未実行**。配布元READMEに基づく） |
+| `_assets/character/comfy/README.md` | IPAdapter で顔を揃える手順（実機で初回実行済み。透過PNGで1回失敗→修正済み） |
 | `_assets/character/README.md` | 置き方・用意のしかた（ComfyUI / VRoid / 依頼） |
 | `_labs/2026-08-18_comfy-character/` | 偽サーバー相手の通し実行の記録 |
 
@@ -140,8 +140,9 @@ GPUがありません（`nvidia-smi` 無し、`/dev/nvidia*` 無し。CPU 4コ�
 
 ComfyUI については 8/18 に連携を書きました（`_comfy_character.py`）。
 手元で ComfyUI を起動して `--check` → 引数なし実行で、候補が
-`_assets/character/_candidates/<キャラ名>/<ポーズ名>.png` に落ちてきます。**本物の ComfyUI ではまだ動かしていません**（この環境にGPUが無いため、
-APIの形だけをソースで確認し、偽サーバー相手に通しで検証しています）。
+`_assets/character/_candidates/<キャラ名>/<ポーズ名>.png` に落ちてきます。
+**8/18 に運営者の実機で25枚の生成に使用済み**です（この環境にGPUは無いため、
+開発時はAPIの形をソースで確認し、偽サーバー相手に通しで検証しました）。
 最初に動かすときは、まず `--check` でモデル名が合っているかを見てください。
 
 背景は `--matte` で抜けますが、**髪の輪郭に薄く縁が残ります。**
@@ -228,5 +229,6 @@ Google Fonts の日本語68書体を全部洗い出し、重い候補8つを並�
 - 全26号、サムネイルは 1280×720、内容の重複なし、見出しの省略なし
 - 表示検証（幅380px / 900px）で問題なし
 - **キャラクター25枚を導入済み**（5人 × ポーズ5種）。全記事のサムネイルに反映済み
-- 候補PNG（`_candidates/`）はリポジトリに残していません。`recipe.json` の seed が
-  固定なので、同じコマンドで同じ25枚を再現できます
+- 候補PNG（`_candidates/`）はリポジトリに残していません。**採用25枚は 8/18 の
+  緑背景化・厳密化より前の recipe で生成したもの**なので、いまの recipe では
+  再現できません（再現には git 履歴の旧 `recipe.json`（白背景版）が要ります）
