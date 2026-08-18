@@ -18,3 +18,7 @@ _assets/character/_candidates/
 *.pyc
 __pycache__/
 .DS_Store
+
+# 動画パイプラインの出力 — MP4は大きいのでコミットしない(_video/README.md)
+_video_out/
+
