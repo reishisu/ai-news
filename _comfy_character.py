@@ -263,9 +263,11 @@ def wait(url, prompt_id, label=""):
                       file=sys.stderr)
                 return None
             if entry.get("outputs"):
-                print(f"\r  {label} 完了({int(time.monotonic() - started)}秒)")
+                # 進捗行を \r で上書きするので、前の行の残りを空白で消してから出す
+                print(f"\r  {label} 完了({int(time.monotonic() - started)}秒)".ljust(40))
                 return entry["outputs"]
-        print(f"\r  {label} 生成中… {int(time.monotonic() - started)}秒", end="", flush=True)
+        print(f"\r  {label} 生成中… {int(time.monotonic() - started)}秒".ljust(40),
+              end="", flush=True)
         time.sleep(2)
     print(f"\n  {POLL_LIMIT}秒待っても終わりませんでした。", file=sys.stderr)
     return None
