@@ -1,4 +1,4 @@
-# 2026-08-18_test-first-ai — 弱いテストは突破される
+# 2026-08-19_test-first-ai — 弱いテストは突破される
 
 記事「AIに実装を任せるときのテストの書き方」の実測一式。
 
@@ -46,7 +46,7 @@ pytest を回し、結果がどう変わるかを実測した。
 
 ```bash
 pip install pytest
-cd _labs/2026-08-18_test-first-ai
+cd _labs/2026-08-19_test-first-ai
 ./run_all.sh            # 画面に出る
 ./run_all.sh > output.txt 2>&1   # 取り直す
 python3 check_width.py output.txt

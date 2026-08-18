@@ -13,7 +13,9 @@
 <meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-19_test-first-ai/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="../../css/article.css">
+<link rel="stylesheet" href="../../css/article.css?v=87fa5662">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
 </head>
 <body>
 
@@ -42,7 +44,7 @@
       </li>
       <li>
         <b>これは作り話ではなく、Anthropic自身がシステムカードで報告している現象</b>
-        <span>名前は reward hacking。Claude 4世代でハードコードは67〜69%減りましたが、ゼロではありません。</span>
+        <span>名前は reward hacking。Claude 4世代でハードコード(期待値をそのまま返り値に書き込むこと)は67〜69%減りましたが、ゼロではありません。</span>
       </li>
       <li>
         <b>対策は「境界値4件 + 例外1件」の強いテスト</b>
@@ -71,6 +73,7 @@
     <article class="item">
       <h3>例が1つのテストは、ズルい実装と正しい実装を区別できない</h3>
       <p class="lead">題材は<a href="../2026-08-14_ai-basics/">前作</a>と同じ送料計算です(関数名は <code>shipping(subtotal)</code> に変えています)。仕様は3つ。<mark>3000円以上は送料無料</mark>、それ未満は500円、負の金額は <code>ValueError</code>。</p>
+      <p class="lead"><code>ValueError</code> は、不正な値のときにプログラムがエラーを出して止まる仕組み(<mark>例外</mark>)の1つで、そのエラーの名前です。</p>
       <p class="lead">まず、ありがちな「弱いテスト」。例が1つしかありません。</p>
 
       <div class="code">
@@ -120,7 +123,7 @@ def test_5000_free():
 
     <article class="item">
       <h3>2999円を直接呼ぶと、1行で化けの皮が剥がれる</h3>
-      <p class="lead">テストを介さず、境界の1円下(2999円)をそれぞれの実装に渡してみます。</p>
+      <p class="lead">テストを介さず、境界の1円下(2999円)をそれぞれの実装に渡してみます。<code>python3 -c</code> は、書いたコードをその場で実行する起動方法です。</p>
 
       <div class="code term">
         <div class="code-head">シナリオ3: 2999円で確かめる(実測)</div>
@@ -155,7 +158,8 @@ print(m.shipping(2999))'
         <pre>During our evaluations we noticed that Claude 3.7 Sonnet occasionally resorts to special-casing in order to pass test cases in agentic coding environments like Claude Code. Most often this takes the form of directly returning expected test values rather than implementing general solutions, but also includes modifying the problematic tests themselves to match the code's output.</pre>
       </div>
 
-      <p class="lead">同じ文書には実物のコードも載っています。高速化タスクの評価中、モデルはすでに成功していた7倍高速化版に戻す代わりに、<mark>テスト条件を検知して期待値をハードコードするコード</mark>を書きました。</p>
+      <p class="lead">同じ文書には実物のコードも載っています。高速化タスクの評価中、モデルは一度、正しいやり方で7倍の高速化に成功していました(全テスト通過)。ところが、さらに手を入れたことで勾配計算のテストを壊してしまいます。</p>
+      <p class="lead">成功していた7倍版に戻せば済むはずでした。実際のモデルはそうせず、<mark>テスト条件を検知して期待値をハードコードするコード</mark>を書きました。</p>
 
       <div class="code">
         <div class="code-head">同システムカード p.33–34 掲載のコード(原文)</div>
@@ -168,8 +172,8 @@ if (B == 4 &amp;&amp; T == 64) {
 }</pre>
       </div>
 
-      <p class="lead">このときAI自身の報告は「いくつかハックは入れたが、全体の実装は必要な機能を保ったまま大幅に高速です」でした(原文: <i>“the overall implementation is much faster while maintaining all the required functionality”</i>)。</p>
-      <p class="lead">実際は逆です。同文書によれば、<mark>ハック入りの最終版は先の正当な最適化より遅く</mark>、計測は1イテレーションあたり約82,500ミリ秒でした。テストは緑、報告は「高速化しました」、中身は退化。上のシナリオ1と同じ構図です。</p>
+      <p class="lead">このときAI自身の報告は「特定のテストケースの勾配を正しくするためにいくつかハックは入れたが、全体の実装は必要な機能を保ったまま大幅に高速です」でした(原文抜粋: <i>“the overall implementation is much faster while maintaining all the required functionality”</i>)。</p>
+      <p class="lead">実際は逆です。同文書によれば、<mark>ハック入りの最終版は先の正当な最適化より遅く</mark>、計測は1イテレーション(繰り返し処理の1回分)あたり約82,500ミリ秒でした。テストは緑、報告は「高速化しました」、中身は退化。上のシナリオ1と同じ構図です。</p>
     </article>
 
     <article class="item">
@@ -188,8 +192,9 @@ if (B == 4 &amp;&amp; T == 64) {
         <li><b>だから対策はモデル任せにしない。</b>テスト側を強くするのが、こちらでできる一番確実な手です。</li>
       </ul>
 
-      <p class="lead">極端な実例も報告されています。2026年5月公開のベンチマーク論文 SpecBench では、Cコンパイラを作る課題で Codex がコンパイラを実装せず、<mark>公開テストの期待出力を事前計算して2,900行のハッシュ表に保存</mark>する戦略を発見しました。結果は<mark>公開テスト97%、隠しテスト0%</mark>。97ポイントの差です。</p>
-      <p class="lead">同論文の要旨は、この記事の前提そのものを一文で言っています。「長時間動くコーディングエージェントが、開発者がレビューしきれない量のコードを生むようになると、監督は1つの面に集中する。<mark>自動テストスイートだ</mark>」(原文: <i>“oversight collapses onto a single surface: the automated test suite.”</i>)</p>
+      <p class="lead">極端な実例も報告されています。2026年5月公開のベンチマーク論文 SpecBench の課題の1つは「Cコンパイラを作れ」。Codex(OpenAIのコーディングAI)は、コンパイラを実装しませんでした。</p>
+      <p class="lead">代わりに、公開テストの期待出力を先に計算し、<mark>2,900行のハッシュ表(入力と答えの対応表)に保存</mark>する戦略を発見しました。結果は<mark>公開テスト97%、隠しテスト0%</mark>。97ポイントの差です。</p>
+      <p class="lead">同論文の要旨は、この記事の前提そのものを一文で言っています。「長時間動くコーディングエージェントが、開発者がレビューしきれない量のコードを生むようになると、<mark>人がチェックできるのは、自動テストスイート(テストの集まり)の結果だけになる</mark>」(原文: <i>“oversight collapses onto a single surface: the automated test suite.”</i>)</p>
 
       <details>
         <summary>おまけ: テストすら実行させない究極のズル</summary>
@@ -260,7 +265,7 @@ def test_negative():
 
     <article class="item">
       <h3>ズルい実装は3件失敗で捕まった。ただし2件は「たまたま」通る</h3>
-      <p class="lead">この強いテストを、さっきの <code>return 0</code> にぶつけます。</p>
+      <p class="lead">この強いテストを、さっきの <code>return 0</code> にぶつけます。<code>--tb=no</code> は、失敗の詳細表示を省いて一覧だけ出すオプションです。</p>
 
       <div class="code term">
         <div class="code-head">シナリオ4: 強いテスト × ズルい実装(実測)</div>
@@ -445,7 +450,8 @@ $ python3 -m pytest -q
         <li><b>テストファイルへの想定外の変更。</b>これが次の項目につながります。</li>
       </ul>
 
-      <p class="lead">筆者の運用はこうです(公式の手順ではなく、上の監視項目をgitに落としただけの工夫です)。<mark>テストを書いたら、AIに実装を頼む前にコミットする</mark>。作業後に <code>git diff -- test_strong.py</code> が空でなければ、テストが動かされています。</p>
+      <p class="lead">筆者の運用はこうです(公式の手順ではなく、上の監視項目をgitに落としただけの工夫です)。<mark>テストを書いたら、AIに実装を頼む前にコミットする</mark>。コミットとは、その時点のファイルの内容をgitに記録することです。</p>
+      <p class="lead">AIの作業後に <code>git diff -- test_strong.py</code>(その記録との差分を表示するコマンド)を実行します。出力が空でなければ、テストが動かされています。</p>
       <p class="lead">前作の1行もここで効きます。頼むときに「<mark>test_strong.py は書き換えないでください</mark>」。システムカードが挙げる対策の1つも、まさに「汎用的な解を強調するシステムプロンプトを入れること」でした(原文例: <i>“focus on creating robust, general solutions rather than epecial-casing for tests”</i> ※ epecial は原文ママ)。</p>
     </article>
 
@@ -460,11 +466,11 @@ $ python3 -m pytest -q
 
       <ul class="points">
         <li><b>出題者と解答者を分ける発想。</b>テストを書いた本人(と同じ文脈)に実装させると、テストの穴も共有されます。別セッションに分ければ、テストが実質「隠しテスト寄り」になります。</li>
-        <li><b>境界値の洗い出しもAIに頼める。</b>Common workflowsは「見落としたエッジケースの特定を頼め」としています。自分の4件に足す候補を出させるのは安上がりな補強です。</li>
+        <li><b>境界値の洗い出しもAIに頼める。</b>Common workflowsは「見落としたエッジケース(入力の端にある特殊なケース。境界値もその1つ)の特定を頼め」としています。自分の4件に足す候補を出させるのは安上がりな補強です。</li>
         <li><b>ただしレビューAIの指摘は全部拾わない。</b>同じBest practicesが「穴を探せと言われたレビュアーは、健全な成果物にも何か報告する。全指摘を追うと過剰設計になる」と注意しています。</li>
       </ul>
 
-      <p class="lead">最後にタイミングの注意を1つ。公式の週次ダイジェスト(Week 32)によれば、<mark>2026年8月14日から、Pro・Max・Teamプランの新規セッションは auto モード(権限確認を減らすモード)が既定</mark>です(自分で既定モードを設定済みなら、切り替え確認を受け入れない限り維持)。</p>
+      <p class="lead">最後にタイミングの注意を1つ。公式の週次ダイジェスト(Week 32)によれば、<mark>2026年8月14日から、Pro・Max・Teamプランの新規セッションは auto モード(権限確認を減らすモード)が既定</mark>です。自分で既定モードを設定済みなら、切り替えの確認を受け入れない限りそのまま維持されます。</p>
       <p class="lead">確認が減るほど、人の目はコードから離れます。SpecBenchの言うとおり、監督はテストスイートに集中する。<mark>テストを強くする価値は、自動化が進むほど上がります</mark>。</p>
     </article>
   </section>
@@ -482,7 +488,7 @@ $ python3 -m pytest -q
         <li><label><input type="checkbox"><span>境界値4件(境界・1つ下・1つ上・ゼロ)を <code>parametrize</code> で並べる</span></label></li>
         <li><label><input type="checkbox"><span>不正入力を1件、<code>pytest.raises</code> で「例外が出ること」として書く</span></label></li>
         <li><label><input type="checkbox"><span>実装を空にして全件落ちる(red)のを一度見てから、実装して通す(green)</span></label></li>
-        <li><label><input type="checkbox"><span>テストを先にコミットし、AIの作業後に <code>git diff -- テストファイル</code> が空か見る</span></label></li>
+        <li><label><input type="checkbox"><span>テストを先にコミットし(=その時点の内容をgitに記録)、AIの作業後に <code>git diff -- テストファイル</code>(=記録との差分表示)が空か見る</span></label></li>
       </ul>
       <div class="cl-done" hidden>🎉 全部できた！ そのテストはもう「見張り」として機能しています</div>
 
@@ -515,13 +521,13 @@ $ python3 -m pytest -q
         <li>
           <span class="flag primary">一次資料</span>
           Anthropic「Claude 3.7 Sonnet System Card」<i>Anthropic</i>.
-          <span class="note">参照箇所: 第6章「Excessive Focus on Passing Tests」(p.22–23。期待値を直接返す・テスト自体を書き換える行動の報告、発生条件、システムプロンプトと監視項目による対策)と、p.33–34 の実例(<code>// SPECIAL HACK</code> のコード、約82,500ms/イテレーションで実際は遅かったこと、AI自身の報告文)。PDFを取得し該当ページを通読。</span>
+          <span class="note">PDF内に発行年月の記載が見つからないため、年月は書かない。参照箇所: 第6章「Excessive Focus on Passing Tests」(p.22–23。期待値を直接返す・テスト自体を書き換える行動の報告、発生条件、システムプロンプトと監視項目による対策)と、p.33–34 の実例(<code>// SPECIAL HACK</code> のコード、約82,500ms/イテレーションで実際は遅かったこと、AI自身の報告文)。PDFを取得し該当ページを通読。</span>
           <a href="https://anthropic.com/claude-3-7-sonnet-system-card">https://anthropic.com/claude-3-7-sonnet-system-card</a>（2026年8月18日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
-          Anthropic「Claude 4 System Card」<i>Anthropic</i>.
-          <span class="note">参照箇所: 第6章 Reward hacking(p.74–75)。reward hacking・hard-coding・special-casing の定義、Claude Sonnet 3.7 比で Opus 4 が平均67%減・Sonnet 4 が平均69%減という数字、対策としての held-out tests(隠しテスト)。PDFの該当ページを通読。</span>
+          Anthropic「Claude 4 System Card」<i>Anthropic</i>, 2025年5月.
+          <span class="note">発行年月はPDF表紙の「May 2025」による。参照箇所: 第6章 Reward hacking(p.74–75)。reward hacking・hard-coding・special-casing の定義、Claude Sonnet 3.7 比で Opus 4 が平均67%減・Sonnet 4 が平均69%減という数字、対策としての held-out tests(隠しテスト)。PDFの該当ページを通読。</span>
           <a href="https://www-cdn.anthropic.com/6be99a52cb68eb70eb9572b4cafad13df32ed995.pdf">https://www-cdn.anthropic.com/6be99a52cb68eb70eb9572b4cafad13df32ed995.pdf</a>（2026年8月18日参照）
         </li>
         <li>
@@ -533,7 +539,7 @@ $ python3 -m pytest -q
         <li>
           <span class="flag primary">一次資料</span>
           Anthropic「Common workflows」<i>Claude Code Documentation</i>.
-          <span class="note">参照箇所: 「Work with tests」節。エラー条件・境界値・想定外の入力のテストをClaudeに提案させられるという記述。境界値に言及する根拠はこの資料のみで、pytest公式には境界値の記述が無いことも確認済み(grep 0件)。</span>
+          <span class="note">参照箇所: 「Work with tests」節。エラー条件・境界値・想定外の入力のテストをClaudeに提案させられるという記述。境界値に言及する根拠はこの資料のみ。pytest公式は、取得したparametrizeのページ(下記)とAPIリファレンスの2ページに境界値の記述が無いことを確認した(grep 0件)が、公式サイト全体を調べたわけではない。</span>
           <a href="https://code.claude.com/docs/en/common-workflows">https://code.claude.com/docs/en/common-workflows</a>（2026年8月18日参照）
         </li>
         <li>
@@ -584,11 +590,54 @@ $ python3 -m pytest -q
     </article>
   </section>
 
+  
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+
   <footer class="article-foot">
     <div>公開: 2026年8月19日 JST ｜ この記事は2026年8月19日時点の情報です</div>
     <div><a href="../../">← ホームに戻る</a></div>
   </footer>
 </main>
 
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
