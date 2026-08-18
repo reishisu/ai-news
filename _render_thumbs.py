@@ -70,7 +70,7 @@ THEMES = {
                           h1="#ffcf8a", h2="#d97a12", hi="#ffeccc", iris="#c06a10", pupil="#4a2a04", brow="#b5761f"),
     "クライアント技術":     dict(bg1="#04241b", bg2="#0a4f39", accent="#3ede9f", chip="#12996b",
                           h1="#8ff0c6", h2="#12996b", hi="#d6fdec", iris="#0e7a52", pupil="#03301f", brow="#2f8f68"),
-    "チームで作る技術":     dict(bg1="#2c2405", bg2="#5c4c0a", accent="#ffd93d", chip="#d0a611",
+    "チームで作る技術":     dict(bg1="#241d03", bg2="#4a3d06", accent="#ffd93d", chip="#d0a611",
                           h1="#ffe98a", h2="#c99f0d", hi="#fff6cc", iris="#a8830a", pupil="#3d2f01", brow="#a8871f"),
 }
 DEFAULT_THEME = THEMES["デイリーダイジェスト"]
@@ -167,16 +167,20 @@ def dwidth(text):
 
 
 def size_for(text, avail_px, avail_h, cap, floor, max_lines=3, lh=1.16):
-    """avail_px x avail_h に max_lines 行で収まる最大の文字サイズを返す。
+    """avail_px x avail_h に収まる最大の文字サイズと、そのときの行数を返す。
 
-    行数は常に max_lines を許す。行数を減らして字を大きくしようとすると、
-    "Fargate" のような分割できない英単語が来たときに折り返しが読めず、
-    末尾が "…" で切れる。行数に余裕を持たせ、縦幅で頭打ちにするほうが安全。
+    大きいほうから試して、**実際に必要な行数**で縦が収まる最大を採る。
+    行数を決め打ちして計算すると、2行で足りる文字を3行ぶんの高さで
+    見積もってしまい、下half が空いて間延びする。
     """
+    import math
     w = dwidth(text) or 1
-    by_w = int(2 * avail_px * max_lines * 0.92 / w)   # max_lines 行に収まる大きさ
-    by_h = int(avail_h / (max_lines * lh))            # max_lines 行が縦に収まる大きさ
-    return max(floor, min(cap, by_w, by_h)), max_lines
+    for px in range(cap, floor - 1, -2):
+        per_line = 2 * avail_px / px * 0.94      # 1行に入る表示幅(少し余裕を見る)
+        lines = max(1, math.ceil(w / per_line))
+        if lines <= max_lines and lines * px * lh <= avail_h:
+            return px, lines
+    return floor, max_lines
 
 
 def emphasize(text, terms, e):
@@ -227,111 +231,123 @@ def build_html(meta, dirname):
     main = thumb.get("main", main)
     sub = thumb.get("sub", sub)
 
-    # タグは下段に置くが、長いと右側のサイト名とぶつかる。
-    # 表示幅の合計で打ち切る(全角1文字=2)。
-    tags, budget = [], 20
+    # 製品名は白いカードで横一列に置く(参考にした作りに合わせる)
+    cards_src, budget = [], 30
     for x in (meta.get("tags") or []):
         x = str(x)
         if dwidth(x) + 3 > budget:
             break
-        tags.append(x)
+        cards_src.append(x)
         budget -= dwidth(x) + 3
-        if len(tags) >= 3:
+        if len(cards_src) >= 3:
             break
     cat = meta.get("category", "")
     e = htmlmod.escape
 
-    chara, chara_w = character_img(meta.get("category", ""))
+    chara, chara_w = character_img(cat)
     pat_key, tone = variant_for(dirname)
     pattern = PATTERNS[pat_key].format(a=t["accent"])
     bg1 = _mix(t["bg1"], t["chip"], tone["mix"])
     bg2 = _mix(t["bg2"], t["accent"], tone["mix"] * 0.6)
 
-    # 内側の使える大きさ。枠16px + 左右パディング52px、上下は帯96+84を引く。
-    # キャラクター画像がある場合だけ、そのぶんも文字から引く
-    avail = WIDTH - 2 * 16 - 2 * 52 - chara_w
-    mid_h = HEIGHT - 2 * 16 - 96 - 84
-    sub_px, sub_lines = size_for(sub, avail, 120, 40, 26, 2, 1.35) if sub else (0, 0)
-    sub_box = int(sub_px * 1.35 * sub_lines) + 22 if sub else 0
-    main_px, main_lines = size_for(main, avail, mid_h - sub_box, 108, 46)
+    # 使える横幅。左右パディング26px + 枠12px + キャラのぶんを引く
+    avail = WIDTH - 2 * 12 - 2 * 26 - chara_w
+    card_px = 26
+    hook_px = size_for(hook, avail, 70, 46, 26, 1, 1.06)[0] if hook else 0
+
+    # 上下の帯・フック・カード・補足・フッターを引いた残りが主役の高さ
+    used = 26 * 2 + 14 + 12                      # 黒帯 + 上下パディング
+    used += int(hook_px * 1.06) + 6 if hook else 0
+    used += (card_px + 18 + 6) if cards_src else 0
+    used += 34 + 6                               # フッター
+    sub_px = size_for(sub, avail, 96, 34, 22, 2, 1.15)[0] if sub else 0
+    used += int(sub_px * 1.15 * 2) + 6 if sub else 0
+    main_h = max(150, HEIGHT - used)
+    main_px, main_lines = size_for(main, avail, main_h, 132, 52)
+    stroke_px = max(10, int(main_px * 0.16))
+    # 縁の色。chip をそのまま使うと、黄色系のテーマで背景と同化して読めない。
+    # 黒を混ぜて必ず背景より暗くする。
+    stroke_col = _mix(t["chip"], "#000000", 0.42)
 
     faces = (font_face("NotoJP", "NotoSansJP-Black.ttf", 900)
              + font_face("NotoJP", "NotoSansJP-Regular.ttf", 400))
 
-    import hashlib
-    chips = "".join(f'<span class="tag">{e(x)}</span>' for x in tags)
+    cards = "".join(f'<span class="card">{e(x)}</span>' for x in cards_src)
     main_html = emphasize(main, [str(x) for x in (meta.get("tags") or [])], e)
     return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>
 {faces}
 *{{margin:0;padding:0;box-sizing:border-box}}
 html,body{{width:{WIDTH}px;height:{HEIGHT}px}}
-body{{font-family:'NotoJP','IPAGothic',sans-serif;background:{bg1}}}
+body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
 .frame{{
   position:relative;width:{WIDTH}px;height:{HEIGHT}px;overflow:hidden;
   background:
-    radial-gradient({tone['glow']}, {t['accent']}55 0%, transparent 58%),
+    radial-gradient({tone['glow']}, {t['accent']}66 0%, transparent 56%),
     linear-gradient(135deg, {bg1} 0%, {bg2} 100%);
-  border:16px solid {t['chip']};
-  display:grid;grid-template-rows:96px 1fr 84px;padding:0 52px;
+  border-top:26px solid #000;border-bottom:26px solid #000;
+  border-left:12px solid {t['chip']};border-right:12px solid {t['chip']};
 }}
 /* 背景の柄。日付で切り替わる(PATTERNS) */
+.pat{{position:absolute;inset:0;background:{pattern};pointer-events:none}}
+/* 上下の黒帯の内側に、色の細線を1本入れて締める */
+.frame::before{{
+  content:"";position:absolute;left:0;right:0;top:0;height:5px;background:{t['accent']};
+}}
 .frame::after{{
-  content:"";position:absolute;inset:0;pointer-events:none;
-  background:{pattern};
+  content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:{t['accent']};
 }}
-.row{{position:relative;z-index:2;padding-right:{chara_w}px;display:flex;align-items:center;gap:18px;min-width:0}}
-.cat{{
-  background:{t['chip']};color:#fff;font-weight:900;font-size:27px;
-  padding:9px 22px;border-radius:999px;white-space:nowrap;
-  box-shadow:0 3px 0 rgba(0,0,0,.35);
+.stack{{
+  position:absolute;inset:0;z-index:3;
+  padding:14px 26px 12px;display:flex;flex-direction:column;gap:8px;justify-content:center;
+  padding-right:{26 + chara_w}px;
 }}
+/* 黄色の極太フック。黒の太縁で抜く */
 .hook{{
-  color:{t['accent']};font-weight:900;font-size:36px;white-space:nowrap;
-  text-shadow:2px 2px 0 rgba(0,0,0,.6);
+  color:#ffe83d;font-weight:900;font-size:{hook_px}px;line-height:1.06;
+  -webkit-text-stroke:11px #000;paint-order:stroke fill;
+  letter-spacing:.01em;white-space:nowrap;overflow:hidden;
 }}
-.mid{{
-  position:relative;z-index:2;display:flex;flex-direction:column;
-  justify-content:center;gap:22px;min-width:0;padding-right:{chara_w}px;
+/* 製品名の白カード。参考にした作りに合わせて横一列に */
+.cards{{display:flex;gap:10px;align-items:center;overflow:hidden}}
+.card{{
+  background:#fff;color:#111;font-weight:900;font-size:{card_px}px;line-height:1;
+  padding:9px 16px;border-radius:8px;white-space:nowrap;
+  box-shadow:0 4px 0 rgba(0,0,0,.55);
 }}
+/* 主役。白抜き＋テーマ色の極太縁＋黒のフチ */
 .main{{
-  color:#fff;font-weight:900;line-height:1.14;font-size:{main_px}px;
-  overflow-wrap:anywhere;
-  -webkit-text-stroke:14px {t['bg1']};paint-order:stroke fill;
-  text-shadow:0 5px 0 rgba(0,0,0,.45);
+  color:#fff;font-weight:900;font-size:{main_px}px;line-height:1.05;
+  -webkit-text-stroke:{stroke_px}px {stroke_col};paint-order:stroke fill;
+  filter:drop-shadow(0 0 4px #000) drop-shadow(0 7px 0 rgba(0,0,0,.55));
+  overflow-wrap:anywhere;letter-spacing:-.01em;
   display:-webkit-box;-webkit-line-clamp:{main_lines};-webkit-box-orient:vertical;overflow:hidden;
 }}
-.main em{{font-style:normal;color:{t['accent']}}}
+.main em{{font-style:normal;color:#ffe83d}}
+/* 補足。白＋黒縁 */
 .sub{{
-  color:#eaf2ff;font-weight:400;font-size:{sub_px}px;line-height:1.35;
-  border-left:8px solid {t['accent']};padding-left:18px;
-  text-shadow:0 2px 6px rgba(0,0,0,.7);
+  color:#fff;font-weight:900;font-size:{sub_px}px;line-height:1.15;
+  -webkit-text-stroke:8px #000;paint-order:stroke fill;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }}
-.bot{{justify-content:space-between;padding-right:{chara_w}px}}
-.chara{{
-  position:absolute;right:18px;bottom:0;width:{chara_w}px;height:auto;z-index:1;
-  filter:drop-shadow(0 8px 20px rgba(0,0,0,.5));
+.foot{{
+  position:absolute;left:26px;bottom:12px;display:flex;align-items:center;gap:12px;
 }}
-.tags{{display:flex;gap:12px;overflow:hidden;min-width:0;flex:1 1 auto}}
-.tag{{
-  background:#fff;color:{t['bg1']};font-weight:900;font-size:25px;
-  padding:8px 20px;border-radius:11px;white-space:nowrap;
-  box-shadow:0 3px 0 rgba(0,0,0,.3);
+.cat{{
+  background:{t['chip']};color:#fff;font-weight:900;font-size:22px;
+  padding:6px 16px;border-radius:6px;white-space:nowrap;
+  box-shadow:0 3px 0 rgba(0,0,0,.5);
 }}
-.site{{flex:0 0 auto;color:#ffffffd0;font-weight:900;font-size:23px;letter-spacing:.05em;white-space:nowrap}}
+.site{{color:#ffffffbb;font-weight:900;font-size:19px;letter-spacing:.04em;white-space:nowrap}}
+.chara{{position:absolute;right:14px;bottom:26px;width:{chara_w}px;height:auto;z-index:2}}
 </style></head><body><div class="frame">
+  <div class="pat"></div>
   {chara}
-  <div class="row">
-    <span class="cat">{e(cat)}</span>
-    {f'<span class="hook">{e(hook)}</span>' if hook else ''}
-  </div>
-  <div class="mid">
+  <div class="stack">
+    {f'<div class="hook">{e(hook)}</div>' if hook else ''}
+    {f'<div class="cards">{cards}</div>' if cards else ''}
     <div class="main">{main_html}</div>
     {f'<div class="sub">{e(sub)}</div>' if sub else ''}
-  </div>
-  <div class="row bot">
-    <div class="tags">{chips}</div>
-    <div class="site">AIニュース デイリーダイジェスト</div>
+    <div class="foot"><span class="cat">{e(cat)}</span><span class="site">AIニュース デイリーダイジェスト</span></div>
   </div>
 </div></body></html>"""
 
