@@ -86,6 +86,7 @@ WIDTH, HEIGHT = 1280, 720
 CHARA_DIR = HERE / "_assets" / "character"
 CHARA_W = 268                      # 画像を置いたときに右側で占める幅の上限
 CHARA_H = 660                      # 同じく高さの上限(上下の黒帯 26px ずつを避ける)
+CAST_DIR = CHARA_DIR / "cast"      # キャラ複数 × ポーズ複数を置く場所
 
 # カテゴリごとの配色。一覧に並べたとき、色だけで種類が分かるようにする。
 #   bg1/bg2 = 背景のグラデーション、accent = 決め文句の色、chip = カテゴリ札の色
@@ -144,23 +145,31 @@ def _mix(hex_color, other, ratio):
     return "#%02x%02x%02x" % tuple(int(x + (y - x) * ratio) for x, y in zip(a, b))
 
 
+def day_number(dirname):
+    """記事ディレクトリ名から、日替わりの通し番号を出す。
+
+    背景の柄と、キャラのポーズの選択に使う。乱数は使わないので、
+    同じ記事を撮り直しても必ず同じ結果になる。
+    """
+    import datetime
+    m = re.match(r"^(\d{4})-(\d{2})-(\d{2})", dirname)
+    if not m:
+        return sum(dirname.encode())
+    n = datetime.date(*map(int, m.groups())).toordinal()
+    # 同日に複数号あるとき用のずらし。翌日とぶつからないよう、
+    # 1号ぶんではなく柄の総数の約半分だけ動かす。
+    tail = re.search(r"_(\d+)$", dirname)
+    if tail:
+        n += (int(tail.group(1)) - 1) * 3
+    return n
+
+
 def variant_for(dirname):
     """記事ごとの柄・色味を、日付から決める。
 
     連続する日が必ず違う柄になるよう、日付の通し番号をそのまま使う。
-    同じ記事を撮り直しても結果は変わらない(再現性のため乱数は使わない)。
     """
-    import datetime
-    m = re.match(r"^(\d{4})-(\d{2})-(\d{2})", dirname)
-    if m:
-        n = datetime.date(*map(int, m.groups())).toordinal()
-        # 同日に複数号あるとき用のずらし。翌日とぶつからないよう、
-        # 1号ぶんではなく柄の総数の約半分だけ動かす。
-        tail = re.search(r"_(\d+)$", dirname)
-        if tail:
-            n += (int(tail.group(1)) - 1) * 3
-    else:
-        n = sum(dirname.encode())
+    n = day_number(dirname)
     return PATTERN_KEYS[n % len(PATTERN_KEYS)], TONES[(n // len(PATTERN_KEYS)) % len(TONES)]
 
 
@@ -248,11 +257,50 @@ def fit_chara(w, h):
     return max(1, round(w * scale)), max(1, round(h * scale))
 
 
-def character_path(category):
+def cast_folder(category):
+    """カテゴリの担当キャラのフォルダを返す。無ければ None。
+
+    決め方は次の順。
+      1. `cast/cast.json` に書いてある割り当て(手で決めたいとき)
+      2. `comfy/recipe.json` の cast[].category(生成時に決めた担当をそのまま使う)
+      3. どちらも無ければ None(呼び出し側で日替わりに回す)
+    """
+    if not CAST_DIR.is_dir():
+        return None
+    for path, get in ((CAST_DIR / "cast.json", lambda d: d.get(category)),
+                      (CHARA_DIR / "comfy" / "recipe.json",
+                       lambda d: next((c["name"] for c in d.get("cast", [])
+                                       if c.get("category") == category), None))):
+        if not path.is_file():
+            continue
+        try:
+            name = get(json.loads(path.read_text(encoding="utf-8")))
+        except (json.JSONDecodeError, OSError, KeyError, TypeError):
+            continue
+        if name and (CAST_DIR / name).is_dir():
+            return CAST_DIR / name
+    return None
+
+
+def character_path(category, dirname):
     """使うキャラクター画像のパスを返す。無ければ None。
 
-    `_assets/character/<カテゴリ名>.png` を優先し、無ければ `default.png`。
+    探す順:
+      1. `cast/<担当キャラ>/*.png` … カテゴリごとに担当を決めているとき。
+         同じキャラの中から、記事の日付でポーズを選ぶ(連続する日は別のポーズ)
+      2. `cast/*/*.png` … 担当を決めていないときは、キャラもポーズも日替わり
+      3. `<カテゴリ名>.png` → `default.png` … 1枚だけ置く従来の形
     """
+    n = day_number(dirname)
+    folder = cast_folder(category)
+    if folder is None and CAST_DIR.is_dir():
+        folders = sorted(p for p in CAST_DIR.iterdir() if p.is_dir())
+        if folders:
+            folder = folders[n % len(folders)]
+    if folder is not None:
+        shots = sorted(folder.glob("*.png"))
+        if shots:
+            return shots[n % len(shots)]
     for name in (f"{category}.png", "default.png"):
         path = CHARA_DIR / name
         if path.is_file():
@@ -260,7 +308,7 @@ def character_path(category):
     return None
 
 
-def character_img(category):
+def character_img(category, dirname):
     """右に置くキャラクター画像を返す。無ければ (空文字, 0)。
 
     背景透過・縦長(600x840程度以上)のPNGを想定しています。
@@ -269,7 +317,7 @@ def character_img(category):
     はみ出しません(文字の幅も、実際に占める幅ぶんだけ狭まります)。
     取り込みは `_prepare_character.py` を使ってください。
     """
-    path = character_path(category)
+    path = character_path(category, dirname)
     if path is None:
         return "", 0
     try:
@@ -306,7 +354,7 @@ def build_html(meta, dirname):
     cat = meta.get("category", "")
     e = htmlmod.escape
 
-    chara, chara_w = character_img(cat)
+    chara, chara_w = character_img(cat, dirname)
     pat_key, tone = variant_for(dirname)
     pattern = PATTERNS[pat_key].format(a=t["accent"])
     bg1 = _mix(t["bg1"], t["chip"], tone["mix"])

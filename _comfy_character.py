@@ -5,12 +5,13 @@
 「動いている ComfyUI にHTTPで投げて、出てきたPNGを受け取る」だけです。
 生成そのものはしません(この記事サイトの実行環境にGPUはありません)。
 
-サムネイルのマスコットは**毎回同じ顔である必要がある**ので、次の形にしています。
+カテゴリごとに担当のキャラを決め(`recipe.json` の `cast`)、それぞれに
+ポーズ・衣装の違い(`variations`)を作ります。5人 × 5種なら25枚です。
 
-- 生成の設定(モデル名・プロンプト・seed・サイズ)を `recipe.json` に書いて**コミットする**
+- 生成の設定(モデル名・プロンプト・seed)は `recipe.json` に書いて**コミットする**
 - モデルのファイルそのものはコミットしない(数GBあり、ライセンスもまちまち)
-- 生成は人が手で走らせて、**出てきた候補から人が1枚選ぶ**
-- 日次のサムネイル生成(`_render_thumbs.py`)は画像を読むだけで、生成には一切触らない
+- 生成は人が手で走らせて、**出てきた候補から人が選ぶ**
+- 日次のサムネイル生成(`_render_thumbs.py`)は置いてある画像を読むだけで、生成には触らない
 
 使い方:
 
@@ -18,24 +19,39 @@
     # 2. つながるか・必要なモデルがあるかを見る
     python3 _comfy_character.py --check
 
-    # 3. 候補を4枚出す(seed は 1 ずつずれる)
-    python3 _comfy_character.py --batch 4
+    # 3. 全員 × 全ポーズを作る(recipe.json のとおり)
+    python3 _comfy_character.py
+
+    # 一部だけ作り直す
+    python3 _comfy_character.py --who hinata            # このキャラだけ
+    python3 _comfy_character.py --pose wave             # このポーズだけ
+    python3 _comfy_character.py --who hinata --pose wave
+
+    # 気に入らないときは seed を全体ごとずらす
+    python3 _comfy_character.py --who hinata --seed-offset 100
 
     # モデルだけ一時的に変えて試す(recipe.json は書き換えない)
-    python3 _comfy_character.py --batch 2 --checkpoint waiIllustriousSDXL_v160.safetensors
+    python3 _comfy_character.py --pose wave --checkpoint animagineXL40_v4Opt.safetensors
 
-    # 4. 気に入った1枚を選んで取り込む(透過・トリム・リサイズ)
-    python3 _prepare_character.py _assets/character/_candidates/<選んだ.png> --matte
+受け取った画像は `_assets/character/_candidates/<キャラ名>/<ポーズ名>.png` に置きます。
+選んだものを次で取り込みます。
+
+    python3 _prepare_character.py <画像> --cast <キャラ名> --as <ポーズ名> --matte
 
 接続先を変えるとき:
 
-    COMFY_URL=http://192.168.1.20:8188 python3 _comfy_character.py --check
-    python3 _comfy_character.py --url http://192.168.1.20:8188
+    COMFY_URL=http://127.0.0.1:8001 python3 _comfy_character.py
+    python3 _comfy_character.py --url http://127.0.0.1:8001
 
 自分で組んだワークフローを使うとき(ComfyUI の「ワークフロー → API形式でエクスポート」で
 書き出したJSON。**UI形式ではありません**):
 
-    python3 _comfy_character.py --workflow mychara.api.json
+    python3 _comfy_character.py --workflow ipadapter.api.json --reference base.png
+
+`--workflow` を渡すと、そのワークフローの中の KSampler(seed)・EmptyLatentImage(サイズ)・
+CLIPTextEncode(プロンプト)・LoadImage(参照画像)を差し替えて投げます。
+IPAdapter で顔を揃えるときは、基準にする1枚を `--reference` で渡してください
+(ComfyUI の input フォルダに送ってから、LoadImage に差し込みます)。
 
 APIの仕様は ComfyUI 本体のソースで確認しています(server.py / execution.py / nodes.py)。
 
@@ -47,6 +63,8 @@ APIの仕様は ComfyUI 本体のソースで確認しています(server.py / e
                                                "completed": true|false,
                                                "messages": [...]}}}
     GET  /view?filename=&subfolder=&type=output   → 画像そのもの
+    POST /upload/image    multipart の image(ファイル) / type / subfolder / overwrite
+                          → {"name": ..., "subfolder": ..., "type": ...}
     GET  /object_info     → 入っているノードと、選べるモデル名の一覧
     GET  /system_stats    → 動いているかの確認に使う
 
@@ -55,6 +73,7 @@ APIの仕様は ComfyUI 本体のソースで確認しています(server.py / e
 """
 
 import json
+import mimetypes
 import os
 import sys
 import time
@@ -71,18 +90,44 @@ WORKFLOW = COMFY_DIR / "character.api.json"
 CANDIDATES = HERE / "_assets" / "character" / "_candidates"
 DEFAULT_URL = os.environ.get("COMFY_URL", "http://127.0.0.1:8188")
 TIMEOUT = 15          # 1リクエストの上限(秒)
-POLL_LIMIT = 1800     # 生成待ちの上限(秒)。CPU実行だと数分かかることがある
+POLL_LIMIT = 1800     # 生成待ちの上限(秒)。1枚あたり数十秒〜数分かかる
 
 
-def api(url, path, data=None, raw=False, timeout=TIMEOUT):
-    """ComfyUI に1回リクエストする。data があれば POST。"""
+def api(url, path, data=None, raw=False, timeout=TIMEOUT, body=None, ctype=None):
+    """ComfyUI に1回リクエストする。data(JSON) か body(生バイト) があれば POST。"""
     req = urllib.request.Request(url.rstrip("/") + path)
     if data is not None:
         req.data = json.dumps(data).encode("utf-8")
         req.add_header("Content-Type", "application/json")
+    elif body is not None:
+        req.data = body
+        req.add_header("Content-Type", ctype)
     with urllib.request.urlopen(req, timeout=timeout) as r:
-        body = r.read()
-    return body if raw else json.loads(body.decode("utf-8"))
+        out = r.read()
+    return out if raw else json.loads(out.decode("utf-8"))
+
+
+def upload_image(url, path):
+    """画像を ComfyUI の input フォルダに送る。LoadImage から使えるようになる。
+
+    multipart/form-data を手で組んでいます(標準ライブラリだけで動かすため)。
+    戻り値は LoadImage の `image` に入れる文字列。
+    """
+    path = Path(path)
+    boundary = "----ai-news-" + uuid.uuid4().hex
+    mime = mimetypes.guess_type(path.name)[0] or "image/png"
+    parts = []
+    for key, val in (("type", "input"), ("overwrite", "true")):
+        parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"{key}\"\r\n\r\n"
+                     f"{val}\r\n".encode("utf-8"))
+    parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"image\"; "
+                 f"filename=\"{path.name}\"\r\nContent-Type: {mime}\r\n\r\n".encode("utf-8"))
+    parts.append(path.read_bytes())
+    parts.append(f"\r\n--{boundary}--\r\n".encode("utf-8"))
+    res = api(url, "/upload/image", body=b"".join(parts),
+              ctype=f"multipart/form-data; boundary={boundary}", timeout=120)
+    name, sub = res.get("name", path.name), res.get("subfolder", "")
+    return f"{sub}/{name}" if sub else name
 
 
 def load_recipe(path=None):
@@ -93,7 +138,31 @@ def load_recipe(path=None):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def build_workflow(recipe):
+def jobs_from(recipe, who=None, pose=None, offset=0):
+    """作るものの一覧を組み立てる。(キャラ, ポーズ, プロンプト, seed) の並び。
+
+    seed は『キャラの seed + ポーズの並び順 + --seed-offset』です。
+    乱数は使わないので、同じ recipe なら何度でも同じ絵になります。
+    """
+    out = []
+    cast = recipe.get("cast") or [{"name": "default", "seed": recipe.get("seed", 1),
+                                   "tags": "", "category": ""}]
+    variations = recipe.get("variations") or [{"name": "base", "tags": ""}]
+    for c in cast:
+        if who and c["name"] != who:
+            continue
+        for i, v in enumerate(variations):
+            if pose and v["name"] != pose:
+                continue
+            prompt = ", ".join(x for x in (recipe.get("quality"), recipe.get("subject"),
+                                           c.get("tags"), v.get("tags"),
+                                           recipe.get("framing")) if x)
+            out.append({"who": c["name"], "pose": v["name"], "category": c.get("category", ""),
+                        "positive": prompt, "seed": int(c.get("seed", 1)) + i + offset})
+    return out
+
+
+def build_workflow(recipe, job):
     """API形式のワークフローを組み立てる。
 
     使うのは ComfyUI の標準ノードだけです(追加のカスタムノードは要りません)。
@@ -104,14 +173,14 @@ def build_workflow(recipe):
         "1": {"class_type": "CheckpointLoaderSimple",
               "inputs": {"ckpt_name": recipe["checkpoint"]}},
         "2": {"class_type": "CLIPTextEncode",
-              "inputs": {"text": recipe["positive"], "clip": ["1", 1]}},
+              "inputs": {"text": job["positive"], "clip": ["1", 1]}},
         "3": {"class_type": "CLIPTextEncode",
               "inputs": {"text": recipe["negative"], "clip": ["1", 1]}},
         "4": {"class_type": "EmptyLatentImage",
               "inputs": {"width": recipe["width"], "height": recipe["height"],
                          "batch_size": 1}},
         "5": {"class_type": "KSampler",
-              "inputs": {"seed": recipe["seed"], "steps": recipe["steps"],
+              "inputs": {"seed": job["seed"], "steps": recipe["steps"],
                          "cfg": recipe["cfg"], "sampler_name": recipe["sampler"],
                          "scheduler": recipe["scheduler"], "denoise": 1.0,
                          "model": ["1", 0], "positive": ["2", 0],
@@ -122,23 +191,39 @@ def build_workflow(recipe):
     }
 
 
-def patch_workflow(wf, recipe):
-    """手元で書き出したワークフローに、recipe.json の値を当てはめる。
+def patch_workflow(wf, recipe, job, reference=None):
+    """手元で書き出したワークフローに、recipe と今回のジョブの値を当てはめる。
 
     ノードIDは人によって違うので、`class_type` で探して差し替えます。
-    差し替えるのは seed とサイズだけ(プロンプトやモデルは、書き出した本人の
-    ワークフローに書いてあるものを尊重する)。
+    CLIPTextEncode が2つ以上あるときは、KSampler の positive / negative が
+    指しているノードを見て、どちらが肯定側かを判定します。
     """
     hit = []
-    for node in wf.values():
-        c = node.get("class_type")
-        ins = node.get("inputs", {})
-        if c == "KSampler" and "seed" in ins:
-            ins["seed"] = recipe["seed"]
-            hit.append("seed")
-        elif c in ("EmptyLatentImage", "EmptySD3LatentImage"):
+    pos_id = neg_id = None
+    for nid, node in wf.items():
+        if node.get("class_type") == "KSampler":
+            ins = node.setdefault("inputs", {})
+            if "seed" in ins:
+                ins["seed"] = job["seed"]
+                hit.append("seed")
+            p, n = ins.get("positive"), ins.get("negative")
+            pos_id = p[0] if isinstance(p, list) else None
+            neg_id = n[0] if isinstance(n, list) else None
+    for nid, node in wf.items():
+        c, ins = node.get("class_type"), node.setdefault("inputs", {})
+        if c in ("EmptyLatentImage", "EmptySD3LatentImage"):
             ins["width"], ins["height"] = recipe["width"], recipe["height"]
             hit.append("size")
+        elif c == "CLIPTextEncode" and "text" in ins:
+            if nid == pos_id:
+                ins["text"] = job["positive"]
+                hit.append("positive")
+            elif nid == neg_id:
+                ins["text"] = recipe["negative"]
+                hit.append("negative")
+        elif c == "LoadImage" and reference:
+            ins["image"] = reference
+            hit.append("reference")
     return hit
 
 
@@ -160,7 +245,7 @@ def submit(url, wf, client_id):
     return res.get("prompt_id")
 
 
-def wait(url, prompt_id):
+def wait(url, prompt_id, label=""):
     """/history をポーリングして、終わったら outputs を返す。
 
     WebSocket(/ws)でも進捗は取れますが、待つだけならHTTPのほうが依存が少ないので
@@ -178,17 +263,16 @@ def wait(url, prompt_id):
                       file=sys.stderr)
                 return None
             if entry.get("outputs"):
-                print(f"  完了({int(time.monotonic() - started)}秒)")
+                print(f"\r  {label} 完了({int(time.monotonic() - started)}秒)")
                 return entry["outputs"]
-        print(f"\r  生成中… {int(time.monotonic() - started)}秒", end="", flush=True)
+        print(f"\r  {label} 生成中… {int(time.monotonic() - started)}秒", end="", flush=True)
         time.sleep(2)
     print(f"\n  {POLL_LIMIT}秒待っても終わりませんでした。", file=sys.stderr)
     return None
 
 
-def fetch_images(url, outputs, seed):
+def fetch_images(url, outputs, job):
     """outputs に並んだ画像を /view から落として、候補フォルダに置く。"""
-    CANDIDATES.mkdir(parents=True, exist_ok=True)
     saved = []
     for node_id, out in outputs.items():
         for i, img in enumerate(out.get("images", [])):
@@ -196,27 +280,14 @@ def fetch_images(url, outputs, seed):
                                         "subfolder": img.get("subfolder", ""),
                                         "type": img.get("type", "output")})
             blob = api(url, "/view?" + q, raw=True, timeout=120)
-            dst = CANDIDATES / f"seed{seed}-{node_id}-{i}.png"
+            d = CANDIDATES / job["who"]
+            d.mkdir(parents=True, exist_ok=True)
+            suffix = "" if i == 0 else f"-{i}"
+            dst = d / f"{job['pose']}{suffix}.png"
             dst.write_bytes(blob)
             saved.append(dst)
-            print(f"  受け取り: {dst.relative_to(HERE)} ({len(blob) // 1024}KB)")
+            print(f"    → {dst.relative_to(HERE)} ({len(blob) // 1024}KB)")
     return saved
-
-
-def probe_ports(host="127.0.0.1", ports=(8188, 8000, 8001, 8080, 8189)):
-    """よく使われるポートを順に叩いて、ComfyUI が居るところを探す。
-
-    既定の 8188 以外で起動している人が多いので、繋がらなかったときに候補を出す。
-    """
-    found = []
-    for p in ports:
-        u = f"http://{host}:{p}"
-        try:
-            api(u, "/system_stats", timeout=2)
-            found.append(u)
-        except (urllib.error.URLError, OSError, json.JSONDecodeError):
-            pass
-    return found
 
 
 def check(url, recipe_path=None):
@@ -232,8 +303,7 @@ def check(url, recipe_path=None):
             print(f"  ただし {hit[0]} には ComfyUI が居ます。次のように指定してください:",
                   file=sys.stderr)
             print(f"    python3 _comfy_character.py --check --url {hit[0]}", file=sys.stderr)
-            print(f"    COMFY_URL={hit[0]} python3 _comfy_character.py --batch 4",
-                  file=sys.stderr)
+            print(f"    COMFY_URL={hit[0]} python3 _comfy_character.py", file=sys.stderr)
         else:
             print("  別のPCで動かしているなら --url か COMFY_URL で指定します。"
                   "その場合 ComfyUI 側に --listen も要ります"
@@ -260,7 +330,26 @@ def check(url, recipe_path=None):
         print("  入っているのは次のものです。recipe.json の checkpoint を書き換えてください:")
         for n in names[:15]:
             print(f"    {n}")
+    jobs = jobs_from(recipe)
+    print(f"  作るもの: キャラ{len(recipe.get('cast') or [1])}人 × "
+          f"ポーズ{len(recipe.get('variations') or [1])}種 = {len(jobs)}枚")
     return 0
+
+
+def probe_ports(host="127.0.0.1", ports=(8188, 8000, 8001, 8080, 8189)):
+    """よく使われるポートを順に叩いて、ComfyUI が居るところを探す。
+
+    既定の 8188 以外で起動している人が多いので、繋がらなかったときに候補を出す。
+    """
+    found = []
+    for p in ports:
+        u = f"http://{host}:{p}"
+        try:
+            api(u, "/system_stats", timeout=2)
+            found.append(u)
+        except (urllib.error.URLError, OSError, json.JSONDecodeError):
+            pass
+    return found
 
 
 def main():
@@ -277,8 +366,6 @@ def main():
     recipe = load_recipe(recipe_path)
     if recipe is None:
         return 1
-    if "--seed" in argv:
-        recipe["seed"] = int(opt("--seed"))
     if "--checkpoint" in argv:
         recipe["checkpoint"] = opt("--checkpoint")
     if "ここに手元の" in recipe["checkpoint"]:
@@ -288,8 +375,19 @@ def main():
         print(f"      python3 _comfy_character.py --check --url {url}", file=sys.stderr)
         print("      一時的に試すだけなら --checkpoint で上書きできます。", file=sys.stderr)
         return 1
-    batch = int(opt("--batch", "1"))
 
+    jobs = jobs_from(recipe, who=opt("--who"), pose=opt("--pose"),
+                     offset=int(opt("--seed-offset", "0")))
+    if not jobs:
+        print("中止: 条件に合うものがありません。--who / --pose の名前を確認してください。",
+              file=sys.stderr)
+        print(f"      キャラ: {', '.join(c['name'] for c in recipe.get('cast', []))}",
+              file=sys.stderr)
+        print(f"      ポーズ: {', '.join(v['name'] for v in recipe.get('variations', []))}",
+              file=sys.stderr)
+        return 1
+
+    base = None
     if "--workflow" in argv:
         path = Path(opt("--workflow")).expanduser()
         base = json.loads(path.read_text(encoding="utf-8"))
@@ -299,30 +397,44 @@ def main():
                   file=sys.stderr)
             return 1
         print(f"ワークフロー: {path}")
-    else:
-        base = None
 
     if "--dump-workflow" in argv:
         WORKFLOW.parent.mkdir(parents=True, exist_ok=True)
-        WORKFLOW.write_text(json.dumps(build_workflow(recipe), ensure_ascii=False, indent=2)
-                            + "\n", encoding="utf-8")
+        WORKFLOW.write_text(json.dumps(build_workflow(recipe, jobs[0]),
+                                       ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(f"書き出しました: {WORKFLOW.relative_to(HERE)}")
         return 0
 
+    reference = None
+    if "--reference" in argv:
+        if base is None:
+            print("中止: --reference は --workflow と一緒に使ってください"
+                  "(標準のワークフローには参照画像を受ける口がありません)。", file=sys.stderr)
+            return 1
+        try:
+            reference = upload_image(url, opt("--reference"))
+        except (urllib.error.URLError, OSError) as e:
+            print(f"中止: 参照画像を送れませんでした: {e}", file=sys.stderr)
+            return 1
+        print(f"参照画像: {reference} を ComfyUI に送りました")
+
     client_id = str(uuid.uuid4())
     made = []
-    for i in range(batch):
-        seed = recipe["seed"] + i
-        r = dict(recipe, seed=seed)
+    started = time.monotonic()
+    for i, job in enumerate(jobs, 1):
+        label = f"[{i}/{len(jobs)}] {job['who']} / {job['pose']} (seed={job['seed']})"
+        print(label)
         if base is None:
-            wf = build_workflow(r)
+            wf = build_workflow(recipe, job)
         else:
             wf = json.loads(json.dumps(base))
-            hit = patch_workflow(wf, r)
+            hit = patch_workflow(wf, recipe, job, reference)
             if "seed" not in hit:
-                print("  注意: KSampler が見つからず seed を固定できませんでした。"
-                      "毎回違う顔が出ます。", file=sys.stderr)
-        print(f"[{i + 1}/{batch}] seed={seed} を投げます")
+                print("  注意: KSampler が見つからず seed を固定できませんでした。",
+                      file=sys.stderr)
+            if "positive" not in hit:
+                print("  注意: 肯定プロンプトの差し替え先が見つかりませんでした。"
+                      "ワークフローに書いてある文章のまま生成します。", file=sys.stderr)
         try:
             prompt_id = submit(url, wf, client_id)
         except (urllib.error.URLError, OSError) as e:
@@ -330,17 +442,19 @@ def main():
             return 1
         if not prompt_id:
             return 1
-        outputs = wait(url, prompt_id)
+        outputs = wait(url, prompt_id, label="")
         if outputs:
-            made += fetch_images(url, outputs, seed)
+            made += fetch_images(url, outputs, job)
 
     if not made:
         return 1
     print()
-    print(f"候補を{len(made)}枚受け取りました。**Read で開いて選んでください。**")
-    print("選んだら取り込みます(背景が透過していない場合は --matte を付ける):")
-    print(f"  python3 _prepare_character.py {made[0].relative_to(HERE)} --matte")
-    print("採用した seed は recipe.json に書き戻すと、同じ顔をあとから再現できます。")
+    print(f"候補を{len(made)}枚受け取りました"
+          f"(所要 {int(time.monotonic() - started)}秒)。**Read で開いて選んでください。**")
+    print("採用する1枚ごとに取り込みます(背景が透過していない場合は --matte を付ける):")
+    j = jobs[0]
+    print(f"  python3 _prepare_character.py {(CANDIDATES / j['who'] / (j['pose'] + '.png')).relative_to(HERE)}"
+          f" --cast {j['who']} --as {j['pose']} --matte")
     return 0
 
 

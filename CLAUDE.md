@@ -234,16 +234,23 @@ _fetch_popular.py     # GoatCounterから閲覧数取得
 置きたくなったら、**画像を置くだけで復活します**（コード変更は不要）。
 
 ```
-_assets/character/default.png          # 全カテゴリ共通
-_assets/character/クライアント技術.png   # カテゴリ別に変えたいとき(こちらが優先)
+_assets/character/cast/<キャラ名>/<ポーズ名>.png   # カテゴリごとに担当を決める形(いまはこれ)
+_assets/character/default.png                    # 1枚だけ置く形(従来)
+_assets/character/クライアント技術.png             # カテゴリ別に1枚(こちらが優先)
 ```
+
+`cast/` に画像があるとそちらが優先されます。**カテゴリごとの担当**は
+`cast/cast.json`（無ければ `comfy/recipe.json` の `cast[].category`）で決まり、
+**その中のどのポーズを使うか**は記事の日付で決まります（連続する日は必ず別のポーズ。
+乱数は使わないので撮り直しても同じ絵）。
 
 置くときは **必ず `_prepare_character.py` を通すこと。** 透過の確認・余白のトリム・縮小と、
 サムネイル上で何pxを占めるかの表示を一度にやります。詳しくは `_assets/character/README.md`。
 
 ```bash
-python3 _prepare_character.py <画像> [カテゴリ名]   # 取り込む
-python3 _prepare_character.py --check              # いまの状態を見るだけ
+python3 _prepare_character.py <画像> --cast hinata --as wave --matte  # cast に入れる
+python3 _prepare_character.py <画像> [カテゴリ名]                      # 1枚だけ置く
+python3 _prepare_character.py --check                                 # いまの状態を見るだけ
 ```
 
 - 背景透過のPNG、縦長（600×840px 程度以上）を想定
@@ -261,11 +268,16 @@ ComfyUI 本体はGPUのある手元のPCで動かしてください（この環�
 
 ```bash
 python3 _comfy_character.py --check      # つながるか / モデルはあるか
-python3 _comfy_character.py --batch 4    # 候補を4枚(seedが1ずつずれる)
+python3 _comfy_character.py              # cast 全員 × ポーズ全種
+python3 _comfy_character.py --who hinata --seed-offset 100   # 一部だけ振り直す
 ```
 
-- 生成の設定は `_assets/character/comfy/recipe.json`。
-  **モデル名・プロンプト・seed を固定すれば同じ顔を再現できます**。採用した seed は書き戻す
+- 生成の設定は `_assets/character/comfy/recipe.json`。カテゴリごとの担当キャラ(`cast`)と
+  ポーズ・衣装(`variations`)をそこに書きます。**モデル名・プロンプト・seed を固定すれば
+  同じ絵を再現できます**（seed は「キャラのseed + ポーズの並び順」）
+- **素の txt2img では、ポーズを変えると顔も少し変わります。** 厳密に揃えるなら IPAdapter を
+  使い、`--workflow`（API形式で書き出したもの）と `--reference` で基準の1枚を渡します。
+  手順は `_assets/character/comfy/README.md`
 - モデルのファイルは**コミットしない**（数GBあり、ライセンスもまちまち）
 - **日次の自動処理には組み込まない。** サムネイル生成は置いてある画像を読むだけです。
   無人実行で、誰も見ていない絵が公開されるのを避けます

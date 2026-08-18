@@ -1,12 +1,43 @@
 # サムネイルのキャラクター
 
-ここに画像を1枚置くと、サムネイルの右側にキャラクターが入ります。
-**コードの変更は要りません。** 置いていない間はキャラ無しで組まれ、文字が広く使われます。
+サムネイルの右側に置くキャラクターです。**画像を置くだけで入ります**（コード変更は不要）。
+置いていない間はキャラ無しで組まれ、文字が広く使われます。
+
+## 置き方は2つ
+
+### A. カテゴリごとに担当を決めて、ポーズを日替わりにする（いまの形）
+
+```
+_assets/character/cast/<キャラ名>/<ポーズ名>.png
+_assets/character/cast/cast.json        # カテゴリ→キャラの割り当て(任意)
+```
+
+- **カテゴリごとの担当**は `cast/cast.json`、無ければ `comfy/recipe.json` の
+  `cast[].category` から決まります
+- **その中のどれを使うか**は記事の日付で決まります。連続する日は必ず別のポーズになり、
+  乱数は使わないので撮り直しても同じ絵です
+- 担当が決まっていないカテゴリは、キャラ自体も日替わりで回します
+
+`cast.json` はこう書きます（`comfy/recipe.json` と食い違うときはこちらが優先）。
+
+```json
+{
+  "デイリーダイジェスト": "hinata",
+  "AIで作る技術": "kurumi",
+  "Web開発・インフラ": "shirase",
+  "クライアント技術": "kotoha",
+  "チームで作る技術": "aoi"
+}
+```
+
+### B. 1枚だけ置く（従来の形）
 
 ```
 _assets/character/default.png          # 全カテゴリ共通
 _assets/character/クライアント技術.png   # カテゴリ別(あればこちらが優先)
 ```
+
+`cast/` に画像があればそちらが優先され、無ければこの2つが使われます。
 
 使えるカテゴリ名は `デイリーダイジェスト` / `AIで作る技術` / `Web開発・インフラ` /
 `クライアント技術` / `チームで作る技術` の5つです。
@@ -20,9 +51,10 @@ _assets/character/クライアント技術.png   # カテゴリ別(あればこ�
 透過の確認・余白のトリム・縮小・**サムネイル上で実際に何pxで出るか**を一度に見ます。
 
 ```bash
-python3 _prepare_character.py ~/Downloads/chara.png                 # 全カテゴリ共通
-python3 _prepare_character.py ~/Downloads/chara_g.png クライアント技術  # カテゴリ別
-python3 _prepare_character.py --check                               # いまの状態を見るだけ
+python3 _prepare_character.py <画像> --cast hinata --as wave --matte   # cast に入れる
+python3 _prepare_character.py <画像>                                   # default.png として置く
+python3 _prepare_character.py <画像> クライアント技術                    # カテゴリ別に置く
+python3 _prepare_character.py --check                                  # いまの状態を見るだけ
 ```
 
 このスクリプトだけ **Pillow が要ります**（`_comfy_character.py` は標準ライブラリのみ）。
@@ -53,10 +85,13 @@ python3 _render_thumbs.py <記事ディレクトリ名>
 生成はできません。`_comfy_character.py` は「動いている ComfyUI に投げて受け取る」だけです。
 
 ```bash
-python3 _comfy_character.py --check      # つながるか / モデルはあるか
-python3 _comfy_character.py --batch 4    # 候補を4枚(seedが1ずつずれる)
-python3 _prepare_character.py _assets/character/_candidates/<選んだ.png> --matte
+python3 _comfy_character.py --check                  # つながるか / モデルはあるか
+python3 _comfy_character.py                          # cast 全員 × ポーズ全種
+python3 _prepare_character.py _assets/character/_candidates/hinata/wave.png \
+  --cast hinata --as wave --matte
 ```
+
+顔を揃えるための IPAdapter の手順も含めて、詳しくは `comfy/README.md` にあります。
 
 #### 既定以外のポートで起動しているとき
 
@@ -65,7 +100,7 @@ python3 _prepare_character.py _assets/character/_candidates/<選んだ.png> --ma
 
 ```bash
 python3 _comfy_character.py --check --url http://127.0.0.1:8001
-COMFY_URL=http://127.0.0.1:8001 python3 _comfy_character.py --batch 4
+COMFY_URL=http://127.0.0.1:8001 python3 _comfy_character.py
 ```
 
 繋がらなかったときは、よく使うポート（8188 / 8000 / 8001 / 8080 / 8189）を探しに行き、
@@ -81,7 +116,7 @@ ComfyUI の `--listen` の既定値も `127.0.0.1` なので、同じLANの別PC
 `_candidates/` は `.gitignore` に入れてあるので、渡すときだけ `-f` を付けます。
 
 ```bash
-git add -f _assets/character/_candidates/<選んだ.png>
+git add -f _assets/character/_candidates/
 git commit -m "キャラクターの候補を追加" && git push
 ```
 

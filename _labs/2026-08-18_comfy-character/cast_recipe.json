@@ -1,0 +1,19 @@
+{
+  "checkpoint": "dummy-anime.safetensors",
+  "width": 768, "height": 1344, "steps": 30, "cfg": 5.0,
+  "sampler": "euler_ancestral", "scheduler": "normal",
+  "quality": "masterpiece, best quality",
+  "subject": "1girl, original, solo",
+  "framing": "full body, standing, white background",
+  "negative": "worst quality, lowres",
+  "cast": [
+    {"name": "hinata", "category": "デイリーダイジェスト", "seed": 1001,
+     "tags": "blonde hair, twintails"},
+    {"name": "kurumi", "category": "AIで作る技術", "seed": 2001,
+     "tags": "brown hair, bob cut"}
+  ],
+  "variations": [
+    {"name": "wave", "tags": "waving, hoodie"},
+    {"name": "point", "tags": "pointing at viewer, dress shirt"}
+  ]
+}

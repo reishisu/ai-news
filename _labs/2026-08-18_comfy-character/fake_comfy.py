@@ -11,6 +11,7 @@
                                               検証に落ちると 400 {"error", "node_errors"}
     GET  /history/<prompt_id>               → {<id>: {"outputs", "status", ...}}
     GET  /view?filename=&subfolder=&type=   → PNG そのもの
+    POST /upload/image                      → {"name", "subfolder", "type"}
     GET  /object_info/CheckpointLoaderSimple, /system_stats
 
 **これは本物の ComfyUI ではありません。** 生成は行わず、seed を書いた
@@ -20,6 +21,7 @@
 """
 
 import json
+import re
 import sys
 import time
 import urllib.parse
@@ -32,6 +34,7 @@ from PIL import Image, ImageDraw
 CHECKPOINTS = ["dummy-anime.safetensors", "dummy-sdxl.safetensors"]
 DELAY = 4          # 生成にかかる時間のつもり(ポーリングが動くことの確認用)
 JOBS = {}
+UPLOADED = []
 
 
 def dummy_png(seed, w=832, h=1216):
@@ -99,7 +102,14 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         n = int(self.headers.get("Content-Length", 0))
-        body = json.loads(self.rfile.read(n) or b"{}")
+        raw = self.rfile.read(n)
+        if self.path == "/upload/image":
+            # multipart の中身までは見ない。名前を返せば LoadImage に差せる。
+            m = re.search(rb'filename="([^"]+)"', raw)
+            name = m.group(1).decode("utf-8") if m else "uploaded.png"
+            UPLOADED.append(name)
+            return self._send(200, {"name": name, "subfolder": "", "type": "input"})
+        body = json.loads(raw or b"{}")
         if self.path != "/prompt":
             return self._send(404, {"error": "no route"})
         if "prompt" not in body:

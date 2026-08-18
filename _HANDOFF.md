@@ -14,24 +14,31 @@
 | ある | 中身 |
 |---|---|
 | `_prepare_character.py` | 取り込み。透過チェック・余白トリム・縮小・`--matte`（単色背景を抜く） |
-| `_comfy_character.py` | 手元の ComfyUI に投げて候補を受け取る |
-| `_assets/character/comfy/recipe.json` | 生成の設定。**seed とモデルを固定すれば同じ顔が再現できる** |
+| `_comfy_character.py` | 手元の ComfyUI に投げて候補を受け取る（キャラ × ポーズを一括） |
+| `_assets/character/comfy/recipe.json` | 生成の設定。カテゴリごとの担当キャラ5人とポーズ5種 |
+| `_assets/character/comfy/README.md` | IPAdapter で顔を揃える手順（**未実行**。配布元READMEに基づく） |
 | `_assets/character/README.md` | 置き方・用意のしかた（ComfyUI / VRoid / 依頼） |
 | `_labs/2026-08-18_comfy-character/` | 偽サーバー相手の通し実行の記録 |
 
 ```bash
-python3 _prepare_character.py <画像> [カテゴリ名]   # 取り込む
-python3 _prepare_character.py --check              # いまの状態
 python3 _comfy_character.py --check                # ComfyUI につながるか
-python3 _comfy_character.py --batch 4              # 候補を4枚もらう
+python3 _comfy_character.py                        # cast 全員 × ポーズ全種を作る
+python3 _prepare_character.py <画像> --cast hinata --as wave --matte   # 取り込む
+python3 _prepare_character.py --check              # いまの状態
 ```
 
-置く場所は次の2つ。`_render_thumbs.py` は**画像があれば読むだけ**で、コード変更は要りません。
+置き場所は次のとおり。`_render_thumbs.py` は**画像があれば読むだけ**で、コード変更は要りません。
 
 ```
-_assets/character/default.png          # 全カテゴリ共通
-_assets/character/クライアント技術.png   # カテゴリ別(こちらが優先)
+_assets/character/cast/<キャラ名>/<ポーズ名>.png   # カテゴリごとに担当を決める形(いまはこれ)
+_assets/character/default.png                    # 1枚だけ置く形(従来。cast が優先)
 ```
+
+- 運営者の希望は「**キャラを複数固定して、毎回ポーズや衣装を替えたい**」。
+  カテゴリごとに担当を1人ずつ決め、ポーズは記事の日付で選ぶ形にした
+- 好みの順は 金髪ツインテール > 茶髪ボブ > 銀髪クール > 黒髪ロング（本人の回答）。
+  5人目（チームで作る技術＝黄色テーマ）は、背景に埋もれない濃い青髪にしてある
+- 顔の一致は **IPAdapter を使う方針**（本人の選択）。手順は comfy/README.md
 
 - 収まる箱は **幅268px × 高さ660px**（`CHARA_W` / `CHARA_H`）。
   縦横比を保ったまま収まり、占めた幅のぶんだけ文字が狭まります
@@ -100,8 +107,8 @@ GPUがありません（`nvidia-smi` 無し、`/dev/nvidia*` 無し。CPU 4コ�
 気に入った1枚を選んで置く。**選ぶ工程を人が持てる**のが利点。
 
 ComfyUI については 8/18 に連携を書きました（`_comfy_character.py`）。
-手元で ComfyUI を起動して `--check` → `--batch 4` で候補が `_assets/character/_candidates/`
-に落ちてきます。**本物の ComfyUI ではまだ動かしていません**（この環境にGPUが無いため、
+手元で ComfyUI を起動して `--check` → 引数なし実行で、候補が
+`_assets/character/_candidates/<キャラ名>/<ポーズ名>.png` に落ちてきます。**本物の ComfyUI ではまだ動かしていません**（この環境にGPUが無いため、
 APIの形だけをソースで確認し、偽サーバー相手に通しで検証しています）。
 最初に動かすときは、まず `--check` でモデル名が合っているかを見てください。
 
@@ -182,6 +189,8 @@ Google Fonts の日本語68書体を全部洗い出し、重い候補8つを並�
 
 ## 6. 現在の状態
 
-- 全25号、サムネイルは 1280×720、内容の重複なし、見出しの省略なし
-- 表示検証（幅380px / 900px、52通り）で問題なし
-- `main` は push 済み（`4babae7`）
+- 全26号、サムネイルは 1280×720、内容の重複なし、見出しの省略なし
+- 表示検証（幅380px / 900px）で問題なし
+- キャラクター画像は**まだ1枚も置いていません**（置くまではキャラ無しで組まれます）
+- 実機の ComfyUI（RTX 3070 Ti / 8GB）で `--check` が通ることまで確認済み。
+  生成そのものは運営者が手元で走らせる

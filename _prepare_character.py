@@ -17,6 +17,9 @@
     # カテゴリ別に差し替える(そのカテゴリだけこちらが使われる)
     python3 _prepare_character.py ~/Downloads/chara_green.png クライアント技術
 
+    # キャラ複数 × ポーズ複数(cast)に入れる。記事の日付で1枚が選ばれる
+    python3 _prepare_character.py <画像> --cast hinata --as wave --matte
+
     # 単色背景の画像を透過にしてから取り込む(ComfyUI の素の出力など)
     python3 _prepare_character.py _assets/character/_candidates/seed1-7-0.png --matte
 
@@ -36,7 +39,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from _render_thumbs import CHARA_DIR, CHARA_H, CHARA_W, THEMES, fit_chara
+from _render_thumbs import CAST_DIR, CHARA_DIR, CHARA_H, CHARA_W, THEMES, fit_chara
 
 HERE = Path(__file__).resolve().parent
 
@@ -136,8 +139,7 @@ def describe(path):
         print(f"    警告: 縦が{h}pxしかありません({MIN_H}px以上を推奨)。")
 
 
-def prepare(src, name, do_matte=False, tol=32):
-    dst = CHARA_DIR / f"{name}.png"
+def prepare(src, dst, do_matte=False, tol=32):
     with Image.open(src) as raw:
         im = raw.convert("RGBA")
     before = im.size
@@ -175,7 +177,7 @@ def prepare(src, name, do_matte=False, tol=32):
         print(f"  警告: 縦が{im.height}pxしかありません。"
               f"{MIN_H}px以上あるほうが綺麗です(拡大はしません)。")
 
-    CHARA_DIR.mkdir(parents=True, exist_ok=True)
+    dst.parent.mkdir(parents=True, exist_ok=True)
     im.save(dst, "PNG", optimize=True)
     print(f"  保存しました: {dst.relative_to(HERE)} ({dst.stat().st_size // 1024}KB)")
     describe(dst)
@@ -187,24 +189,47 @@ def prepare(src, name, do_matte=False, tol=32):
 
 
 def check():
+    found = False
+    if CAST_DIR.is_dir():
+        for folder in sorted(p for p in CAST_DIR.iterdir() if p.is_dir()):
+            shots = sorted(folder.glob("*.png"))
+            if not shots:
+                continue
+            found = True
+            print(f"{folder.relative_to(HERE)}: {len(shots)}枚 "
+                  f"({', '.join(x.stem for x in shots)})")
+            describe(shots[0])
     files = sorted(CHARA_DIR.glob("*.png")) if CHARA_DIR.is_dir() else []
-    if not files:
-        print(f"{CHARA_DIR.relative_to(HERE)} に画像はありません。"
-              "キャラ無しで組まれます(文字が広く使えます)。")
-        return 0
-    print(f"{CHARA_DIR.relative_to(HERE)} の画像:")
     for f in files:
+        found = True
         if f.stem not in VALID_NAMES:
             print(f"  {f.name}: この名前は使われません。"
                   f"使える名前: {' / '.join(n + '.png' for n in VALID_NAMES)}")
             continue
         describe(f)
+    if not found:
+        print(f"{CHARA_DIR.relative_to(HERE)} に画像はありません。"
+              "キャラ無しで組まれます(文字が広く使えます)。")
     return 0
 
 
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    if "--check" in sys.argv or not args:
+    argv = sys.argv[1:]
+    flags = {"--cast": None, "--as": None, "--tolerance": "32"}
+    args = []
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a in flags:
+            i += 1
+            flags[a] = argv[i] if i < len(argv) else None
+        elif a.startswith("--tolerance="):
+            flags["--tolerance"] = a.split("=", 1)[1]
+        elif not a.startswith("--"):
+            args.append(a)
+        i += 1
+
+    if "--check" in argv or not args:
         if not args:
             print(__doc__.strip().splitlines()[0])
             print(f"(表示できる箱は 幅{CHARA_W}px × 高さ{CHARA_H}px です)\n")
@@ -214,16 +239,23 @@ def main():
     if not src.is_file():
         print(f"中止: {src} がありません。", file=sys.stderr)
         return 1
-    name = args[1] if len(args) > 1 else "default"
-    if name not in VALID_NAMES:
-        print(f"中止: カテゴリ名 '{name}' は使えません。", file=sys.stderr)
-        print(f"      使えるのは: {' / '.join(VALID_NAMES)}", file=sys.stderr)
-        return 1
-    tol = 32
-    for a in sys.argv[1:]:
-        if a.startswith("--tolerance="):
-            tol = int(a.split("=", 1)[1])
-    return prepare(src, name, do_matte="--matte" in sys.argv, tol=tol)
+
+    if flags["--cast"]:
+        # キャラ複数 × ポーズ複数の置き場に入れる
+        pose = flags["--as"] or src.stem
+        dst = CAST_DIR / flags["--cast"] / f"{pose}.png"
+    else:
+        # 1キャラだけ置く従来の形
+        name = args[1] if len(args) > 1 else "default"
+        if name not in VALID_NAMES:
+            print(f"中止: カテゴリ名 '{name}' は使えません。", file=sys.stderr)
+            print(f"      使えるのは: {' / '.join(VALID_NAMES)}", file=sys.stderr)
+            print("      キャラを複数置くなら --cast <キャラ名> --as <ポーズ名> です。",
+                  file=sys.stderr)
+            return 1
+        dst = CHARA_DIR / f"{name}.png"
+
+    return prepare(src, dst, do_matte="--matte" in argv, tol=int(flags["--tolerance"]))
 
 
 if __name__ == "__main__":
