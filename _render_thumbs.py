@@ -79,6 +79,63 @@ DASH = re.compile(r"\s*[—–―]\s*")          # タイトルの「主題 — 
 DAILY = re.compile(r"^AI-news：\s*([\d/]+)(\s*号外)?\s*$")
 
 
+# 背景の柄。日付で切り替えて、毎日同じ絵にならないようにする。
+# カテゴリの色そのものは変えない(色で種類が分かる、という利点を壊さないため)。
+PATTERNS = {
+    # 縮小表示でも分かるよう、柄は「大きく・濃く」する。
+    # 細かい網目は 400px 幅のカードでは消えてしまう。
+    "band":  ("linear-gradient(102deg, transparent 46%, {a}3a 46%, {a}3a 60%, "
+              "transparent 60%, transparent 66%, {a}22 66%, {a}22 72%, transparent 72%)"),
+    "rays":  ("repeating-conic-gradient(from 196deg at 112% -12%, "
+              "{a}30 0deg 9deg, transparent 9deg 22deg)"),
+    "dots":  "radial-gradient({a}4a 6px, transparent 6.5px) 0 0/62px 62px",
+    "grid":  ("repeating-linear-gradient(0deg, {a}2e 0 2px, transparent 2px 78px),"
+              "repeating-linear-gradient(90deg, {a}2e 0 2px, transparent 2px 78px)"),
+    "waves": "repeating-linear-gradient(58deg, {a}30 0 7px, transparent 7px 54px)",
+    "blob":  ("radial-gradient(46% 58% at 8% 92%, {a}42 0%, transparent 62%),"
+              "radial-gradient(38% 48% at 74% 2%, {a}36 0%, transparent 64%),"
+              "radial-gradient(26% 34% at 44% 52%, {a}20 0%, transparent 66%)"),
+}
+PATTERN_KEYS = list(PATTERNS)
+
+# 明るさの振り幅。同じカテゴリ色のまま、濃さと光の位置だけ日替わりにする。
+TONES = [
+    dict(glow="110% 85% at 85% 8%",   mix=0.00),
+    dict(glow="95% 80% at 10% 14%",   mix=0.18),
+    dict(glow="120% 95% at 58% 108%", mix=0.08),
+    dict(glow="85% 72% at 96% 94%",   mix=0.26),
+]
+
+
+def _mix(hex_color, other, ratio):
+    """2色を混ぜる。同系色のまま濃さだけ動かすのに使う。"""
+    def rgb(h):
+        h = h.lstrip("#")
+        return [int(h[i:i + 2], 16) for i in (0, 2, 4)]
+    a, b = rgb(hex_color), rgb(other)
+    return "#%02x%02x%02x" % tuple(int(x + (y - x) * ratio) for x, y in zip(a, b))
+
+
+def variant_for(dirname):
+    """記事ごとの柄・色味を、日付から決める。
+
+    連続する日が必ず違う柄になるよう、日付の通し番号をそのまま使う。
+    同じ記事を撮り直しても結果は変わらない(再現性のため乱数は使わない)。
+    """
+    import datetime
+    m = re.match(r"^(\d{4})-(\d{2})-(\d{2})", dirname)
+    if m:
+        n = datetime.date(*map(int, m.groups())).toordinal()
+        # 同日に複数号あるとき用のずらし。翌日とぶつからないよう、
+        # 1号ぶんではなく柄の総数の約半分だけ動かす。
+        tail = re.search(r"_(\d+)$", dirname)
+        if tail:
+            n += (int(tail.group(1)) - 1) * 3
+    else:
+        n = sum(dirname.encode())
+    return PATTERN_KEYS[n % len(PATTERN_KEYS)], TONES[(n // len(PATTERN_KEYS)) % len(TONES)]
+
+
 def font_face(name, filename, weight):
     """フォントを data URI で埋め込む。一時HTMLを別の場所に置いても効くように。"""
     path = FONTS / filename
@@ -185,6 +242,10 @@ def build_html(meta, dirname):
     e = htmlmod.escape
 
     chara, chara_w = character_img(meta.get("category", ""))
+    pat_key, tone = variant_for(dirname)
+    pattern = PATTERNS[pat_key].format(a=t["accent"])
+    bg1 = _mix(t["bg1"], t["chip"], tone["mix"])
+    bg2 = _mix(t["bg2"], t["accent"], tone["mix"] * 0.6)
 
     # 内側の使える大きさ。枠16px + 左右パディング52px、上下は帯96+84を引く。
     # キャラクター画像がある場合だけ、そのぶんも文字から引く
@@ -204,19 +265,19 @@ def build_html(meta, dirname):
 {faces}
 *{{margin:0;padding:0;box-sizing:border-box}}
 html,body{{width:{WIDTH}px;height:{HEIGHT}px}}
-body{{font-family:'NotoJP','IPAGothic',sans-serif;background:{t['bg1']}}}
+body{{font-family:'NotoJP','IPAGothic',sans-serif;background:{bg1}}}
 .frame{{
   position:relative;width:{WIDTH}px;height:{HEIGHT}px;overflow:hidden;
   background:
-    radial-gradient(110% 85% at 85% 8%, {t['accent']}55 0%, transparent 58%),
-    linear-gradient(135deg, {t['bg1']} 0%, {t['bg2']} 100%);
+    radial-gradient({tone['glow']}, {t['accent']}55 0%, transparent 58%),
+    linear-gradient(135deg, {bg1} 0%, {bg2} 100%);
   border:16px solid {t['chip']};
   display:grid;grid-template-rows:96px 1fr 84px;padding:0 52px;
 }}
-/* 斜めの帯。単色ベタ塗りにしない */
+/* 背景の柄。日付で切り替わる(PATTERNS) */
 .frame::after{{
   content:"";position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(102deg, transparent 60%, {t['accent']}22 60%, {t['accent']}22 69%, transparent 69%);
+  background:{pattern};
 }}
 .row{{position:relative;z-index:2;padding-right:{chara_w}px;display:flex;align-items:center;gap:18px;min-width:0}}
 .cat{{
