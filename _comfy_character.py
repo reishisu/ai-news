@@ -200,6 +200,22 @@ def fetch_images(url, outputs, seed):
     return saved
 
 
+def probe_ports(host="127.0.0.1", ports=(8188, 8000, 8001, 8080, 8189)):
+    """よく使われるポートを順に叩いて、ComfyUI が居るところを探す。
+
+    既定の 8188 以外で起動している人が多いので、繋がらなかったときに候補を出す。
+    """
+    found = []
+    for p in ports:
+        u = f"http://{host}:{p}"
+        try:
+            api(u, "/system_stats", timeout=2)
+            found.append(u)
+        except (urllib.error.URLError, OSError, json.JSONDecodeError):
+            pass
+    return found
+
+
 def check(url, recipe_path=None):
     """つながるか、必要なモデルが入っているかを見る。"""
     print(f"接続先: {url}")
@@ -207,8 +223,18 @@ def check(url, recipe_path=None):
         stats = api(url, "/system_stats")
     except (urllib.error.URLError, OSError) as e:
         print(f"  つながりません: {e}", file=sys.stderr)
-        print("  ComfyUI を起動してから実行してください。"
-              "別のPCで動かしているなら COMFY_URL を指定します。", file=sys.stderr)
+        print("  ComfyUI を起動してから実行してください。", file=sys.stderr)
+        hit = probe_ports()
+        if hit:
+            print(f"  ただし {hit[0]} には ComfyUI が居ます。次のように指定してください:",
+                  file=sys.stderr)
+            print(f"    python3 _comfy_character.py --check --url {hit[0]}", file=sys.stderr)
+            print(f"    COMFY_URL={hit[0]} python3 _comfy_character.py --batch 4",
+                  file=sys.stderr)
+        else:
+            print("  別のPCで動かしているなら --url か COMFY_URL で指定します。"
+                  "その場合 ComfyUI 側に --listen も要ります"
+                  "(既定は 127.0.0.1 で、ループバックにしか繋がりません)。", file=sys.stderr)
         return 1
     for d in stats.get("devices", []):
         print(f"  デバイス: {d.get('name')} / VRAM {int(d.get('vram_total', 0)) // (1024**3)}GB")

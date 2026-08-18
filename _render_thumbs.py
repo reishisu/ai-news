@@ -40,6 +40,7 @@ python3 _render_thumbs.py --stale            # 記事HTMLより古いものだ�
 import base64
 import html as htmlmod
 import json
+import os
 import re
 import subprocess
 import sys
@@ -51,7 +52,31 @@ from PIL import Image
 HERE = Path(__file__).resolve().parent
 CONTENTS = HERE / "contents"
 FONTS = HERE / "_assets" / "fonts"
-CHROMIUM = "/opt/pw-browsers/chromium"
+def find_chromium():
+    """撮影に使うブラウザを探す。
+
+    この実行環境では /opt/pw-browsers/chromium に居ますが、手元のPCで走らせる人も
+    いるので、見つからなければ PATH と Mac の既定の場所も見ます。
+    環境変数 CHROMIUM で明示することもできます。
+    """
+    import shutil
+    env = os.environ.get("CHROMIUM")
+    if env:
+        return env
+    for c in ("/opt/pw-browsers/chromium",
+              "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+              "/Applications/Chromium.app/Contents/MacOS/Chromium"):
+        if Path(c).exists():
+            return c
+    for name in ("chromium", "chromium-browser", "google-chrome",
+                 "google-chrome-stable", "chrome"):
+        found = shutil.which(name)
+        if found:
+            return found
+    return "/opt/pw-browsers/chromium"      # 見つからないときは元の場所を返す
+
+
+CHROMIUM = find_chromium()
 # YouTube と同じ 16:9。SNSカード(OGP)の推奨は 1.91:1 なので、
 # X や Facebook では上下がわずかに切られることがある。
 WIDTH, HEIGHT = 1280, 720

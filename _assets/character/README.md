@@ -52,6 +52,37 @@ python3 _comfy_character.py --batch 4    # 候補を4枚(seedが1ずつずれる
 python3 _prepare_character.py _assets/character/_candidates/<選んだ.png> --matte
 ```
 
+#### 既定以外のポートで起動しているとき
+
+`_comfy_character.py` の既定は ComfyUI の既定と同じ `http://127.0.0.1:8188` です。
+別のポートなら `--url` か `COMFY_URL` で指定します。
+
+```bash
+python3 _comfy_character.py --check --url http://127.0.0.1:8001
+COMFY_URL=http://127.0.0.1:8001 python3 _comfy_character.py --batch 4
+```
+
+繋がらなかったときは、よく使うポート（8188 / 8000 / 8001 / 8080 / 8189）を探しに行き、
+見つかれば指定するコマンドを表示します。
+
+#### クラウド側のセッションからは実行できません
+
+このリポジトリを開いている Claude のセッションは別のコンテナで動いていて、
+**あなたのPCの `127.0.0.1` には到達できません**（実測済み）。
+ComfyUI の `--listen` の既定値も `127.0.0.1` なので、同じLANの別PCからも繋がりません。
+
+生成は手元で走らせ、**採用する1枚をリポジトリに入れて渡す**のがいちばん確実です。
+`_candidates/` は `.gitignore` に入れてあるので、渡すときだけ `-f` を付けます。
+
+```bash
+git add -f _assets/character/_candidates/<選んだ.png>
+git commit -m "キャラクターの候補を追加" && git push
+```
+
+透過・トリム・サムネイルの撮り直しは、そのあとクラウド側でまとめてできます
+（`_prepare_character.py` は Pillow、`_render_thumbs.py` は Chromium が要るため、
+手元に無ければ無理に入れなくて構いません）。
+
 生成の設定は `comfy/recipe.json` にあります。**モデル名・プロンプト・seed を固定すれば、
 同じ顔をあとから再現できます。** 採用した seed は `recipe.json` に書き戻してください。
 
