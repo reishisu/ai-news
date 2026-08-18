@@ -10,5 +10,9 @@
   "featured": true,
   "title": "Claude Codeのフックと権限設計 — AIを仕組みで止める",
   "summary": "AIに任せる範囲を、口約束ではなく設定で決める話です。Claude Code 2.1.233で同じgit pushを対照1つと8通りの設定に投げ、リモートのコミットIDが動いたかどうかだけで判定しました。止まったのはdenyとexit 2の4つ。exit 1・パス誤記・タイムアウトは、書いてあるのに素通りします。公式ドキュメントの原文と並べて確認しました。",
-  "thumbnail": "images/thumb.png"
+  "thumbnail": "images/thumb.png",
+  "thumb": {
+    "main": "フックと権限設計",
+    "sub": "AIを仕組みで止める"
+  }
 }

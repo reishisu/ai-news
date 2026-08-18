@@ -8,7 +8,7 @@
   "2": {
     "class_type": "CLIPTextEncode",
     "inputs": {
-      "text": "masterpiece, best quality, newest, absurdres, highres, safe, 1girl, original, solo, blonde hair, long hair, twintails, blunt bangs, sidelocks, hair bow, blue bow, blue eyes, tareme, cheerful smile, petite, waving, open hand, smile, hoodie, full body, standing, looking at viewer, simple background, white background",
+      "text": "masterpiece, best quality, newest, absurdres, highres, safe, 1girl, original, solo, blonde hair, long hair, twintails, blunt bangs, sidelocks, hair bow, blue bow, blue eyes, tareme, cheerful smile, petite, waving, open hand, smile, hoodie, full body, standing, looking at viewer, simple background, green background",
       "clip": [
         "1",
         1
@@ -18,7 +18,7 @@
   "3": {
     "class_type": "CLIPTextEncode",
     "inputs": {
-      "text": "nsfw, worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro, gradient background, scenery, multiple views, cropped, 2girls, multiple girls, shadow, drop shadow, reflection, reflective floor, floor, wooden floor, tile floor, grass, pavement, road, dirt, outdoors, indoors, patterned background, checkered background, striped background, polka dot background, floral background, abstract background, two-tone background, english text, clothes writing",
+      "text": "nsfw, worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro, gradient background, scenery, multiple views, cropped, 2girls, multiple girls, shadow, drop shadow, reflection, reflective floor, floor, wall, wooden floor, tile floor, grass, pavement, road, dirt, outdoors, indoors, depth of field, blurry background, patterned background, checkered background, striped background, polka dot background, floral background, abstract background, two-tone background, english text, clothes writing",
       "clip": [
         "1",
         1

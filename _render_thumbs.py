@@ -207,19 +207,23 @@ def dwidth(text):
     return sum(2 if unicodedata.east_asian_width(c) in "WF" else 1 for c in text)
 
 
-def size_for(text, avail_px, avail_h, cap, floor, max_lines=3, lh=1.16):
+def size_for(text, avail_px, avail_h, cap, floor, max_lines=3, lh=1.16, pad_em=0.0):
     """avail_px x avail_h に収まる最大の文字サイズと、そのときの行数を返す。
 
     大きいほうから試して、**実際に必要な行数**で縦が収まる最大を採る。
     行数を決め打ちして計算すると、2行で足りる文字を3行ぶんの高さで
     見積もってしまい、下half が空いて間延びする。
+
+    **lh と pad_em は、CSS の line-height / padding(縦の合計, em)と必ず一致させること。**
+    CSSより小さい値で見積もると、要素が予算を超えて重なる(実際に、補足が
+    2行に折り返した記事でフッターと衝突していた)。
     """
     import math
     w = dwidth(text) or 1
     for px in range(cap, floor - 1, -2):
         per_line = 2 * avail_px / px * 0.82      # 1行に入る表示幅(余裕を見る)
         lines = max(1, math.ceil(w / per_line))
-        if lines <= max_lines and lines * px * lh <= avail_h:
+        if lines <= max_lines and (lines * lh + pad_em) * px <= avail_h:
             return px, lines
     return floor, max_lines
 
@@ -252,12 +256,14 @@ def fit_chara(w, h):
     """元画像の大きさから、サムネイル上での表示サイズを決める。
 
     幅 CHARA_W・高さ CHARA_H の箱に収める。高さを見ずに幅だけ固定すると、
-    縦長すぎる画像で頭が上の黒帯に切られる(bottom 基準で置いているため)。
-    拡大はしない(粗くなるだけなので、小さい画像はそのまま小さく置く)。
+    縦長すぎる画像で頭が画面の上端に切られる(bottom 基準で置いているため)。
+    拡大は1.4倍まで許す。細身のポーズは切り出し後が500px程度しかなく、
+    等倍のままだと記事ごとにキャラの大きさがばらつくため。元が1200px級なので
+    この程度の拡大では粗さは見えない(値を上げすぎると見える)。
     """
     if w <= 0 or h <= 0:
         return CHARA_W, CHARA_H
-    scale = min(CHARA_W / w, CHARA_H / h, 1.0)
+    scale = min(CHARA_W / w, CHARA_H / h, 1.4)
     return max(1, round(w * scale)), max(1, round(h * scale))
 
 
@@ -357,6 +363,20 @@ def character_img(category, dirname):
             f'style="width:{disp_w}px;height:{disp_h}px">'), disp_w
 
 
+def nowrap_latin(html_text):
+    """英数字のトークン(製品名・バージョン番号)を改行禁止にする。
+
+    既定の改行規則はハイフンの後ろで割ってよいことになっているので、
+    「GLM-5.3」が「GLM-」と「5.3」に泣き別れする(実際に出た)。
+    <em> などのタグの中身は触らず、タグの外側のテキストだけを包む。
+    """
+    parts = re.split(r"(<[^>]+>)", html_text)
+    token = re.compile(r"[A-Za-z0-9][A-Za-z0-9.\-+#/]*[A-Za-z0-9#+]|[A-Za-z0-9]")
+    return "".join(part if part.startswith("<")
+                   else token.sub(lambda m: f'<span class="nb">{m.group(0)}</span>', part)
+                   for part in parts)
+
+
 def build_html(meta, dirname):
     t = THEMES.get(meta.get("category"), DEFAULT_THEME)
     title = meta.get("title") or dirname
@@ -388,17 +408,28 @@ def build_html(meta, dirname):
     # 使える横幅。左右パディング26px + キャラのぶんを引く
     avail = WIDTH - 2 * 26 - chara_w
     card_px = 30
-    hook_px = size_for(hook, avail, 78, 52, 28, 1, 1.06)[0] if hook else 0
+    hook_px = size_for(hook, avail, 78, 52, 28, 1, 1.06, 0.08)[0] if hook else 0
 
-    # フック・カード・補足・フッターを引いた残りが主役の高さ
-    used = 14 + 12                               # 上下パディング
-    used += int(hook_px * 1.06) + 6 if hook else 0
-    used += (card_px + 18 + 6) if cards_src else 0
-    used += 34 + 6                               # フッター
-    sub_px = size_for(sub, avail, 108, 38, 24, 2, 1.15)[0] if sub else 0
-    used += int(sub_px * 1.15 * 2) + 6 if sub else 0
+    # フック・カード・補足・フッターを引いた残りが主役の高さ。
+    # **CSSの実寸と1対1で数えること。** 隙間や padding を数え漏らすと、
+    # その合計ぶんだけ下の要素が押し出されて画面外に切れる(実際に、
+    # 約20pxの漏れで補足の2行目が切れ、カテゴリ札と重なっていた)。
+    items = 1                                    # main
+    used = 14 + 12                               # .stack の上下パディング
+    used += 34 + 12                              # .foot の高さ + bottom:12
+    if hook:
+        used += int(hook_px * 1.14)              # line-height 1.06 + padding .08em
+        items += 1
+    if cards_src:
+        used += card_px + 18                     # padding 9x2
+        items += 1
+    sub_px = size_for(sub, avail, 108, 38, 24, 2, 1.3)[0] if sub else 0
+    if sub:
+        used += int(sub_px * 1.3 * 2) + 8        # 2行 + .sub b の padding 2px x2 + 余裕
+        items += 1
+    used += 8 * (items - 1) + 8                  # gap:8px と安全マージン
     main_h = max(170, HEIGHT - used)
-    main_px, main_lines = size_for(main, avail, main_h, 150, 54)
+    main_px, main_lines = size_for(main, avail, main_h, 150, 54, lh=1.16)
     stroke_px = max(9, int(main_px * 0.13))
     # 縁の色。chip をそのまま使うと、黄色系のテーマで背景と同化して読めない。
     # 黒を混ぜて必ず背景より暗くする。
@@ -408,7 +439,8 @@ def build_html(meta, dirname):
              + font_face("NotoJP", "NotoSansJP-Regular.ttf", 400))
 
     cards = "".join(f'<span class="card">{e(x)}</span>' for x in cards_src)
-    main_html = emphasize(main, [str(x) for x in (meta.get("tags") or [])], e)
+    main_html = nowrap_latin(emphasize(main, [str(x) for x in (meta.get("tags") or [])], e))
+    sub_html = nowrap_latin(e(sub)) if sub else ""
     return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>
 {faces}
 *{{margin:0;padding:0;box-sizing:border-box}}
@@ -438,8 +470,10 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
 .hook{{
   color:#ffe83d;font-weight:900;font-size:{hook_px}px;line-height:1.06;
   -webkit-text-stroke:11px #000;paint-order:stroke fill;
-  filter:drop-shadow(0 0 12px #ffd21e) drop-shadow(0 4px 0 rgba(0,0,0,.5));
+  /* 発光(0 0 12px)は輪郭がぼやけて見えるので入れない(運営者の指摘) */
+  filter:drop-shadow(0 4px 0 rgba(0,0,0,.5));
   letter-spacing:.01em;white-space:nowrap;overflow:hidden;
+  padding-bottom:.08em;
 }}
 /* 製品名の白カード。参考にした作りに合わせて横一列に */
 .cards{{display:flex;gap:10px;align-items:center;overflow:hidden}}
@@ -450,26 +484,35 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
 }}
 /* 主役。白抜き＋テーマ色の極太縁＋黒のフチ */
 .main{{
-  font-weight:900;font-size:{main_px}px;line-height:1.05;
+  font-weight:900;font-size:{main_px}px;line-height:1.16;
   /* 塗りは白。内側に暗い縁を入れ、外側に白フチ＋発光を足す。
      background-clip:text でグラデーションにすると、太い text-stroke と
      干渉して文字が潰れる(実測)。塗りは単色に留める。 */
   color:#fff;
   -webkit-text-stroke:{stroke_px}px {stroke_col};paint-order:stroke fill;
-  /* 外側に白のフチを4方向から。さらにテーマ色で発光させる */
+  /* 外側に白のフチを4方向から。発光(0 0 22px/44px)は輪郭がぼやけて
+     見えるので入れない(運営者の指摘で外した) */
   filter:
     drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff)
     drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff)
-    drop-shadow(0 0 22px {t['accent']}) drop-shadow(0 0 44px {t['accent']})
-    drop-shadow(0 8px 2px rgba(0,0,0,.6));
-  overflow-wrap:anywhere;letter-spacing:-.01em;
+    drop-shadow(0 8px 0 rgba(0,0,0,.6));
+  /* 禁則: 行頭の小書き・長音・句読点を禁じる(strict)。
+     anywhere はどこでも割ってしまう(「フ/ック」の行頭ッが出る)ので使わない。
+     auto-phrase(文節折り)は行が埋まらず「…」潰れが7枚出たのでやめた(実測)。
+     英数字のトークンは nowrap_latin() が包むので泣き別れしない */
+  word-break:normal;line-break:strict;overflow-wrap:break-word;
+  letter-spacing:-.01em;
+  /* 行間は1.16。詰める(1.05)と最終行の下端と縁取りが overflow:hidden に切られる。
+     padding で逃がす方式は line-clamp と干渉して、溢れた行の上端が覗く(実測)。
+     縁取り(0.13em/2=0.065em)が半レディング(0.08em)に収まる 1.16 が正解 */
   display:-webkit-box;-webkit-line-clamp:{main_lines};-webkit-box-orient:vertical;overflow:hidden;
 }}
 .main em{{font-style:normal;color:#ffe83d}}
 /* 補足。白＋黒縁 */
 /* 補足。背景が明るいと白文字が負けるので、暗い下地を敷く */
 .sub{{
-  color:#fff;font-weight:900;font-size:{sub_px}px;line-height:1.5;
+  color:#fff;font-weight:900;font-size:{sub_px}px;line-height:1.3;
+  word-break:normal;line-break:strict;overflow-wrap:break-word;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }}
 .sub b{{
@@ -487,6 +530,7 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
 }}
 .site{{color:#ffffffbb;font-weight:900;font-size:19px;letter-spacing:.04em;white-space:nowrap}}
 /* 大きさは画像ごとに決まるので style 属性で入れる(fit_chara) */
+.nb{{white-space:nowrap}}
 .chara{{position:absolute;right:10px;bottom:0;z-index:2;object-fit:contain}}
 </style></head><body><div class="frame">
   <div class="pat"></div>
@@ -496,7 +540,7 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
     {f'<div class="hook">{e(hook)}</div>' if hook else ''}
     {f'<div class="cards">{cards}</div>' if cards else ''}
     <div class="main">{main_html}</div>
-    {f'<div class="sub"><b>{e(sub)}</b></div>' if sub else ''}
+    {f'<div class="sub"><b>{sub_html}</b></div>' if sub else ''}
     <div class="foot"><span class="cat">{e(cat)}</span><span class="site">AIニュース デイリーダイジェスト</span></div>
   </div>
 </div></body></html>"""
