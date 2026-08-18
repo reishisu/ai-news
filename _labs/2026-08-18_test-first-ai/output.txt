@@ -1,0 +1,79 @@
+########## 0. 環境 ##########
+$ python3 -V
+Python 3.11.15
+$ python3 -m pytest --version
+pytest 9.1.1
+$ export COLUMNS=40
+
+########## 1. 弱 x ズル ##########
+$ python3 -m pytest -q test_weak.py
+.                                [100%]
+1 passed in 0.01s
+
+########## 2. 弱 x 正しい実装 ##########
+$ python3 -m pytest -q test_weak.py
+.                                [100%]
+1 passed in 0.01s
+
+########## 3. 2999円で確かめる ##########
+$ python3 -c 'import shipping_cheat as m
+print(m.shipping(2999))'
+0
+$ python3 -c 'import shipping_ok as m
+print(m.shipping(2999))'
+500
+
+########## 4. 強 x ズル(要約) ##########
+$ python3 -m pytest -q --tb=no \
+    test_strong.py
+F..FF                            [100%]
+======= short test summary info ========
+FAILED test_strong.py::test_fee[2999]
+FAILED test_strong.py::test_fee[0] - ...
+FAILED test_strong.py::test_negative
+3 failed, 2 passed in 0.01s
+
+########## 5. 落ちた1件だけ全文 ##########
+$ python3 -m pytest -q -k 2999 \
+    test_strong.py
+F                                [100%]
+=============== FAILURES ===============
+____________ test_fee[2999] ____________
+
+sub = 2999, want = 500
+
+    @pytest.mark.parametrize(
+        "sub,want", CASES,
+        ids=["2999", "3000",
+             "3001", "0"])
+    def test_fee(sub, want):
+>       assert shipping(sub) == want
+E       assert 0 == 500
+E        +  where 0 = shipping(2999)
+
+test_strong.py:17: AssertionError
+======= short test summary info ========
+FAILED test_strong.py::test_fee[2999]
+1 failed, 4 deselected in 0.02s
+
+########## 6. 空実装 x 強(red) ##########
+$ python3 -m pytest -q --tb=no \
+    test_strong.py
+FFFFF                            [100%]
+======= short test summary info ========
+FAILED test_strong.py::test_fee[2999]
+FAILED test_strong.py::test_fee[3000]
+FAILED test_strong.py::test_fee[3001]
+FAILED test_strong.py::test_fee[0] - ...
+FAILED test_strong.py::test_negative
+5 failed in 0.02s
+
+########## 7. 正しい実装 x 強(green) ##########
+$ python3 -m pytest -q test_strong.py
+.....                            [100%]
+5 passed in 0.01s
+
+########## 8. 両方まとめて ##########
+$ python3 -m pytest -q
+......                           [100%]
+6 passed in 0.01s
