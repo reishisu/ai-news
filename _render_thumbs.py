@@ -62,15 +62,15 @@ CHARA_W = 268                      # 画像を置いたときに右側で占め�
 # カテゴリごとの配色。一覧に並べたとき、色だけで種類が分かるようにする。
 #   bg1/bg2 = 背景のグラデーション、accent = 決め文句の色、chip = カテゴリ札の色
 THEMES = {
-    "デイリーダイジェスト": dict(bg1="#0b1f3a", bg2="#123a6b", accent="#4da3ff", chip="#2a78d6",
+    "デイリーダイジェスト": dict(bg1="#0d2f6e", bg2="#2b6fe0", accent="#5ec2ff", chip="#1e5fd0",
                           h1="#7fc4ff", h2="#2a6fd0", hi="#cfe8ff", iris="#1b64c4", pupil="#0b2a52", brow="#3a6ea8"),
-    "AIで作る技術":        dict(bg1="#2a0b2e", bg2="#5a1450", accent="#ff5ec7", chip="#c9308f",
+    "AIで作る技術":        dict(bg1="#4a0d4e", bg2="#a81f86", accent="#ff7ad6", chip="#c9308f",
                           h1="#ffa8e4", h2="#c9308f", hi="#ffd9f2", iris="#b3247a", pupil="#4a0c30", brow="#a8407e"),
-    "Web開発・インフラ":   dict(bg1="#2b1405", bg2="#5e2f08", accent="#ffa43d", chip="#e07b1a",
+    "Web開発・インフラ":   dict(bg1="#5a2a06", bg2="#c25f0d", accent="#ffc061", chip="#e07b1a",
                           h1="#ffcf8a", h2="#d97a12", hi="#ffeccc", iris="#c06a10", pupil="#4a2a04", brow="#b5761f"),
-    "クライアント技術":     dict(bg1="#04241b", bg2="#0a4f39", accent="#3ede9f", chip="#12996b",
+    "クライアント技術":     dict(bg1="#04452f", bg2="#0d9c68", accent="#5ff5bb", chip="#0f8f61",
                           h1="#8ff0c6", h2="#12996b", hi="#d6fdec", iris="#0e7a52", pupil="#03301f", brow="#2f8f68"),
-    "チームで作る技術":     dict(bg1="#241d03", bg2="#4a3d06", accent="#ffd93d", chip="#d0a611",
+    "チームで作る技術":     dict(bg1="#4a3a05", bg2="#b8930c", accent="#ffe86b", chip="#c99f0d",
                           h1="#ffe98a", h2="#c99f0d", hi="#fff6cc", iris="#a8830a", pupil="#3d2f01", brow="#a8871f"),
 }
 DEFAULT_THEME = THEMES["デイリーダイジェスト"]
@@ -264,7 +264,7 @@ def build_html(meta, dirname):
     used += int(sub_px * 1.15 * 2) + 6 if sub else 0
     main_h = max(150, HEIGHT - used)
     main_px, main_lines = size_for(main, avail, main_h, 132, 52)
-    stroke_px = max(10, int(main_px * 0.16))
+    stroke_px = max(9, int(main_px * 0.13))
     # 縁の色。chip をそのまま使うと、黄色系のテーマで背景と同化して読めない。
     # 黒を混ぜて必ず背景より暗くする。
     stroke_col = _mix(t["chip"], "#000000", 0.42)
@@ -285,10 +285,17 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
     radial-gradient({tone['glow']}, {t['accent']}66 0%, transparent 56%),
     linear-gradient(135deg, {bg1} 0%, {bg2} 100%);
   border-top:26px solid #000;border-bottom:26px solid #000;
-  border-left:12px solid {t['chip']};border-right:12px solid {t['chip']};
+  border-left:12px solid {t['accent']};border-right:12px solid {t['accent']};
 }}
 /* 背景の柄。日付で切り替わる(PATTERNS) */
 .pat{{position:absolute;inset:0;background:{pattern};pointer-events:none}}
+/* 斜めの光沢。ギラつきを足す */
+.shine{{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(108deg, transparent 30%, #ffffff26 42%, transparent 52%),
+    linear-gradient(108deg, transparent 58%, #ffffff1a 66%, transparent 74%);
+}}
 /* 上下の黒帯の内側に、色の細線を1本入れて締める */
 .frame::before{{
   content:"";position:absolute;left:0;right:0;top:0;height:5px;background:{t['accent']};
@@ -305,6 +312,7 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
 .hook{{
   color:#ffe83d;font-weight:900;font-size:{hook_px}px;line-height:1.06;
   -webkit-text-stroke:11px #000;paint-order:stroke fill;
+  filter:drop-shadow(0 0 12px #ffd21e) drop-shadow(0 4px 0 rgba(0,0,0,.5));
   letter-spacing:.01em;white-space:nowrap;overflow:hidden;
 }}
 /* 製品名の白カード。参考にした作りに合わせて横一列に */
@@ -316,18 +324,32 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
 }}
 /* 主役。白抜き＋テーマ色の極太縁＋黒のフチ */
 .main{{
-  color:#fff;font-weight:900;font-size:{main_px}px;line-height:1.05;
+  font-weight:900;font-size:{main_px}px;line-height:1.05;
+  /* 塗りは白。内側に暗い縁を入れ、外側に白フチ＋発光を足す。
+     background-clip:text でグラデーションにすると、太い text-stroke と
+     干渉して文字が潰れる(実測)。塗りは単色に留める。 */
+  color:#fff;
   -webkit-text-stroke:{stroke_px}px {stroke_col};paint-order:stroke fill;
-  filter:drop-shadow(0 0 4px #000) drop-shadow(0 7px 0 rgba(0,0,0,.55));
+  /* 外側に白のフチを4方向から。さらにテーマ色で発光させる */
+  filter:
+    drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff)
+    drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff)
+    drop-shadow(0 0 22px {t['accent']}) drop-shadow(0 0 44px {t['accent']})
+    drop-shadow(0 8px 2px rgba(0,0,0,.6));
   overflow-wrap:anywhere;letter-spacing:-.01em;
   display:-webkit-box;-webkit-line-clamp:{main_lines};-webkit-box-orient:vertical;overflow:hidden;
 }}
 .main em{{font-style:normal;color:#ffe83d}}
 /* 補足。白＋黒縁 */
+/* 補足。背景が明るいと白文字が負けるので、暗い下地を敷く */
 .sub{{
-  color:#fff;font-weight:900;font-size:{sub_px}px;line-height:1.15;
-  -webkit-text-stroke:8px #000;paint-order:stroke fill;
+  color:#fff;font-weight:900;font-size:{sub_px}px;line-height:1.5;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}}
+.sub b{{
+  font-weight:900;background:rgba(0,0,0,.62);
+  padding:2px 10px;border-radius:4px;
+  box-decoration-break:clone;-webkit-box-decoration-break:clone;
 }}
 .foot{{
   position:absolute;left:26px;bottom:12px;display:flex;align-items:center;gap:12px;
@@ -341,12 +363,13 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
 .chara{{position:absolute;right:14px;bottom:26px;width:{chara_w}px;height:auto;z-index:2}}
 </style></head><body><div class="frame">
   <div class="pat"></div>
+  <div class="shine"></div>
   {chara}
   <div class="stack">
     {f'<div class="hook">{e(hook)}</div>' if hook else ''}
     {f'<div class="cards">{cards}</div>' if cards else ''}
     <div class="main">{main_html}</div>
-    {f'<div class="sub">{e(sub)}</div>' if sub else ''}
+    {f'<div class="sub"><b>{e(sub)}</b></div>' if sub else ''}
     <div class="foot"><span class="cat">{e(cat)}</span><span class="site">AIニュース デイリーダイジェスト</span></div>
   </div>
 </div></body></html>"""
