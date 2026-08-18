@@ -43,15 +43,24 @@
     COMFY_URL=http://127.0.0.1:8001 python3 _comfy_character.py
     python3 _comfy_character.py --url http://127.0.0.1:8001
 
-自分で組んだワークフローを使うとき(ComfyUI の「ワークフロー → API形式でエクスポート」で
-書き出したJSON。**UI形式ではありません**):
+顔を揃えるとき(IPAdapter)。**ワークフローを自分で組む必要はありません。**
+こちらで組み立てて、投げる前にノードとモデルの有無を確かめます:
+
+    python3 _comfy_character.py --face                     # 全員、基準の顔に揃えて作り直す
+    python3 _comfy_character.py --face --who hinata        # 1人だけ
+    python3 _comfy_character.py --face --weight 0.6        # 効きを弱める(既定 0.8)
+    python3 _comfy_character.py --face --reference 基準.png --who hinata  # 基準を指定
+
+基準の顔は、採用済みの絵 `_assets/character/cast/<キャラ>/wave.png` を自動で使います
+(recipe の cast[].face でポーズ名を変えられます)。
+
+自分で組んだワークフローを使いたいときだけ(ComfyUI の
+「ワークフロー → API形式でエクスポート」で書き出したJSON。**UI形式ではありません**):
 
     python3 _comfy_character.py --workflow ipadapter.api.json --reference base.png
 
-`--workflow` を渡すと、そのワークフローの中の KSampler(seed)・EmptyLatentImage(サイズ)・
+`--workflow` を渡すと、その中の KSampler(seed)・EmptyLatentImage(サイズ)・
 CLIPTextEncode(プロンプト)・LoadImage(参照画像)を差し替えて投げます。
-IPAdapter で顔を揃えるときは、基準にする1枚を `--reference` で渡してください
-(ComfyUI の input フォルダに送ってから、LoadImage に差し込みます)。
 
 APIの仕様は ComfyUI 本体のソースで確認しています(server.py / execution.py / nodes.py)。
 
@@ -189,6 +198,96 @@ def build_workflow(recipe, job):
         "7": {"class_type": "SaveImage",
               "inputs": {"filename_prefix": "ai-news-chara", "images": ["6", 0]}},
     }
+
+
+# IPAdapter で顔を揃えるときの既定値。
+# weight は配布元(cubiq/ComfyUI_IPAdapter_plus)の README が
+# 「まず 0.8 以下に下げるとよい」としているのに合わせている。
+IPA_PRESET = "PLUS FACE (portraits)"
+IPA_WEIGHT = 0.8
+
+
+def build_ipadapter_workflow(recipe, job, reference, weight=IPA_WEIGHT, preset=IPA_PRESET):
+    """基準の1枚を参照して顔を揃える版のワークフローを組み立てる。
+
+    素の txt2img(build_workflow)との違いは、モデルが KSampler に届くまでに
+    IPAdapter を1つ挟むところだけです。
+
+        CheckpointLoaderSimple ─┬─→ IPAdapterUnifiedLoader ─→ IPAdapter ─→ KSampler
+                                └─→ CLIPTextEncode ×2 ────────────────────↗
+        LoadImage(基準の顔) → PrepImageForClipVision(上を切り出す) ────↗
+
+    PrepImageForClipVision を挟むのは、参照画像が**全身の立ち絵**だからです。
+    IPAdapter は画像を224pxの正方形にして読むので、全身のまま渡すと顔の情報が薄まります。
+    `crop_position="top"` で頭の側だけを渡します。
+
+    ノードの入出力は配布元の IPAdapterPlus.py で確認しています
+    (IPAdapterUnifiedLoader → (MODEL, IPADAPTER)、IPAdapterSimple の入力は
+     model / ipadapter / image / weight / start_at / end_at / weight_type)。
+    """
+    return {
+        "1": {"class_type": "CheckpointLoaderSimple",
+              "inputs": {"ckpt_name": recipe["checkpoint"]}},
+        "2": {"class_type": "LoadImage", "inputs": {"image": reference}},
+        "3": {"class_type": "PrepImageForClipVision",
+              "inputs": {"image": ["2", 0], "interpolation": "LANCZOS",
+                         "crop_position": "top", "sharpening": 0.0}},
+        "4": {"class_type": "IPAdapterUnifiedLoader",
+              "inputs": {"model": ["1", 0], "preset": preset}},
+        "5": {"class_type": "IPAdapter",
+              "inputs": {"model": ["4", 0], "ipadapter": ["4", 1], "image": ["3", 0],
+                         "weight": weight, "start_at": 0.0, "end_at": 1.0,
+                         "weight_type": "standard"}},
+        "6": {"class_type": "CLIPTextEncode",
+              "inputs": {"text": job["positive"], "clip": ["1", 1]}},
+        "7": {"class_type": "CLIPTextEncode",
+              "inputs": {"text": recipe["negative"], "clip": ["1", 1]}},
+        "8": {"class_type": "EmptyLatentImage",
+              "inputs": {"width": recipe["width"], "height": recipe["height"],
+                         "batch_size": 1}},
+        "9": {"class_type": "KSampler",
+              "inputs": {"seed": job["seed"], "steps": recipe["steps"],
+                         "cfg": recipe["cfg"], "sampler_name": recipe["sampler"],
+                         "scheduler": recipe["scheduler"], "denoise": 1.0,
+                         "model": ["5", 0], "positive": ["6", 0],
+                         "negative": ["7", 0], "latent_image": ["8", 0]}},
+        "10": {"class_type": "VAEDecode", "inputs": {"samples": ["9", 0], "vae": ["1", 2]}},
+        "11": {"class_type": "SaveImage",
+               "inputs": {"filename_prefix": "ai-news-chara", "images": ["10", 0]}},
+    }
+
+
+def verify_workflow(url, wf):
+    """投げる前に、相手の ComfyUI にそのノードがあるか・値が選べるかを確かめる。
+
+    ComfyUI は 400 を返してくれますが、メッセージが英語で長いので、
+    **どのノードが無いのか**を先に日本語で出します。戻り値は不備の一覧。
+    """
+    problems, cache = [], {}
+    for nid, node in sorted(wf.items(), key=lambda kv: int(kv[0])):
+        cls = node.get("class_type")
+        if cls not in cache:
+            try:
+                cache[cls] = api(url, f"/object_info/{cls}", timeout=60).get(cls)
+            except (urllib.error.HTTPError, urllib.error.URLError, OSError):
+                cache[cls] = None
+        info = cache[cls]
+        if info is None:
+            problems.append(f"ノード『{cls}』が入っていません")
+            continue
+        required = (info.get("input") or {}).get("required") or {}
+        for name, spec in required.items():
+            if name not in node.get("inputs", {}):
+                problems.append(f"{cls}: 入力『{name}』が足りません")
+                continue
+            value = node["inputs"][name]
+            choices = spec[0] if isinstance(spec, list) and spec else None
+            if isinstance(choices, list) and not isinstance(value, list):
+                if value not in choices:
+                    head = "、".join(map(str, choices[:4]))
+                    problems.append(f"{cls}: 『{name}』に {value!r} は選べません"
+                                    f"(選べるのは {head} など{len(choices)}種)")
+    return problems
 
 
 def patch_workflow(wf, recipe, job, reference=None):
@@ -452,11 +551,14 @@ def main():
         print(f"書き出しました: {WORKFLOW.relative_to(HERE)}")
         return 0
 
+    face = "--face" in argv
+    weight = float(opt("--weight", str(IPA_WEIGHT)))
+
     reference = None
     if "--reference" in argv:
-        if base is None:
-            print("中止: --reference は --workflow と一緒に使ってください"
-                  "(標準のワークフローには参照画像を受ける口がありません)。", file=sys.stderr)
+        if base is None and not face:
+            print("中止: --reference は --face(または --workflow)と一緒に使ってください。",
+                  file=sys.stderr)
             return 1
         try:
             reference = upload_image(url, opt("--reference"))
@@ -465,13 +567,58 @@ def main():
             return 1
         print(f"参照画像: {reference} を ComfyUI に送りました")
 
+    # --face: 基準の1枚を参照して顔を揃える(IPAdapter)。ワークフローは
+    # こちらで組み立てるので、ComfyUI の画面で何かを組む必要はない。
+    refs = {}
+    if face:
+        cast_dir = HERE / "_assets" / "character" / "cast"
+        for job in jobs:
+            who = job["who"]
+            if who in refs:
+                continue
+            if reference is not None:
+                refs[who] = reference          # --reference で明示されたらそれを使う
+                continue
+            # 明示が無ければ、採用済みの絵(cast)から基準を探す。
+            # recipe の cast[].face でポーズ名を指定でき、無ければ wave → 最初の1枚。
+            entry = next((c for c in recipe.get("cast", []) if c["name"] == who), {})
+            cand = [cast_dir / who / f"{entry.get('face', 'wave')}.png"]
+            cand += sorted((cast_dir / who).glob("*.png")) if (cast_dir / who).is_dir() else []
+            path = next((c for c in cand if c.is_file()), None)
+            if path is None:
+                print(f"中止: {who} の基準になる顔がありません。", file=sys.stderr)
+                print(f"      _assets/character/cast/{who}/ に1枚も無いためです。"
+                      "先に素の生成で1枚選んで取り込むか、--reference で渡してください。",
+                      file=sys.stderr)
+                return 1
+            try:
+                refs[who] = upload_image(url, path)
+            except (urllib.error.URLError, OSError) as e:
+                print(f"中止: 基準の顔を送れませんでした: {e}", file=sys.stderr)
+                return 1
+            print(f"基準の顔: {who} ← {path.relative_to(HERE)}")
+
+        # 投げる前に、必要なノードとモデルが揃っているかを確かめて日本語で出す
+        probe = build_ipadapter_workflow(recipe, jobs[0], refs[jobs[0]["who"]], weight)
+        problems = verify_workflow(url, probe)
+        if problems:
+            print("中止: この ComfyUI では顔揃えの準備ができていません。", file=sys.stderr)
+            for x in problems:
+                print(f"  - {x}", file=sys.stderr)
+            print("  対処は _assets/character/comfy/README.md の"
+                  "「2. 顔を揃えたいなら IPAdapter を入れる」を見てください。", file=sys.stderr)
+            return 1
+        print(f"ノードとモデルを確認しました(weight={weight}, preset={IPA_PRESET})")
+
     client_id = str(uuid.uuid4())
     made = []
     started = time.monotonic()
     for i, job in enumerate(jobs, 1):
         label = f"[{i}/{len(jobs)}] {job['who']} / {job['pose']} (seed={job['seed']})"
         print(label)
-        if base is None:
+        if face:
+            wf = build_ipadapter_workflow(recipe, job, refs[job["who"]], weight)
+        elif base is None:
             wf = build_workflow(recipe, job)
         else:
             wf = json.loads(json.dumps(base))

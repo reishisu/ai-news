@@ -78,13 +78,63 @@ python3 _comfy_character.py --check --url http://127.0.0.1:8001
 ノードの有無と、上の2つのモデルが見えているかを表示します。
 **ノードだけ入れてもモデルが無いと動きません。**
 
-### 手順
+### 手順（ワークフローを組む必要はありません）
 
-1. ComfyUI の画面で、txt2img のワークフローに IPAdapter のノードを足して組む
-   （`Load Image` → IPAdapter → `KSampler` の model 経路に挟む形）
-2. 画面で1回動かして、狙いどおり顔が寄ることを確かめる
-3. **「ワークフロー → API形式でエクスポート」** で JSON を書き出す（UI形式ではありません）
-4. その JSON を渡して回す
+以前はここに「ComfyUI の画面でノードを組んで API形式で書き出す」手順がありましたが、
+**その作業は無くしました。** ワークフローは `_comfy_character.py` が組み立てて投げます。
+打つのはこれだけです。
+
+```bash
+git pull
+python3 _comfy_character.py --face --url http://127.0.0.1:8001
+```
+
+これで **cast 全員 × 全ポーズ（5人×5種=25枚）** を、それぞれの基準の顔に
+寄せながら作り直します。1人あたり基準にするのは、いま採用されている
+`_assets/character/cast/<キャラ名>/wave.png` です（自動で選ばれます）。
+
+投げる前に、相手の ComfyUI に必要なノードとモデルが揃っているかを確かめ、
+足りなければ**何が無いのかを日本語で表示して止まります**（400 の英語を読む必要はありません）。
+
+#### 中で何が起きているか
+
+組み立てているのは、素の txt2img に IPAdapter を1つ挟んだだけの形です。
+
+```
+チェックポイント読込 ─┬→ IPAdapterUnifiedLoader → IPAdapter → KSampler → VAE → 保存
+                      └→ プロンプト(肯定/否定) ──────────────────↗
+基準の顔(LoadImage) → PrepImageForClipVision(頭側を切り出す) ──↗
+```
+
+- 基準の顔は `POST /upload/image` で ComfyUI に送ってから使います
+- `PrepImageForClipVision` を挟むのは、基準が**全身の立ち絵**だからです。
+  IPAdapter は画像を正方形にして読むため、全身のまま渡すと顔の情報が薄まります。
+  `crop_position="top"` で頭の側だけを渡しています
+- preset は `PLUS FACE (portraits)`、weight は 0.8
+  （配布元が「まず 0.8 以下に下げるとよい」としている値）
+
+#### 思いどおりにならないときの調整
+
+| 症状 | やること |
+|---|---|
+| 顔は揃ったがポーズ指示が効かなくなった | `--weight 0.6` のように下げる（プロンプトが勝つようになる） |
+| まだ顔がばらつく | `--weight 1.0` のように上げる |
+| 1人だけやり直したい | `--face --who hinata` |
+| 基準の顔を変えたい | `--face --reference <その画像> --who hinata`、または recipe の cast に `"face": "point"` のようにポーズ名を書く |
+| 構図ごと変えたい | `--seed-offset 100` で振り直す（顔は基準に寄ったまま） |
+
+できた候補は `_assets/character/_candidates/<キャラ名>/<ポーズ名>.png` に入ります。
+よければ push してください（取り込みと撮り直しはクラウド側でできます）。
+
+```bash
+git add -f _assets/character/_candidates/
+git commit -m "顔を揃えた候補" && git push
+```
+
+#### 自分で組んだワークフローを使いたいとき（上級者向け・任意）
+
+独自のノード構成（LoRA を挟む等）を使いたいときだけ、ComfyUI の画面で組んで
+**「ワークフロー → API形式でエクスポート」**（UI形式ではありません）した JSON を渡します。
 
 ```bash
 python3 _comfy_character.py \

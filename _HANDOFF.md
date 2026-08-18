@@ -18,8 +18,15 @@
 4. `_render_thumbs.py` で全記事を撮り直し、目視確認
 
 **残っている課題は「顔の統一」です。** 素の txt2img なのでポーズごとに顔が少し違います。
-IPAdapter の準備（ノード・モデル）は実機で確認済みなので、基準の1枚を決めて
-`--workflow` ＋ `--reference` で揃え直せます（手順は `_assets/character/comfy/README.md`）。
+IPAdapter の準備（ノード・モデル）は実機で確認済みで、揃え直しは**コマンド1つ**です
+（ワークフローは `_comfy_character.py` が組み立てるので、画面で組む作業はありません）。
+
+```bash
+python3 _comfy_character.py --face --url http://127.0.0.1:8001
+```
+
+基準の顔は採用済みの `cast/<キャラ>/wave.png` が自動で使われます。効きは `--weight`
+（既定0.8）。詳しくは `_assets/character/comfy/README.md` の第2節。
 
 以下は、そこに至るまでの経緯と道具の説明です。
 

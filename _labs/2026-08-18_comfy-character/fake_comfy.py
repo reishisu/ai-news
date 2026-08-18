@@ -119,6 +119,15 @@ class Handler(BaseHTTPRequestHandler):
                                               "subfolder": "", "type": "output"}]}},
                 "status": {"status_str": "success", "completed": True, "messages": []},
             }})
+        if u.path.startswith("/object_info/"):
+            # 上で答えなかったノード。核ノード(KSamplerなど)は「ある」ことにして
+            # 空の required を返す。IPAdapter系と PrepImageForClipVision は
+            # 入っていない状態(none)なら 404(本物も無いノードは404を返す)。
+            node = u.path.rsplit("/", 1)[1]
+            if IPA == "none" and (node.startswith("IPAdapter")
+                                  or node == "PrepImageForClipVision"):
+                return self._send(404, {"error": "not found"})
+            return self._send(200, {node: {"input": {"required": {}}}})
         if u.path == "/view":
             name = (q.get("filename") or [""])[0]
             for pid, job in JOBS.items():

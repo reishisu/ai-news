@@ -15,6 +15,8 @@
 | 手元で書き出したワークフローへの差し替え | seed / サイズ / 肯定 / 否定 / 参照画像 の5つを差し替えられた |
 | 参照画像を `POST /upload/image` で送る | 送って LoadImage に差し込めた（IPAdapter で顔を揃えるときの経路） |
 | IPAdapter が入っているかの判定 | 無い / ノードだけ / モデルもある の3状態を出し分けられた |
+| `--face`（顔揃え。ワークフローをこちらで組む） | 事前検証 → 参照画像の送信 → 生成 → 受け取りまで通った |
+| IPAdapter が無いサーバーへの `--face` | 足りないノード3つを日本語で列挙して中止した（終了コード1） |
 | 透過していない画像を弾く | 中止した（終了コード1） |
 | `--matte` で単色背景を抜く | 全体の66%を透過にした。**服の中の白は残った** |
 | 縦横比に合わせてサムネイルに収まる | 401×1030 → 257×660 で配置、文字幅が257px狭まった |
@@ -73,7 +75,7 @@ bash _labs/2026-08-18_comfy-character/run_all.sh
 | `fake_comfy.py` | ComfyUI のAPIだけを真似た偽サーバー。白背景の人型ダミーPNGを返す。`/upload/image` も受ける |
 | `lab_recipe.json` | 偽サーバーに入っているモデル名を指した recipe |
 | `bad_recipe.json` | 存在しないモデル名を指した recipe（400の確認用） |
-| `cast_recipe.json` | キャラ2人 × ポーズ2種の recipe（本番の recipe.json と同じ形） |
+| `cast_recipe.json` | キャラ2人 × ポーズ2種の recipe（本番と同じ形。名前は labhina / labkuru で、**本物の cast と衝突しない**） |
 | `ipadapter_like.api.json` | 手元で書き出したワークフローの代わり。LoadImage を含む |
 | `run_all.sh` | 通しで動かす |
 | `output.txt` | 実行結果（`COLUMNS=40`） |

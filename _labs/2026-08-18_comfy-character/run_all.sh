@@ -53,7 +53,25 @@ python3 _comfy_character.py \
   --recipe $LAB/cast_recipe.json \
   --who hinata --pose wave \
   --workflow $LAB/ipadapter_like.api.json \
-  --reference _assets/character/_candidates/hinata/wave.png 2>&1 | tail -4
+  --reference _assets/character/_candidates/labhina/wave.png 2>&1 | tail -4
+
+echo
+echo "### 4b) --face(顔揃え。ワークフローはこちらで組む)"
+python3 _comfy_character.py --face \
+  --url http://127.0.0.1:8190 \
+  --recipe $LAB/cast_recipe.json \
+  --reference _assets/character/_candidates/labhina/wave.png \
+  --who labhina --pose point 2>&1 | head -5
+
+echo
+echo "### 4c) IPAdapter が無いサーバーに --face したとき"
+python3 _comfy_character.py --face \
+  --url http://127.0.0.1:8188 \
+  --recipe $LAB/cast_recipe.json \
+  --reference _assets/character/_candidates/labhina/wave.png \
+  --who labhina --pose point >/tmp/noipa.txt 2>&1
+echo "-- 終了コード $?"
+head -8 /tmp/noipa.txt
 
 echo
 echo "### 5) 差し替えの中身(単体で確認)"
@@ -62,7 +80,7 @@ import json
 import _comfy_character as c
 recipe = json.load(open("_labs/2026-08-18_comfy-character/cast_recipe.json",
                         encoding="utf-8"))
-job = c.jobs_from(recipe, who="hinata", pose="point")[0]
+job = c.jobs_from(recipe, who="labhina", pose="point")[0]
 wf = json.load(open("_labs/2026-08-18_comfy-character/ipadapter_like.api.json",
                     encoding="utf-8"))
 hit = c.patch_workflow(wf, recipe, job, reference="base.png")
@@ -77,13 +95,13 @@ PY
 echo
 echo "### 6) 透過していない画像は受け付けない"
 python3 _prepare_character.py \
-  _assets/character/_candidates/hinata/wave.png >/tmp/reject.txt 2>&1
+  _assets/character/_candidates/labhina/wave.png >/tmp/reject.txt 2>&1
 echo "-- 終了コード $?"
 head -3 /tmp/reject.txt
 
 echo
 echo "### 7) --matte で背景を抜いて cast に入れる"
-for f in hinata/wave hinata/point kurumi/wave kurumi/point; do
+for f in labhina/wave labhina/point labkuru/wave labkuru/point; do
   python3 _prepare_character.py \
     "_assets/character/_candidates/$f.png" \
     --cast "${f%/*}" --as "${f#*/}" --matte | grep -E "保存|サムネイル上"
@@ -107,7 +125,9 @@ echo "### 9) サムネイルを撮る"
 python3 _render_thumbs.py 2026-08-18_001 2>&1 | tail -2
 
 echo
-echo "### 10) 後片付け(ダミーを消して撮り直す)"
-rm -rf _assets/character/cast _assets/character/_candidates
+echo "### 10) 後片付け(テスト用キャラだけ消して撮り直す)"
+# 本物の cast(hinata たち)は消さない。テストで作った labhina / labkuru だけ消す。
+rm -rf _assets/character/cast/labhina _assets/character/cast/labkuru \
+       _assets/character/_candidates
 python3 _render_thumbs.py 2026-08-18_001 2>&1 | tail -2
-python3 _prepare_character.py --check
+python3 _prepare_character.py --check 2>/dev/null | head -4
