@@ -144,67 +144,6 @@ def emphasize(text, terms, e):
 
 
 FACES = {
-    # 0=笑顔 / 1=驚き / 2=ウインク。記事ごとに変えて、並べたとき単調にならないようにする
-    0: """<ellipse cx="142" cy="160" rx="21" ry="26" fill="{ac}"/>
-       <ellipse cx="218" cy="160" rx="21" ry="26" fill="{ac}"/>
-       <ellipse cx="149" cy="150" rx="7" ry="9" fill="#fff"/>
-       <ellipse cx="225" cy="150" rx="7" ry="9" fill="#fff"/>
-       <path d="M162 198 q18 18 36 0" stroke="{ac}" stroke-width="9" stroke-linecap="round" fill="none"/>""",
-    1: """<circle cx="142" cy="158" r="25" fill="{ac}"/>
-       <circle cx="218" cy="158" r="25" fill="{ac}"/>
-       <circle cx="150" cy="148" r="8" fill="#fff"/>
-       <circle cx="226" cy="148" r="8" fill="#fff"/>
-       <ellipse cx="180" cy="203" rx="16" ry="13" fill="{ac}"/>""",
-    2: """<ellipse cx="142" cy="160" rx="21" ry="26" fill="{ac}"/>
-       <ellipse cx="149" cy="150" rx="7" ry="9" fill="#fff"/>
-       <path d="M198 160 q20 -18 40 0" stroke="{ac}" stroke-width="10" stroke-linecap="round" fill="none"/>
-       <path d="M158 196 q22 24 44 0" stroke="{ac}" stroke-width="9" stroke-linecap="round" fill="none"/>""",
-}
-
-
-FACES = {
-    # 0=笑顔 / 1=驚き / 2=ウインク。記事ごとに変えて、並べたとき単調にならないようにする
-    0: """<ellipse cx="142" cy="160" rx="21" ry="26" fill="{ac}"/>
-       <ellipse cx="218" cy="160" rx="21" ry="26" fill="{ac}"/>
-       <ellipse cx="149" cy="150" rx="7" ry="9" fill="#fff"/>
-       <ellipse cx="225" cy="150" rx="7" ry="9" fill="#fff"/>
-       <path d="M162 198 q18 18 36 0" stroke="{ac}" stroke-width="9" stroke-linecap="round" fill="none"/>""",
-    1: """<circle cx="142" cy="158" r="25" fill="{ac}"/>
-       <circle cx="218" cy="158" r="25" fill="{ac}"/>
-       <circle cx="150" cy="148" r="8" fill="#fff"/>
-       <circle cx="226" cy="148" r="8" fill="#fff"/>
-       <ellipse cx="180" cy="203" rx="16" ry="13" fill="{ac}"/>""",
-    2: """<ellipse cx="142" cy="160" rx="21" ry="26" fill="{ac}"/>
-       <ellipse cx="149" cy="150" rx="7" ry="9" fill="#fff"/>
-       <path d="M198 160 q20 -18 40 0" stroke="{ac}" stroke-width="10" stroke-linecap="round" fill="none"/>
-       <path d="M158 196 q22 24 44 0" stroke="{ac}" stroke-width="9" stroke-linecap="round" fill="none"/>""",
-}
-
-
-def mascot_svg(t, variant):
-    """サムネイルに置くマスコット(自作のベクター画像)。
-
-    テーマ色で塗り分け、表情を記事ごとに変える。
-    外部の画像は使わない(他人の著作物を持ち込まないため)。
-    """
-    face = MASCOT_FACES[variant % len(MASCOT_FACES)].format(ac=t["accent"])
-    return f"""<svg class="mascot" viewBox="0 0 360 400" xmlns="http://www.w3.org/2000/svg" fill="none">
-  <circle cx="180" cy="170" r="150" fill="{t['accent']}" opacity=".18"/>
-  <path d="M92 400 v-64 a88 88 0 0 1 176 0 v64Z" fill="#f2f6ff" stroke="#0d1526" stroke-width="9" stroke-linejoin="round"/>
-  <path d="M150 330 l30 34 30-34" fill="none" stroke="{t['chip']}" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="163" y="284" width="34" height="34" rx="12" fill="#d7e2f5" stroke="#0d1526" stroke-width="9"/>
-  <line x1="180" y1="56" x2="180" y2="26" stroke="#0d1526" stroke-width="10" stroke-linecap="round"/>
-  <circle cx="180" cy="20" r="16" fill="{t['accent']}" stroke="#0d1526" stroke-width="9"/>
-  <rect x="60" y="56" width="240" height="216" rx="70" fill="#ffffff" stroke="#0d1526" stroke-width="10"/>
-  <rect x="88" y="92" width="184" height="144" rx="48" fill="#12203a"/>
-  {face}
-  <rect x="26" y="120" width="46" height="96" rx="22" fill="{t['chip']}" stroke="#0d1526" stroke-width="9"/>
-  <rect x="288" y="120" width="46" height="96" rx="22" fill="{t['chip']}" stroke="#0d1526" stroke-width="9"/>
-</svg>"""
-
-
-# 表情の差分。記事ごとに変えて、一覧が単調にならないようにする。
-FACES = {
     0: """<path d="M118 168 q26 -26 52 0 q-26 34 -52 0Z" fill="#fff"/>
   <path d="M190 168 q26 -26 52 0 q-26 34 -52 0Z" fill="#fff"/>
   <ellipse cx="144" cy="172" rx="19" ry="23" fill="{iris}"/>
