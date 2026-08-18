@@ -85,7 +85,7 @@ WIDTH, HEIGHT = 1280, 720
 # **画像を置くまではキャラ無しで組む**(文字が広く使えるので、そのほうが読める)。
 CHARA_DIR = HERE / "_assets" / "character"
 CHARA_W = 440                      # 画像を置いたときに右側で占める幅の上限
-CHARA_H = 660                      # 同じく高さの上限(上下の黒帯 26px ずつを避ける)
+CHARA_H = 660                      # 同じく高さの上限(上に文字用の余白を残す)
 # 置いてある画像は全身の立ち絵だが、そのまま縮めると**顔が10px程度になり表情が分からない**。
 # 描画時に上から CHARA_CROP のぶんだけ切り出して(=胸から上)、大きく見せる。
 # 元画像は全身のまま残してあるので、この数字を変えて撮り直すだけで比率を変えられる。
@@ -385,13 +385,13 @@ def build_html(meta, dirname):
     bg1 = _mix(t["bg1"], t["chip"], tone["mix"])
     bg2 = _mix(t["bg2"], t["accent"], tone["mix"] * 0.6)
 
-    # 使える横幅。左右パディング26px + 枠12px + キャラのぶんを引く
-    avail = WIDTH - 2 * 12 - 2 * 26 - chara_w
+    # 使える横幅。左右パディング26px + キャラのぶんを引く
+    avail = WIDTH - 2 * 26 - chara_w
     card_px = 30
     hook_px = size_for(hook, avail, 78, 52, 28, 1, 1.06)[0] if hook else 0
 
-    # 上下の帯・フック・カード・補足・フッターを引いた残りが主役の高さ
-    used = 26 * 2 + 14 + 12                      # 黒帯 + 上下パディング
+    # フック・カード・補足・フッターを引いた残りが主役の高さ
+    used = 14 + 12                               # 上下パディング
     used += int(hook_px * 1.06) + 6 if hook else 0
     used += (card_px + 18 + 6) if cards_src else 0
     used += 34 + 6                               # フッター
@@ -419,8 +419,6 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
   background:
     radial-gradient({tone['glow']}, {t['accent']}66 0%, transparent 56%),
     linear-gradient(135deg, {bg1} 0%, {bg2} 100%);
-  border-top:26px solid #000;border-bottom:26px solid #000;
-  border-left:12px solid {t['accent']};border-right:12px solid {t['accent']};
 }}
 /* 背景の柄。日付で切り替わる(PATTERNS) */
 .pat{{position:absolute;inset:0;background:{pattern};pointer-events:none}}
@@ -430,13 +428,6 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
   background:
     linear-gradient(108deg, transparent 30%, #ffffff26 42%, transparent 52%),
     linear-gradient(108deg, transparent 58%, #ffffff1a 66%, transparent 74%);
-}}
-/* 上下の黒帯の内側に、色の細線を1本入れて締める */
-.frame::before{{
-  content:"";position:absolute;left:0;right:0;top:0;height:5px;background:{t['accent']};
-}}
-.frame::after{{
-  content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:{t['accent']};
 }}
 .stack{{
   position:absolute;inset:0;z-index:3;
@@ -496,7 +487,7 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
 }}
 .site{{color:#ffffffbb;font-weight:900;font-size:19px;letter-spacing:.04em;white-space:nowrap}}
 /* 大きさは画像ごとに決まるので style 属性で入れる(fit_chara) */
-.chara{{position:absolute;right:14px;bottom:26px;z-index:2;object-fit:contain}}
+.chara{{position:absolute;right:10px;bottom:0;z-index:2;object-fit:contain}}
 </style></head><body><div class="frame">
   <div class="pat"></div>
   <div class="shine"></div>
