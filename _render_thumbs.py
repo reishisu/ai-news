@@ -471,7 +471,10 @@ body{{font-family:'NotoJP','IPAGothic',sans-serif;background:#000}}
     drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff)
     drop-shadow(0 0 22px {t['accent']}) drop-shadow(0 0 44px {t['accent']})
     drop-shadow(0 8px 2px rgba(0,0,0,.6));
-  overflow-wrap:anywhere;letter-spacing:-.01em;
+  /* 語中改行(「レビュ/ー」)と行頭の長音を防ぐ。auto-phrase は文節で折り、
+     効かない環境でも break-word が安全網になる(動画スライドで実証済み) */
+  overflow-wrap:break-word;word-break:auto-phrase;line-break:strict;
+  letter-spacing:-.01em;
   display:-webkit-box;-webkit-line-clamp:{main_lines};-webkit-box-orient:vertical;overflow:hidden;
 }}
 .main em{{font-style:normal;color:#ffe83d}}
