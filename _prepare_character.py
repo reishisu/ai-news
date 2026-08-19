@@ -111,8 +111,86 @@ def chroma_cut(im, lo=40, hi=100):
     return Image.frombytes("RGBA", (w, h), bytes(px))
 
 
+def drop_islands(im, keep_ratio=0.05, thresh=16):
+    """本体から離れた小さな不透明の塊(装飾マーク)を消す。
+
+    生成画像には、キャラの周りに装飾マークが浮くことがある(2026/8/19 の
+    候補25枚では5人中3人に。白いハート・黄色い矢印・キラキラ)。背景色とは
+    色が違うので色抜きでは消えず、モデルの背景除去でも残ることがある。
+    アルファが thresh を超える画素の連結成分を取り、最大成分(=キャラ本体。
+    一繋がりなので必ず最大になる)の keep_ratio 未満の成分を透明にする。
+    """
+    im = im.convert("RGBA")
+    w, h = im.size
+    a = im.getchannel("A").tobytes()
+    label = [0] * (w * h)
+    sizes = [0]
+    nid = 0
+    for start in range(w * h):
+        if a[start] <= thresh or label[start]:
+            continue
+        nid += 1
+        stack = [start]
+        label[start] = nid
+        n = 0
+        while stack:
+            p = stack.pop()
+            n += 1
+            x = p % w
+            if x and not label[p - 1] and a[p - 1] > thresh:
+                label[p - 1] = nid
+                stack.append(p - 1)
+            if x < w - 1 and not label[p + 1] and a[p + 1] > thresh:
+                label[p + 1] = nid
+                stack.append(p + 1)
+            if p >= w and not label[p - w] and a[p - w] > thresh:
+                label[p - w] = nid
+                stack.append(p - w)
+            if p < w * (h - 1) and not label[p + w] and a[p + w] > thresh:
+                label[p + w] = nid
+                stack.append(p + w)
+        sizes.append(n)
+    if nid <= 1:
+        return im, 0
+    floor_px = max(sizes) * keep_ratio
+    keep = {i for i, s in enumerate(sizes) if i and s >= floor_px}
+    if len(keep) == nid:
+        return im, 0
+    px = bytearray(im.tobytes())
+    for p in range(w * h):
+        if label[p] and label[p] not in keep:
+            px[p * 4 + 3] = 0
+    return Image.frombytes("RGBA", (w, h), bytes(px)), nid - len(keep)
+
+
+def chroma_assist(out, src, lo=40):
+    """モデルの切り抜き結果に対して、**確実に背景色の画素だけ**を追加で透明にする。
+
+    髪と肩の間のような「囲まれた背景」をモデルが取り残したときの保険。
+    部分透過はさせない(lo 以下の完全一致だけ)。肌と背景の距離は実測で
+    81以上あるので、この条件では本体に触れない。
+    """
+    w, h = src.size
+    pix = src.convert("RGBA").load()
+    corners = [(3, 3), (w - 4, 3), (3, h - 4), (w - 4, h - 4)]
+    bg = [sorted(pix[x, y][c] for x, y in corners)[2] for c in range(3)]
+    if max(bg) - min(bg) < 90:
+        return out, 0          # 背景が彩色と確信できないときは何もしない
+    px = bytearray(out.convert("RGBA").tobytes())
+    n = 0
+    for i in range(w * h):
+        j = i * 4
+        if px[j + 3] == 0:
+            continue
+        s = pix[i % w, i // w]
+        if abs(s[0] - bg[0]) + abs(s[1] - bg[1]) + abs(s[2] - bg[2]) <= lo:
+            px[j + 3] = 0
+            n += 1
+    return Image.frombytes("RGBA", out.size, bytes(px)), n
+
+
 def cut_out(im):
-    """背景除去モデル(rembg)で切り抜く。無ければ None を返す。
+    """背景除去モデル(rembg)で切り抜く。無ければ色だけで抜くことを試す。
 
     `--matte` の塗りつぶしと違い、**床の影**と**脚の間のように囲まれた背景**も抜けます。
     ComfyUI の素の出力はどちらも出るので、入っているならこちらを使ってください。
@@ -120,25 +198,41 @@ def cut_out(im):
         python3 -m pip install rembg onnxruntime
 
     初回はモデル(birefnet-general-lite, 224MB)を取りに行きます。以降は ~/.rembg に残ります。
+
+    主経路をモデル(birefnet)にしている理由(2026/8/19 のピンク背景の実測):
+    実際の背景は淡いピンク((248,151,190)など)に振れることがあり、暖色の肌との
+    L1距離が81〜96まで縮む。色だけで抜くと肌が半透明に食われ、影の残渣も出た。
+    モデルは「肌はキャラ」だと分かるのでこの問題が無い。色は、モデルが
+    取り残した「確実な背景色」を消す補助(chroma_assist)に使う。
     """
-    # 背景が彩色一色(ピンクなど)なら、モデルを使わず色で抜く(囲まれた背景と
-    # 床の影まで完全に消える)。2026/8/18 の recipe から背景は pink background。
-    # パステルに振れていたら chroma_cut が None を返すので、モデルに回す。
-    keyed = chroma_cut(im)
-    if keyed is not None:
-        return keyed
     try:
         from rembg import new_session, remove
     except ImportError:
-        return None
+        # rembg が無いときだけ色で抜く。背景が鮮やかなら使えるが、
+        # 淡い背景では肌が半透明になる危険がある(上記)。目視確認すること。
+        keyed = chroma_cut(im)
+        if keyed is None:
+            return None
+        keyed, dropped = drop_islands(keyed)
+        if dropped:
+            print(f"  キャラから離れて浮いていた装飾マークを{dropped}個消しました")
+        print("  注意: rembg が無いため色だけで抜きました。肌の透け・影の残りを目視確認してください。")
+        return keyed
     # birefnet-general-lite を使う。4つ実測して決めた:
     #   u2net            … 髪の外周に白いモヤが残る
     #   isnet-anime      … 外周は綺麗だが、髪と肩の間のような「囲まれた背景」を残す
     #   birefnet-general … 囲まれた背景まで抜けるが、推論中に約14GB使いOOMで落ちた
     #   birefnet-general-lite … 品質は同等で約7.6GB(採用)
-    # 「囲まれた背景」を色で消すのは不可能(池も白い服も同じ 253〜254 の白。実測)。
-    # CPUで1枚50秒程度かかるが、品質を優先する。
-    return remove(im, session=new_session("birefnet-general-lite"))
+    # 白背景では「囲まれた背景」を色で消すのは不可能(池も白い服も同じ白。実測)。
+    # いまは背景がピンクなので、取り残しは chroma_assist が色で消せる。
+    out = remove(im, session=new_session("birefnet-general-lite"))
+    out, pooled = chroma_assist(out, im)
+    if pooled:
+        print(f"  モデルが取り残した背景色の画素を{pooled}個消しました")
+    out, dropped = drop_islands(out)
+    if dropped:
+        print(f"  キャラから離れて浮いていた装飾マークを{dropped}個消しました")
+    return out
 
 
 def matte(im, tol=32):

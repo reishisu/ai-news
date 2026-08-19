@@ -23,7 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from PIL import Image
 
-from _prepare_character import chroma_cut
+from _prepare_character import chroma_cut, drop_islands
 
 # キャラ側の色(採用画像から拾った代表値)と、背景に似せた危険色
 PATCHES = {
@@ -75,7 +75,19 @@ def build(bg):
         for x in range(80, 180):
             px[x, y] = (*near, 255)
     boxes["背景に似た小物"] = (80, 700)
-    return im, boxes
+    # キャラ本体に相当する大きな塊(島落としの「最大成分」になる)
+    for y in range(550, 1150):
+        for x in range(300, 550):
+            px[x, y] = (50, 50, 60, 255)
+    # 本体から離れて浮く装飾マーク(実物: 白いハート・黄色い矢印)。
+    # 背景色と違う色なので色では抜けず、島落としで消えるべきもの。
+    marks = {"白いハート風": ((245, 245, 245), (620, 100)),
+             "黄色い矢印風": ((250, 210, 60), (620, 620))}
+    for name, (col, (x0, y0)) in marks.items():
+        for y in range(y0, y0 + 40):
+            for x in range(x0, x0 + 40):
+                px[x, y] = (*col, 255)
+    return im, boxes, marks
 
 
 def mean_alpha(im, x0, y0, size=100):
@@ -91,17 +103,21 @@ def mean_alpha(im, x0, y0, size=100):
 def main():
     failed = 0
     for bg_name, bg in BACKGROUNDS.items():
-        im, boxes = build(bg)
+        im, boxes, marks = build(bg)
         out = chroma_cut(im)
         if out is None:
             print(f"NG {bg_name}: chroma_cut が None(彩度の判定に落ちた)")
             failed += 1
             continue
-        print(f"== {bg_name} {bg} ==")
+        out, dropped = drop_islands(out)
+        print(f"== {bg_name} {bg} == (島落とし: {dropped}個)")
         checks = [
             ("平坦な背景", mean_alpha(out, 500, 60), "== 0"),
             ("床の影",     mean_alpha(out, 300, 1210, 80), "== 0"),
+            ("本体の塊",   mean_alpha(out, 350, 700), ">= 250"),
         ]
+        for name, (_, (x0, y0)) in marks.items():
+            checks.append((f"浮遊マーク({name})", mean_alpha(out, x0, y0, 40), "== 0"))
         for name, (x0, y0) in boxes.items():
             checks.append((name, mean_alpha(out, x0, y0),
                            "穴が開く(仕様の限界)" if name == "背景に似た小物" else ">= 250"))
@@ -117,7 +133,7 @@ def main():
                 failed += 1
             print(f"  {mark} {name:12s} 平均アルファ {val:6.1f}  期待: {want}")
     for bg_name, bg in PASTELS.items():
-        im, _ = build(bg)
+        im, _, _ = build(bg)
         out = chroma_cut(im)
         ok = out is None
         if not ok:
