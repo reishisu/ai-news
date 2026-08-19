@@ -54,33 +54,60 @@ MIN_H = 500
 VALID_NAMES = ["default"] + list(THEMES)
 
 
-def chroma_cut(im, lo=40, hi=110):
-    """背景が緑一色のときの切り抜き。色の距離だけで抜くので、
+def chroma_cut(im, lo=40, hi=100):
+    """背景が彩色一色(ピンク・緑など)のときの切り抜き。色の距離だけで抜くので、
     髪と肩の間のような**囲まれた背景も完全に消える**。
 
     背景色は四隅から取る。lo/hi は「背景色からの距離」のしきい値で、
     lo 以下は完全に透明、hi 以上は完全に不透明、間は滑らかに繋ぐ
     (髪の輪郭のアンチエイリアスを保つため)。
-    縁に残る緑かぶりは、緑が赤・青の大きいほうを超えないよう抑える。
+    縁に残る背景色かぶりは、背景の最強チャンネルが他の2つを超えないよう抑える。
+
+    **床の影も抜く。** 影は「背景と同じ色味のまま暗くなった画素」なので、
+    色の距離では背景から遠くなり(実測でd=100超)、素朴な比較では残ってしまう。
+    そこで明るさの比を背景に合わせてから比べ直し、比を合わせると背景と
+    一致する画素だけを透明にする。黒髪・茶髪のような「ただ暗い画素」を
+    巻き込まないよう、(1)最強・最弱チャンネルの向きが背景と同じ
+    (2)彩度が明るさ相応にある、の2条件を付けている。
+    検証: _labs/2026-08-18_comfy-character/chroma_shadow_test.py
     """
     im = im.convert("RGBA")
     w, h = im.size
     px = bytearray(im.tobytes())
     corners = [(3, 3), (w - 4, 3), (3, h - 4), (w - 4, h - 4)]
     bg = [sorted(px[(y * w + x) * 4 + c] for x, y in corners)[2] for c in range(3)]
-    if max(bg) - min(bg) < 50:
-        return None          # 背景が単色の彩色(緑など)ではない
+    spread = max(bg) - min(bg)
+    # 90未満は「彩色」と確信できないので色では抜かない(呼び出し側が rembg に回す)。
+    # パステルに振れた背景は白い服(d=75)や頬の赤み(d=15)と近くなり、
+    # 色で抜くと本体に穴が開くため(距離はL1の実測値)。
+    if spread < 90:
+        return None
+    sb = bg[0] + bg[1] + bg[2]
+    hi_ch = bg.index(max(bg))
+    lo_ch = bg.index(min(bg))
+    oth = [c for c in (0, 1, 2) if c != hi_ch]
     for i in range(w * h):
         j = i * 4
-        d = (abs(px[j] - bg[0]) + abs(px[j + 1] - bg[1]) + abs(px[j + 2] - bg[2]))
+        c3 = (px[j], px[j + 1], px[j + 2])
+        d = (abs(c3[0] - bg[0]) + abs(c3[1] - bg[1]) + abs(c3[2] - bg[2]))
+        if d > lo:
+            # 影の判定(docstring参照)。k は背景に対する明るさの比(256倍固定小数)
+            k = (c3[0] + c3[1] + c3[2]) * 256 // sb
+            if (77 <= k <= 269
+                    and max(c3) == c3[hi_ch] and min(c3) == c3[lo_ch]
+                    and (max(c3) - min(c3)) * 256 >= spread * k * 7 // 10):
+                d2 = (abs(c3[0] - bg[0] * k // 256) + abs(c3[1] - bg[1] * k // 256)
+                      + abs(c3[2] - bg[2] * k // 256))
+                if d2 <= lo * k // 256 + 12:
+                    d = 0                    # 暗くなっただけの背景=影
         if d <= lo:
             px[j + 3] = 0
         elif d < hi:
             a = (d - lo) * 255 // (hi - lo)
             px[j + 3] = min(px[j + 3], a)
-            m = max(px[j], px[j + 2])
-            if px[j + 1] > m:               # 縁の緑かぶりを抑える
-                px[j + 1] = m
+            m = max(c3[oth[0]], c3[oth[1]])
+            if c3[hi_ch] > m:               # 縁の背景色かぶりを抑える
+                px[j + hi_ch] = m
     return Image.frombytes("RGBA", (w, h), bytes(px))
 
 
@@ -94,8 +121,9 @@ def cut_out(im):
 
     初回はモデル(birefnet-general-lite, 224MB)を取りに行きます。以降は ~/.rembg に残ります。
     """
-    # 背景が緑一色なら、モデルを使わず色で抜く(囲まれた背景まで完全に消える)。
-    # 2026/8/18 の recipe から背景は green background で生成している。
+    # 背景が彩色一色(ピンクなど)なら、モデルを使わず色で抜く(囲まれた背景と
+    # 床の影まで完全に消える)。2026/8/18 の recipe から背景は pink background。
+    # パステルに振れていたら chroma_cut が None を返すので、モデルに回す。
     keyed = chroma_cut(im)
     if keyed is not None:
         return keyed

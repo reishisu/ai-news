@@ -8,7 +8,7 @@
   "2": {
     "class_type": "CLIPTextEncode",
     "inputs": {
-      "text": "masterpiece, best quality, newest, absurdres, highres, safe, 1girl, original, solo, blonde hair, long hair, twintails, blunt bangs, sidelocks, hair bow, blue bow, blue eyes, tareme, cheerful smile, petite, full body, standing, looking at viewer, simple background, green background, waving, open hand, smile, hoodie",
+      "text": "masterpiece, best quality, newest, absurdres, highres, safe, 1girl, original, solo, blonde hair, long hair, twintails, blunt bangs, sidelocks, hair bow, blue bow, blue eyes, tareme, cheerful smile, petite, full body, standing, looking at viewer, simple background, pink background, waving, open hand, smile, hoodie",
       "clip": [
         "1",
         1
@@ -18,7 +18,7 @@
   "3": {
     "class_type": "CLIPTextEncode",
     "inputs": {
-      "text": "nsfw, worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro, shadow, drop shadow, reflection, reflective floor, floor, outdoors, indoors, gradient background, scenery, multiple views, cropped, patterned background, english text, clothes writing, checkered background, striped background, polka dot background, floral background, abstract background, two-tone background, 2girls, multiple girls, wooden floor, tile floor, grass, pavement, road, dirt, depth of field, blurry background",
+      "text": "nsfw, worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro, (shadow:1.4), (drop shadow:1.4), reflection, reflective floor, floor, outdoors, indoors, gradient background, scenery, multiple views, cropped, patterned background, english text, clothes writing, checkered background, striped background, polka dot background, floral background, abstract background, two-tone background, 2girls, multiple girls, wooden floor, tile floor, grass, pavement, road, dirt, depth of field, blurry background",
       "clip": [
         "1",
         1
