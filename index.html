@@ -13,7 +13,7 @@
 <meta property="og:url" content="https://reishisu.github.io/ai-news/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="css/style.css?v=51560d93">
+<link rel="stylesheet" href="css/style.css?v=77ddcc18">
 <link rel="stylesheet" href="css/shared.css?v=7e35954d">
 </head>
 <body>
@@ -66,7 +66,7 @@
   <section class="posts">
     <div class="posts-head">
       <h2>記事一覧</h2>
-      <span class="posts-count"><b id="hitCount">27</b>件</span>
+      <span class="posts-count"><b id="hitCount">28</b>件</span>
     </div>
 
     <div class="finder">
@@ -77,14 +77,14 @@
       </div>
       <div class="tag-bar" id="tagBar">
       <button class="tag-chip is-on" type="button" data-tag="">すべて</button>
-      <button class="tag-chip" type="button" data-tag="実測">#実測<i>17</i></button>
-      <button class="tag-chip" type="button" data-tag="公式ドキュメント">#公式ドキュメント<i>14</i></button>
+      <button class="tag-chip" type="button" data-tag="実測">#実測<i>18</i></button>
+      <button class="tag-chip" type="button" data-tag="公式ドキュメント">#公式ドキュメント<i>15</i></button>
       <button class="tag-chip" type="button" data-tag="入門">#入門<i>8</i></button>
+      <button class="tag-chip" type="button" data-tag="AWS">#AWS<i>7</i></button>
       <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>7</i></button>
+      <button class="tag-chip" type="button" data-tag="WebView">#WebView<i>7</i></button>
       <button class="tag-chip" type="button" data-tag="セキュリティ">#セキュリティ<i>7</i></button>
-      <button class="tag-chip" type="button" data-tag="AWS">#AWS<i>6</i></button>
-      <button class="tag-chip" type="button" data-tag="WebView">#WebView<i>6</i></button>
-      <button class="tag-chip" type="button" data-tag="Laravel">#Laravel<i>4</i></button>
+      <button class="tag-chip" type="button" data-tag="Laravel">#Laravel<i>5</i></button>
       <button class="tag-chip" type="button" data-tag="テスト">#テスト<i>4</i></button>
       <button class="tag-chip" type="button" data-tag="プロジェクト管理">#プロジェクト管理<i>4</i></button>
       <button class="tag-chip" type="button" data-tag="リード">#リード<i>4</i></button>
@@ -92,6 +92,7 @@
       <button class="tag-chip" type="button" data-tag="iOS">#iOS<i>3</i></button>
       <button class="tag-chip" type="button" data-tag="エージェント設計">#エージェント設計<i>3</i></button>
       <button class="tag-chip" type="button" data-tag="オープンウェイト">#オープンウェイト<i>3</i></button>
+      <button class="tag-chip" type="button" data-tag="CORS">#CORS<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="DeepSeek">#DeepSeek<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="Gemini">#Gemini<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="Unity Web">#Unity Web<i>2</i></button>
@@ -101,7 +102,6 @@
       <button class="tag-chip" type="button" data-tag="料金改定">#料金改定<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="Anthropic">#Anthropic<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="CI">#CI<i>1</i></button>
-      <button class="tag-chip" type="button" data-tag="CORS">#CORS<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="ChatGPT">#ChatGPT<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="Composer">#Composer<i>1</i></button>
       <button class="tag-chip" type="button" data-tag="Copilot">#Copilot<i>1</i></button>
@@ -143,6 +143,18 @@
           <h3 class="post-title">AIに任せるテストの書き方 — 例が1つだけのテストはハードコードで通る</h3>
           <p class="post-summary">例が1つだけのテストは、期待値をそのまま返すだけの実装で通ってしまいます。pytestの出力は正しい実装と1文字も違わず、区別できませんでした。Anthropic自身がシステムカードで報告している現象(reward hacking)です。境界値4件をparametrizeで並べ、負の金額をpytest.raisesで検査する強いテストに変えると、ズルい実装は3件失敗で捕まります。実測ログは無加工で掲載しています。</p>
           <div class="post-tags"><span class="post-tag">#Claude Code</span><span class="post-tag">#テスト</span><span class="post-tag">#入門</span><span class="post-tag">#実測</span></div>
+          <span class="post-more">続きを読む →</span>
+        </div>
+      </a>
+      <a class="post-card" href="contents/2026-08-19_laravel-cors/"
+         data-tags="Laravel|CORS|AWS|WebView|実測|公式ドキュメント" data-category="Web開発・インフラ"
+         data-date="2026-08-19" data-search="laravelのcors設定はどこに書くか — 既定で開いている api/* と、絞るときの落とし穴 curlでは200と本文が返るのに、ブラウザだけがcorsで止める。その実測から始めて、laravelのcors設定の置き場所(config/cors.php)と、ファイルが無くても api/* が既定で全オリジンに開いている事実を確かめます。許可オリジンが1件だと相手を見ずに返す挙動、*とcredentials併用で全オリジンにcookieが開く穴、cloudfrontにoriginの転送を頼む依頼文まで。 web開発・インフラ laravel cors aws webview 実測 公式ドキュメント laravelのcors設定はどこに書くか — 既定で開いている api/* と、絞るときの落とし穴 aiニュース デイリーダイジェスト web開発・インフラ ｜ 2026年8月19日(水) laravelのcors設定はどこに書くか — 既定で開いている api/* と、絞るときの落とし穴 自社がwebview側を作り、laravel/awsは別会社が運用している構成の話です。cors設定の置き場所を実測で確かめ、絞るときに踏む穴と、cloudfrontが挟まるときに相手へ何を頼むかまで詰めます。 ⏱ 約12分 会社をまたぐ連携 実測は laravel 13.26.1 awsはドキュメントのみ(実機なし) ⭐ 3行で言うと corsで「止める」のはブラウザです。サーバーは200と本文を返しています 同じサーバーに curl と chromium を当てて確かめました。curl は本文まで受け取り、ブラウザだけが typeerror: failed to fetch で止まります。だからlaravelのログを見ても異常は出ません。 laravelの置き場所は config/cors.php 。ただしファイルが無くても api/* は既定で全オリジンに開いています 作りたてのプロジェクト(実測は13.26.1)にこのファイルはありません。それでも api/ で始まるurlには access-control-allow-origin: * が付きます。絞りたくなって初めて php artisan config:publish cors で出します。 絞るときが本番です。許可リスト1件は相手を見ずに返り、 ['*'] ＋credentials(cookieなどの資格情報)の併用は全オリジンにcookieを開きます どちらもエラーは出ません。さらにcloudfrontが挟まる構成では、 originヘッダーの転送 を相手会社に頼まないと、laravel側を完璧に設定しても機能しません(8章に依頼文)。 目次 curlは通る。止めたのはブラウザ 設定ファイルは最初から無い。それでも api/* は開いている 許可リストが1件だと、サーバーは相手を見ない jsonを送った時点で preflight が飛ぶ webviewの origin: null は文字列 'null' で通る。ただし勧めない いちばん危ない組み合わせ — ['*'] と supports_credentials 設定を直したのに変わらない — 原因は2つある cloudfrontが挟まると、laravelだけでは完結しない もっと知りたい人へ 参考文献 1 curlは通る。止めたのはブラウザ 同じサーバー・同じ設定に、curlとchromiumを当てた まず言葉を2つ。 cors とは、別のオリジンにあるapiを、ブラウザ上のjavascriptから呼んでいいかを決める仕組みです。オリジンとは「スキーム＋ホスト＋ポート」の組のこと( https://example.com:443 なら https がスキーム、 example.com がホスト、 443 がポート)。 もう1つ。 curl とは、ブラウザを介さずコマンドラインからhttpリクエストを送る道具です。この記事ではブラウザとの比較役です。 laravel側の許可リストには game.example.com と app.example.com だけを書き、実験ページのオリジン http://127.0.0.1:8130 は入れていません。この状態で両方から叩きます(リクエストを送ります)。出力中の $api は、apiのurl( http://127.0.0.1:8123/api/hello )を入れた変数です。 curl から(2026年8月19日実測。表示はスクリプト側でヘッダー行を抽出し40桁に折り返したもの。文言は無加工、全文は _labs 参照) -- curl から (ブラウザではない) $ curl -s -o /dev/null -d - \ -h &quot;origin: http://127.0.0.1:8130&quot; \ &quot;$api&quot; http/1.1 200 ok vary: origin $ curl -s &quot;$api&quot; {&quot;msg&quot;:&quot;hello&quot;} まったく同じサーバーに、chromium 141(chromeの元になるブラウザ)から -- chromium から ページのオリジン: http://127.0.0.1:8130 api: http://127.0.0.1:8123/api/hello fetch: 失敗 typeerror: failed to fetch -- ブラウザのコンソール access to fetch at 'http://127.0.0.1:8123/api/hello' from origin 'http://127.0.0.1:8130' has been blocked by cors policy: no 'access-control-allow-origin' header is present on the requested resource. failed to load resource: net::err_failed サーバーは 200を返し、本文 {&quot;msg&quot;:&quot;hello&quot;} も渡しています 。1バイトも隠していません。エラー文をよく読むと「 blocked by cors policy 」、つまり止めたのはブラウザ自身だと言っています。 curlは素通り。検問をやっているのはブラウザだけ fetch仕様(ブラウザの通信処理を定めるwhatwgの標準)も、判定の主体をブラウザ側に置いています。 fetch standard §3.3.6 examples — 原文＋訳 upon receiving a response from bar.invalid, the user agent will verify the access-control-allow-origin response header. if its value is either https://foo.invalid or `*`, the user agent will invoke the success callback. if it has any other value, or is missing, the user agent will invoke the failure callback. （bar.invalid からレスポンスを受け取ると、 ユーザーエージェント(ブラウザ)は access-control-allow-origin レスポンス ヘッダーを検証する。値が https://foo.invalid か * なら成功のコールバックを、それ以外の 値なら、あるいは無ければ、失敗の コールバックを呼ぶ） リクエストは届き、レスポンスも返ってきています。 ブラウザがその結果をjavascriptに渡すかどうかを、ヘッダーを見て決めているだけです。 だから「curlで確認できた」はブラウザで動く保証になりません。 逆に「curlは通るのにアプリだけ落ちる」は、corsを疑う典型的な症状です。 サーバー側の設定だけで直ります。 許可リストにページのオリジンを足して同じ実験をやり直すと、こうなりました。 許可リストに http://127.0.0.1:8130 を足したあと -- chromium から(設定を足したあと) ページのオリジン: http://127.0.0.1:8130 api: http://127.0.0.1:8123/api/hello fetch: 成功 status=200 本文: {&quot;msg&quot;:&quot;hello&quot;} -- ブラウザのコンソール (エラーなし) q. laravelのログには200が並んでいるのに、画面にデータが出ない。データを止めたのは誰? サーバー。未許可のオリジンからのリクエストを拒否した ネットワーク。corsエラーは接続失敗の一種だから ブラウザ。応答は受け取ったが、javascriptに渡さず捨てた 正解。「拒否されたならログに4xxが出るはず」と考えるのは自然ですが、サーバーは200と本文を普通に返しています(上の実測)。ブラウザが応答の access-control-allow-origin を自分のオリジンと見比べて、合わなければjsに渡しません。だからサーバーのログは無傷で、ブラウザのコンソールにだけエラーが出ます。障害の切り分けでは、この非対称を最初に思い出してください。 2 設定ファイルは最初から無い。それでも api/* は開いている 「設定していない」＝「全部拒否」ではない。既定は全部許可 composer create-project laravel/laravel で作った直後のプロジェクト(実測は laravel framework 13.26.1)に、 config/cors.php はありません。それでも設定は存在します。 以降のコマンドに出てくる php artisan は、laravelに同梱されているコマンドラインツールです。プロジェクトのディレクトリで打ちます。 ファイルが無い状態での設定値(以降の実測で使う変数もここで定義。⇁ 0 は配列の0番目の意味) コマンドの中で使う変数: ">
+        <img class="post-thumb" src="contents/2026-08-19_laravel-cors/images/thumb.png" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;post-thumb-ph&quot;>📰</div>'">
+        <div class="post-body">
+          <div class="post-date"><span class="post-cat">Web開発・インフラ</span>2026年8月19日(水)</div>
+          <h3 class="post-title">LaravelのCORS設定はどこに書くか — 既定で開いている api/* と、絞るときの落とし穴</h3>
+          <p class="post-summary">curlでは200と本文が返るのに、ブラウザだけがCORSで止める。その実測から始めて、LaravelのCORS設定の置き場所(config/cors.php)と、ファイルが無くても api/* が既定で全オリジンに開いている事実を確かめます。許可オリジンが1件だと相手を見ずに返す挙動、*とcredentials併用で全オリジンにCookieが開く穴、CloudFrontにOriginの転送を頼む依頼文まで。</p>
+          <div class="post-tags"><span class="post-tag">#Laravel</span><span class="post-tag">#CORS</span><span class="post-tag">#AWS</span><span class="post-tag">#WebView</span></div>
           <span class="post-more">続きを読む →</span>
         </div>
       </a>

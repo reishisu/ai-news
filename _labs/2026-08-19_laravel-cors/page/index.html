@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<title>CORS 実験ページ</title>
+<h1>CORS 実験ページ</h1>
+<p id="out">測定中…</p>
+<script>
+// このページは 8130番(別オリジン)から配信される。
+// 8123番のLaravel APIを fetch して、ブラウザが通すか止めるかを見る。
+window.__result = new Promise(resolve => {
+  const url = new URLSearchParams(location.search).get('api');
+  fetch(url)
+    .then(r => r.text().then(body => resolve({
+      ok: true, status: r.status, body: body,
+    })))
+    .catch(e => resolve({
+      ok: false, error: e.constructor.name + ': ' + e.message,
+    }));
+});
+window.__result.then(r => {
+  document.getElementById('out').textContent = JSON.stringify(r);
+});
+</script>

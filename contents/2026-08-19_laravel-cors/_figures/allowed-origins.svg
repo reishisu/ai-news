@@ -1,0 +1,49 @@
+<svg viewBox="0 0 640 344" xmlns="http://www.w3.org/2000/svg" role="img">
+
+  <!-- 見出し行 -->
+  <text x="110" y="28" fill="var(--sub)" font-size="11.5" font-weight="700" text-anchor="middle">allowed_origins の書き方</text>
+  <text x="353" y="28" fill="var(--sub)" font-size="11.5" font-weight="700" text-anchor="middle">返る Access-Control-Allow-Origin</text>
+  <text x="563" y="28" fill="var(--sub)" font-size="11.5" font-weight="700" text-anchor="middle">Vary: Origin</text>
+  <path d="M12 36 L628 36" stroke="var(--sub)" stroke-width="1"/>
+
+  <!-- 行1: 1件だけ -->
+  <rect x="12" y="52" width="196" height="66" rx="10" fill="var(--track)" stroke="var(--sub)" stroke-width="1.2"/>
+  <text x="110" y="80" fill="var(--fg)" font-size="14.5" font-weight="800" text-anchor="middle">1件だけ</text>
+  <text x="110" y="102" fill="var(--sub)" font-size="11.5" text-anchor="middle">許可オリジン ×1</text>
+
+  <text x="226" y="78" fill="var(--fg)" font-size="12.5">相手を見ずに常に同じ値</text>
+  <text x="226" y="102" fill="var(--fg)" font-size="12" font-family="ui-monospace, monospace">https://game.example.com</text>
+
+  <rect x="506" y="71" width="114" height="30" rx="15" fill="var(--track)"/>
+  <text x="563" y="91" fill="var(--sub)" font-size="12.5" font-weight="700" text-anchor="middle">付かない</text>
+
+  <path d="M12 126 L628 126" stroke="var(--track)" stroke-width="2"/>
+
+  <!-- 行2: 2件以上 -->
+  <rect x="12" y="138" width="196" height="66" rx="10" fill="var(--track)" stroke="var(--sub)" stroke-width="1.2"/>
+  <text x="110" y="166" fill="var(--fg)" font-size="14.5" font-weight="800" text-anchor="middle">2件以上</text>
+  <text x="110" y="188" fill="var(--sub)" font-size="11.5" text-anchor="middle">許可オリジン ×2</text>
+
+  <text x="226" y="164" fill="var(--fg)" font-size="12.5">Origin を照合し、合えば返す</text>
+  <text x="226" y="188" fill="var(--sub)" font-size="11.5">合わなければ 何も付けない</text>
+
+  <rect x="506" y="157" width="114" height="30" rx="15" fill="var(--track)" stroke="var(--b)" stroke-width="1.5"/>
+  <text x="563" y="177" fill="var(--b)" font-size="13" font-weight="800" text-anchor="middle">付く</text>
+
+  <path d="M12 212 L628 212" stroke="var(--track)" stroke-width="2"/>
+
+  <!-- 行3: ['*'] + credentials -->
+  <rect x="12" y="224" width="196" height="80" rx="10" fill="var(--track)" stroke="var(--c)" stroke-width="1.5"/>
+  <text x="110" y="248" fill="var(--fg)" font-size="14" font-weight="800" text-anchor="middle">['*'] のまま</text>
+  <text x="110" y="270" fill="var(--sub)" font-size="11" text-anchor="middle" font-family="ui-monospace, monospace">supports_credentials</text>
+  <text x="110" y="288" fill="var(--c)" font-size="11.5" font-weight="700" text-anchor="middle" font-family="ui-monospace, monospace">= true</text>
+
+  <text x="226" y="246" fill="var(--fg)" font-size="12.5">相手の Origin をそのまま返す</text>
+  <text x="226" y="268" fill="var(--c)" font-size="12" font-family="ui-monospace, monospace">https://evil.example.com</text>
+  <text x="226" y="290" fill="var(--c)" font-size="11.5" font-weight="700">＋ Allow-Credentials: true</text>
+
+  <rect x="506" y="250" width="114" height="30" rx="15" fill="var(--track)" stroke="var(--b)" stroke-width="1.5"/>
+  <text x="563" y="270" fill="var(--b)" font-size="13" font-weight="800" text-anchor="middle">付く</text>
+
+  <text x="320" y="332" fill="var(--sub)" font-size="12" text-anchor="middle">同じ設定項目なのに、件数と credentials で返し方が変わる</text>
+</svg>

@@ -1,0 +1,16 @@
+
+ INFO Server running on [http://127.0.0.1:8138]. 
+
+ Press Ctrl+C to stop the server
+
+ 2026-08-19 09:28:26 /api/hello .. ~ 500.41ms
+ 2026-08-19 09:28:26 /api/corsconfig .. ~ 0.02ms
+ 2026-08-19 09:28:26 /api/hello .. ~ 0.02ms
+ 2026-08-19 09:28:26 /api/hello .. ~ 0.02ms
+ 2026-08-19 09:28:27 /api/hello .. ~ 0.09ms
+ 2026-08-19 09:28:28 /api/corsconfig .. ~ 0.11ms
+ 2026-08-19 09:28:28 /api/corsconfig .. ~ 0.13ms
+ 2026-08-19 09:28:29 /api/corsconfig .. ~ 0.10ms
+ 2026-08-19 09:28:29 /api/corsconfig .. ~ 0.16ms
+ 2026-08-19 09:28:30 /api/corsconfig .. ~ 0.12ms
+ 2026-08-19 09:28:31 /api/hello .. ~ 0.14ms

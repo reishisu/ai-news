@@ -1,0 +1,55 @@
+<svg viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg" role="img">
+  <defs>
+    <marker id="rb-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--sub)"/>
+    </marker>
+  </defs>
+
+  <!-- 会社の境界 -->
+  <path d="M147 38 L147 294" stroke="var(--sub)" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="147" y="310" fill="var(--sub)" font-size="11.5" font-weight="700" text-anchor="middle">会社の境界</text>
+
+  <text x="75" y="26" fill="var(--fg)" font-size="12.5" font-weight="800" text-anchor="middle">自社（クライアント）</text>
+  <text x="397" y="26" fill="var(--fg)" font-size="12.5" font-weight="800" text-anchor="middle">インフラ会社（AWS運用）</text>
+
+  <!-- 経路 -->
+  <rect x="12" y="62" width="126" height="88" rx="10" fill="var(--track)" stroke="var(--sub)" stroke-width="1.2"/>
+  <text x="75" y="98" fill="var(--fg)" font-size="13.5" font-weight="800" text-anchor="middle">WebView</text>
+  <text x="75" y="120" fill="var(--sub)" font-size="12" text-anchor="middle">ブラウザ</text>
+
+  <path d="M140 106 L164 106" fill="none" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#rb-ar)"/>
+
+  <rect x="168" y="62" width="152" height="88" rx="10" fill="var(--track)" stroke="var(--b)" stroke-width="2"/>
+  <text x="244" y="96" fill="var(--fg)" font-size="14" font-weight="800" text-anchor="middle">CloudFront</text>
+  <text x="244" y="118" fill="var(--sub)" font-size="11.5" text-anchor="middle">CDN（配信の入口）</text>
+
+  <path d="M324 106 L340 106" fill="none" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#rb-ar)"/>
+
+  <rect x="344" y="62" width="88" height="88" rx="10" fill="var(--track)" stroke="var(--sub)" stroke-width="1.2"/>
+  <text x="388" y="98" fill="var(--fg)" font-size="14" font-weight="800" text-anchor="middle">ALB</text>
+  <text x="388" y="120" fill="var(--sub)" font-size="11.5" text-anchor="middle">負荷分散</text>
+
+  <path d="M436 106 L452 106" fill="none" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#rb-ar)"/>
+
+  <rect x="456" y="62" width="170" height="88" rx="10" fill="var(--track)" stroke="var(--c)" stroke-width="2"/>
+  <text x="541" y="98" fill="var(--fg)" font-size="13.5" font-weight="800" text-anchor="middle">ECS 上の Laravel</text>
+  <text x="541" y="120" fill="var(--sub)" font-size="11.5" text-anchor="middle">アプリ本体</text>
+
+  <!-- 依頼と担当 -->
+  <path d="M244 150 L244 174" fill="none" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#rb-ar)"/>
+  <path d="M541 150 L541 174" fill="none" stroke="var(--sub)" stroke-width="1.8" marker-end="url(#rb-ar)"/>
+
+  <rect x="156" y="178" width="176" height="100" rx="10" fill="none" stroke="var(--b)" stroke-width="2"/>
+  <text x="244" y="202" fill="var(--b)" font-size="12.5" font-weight="800" text-anchor="middle">CloudFront に頼むこと</text>
+  <text x="244" y="226" fill="var(--fg)" font-size="12" text-anchor="middle">Origin ヘッダーを</text>
+  <text x="244" y="246" fill="var(--fg)" font-size="12" text-anchor="middle">Laravel まで転送する</text>
+  <text x="244" y="266" fill="var(--sub)" font-size="11" text-anchor="middle">キャッシュキーにも含める</text>
+
+  <rect x="453" y="178" width="176" height="100" rx="10" fill="none" stroke="var(--c)" stroke-width="2"/>
+  <text x="541" y="202" fill="var(--c)" font-size="12.5" font-weight="800" text-anchor="middle">CORS設定はここに置く</text>
+  <text x="541" y="226" fill="var(--fg)" font-size="12.5" text-anchor="middle" font-family="ui-monospace, monospace">config/cors.php</text>
+  <text x="541" y="248" fill="var(--sub)" font-size="11" text-anchor="middle">CloudFront / ALB 側では</text>
+  <text x="541" y="266" fill="var(--sub)" font-size="11" text-anchor="middle">CORSヘッダーを付けない</text>
+
+  <text x="404" y="310" fill="var(--sub)" font-size="12" text-anchor="middle">2か所で設定すると、どちらかが必ず無効になる</text>
+</svg>

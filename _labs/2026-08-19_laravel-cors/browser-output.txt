@@ -1,0 +1,57 @@
+================================
+許可リストにページのオリジンが無い
+================================
+ allowed_origins ⇁ 0 ..
+  https://game.example.com
+ allowed_origins ⇁ 1 ..
+  https://app.example.com
+ allowed_origins_patterns .. [] 
+ allowed_headers ⇁ 0 .. * 
+ exposed_headers .. [] 
+ max_age .. 0 
+
+-- curl から (ブラウザではない)
+$ curl -s -o /dev/null -D - \
+ -H "Origin: http://127.0.0.1:8130" \
+ "$API"
+HTTP/1.1 200 OK
+Vary: Origin
+
+$ curl -s "$API"
+{"msg":"hello"}
+
+-- Chromium から
+ページのオリジン: http://127.0.0.1:8130
+API: http://127.0.0.1:8123/api/hello
+fetch: 失敗
+TypeError: Failed to fetch
+-- ブラウザのコンソール
+Access to fetch at
+  'http://127.0.0.1:8123/api/hello' from
+  origin 'http://127.0.0.1:8130' has
+  been blocked by CORS policy: No
+  'Access-Control-Allow-Origin' header
+  is present on the requested resource.
+Failed to load resource: net::ERR_FAILED
+
+================================
+ページのオリジンを許可リストに足す
+================================
+ allowed_origins ⇁ 0 ..
+  https://game.example.com
+ allowed_origins ⇁ 1 ..
+  http://127.0.0.1:8130
+ allowed_origins_patterns .. [] 
+ allowed_headers ⇁ 0 .. * 
+ exposed_headers .. [] 
+ max_age .. 0 
+
+-- Chromium から(設定を足したあと)
+ページのオリジン: http://127.0.0.1:8130
+API: http://127.0.0.1:8123/api/hello
+fetch: 成功 status=200
+本文: {"msg":"hello"}
+-- ブラウザのコンソール
+(エラーなし)
+
+サーバーを止めました

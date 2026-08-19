@@ -1,0 +1,16 @@
+{
+  "category": "Web開発・インフラ",
+  "tags": [
+    "Laravel",
+    "CORS",
+    "AWS",
+    "WebView",
+    "実測",
+    "公式ドキュメント"
+  ],
+  "featured": true,
+  "title": "LaravelのCORS設定はどこに書くか — 既定で開いている api/* と、絞るときの落とし穴",
+  "summary": "curlでは200と本文が返るのに、ブラウザだけがCORSで止める。その実測から始めて、LaravelのCORS設定の置き場所(config/cors.php)と、ファイルが無くても api/* が既定で全オリジンに開いている事実を確かめます。許可オリジンが1件だと相手を見ずに返す挙動、*とcredentials併用で全オリジンにCookieが開く穴、CloudFrontにOriginの転送を頼む依頼文まで。",
+  "thumbnail": "images/thumb.png",
+  "thumb": { "main": "LaravelのCORS設定はどこに書くか", "sub": "既定で開く api/* と、絞るときの落とし穴" }
+}

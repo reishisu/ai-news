@@ -1,0 +1,1016 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LaravelのCORS設定はどこに書くか — 既定で開いている api/* と、絞るときの落とし穴</title>
+<meta name="description" content="curlでは200と本文が返るのに、ブラウザだけが止める。LaravelのCORS設定の置き場所(config/cors.php)と、ファイルが無くても api/* が開いている既定、許可リストを1件だけ書いたときの意外な返し方、*とcredentials併用の穴、CloudFrontにOriginの転送を頼む依頼文まで。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LaravelのCORS設定はどこに書くか — 既定で開いている api/* と、絞るときの落とし穴">
+<meta property="og:description" content="curlでは通る。止めたのはブラウザ。許可リスト1件は相手を見ずに返り、*とcredentials併用は全オリジンにCookieを開きます。全部実測しました。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-19_laravel-cors/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-19_laravel-cors/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=d64bbd50">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">Web開発・インフラ ｜ 2026年8月19日(水)</div>
+    <h1>LaravelのCORS設定はどこに書くか — 既定で開いている api/* と、絞るときの落とし穴</h1>
+    <div class="range">自社がWebView側を作り、Laravel/AWSは別会社が運用している構成の話です。CORS設定の置き場所を実測で確かめ、絞るときに踏む穴と、CloudFrontが挟まるときに相手へ何を頼むかまで詰めます。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約12分</span>
+      <span class="tag">会社をまたぐ連携</span>
+      <span class="tag">実測は Laravel 13.26.1</span>
+      <span class="tag">AWSはドキュメントのみ(実機なし)</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li>
+        <b>CORSで「止める」のはブラウザです。サーバーは200と本文を返しています</b>
+        <span>同じサーバーに curl と Chromium を当てて確かめました。curl は本文まで受け取り、ブラウザだけが <code>TypeError: Failed to fetch</code> で止まります。だからLaravelのログを見ても異常は出ません。</span>
+      </li>
+      <li>
+        <b>Laravelの置き場所は <code>config/cors.php</code>。ただしファイルが無くても <code>api/*</code> は既定で全オリジンに開いています</b>
+        <span>作りたてのプロジェクト(実測は13.26.1)にこのファイルはありません。それでも <code>api/</code> で始まるURLには <code>Access-Control-Allow-Origin: *</code> が付きます。絞りたくなって初めて <code>php artisan config:publish cors</code> で出します。</span>
+      </li>
+      <li>
+        <b>絞るときが本番です。許可リスト1件は相手を見ずに返り、<code>['*']</code>＋credentials(Cookieなどの資格情報)の併用は全オリジンにCookieを開きます</b>
+        <span>どちらもエラーは出ません。さらにCloudFrontが挟まる構成では、<mark>Originヘッダーの転送</mark>を相手会社に頼まないと、Laravel側を完璧に設定しても機能しません(8章に依頼文)。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">curlは通る。止めたのはブラウザ</a></li>
+      <li><a href="#s2">設定ファイルは最初から無い。それでも api/* は開いている</a></li>
+      <li><a href="#s3">許可リストが1件だと、サーバーは相手を見ない</a></li>
+      <li><a href="#s4">JSONを送った時点で preflight が飛ぶ</a></li>
+      <li><a href="#s5">WebViewの Origin: null は文字列 'null' で通る。ただし勧めない</a></li>
+      <li><a href="#s6">いちばん危ない組み合わせ — ['*'] と supports_credentials</a></li>
+      <li><a href="#s7">設定を直したのに変わらない — 原因は2つある</a></li>
+      <li><a href="#s8">CloudFrontが挟まると、Laravelだけでは完結しない</a></li>
+      <li><a href="#more">もっと知りたい人へ</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>curlは通る。止めたのはブラウザ</h2>
+
+    <article class="item">
+      <h3>同じサーバー・同じ設定に、curlとChromiumを当てた</h3>
+      <p class="lead">まず言葉を2つ。<b>CORS</b>とは、別のオリジンにあるAPIを、ブラウザ上のJavaScriptから呼んでいいかを決める仕組みです。オリジンとは「スキーム＋ホスト＋ポート」の組のこと(<code>https://example.com:443</code> なら <code>https</code> がスキーム、<code>example.com</code> がホスト、<code>443</code> がポート)。</p>
+      <p class="lead">もう1つ。<b>curl</b>とは、ブラウザを介さずコマンドラインからHTTPリクエストを送る道具です。この記事ではブラウザとの比較役です。</p>
+      <p class="lead">Laravel側の許可リストには <code>game.example.com</code> と <code>app.example.com</code> だけを書き、実験ページのオリジン <code>http://127.0.0.1:8130</code> は入れていません。この状態で両方から叩きます(リクエストを送ります)。出力中の <code>$API</code> は、APIのURL(<code>http://127.0.0.1:8123/api/hello</code>)を入れた変数です。</p>
+
+      <div class="code term">
+        <div class="code-head">curl から(2026年8月19日実測。表示はスクリプト側でヘッダー行を抽出し40桁に折り返したもの。文言は無加工、全文は _labs 参照)</div>
+        <pre>-- curl から (ブラウザではない)
+$ curl -s -o /dev/null -D - \
+ -H "Origin: http://127.0.0.1:8130" \
+ "$API"
+<span class="ok-line">HTTP/1.1 200 OK</span>
+Vary: Origin
+
+$ curl -s "$API"
+<span class="ok-line">{"msg":"hello"}</span></pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">まったく同じサーバーに、Chromium 141(Chromeの元になるブラウザ)から</div>
+        <pre>-- Chromium から
+ページのオリジン: http://127.0.0.1:8130
+API: http://127.0.0.1:8123/api/hello
+<span class="ng-line">fetch: 失敗
+TypeError: Failed to fetch</span>
+-- ブラウザのコンソール
+<span class="ng-line">Access to fetch at
+  'http://127.0.0.1:8123/api/hello' from
+  origin 'http://127.0.0.1:8130' has
+  been blocked by CORS policy: No
+  'Access-Control-Allow-Origin' header
+  is present on the requested resource.</span>
+Failed to load resource: net::ERR_FAILED</pre>
+      </div>
+
+      <p class="lead">サーバーは<mark>200を返し、本文 <code>{"msg":"hello"}</code> も渡しています</mark>。1バイトも隠していません。エラー文をよく読むと「<b>blocked by CORS policy</b>」、つまり止めたのはブラウザ自身だと言っています。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/browser-gate-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/browser-gate.png" alt="サーバーは200を返し、ブラウザがCORSヘッダーを見て止めることを示す図" loading="lazy">
+        </picture>
+        <figcaption>curlは素通り。検問をやっているのはブラウザだけ</figcaption>
+      </figure>
+
+      <p class="lead">Fetch仕様(ブラウザの通信処理を定めるWHATWGの標準)も、判定の主体をブラウザ側に置いています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Fetch Standard §3.3.6 Examples — 原文＋訳</div>
+        <pre>Upon receiving a response from bar.invalid,
+the user agent will verify the
+Access-Control-Allow-Origin response header.
+If its value is either https://foo.invalid
+or `*`, the user agent will invoke the
+success callback. If it has any other value,
+or is missing, the user agent will invoke
+the failure callback.
+
+（bar.invalid からレスポンスを受け取ると、
+　ユーザーエージェント(ブラウザ)は
+　Access-Control-Allow-Origin レスポンス
+　ヘッダーを検証する。値が https://foo.invalid
+　か * なら成功のコールバックを、それ以外の
+　値なら、あるいは無ければ、失敗の
+　コールバックを呼ぶ）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>リクエストは届き、レスポンスも返ってきています。</b>ブラウザがその結果をJavaScriptに渡すかどうかを、ヘッダーを見て決めているだけです。</li>
+        <li><b>だから「curlで確認できた」はブラウザで動く保証になりません。</b>逆に「curlは通るのにアプリだけ落ちる」は、CORSを疑う典型的な症状です。</li>
+        <li><b>サーバー側の設定だけで直ります。</b>許可リストにページのオリジンを足して同じ実験をやり直すと、こうなりました。</li>
+      </ul>
+
+      <div class="code term">
+        <div class="code-head">許可リストに <code>http://127.0.0.1:8130</code> を足したあと</div>
+        <pre>-- Chromium から(設定を足したあと)
+ページのオリジン: http://127.0.0.1:8130
+API: http://127.0.0.1:8123/api/hello
+<span class="ok-line">fetch: 成功 status=200
+本文: {"msg":"hello"}</span>
+-- ブラウザのコンソール
+<span class="ok-line">(エラーなし)</span></pre>
+      </div>
+
+      <div class="quiz">
+        <p class="q">Q. Laravelのログには200が並んでいるのに、画面にデータが出ない。データを止めたのは誰?</p>
+        <button class="opt" type="button" data-correct="false">サーバー。未許可のオリジンからのリクエストを拒否した</button>
+        <button class="opt" type="button" data-correct="false">ネットワーク。CORSエラーは接続失敗の一種だから</button>
+        <button class="opt" type="button" data-correct="true">ブラウザ。応答は受け取ったが、JavaScriptに渡さず捨てた</button>
+        <p class="ans" hidden>正解。「拒否されたならログに4xxが出るはず」と考えるのは自然ですが、サーバーは200と本文を普通に返しています(上の実測)。ブラウザが応答の Access-Control-Allow-Origin を自分のオリジンと見比べて、合わなければJSに渡しません。だからサーバーのログは無傷で、ブラウザのコンソールにだけエラーが出ます。障害の切り分けでは、この非対称を最初に思い出してください。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>設定ファイルは最初から無い。それでも api/* は開いている</h2>
+
+    <article class="item">
+      <h3>「設定していない」＝「全部拒否」ではない。既定は全部許可</h3>
+      <p class="lead"><code>composer create-project laravel/laravel</code> で作った直後のプロジェクト(実測は Laravel Framework 13.26.1)に、<code>config/cors.php</code> はありません。それでも設定は存在します。</p>
+      <p class="lead">以降のコマンドに出てくる <code>php artisan</code> は、Laravelに同梱されているコマンドラインツールです。プロジェクトのディレクトリで打ちます。</p>
+
+      <div class="code term">
+        <div class="code-head">ファイルが無い状態での設定値(以降の実測で使う変数もここで定義。⇁ 0 は配列の0番目の意味)</div>
+        <pre>コマンドの中で使う変数:
+API=http://127.0.0.1:8123/api/hello
+WEB=http://127.0.0.1:8123/hello
+OK_ORIGIN=https://game.example.com
+NG_ORIGIN=https://evil.example.com
+
+(中略)
+
+-- 1a. それでも設定は存在する
+$ php artisan config:show cors
+
+ cors ..
+ paths ⇁ 0 .. api/*
+ paths ⇁ 1 .. sanctum/csrf-cookie
+ allowed_methods ⇁ 0 .. *
+<span class="ok-line"> allowed_origins ⇁ 0 .. * </span>
+ allowed_origins_patterns .. []
+ allowed_headers ⇁ 0 .. *
+ exposed_headers .. []
+ max_age .. 0
+ supports_credentials .. false </pre>
+      </div>
+
+      <p class="lead"><code>allowed_origins</code> の既定は <code>*</code>(全オリジン許可)です。実際に叩くと、<mark>ヘッダーが付くかどうかはURLのパスで決まります</mark>。</p>
+
+      <div class="code term">
+        <div class="code-head">api/ で始まるパスと、始まらないパス</div>
+        <pre>-- 1b. api/* のGETに Origin を付ける
+$ curl -s -o /dev/null -D - \
+ -H "Origin: $OK_ORIGIN" \
+ "$API"
+HTTP/1.1 200 OK
+<span class="ok-line">Access-Control-Allow-Origin: *</span>
+
+-- 1c. api/ で始まらないパスに同じことを
+$ curl -s -o /dev/null -D - \
+ -H "Origin: $OK_ORIGIN" \
+ "$WEB"
+<span class="ng-line">HTTP/1.1 200 OK</span>
+
+-- 1d. Origin を付けない
+$ curl -s -o /dev/null -D - "$API"
+HTTP/1.1 200 OK
+<span class="ok-line">Access-Control-Allow-Origin: *</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>効く範囲は <code>cors.paths</code> のパターンで決まります。</b>既定は <code>api/*</code> と <code>sanctum/csrf-cookie</code>(Laravel公式の認証パッケージ Sanctum が使うURL)の2つだけ。1cのように <code>api/</code> で始まらないパスには、CORSヘッダーが<mark>1つも付きません</mark>。<code>/v1/...</code> にAPIを置くと、ここで詰まります。</li>
+        <li><b>ルート(URLと処理の対応)をどのファイルに書いたかは関係ありません。</b><code>routes/web.php</code> に書いても、URLが <code>api/</code> で始まれば対象です(<code>HandleCors</code> のソースで確認。<code>paths</code> の照合はリクエストのURLに対して行われ、どのルートファイルに書いたかは見ていません)。</li>
+        <li><b><code>*</code> 自体は危険ではありません。</b>Fetch仕様の附録は「curlやwgetで誰でも取れるリソースなら <code>Access-Control-Allow-Origin: *</code> は安全(safe)」と書いています。危ないのはIPやファイアウォールで守っているつもりのリソースに付けること、そしてcredentialsとの併用です(6章)。</li>
+      </ul>
+
+      <h3>CORSの処理は、全リクエストが通る共通処理として最初から入っている</h3>
+      <p class="lead"><b>ミドルウェア</b>とは、リクエストがコントローラ(URLごとの処理を書く場所)に届く前後で通る共通処理のことです。CORSを担当する <code>HandleCors</code> は、登録しなくても最初から入っています。</p>
+
+      <div class="code term">
+        <div class="code-head">グローバルミドルウェアの一覧(実測)</div>
+        <pre>-- 0a. CORSは全リクエストを通る
+$ php artisan tinker --execute='
+use Illuminate\Contracts\Http\Kernel;
+foreach (app(Kernel::class)
+  -&gt;getGlobalMiddleware() as $m)
+  echo class_basename($m), PHP_EOL;'
+ValidatePathEncoding
+InvokeDeferredCallbacks
+TrustProxies
+<span class="ok-line">HandleCors</span>
+PreventRequestsDuringMaintenance
+ValidatePostSize
+TrimStrings
+ConvertEmptyStringsToNull</pre>
+      </div>
+
+      <p class="lead">Laravel公式ドキュメント(12.x / 13.x で同一文面であることを照合済み)も、同じことを書いています。引用中の「OPTIONSリクエスト」は、4章で説明する preflight のことです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Laravel Docs「Routing — CORS」— 原文＋訳</div>
+        <pre>The OPTIONS requests will automatically be
+handled by the HandleCors middleware that is
+automatically included in your application's
+global middleware stack.
+
+Sometimes, you may need to customize the CORS
+configuration values for your application.
+You may do so by publishing the cors
+configuration file using the config:publish
+Artisan command:
+
+  php artisan config:publish cors
+
+（OPTIONSリクエストは、アプリケーションの
+　グローバルミドルウェアスタックに自動で
+　含まれている HandleCors ミドルウェアが
+　自動的に処理する。CORSの設定値を変えたい
+　ときは、config:publish コマンドで cors
+　設定ファイルを公開する）</pre>
+      </div>
+
+      <p class="lead">つまり答えはこうです。<mark>書く場所は <code>config/cors.php</code>。ただしそのファイルは、絞りたくなって初めて自分で出す</mark>。</p>
+
+      <div class="code term">
+        <div class="code-head">設定ファイルを出す(実測)</div>
+        <pre>$ php artisan config:publish cors
+
+<span class="ok-line"> INFO Published 'cors' configuration
+  file.</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>設定キーの意味は、公式ドキュメントに書かれていません。</b>実処理は依存パッケージ <code>fruitcake/php-cors</code>(v1.4.0)にあります。この記事のキーの説明は、すべてそのソースを読んで確かめたものです。</li>
+      </ul>
+
+      <details>
+        <summary>routes/api.php も最初から無い(実測メモ)</summary>
+        <div class="body">
+          <dl>
+            <dt>作りたての骨格</dt>
+            <dd>実測した 13.26.1 では、作成直後の <code>routes/</code> にあるのは <code>web.php</code> と <code>console.php</code> の2つで、HTTPルート用のファイルは <code>routes/web.php</code> だけです(<code>console.php</code> はArtisanコマンド定義用)。<code>php artisan install:api</code> を実行すると <code>routes/api.php</code> が作られ、あわせて Laravel Sanctum が入ります。</dd>
+            <dt>ただしCORSには関係ない</dt>
+            <dd>本文のとおり、CORSが効くかはルートの置き場所ではなく<b>URLのパス</b>で決まります。<code>cors.paths</code> の既定が <code>api/*</code> だから <code>api/</code> 始まりに効く、というだけです。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="section section-c" id="s3">
+    <h2><span class="step">3</span>許可リストが1件だと、サーバーは相手を見ない</h2>
+
+    <article class="item">
+      <h3>許可していないオリジンにも、同じヘッダーがそのまま返る</h3>
+      <p class="lead">絞ってみます。<code>allowed_origins</code> に <code>https://game.example.com</code> を<b>1件だけ</b>書きました。</p>
+
+      <div class="code">
+        <div class="code-head">config/cors.php(書き換えた行)</div>
+        <pre>'allowed_origins' =&gt; ['https://game.example.com'],</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">1件だけのとき(実測)</div>
+        <pre>-- 2b. 許可したオリジンから
+$ curl -s -o /dev/null -D - \
+ -H "Origin: $OK_ORIGIN" \
+ "$API"
+HTTP/1.1 200 OK
+<span class="ok-line">Access-Control-Allow-Origin:
+  https://game.example.com</span>
+
+-- 2c. 許可していないオリジンから
+$ curl -s -o /dev/null -D - \
+ -H "Origin: $NG_ORIGIN" \
+ "$API"
+HTTP/1.1 200 OK
+<span class="ng-line">Access-Control-Allow-Origin:
+  https://game.example.com</span>
+
+-- 2d. 本文は返ってくるのか
+$ curl -s \
+ -H "Origin: $NG_ORIGIN" \
+ "$API"
+<span class="ng-line">{"msg":"hello"}</span></pre>
+      </div>
+
+      <p class="lead">2cを見てください。<code>evil.example.com</code> を名乗っても、<mark>同じヘッダーがそのまま返ります</mark>。サーバーは相手を見ていません。「うちは <code>game.example.com</code> からの利用を許可している」と一方的に掲示しているだけです。</p>
+      <p class="lead">それでも安全なのは、掲示と自分のオリジンを見比べて止めるのがブラウザだからです(1章)。そして2dのとおり、<mark>本文は誰にでも返っています</mark>。CORSは情報を隠す仕組みではありません。</p>
+
+      <h3>2件以上にすると「合ったときだけ返す」に変わる</h3>
+      <p class="lead">同じ設定項目なのに、件数で挙動が切り替わります。2件にしました。</p>
+
+      <div class="code term">
+        <div class="code-head">2件のとき(実測)</div>
+        <pre>-- 3a. 許可したオリジンから
+$ curl -s -o /dev/null -D - \
+ -H "Origin: $OK_ORIGIN" \
+ "$API"
+HTTP/1.1 200 OK
+<span class="ok-line">Access-Control-Allow-Origin:
+  https://game.example.com
+Vary: Origin</span>
+
+-- 3b. 許可していないオリジンから
+$ curl -s -o /dev/null -D - \
+ -H "Origin: $NG_ORIGIN" \
+ "$API"
+HTTP/1.1 200 OK
+<span class="ok-line">Vary: Origin</span></pre>
+      </div>
+
+      <figure>
+        <picture>
+          <source srcset="images/allowed-origins-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/allowed-origins.png" alt="allowed_originsの書き方でAccess-Control-Allow-Originの返り方が変わることを示す図" loading="lazy">
+        </picture>
+        <figcaption>1件は固定で掲示、2件以上は照合して返す。'*'＋credentialsは相手の名前をそのまま返す</figcaption>
+      </figure>
+
+      <p class="lead">なぜ切り替わるのか。Laravel本体ではなく、php-cors のこの分岐がやっています。</p>
+
+      <div class="code">
+        <div class="code-head">fruitcake/php-cors v1.4.0 src/CorsService.php(抜粋)</div>
+        <pre>private function configureAllowedOrigin(Response $response, Request $request): void
+{
+    if ($this-&gt;allowAllOrigins === true &amp;&amp; !$this-&gt;supportsCredentials) {
+        // Safe+cacheable, allow everything
+        $response-&gt;headers-&gt;set('Access-Control-Allow-Origin', '*');
+    } elseif ($this-&gt;isSingleOriginAllowed()) {
+        // Single origins can be safely set
+        $response-&gt;headers-&gt;set('Access-Control-Allow-Origin', array_values($this-&gt;allowedOrigins)[0]);
+    } else {
+        // For dynamic headers, set the requested Origin header when set and allowed
+        if ($this-&gt;isCorsRequest($request) &amp;&amp; $this-&gt;isOriginAllowed($request)) {
+            $response-&gt;headers-&gt;set('Access-Control-Allow-Origin', (string) $request-&gt;headers-&gt;get('Origin'));
+        }
+
+        $this-&gt;varyHeader($response, 'Origin');
+    }
+}</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>1件のときは固定値の掲示。</b>相手を見ずに常に同じ値を返し、<code>Vary: Origin</code> は付きません。値が誰に対しても同じなので、これで問題ありません。</li>
+        <li><b>2件以上は出し分け。</b>リクエストの <code>Origin</code> が許可リストに在るときだけその値を返し、<code>Vary: Origin</code>(この応答はOriginによって変わる、というキャッシュへの注意書き)が自動で付きます。</li>
+        <li><b>ブラウザから見た結果はどちらも同じです。</b>許可した所だけ通ります。違いは <code>Vary: Origin</code> が付くかどうかで、これは<mark>CDNが間に入ると効いてきます</mark>(8章)。</li>
+        <li><b><code>isCorsRequest()</code> は <code>Origin</code> ヘッダーの有無だけを見ています。</b>つまり出し分けモードでは、<mark><code>Origin</code> がサーバーに届かなければ何も返せません</mark>。この1行が、8章のCloudFrontの話に直結します。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="section section-a" id="s4">
+    <h2><span class="step">4</span>JSONを送った時点で preflight が飛ぶ</h2>
+
+    <article class="item">
+      <h3>POSTの前に、ブラウザが勝手にOPTIONSを送っている</h3>
+      <p class="lead"><b>preflight(プリフライト)</b>とは、本番のリクエストの前にブラウザが自動で送る「これ、送っていいですか」という問い合わせです。HTTPのOPTIONSメソッドで飛びます。</p>
+      <p class="lead">いつ飛ぶかはFetch仕様が決めています。<mark><code>Content-Type: application/json</code> を付けた時点で飛ぶ</mark>、が実務での答えです。<code>Authorization</code>(ログイントークンなどを載せる認証用ヘッダー)のように、仕様のsafelist(preflight無しで送れるヘッダーの一覧)に無いヘッダーを付けたときも飛びます。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Fetch Standard §2.2.1 / §2.2.2 — 原文＋訳</div>
+        <pre>A CORS-safelisted method is a method that is
+`GET`, `HEAD`, or `POST`.
+
+`content-type`: ... If mimeType's essence is
+not "application/x-www-form-urlencoded",
+"multipart/form-data", or "text/plain",
+then return false.
+
+（preflight無しで送れるメソッドは GET / HEAD /
+　POST のみ。Content-Type も、この3種類以外
+　なら safelist から外れる＝preflightが飛ぶ。
+　Authorization など、safelistに
+　無いヘッダーも同様）</pre>
+      </div>
+
+      <p class="lead">Laravelがpreflightにどう答えるかを実測しました。許可オリジンは2件のままです。</p>
+
+      <div class="code term">
+        <div class="code-head">preflight への応答(実測)</div>
+        <pre>-- 4a. 許可したオリジンから
+$ curl -s -o /dev/null -D - -X OPTIONS \
+ -H "Origin: $OK_ORIGIN" \
+ -H "Access-Control-Request-Method: \
+POST" \
+ -H "Access-Control-Request-Headers: \
+content-type" \
+ "$API"
+<span class="ok-line">HTTP/1.0 204 No Content
+Access-Control-Allow-Origin:
+  https://game.example.com</span>
+Vary: Origin,
+  Access-Control-Request-Method,
+  Access-Control-Request-Headers
+Access-Control-Allow-Methods: POST
+Access-Control-Allow-Headers:
+  content-type
+Access-Control-Max-Age: 0
+
+-- 4b. 許可していないオリジンから
+$ curl -s -o /dev/null -D - -X OPTIONS \
+ -H "Origin: $NG_ORIGIN" \
+ -H "Access-Control-Request-Method: \
+POST" \
+ -H "Access-Control-Request-Headers: \
+content-type" \
+ "$API"
+<span class="ng-line">HTTP/1.0 204 No Content</span>
+Vary: Origin,
+  Access-Control-Request-Method</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>preflightは <code>HandleCors</code> が握って即答します。</b>ルートやコントローラには届きません(<code>HandleCors::handle()</code> のソースで確認)。<code>Route::options()</code> を自分で書く必要はありません。</li>
+        <li><b>204で答えるのは仕様の要請どおりです。</b>Fetch仕様はpreflightへの応答を「ok status(2xx)に限る」と定めています。認証ミドルウェアがOPTIONSに401(認証エラー)を返す構成だと、ここで全滅します。仕様は「preflightには資格情報が乗らない(a CORS-preflight request never includes credentials)」とも明記しています。</li>
+        <li><b><code>Allow-Methods</code> / <code>Allow-Headers</code> には、聞かれた値がそのまま返っています。</b><code>allowed_methods</code> / <code>allowed_headers</code> の既定 <code>['*']</code> は、文字どおりの <code>*</code> を返す実装ではなく、リクエストの <code>Access-Control-Request-*</code> を<mark>反射する</mark>実装です(php-corsのソースで確認)。この性質が8章で効きます。</li>
+        <li><b><code>Access-Control-Max-Age: 0</code> は「preflightの結果をキャッシュしない」。</b>Laravelの既定 <code>max_age =&gt; 0</code> のためで、リクエストのたびにpreflightが飛びます。ちなみにFetch仕様の既定値は5秒です。減らしたければ <code>max_age</code> を増やします。</li>
+        <li><b>未許可のオリジンにも204は返ります(4b)。</b>ステータスで落とすのではなく、<code>Access-Control-Allow-Origin</code> を付けないことで、ブラウザに止めさせています。ここでも判定はブラウザです。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="section section-b" id="s5">
+    <h2><span class="step">5</span>WebViewの Origin: null は文字列 'null' で通る。ただし勧めない</h2>
+
+    <article class="item">
+      <h3>PHPのnullではなく、クォート付きの文字列 'null' を書く</h3>
+      <p class="lead">WebView(アプリに埋め込むWebページ表示部品)からの通信では、<code>Origin: null</code> という値が届くことがあります。Android公式リファレンスに、その条件が名指しで書かれています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Android Developers「WebView#loadData()」— 原文＋訳</div>
+        <pre>Content loaded using this method will have a
+window.origin value of "null". This must not
+be considered to be a trusted origin ...
+If you need to identify the main frame's
+origin in a trustworthy way, you should use
+loadDataWithBaseURL() with a valid HTTP or
+HTTPS base URL to set the origin.
+
+（このメソッドで読み込んだコンテンツの
+　window.origin は "null" になる。これを
+　信頼できるオリジンと見なしてはいけない。
+　信頼できる形でオリジンを識別したいなら、
+　有効なHTTPまたはHTTPSのbaseUrlを渡して
+　loadDataWithBaseURL() を使うこと）</pre>
+      </div>
+
+      <p class="lead">Laravel側でこれを通すには、<code>allowed_origins</code> に<mark>文字列の <code>'null'</code></mark> を書きます。PHPの <code>null</code> ではありません。curlで再現しました。</p>
+
+      <div class="code">
+        <div class="code-head">config/cors.php(書き換えた行)</div>
+        <pre>'allowed_origins' =&gt; ['https://game.example.com', 'null'],</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">Origin: null を送る(実測)</div>
+        <pre>-- 5a. null を許可リストに入れていない
+$ curl -s -o /dev/null -D - \
+ -H "Origin: null" \
+ "$API"
+HTTP/1.1 200 OK
+Vary: Origin
+
+-- 5b. null を許可リストに入れた
+(中略)
+$ curl -s -o /dev/null -D - \
+ -H "Origin: null" \
+ "$API"
+HTTP/1.1 200 OK
+<span class="ng-line">Access-Control-Allow-Origin: null</span>
+Vary: Origin</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>正確に書きます。</b>「<code>file://</code> は必ずnullになる」とは言えません。URL標準は <code>file:</code> のオリジンを<mark>実装依存</mark>としています(原文は「left as an exercise to the reader」)。一方 <code>data:</code> URLと、上のとおり <code>loadData()</code> は、一次資料で <code>null</code> になると確認できます。HTML標準では、こうした「不透明なオリジン」が文字列 <code>"null"</code> に変換されると定めています。</li>
+        <li><b>通せますが、勧めません。</b><code>Origin: null</code> はサンドボックス化されたiframeなど<mark>複数の状況で出る値</mark>で、あなたのアプリだけを指しません。<code>'null'</code> の許可は、null を名乗れる全員の許可と同じです。</li>
+        <li><b>先にクライアント側で直せます。</b>Android公式の案内どおり、<code>loadDataWithBaseURL()</code> に有効なhttp(s)のbaseUrlを渡せば、オリジンが正規の値になりこの問題ごと消えます。<mark>サーバー会社に「nullを許可して」と頼む前に、こちらで直すのが筋です</mark>。詳しくは<a href="../2026-08-14_webview-origin/">既存記事「WebViewのfetchが失敗する理由」</a>で、nullを許可すると何が起きるかまで実測しています。</li>
+        <li><b>この章の実測はcurlで <code>Origin: null</code> を送った再現です。</b>実機のWebViewでは測っていません。実機の挙動はAndroid公式ドキュメントの記述に基づきます。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="section section-a" id="s6">
+    <h2><span class="step">6</span>いちばん危ない組み合わせ — ['*'] と supports_credentials</h2>
+
+    <article class="item">
+      <h3>エラーにならない。Originがそのまま返って(エコー)、どこからでもCookie付きで通る</h3>
+      <p class="lead">Cookieやセッションを使うAPIにしようと、<code>supports_credentials</code> を <code>true</code> にする。<code>allowed_origins</code> は <code>['*']</code> のまま。ありがちな途中経過です。見どころは、返ってくる <code>Access-Control-Allow-Origin</code> の値です。</p>
+
+      <div class="code">
+        <div class="code-head">config/cors.php(この2行の組み合わせが問題)</div>
+        <pre>'allowed_origins' =&gt; ['*'],
+'supports_credentials' =&gt; true,</pre>
+      </div>
+
+      <div class="code term">
+        <div class="code-head">未許可のはずのオリジンから叩く(実測)</div>
+        <pre>-- 6a. Origin を付けたGET
+$ curl -s -o /dev/null -D - \
+ -H "Origin: $NG_ORIGIN" \
+ "$API"
+HTTP/1.1 200 OK
+<span class="ng-line">Access-Control-Allow-Origin:
+  https://evil.example.com</span>
+Vary: Origin
+<span class="ng-line">Access-Control-Allow-Credentials: true</span></pre>
+      </div>
+
+      <p class="lead">設定ファイルには <code>*</code> としか書いていないのに、返っているのは <code>*</code> ではなく<mark>リクエストのOriginそのもの</mark>です。しかも <code>Access-Control-Allow-Credentials: true</code> 付き。つまり<mark>どのオリジンからでも、Cookie付きで通る</mark>状態です。警告もエラーも出ません。</p>
+      <p class="lead">なぜライブラリがこんな変換をするのか。仕様が <code>*</code> とcredentialsの併用を禁じているからです。</p>
+
+      <div class="code wrap">
+        <div class="code-head">Fetch Standard §3.3.5 — 原文＋訳</div>
+        <pre>If credentials mode is "include", then
+`Access-Control-Allow-Origin` cannot be `*`.
+
+A serialized origin has no trailing slash.
+
+`true` is (byte) case-sensitive.
+
+（credentialsモードが include のとき、
+　Access-Control-Allow-Origin に * は使えない。
+　シリアライズされたオリジンに末尾スラッシュは
+　付かない(https://example.com/ は不一致)。
+　Allow-Credentials の true は小文字のみ）</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>php-cors は3章の分岐の1行目で <code>*</code> を諦めています。</b><code>allowAllOrigins === true &amp;&amp; !supportsCredentials</code> のときだけ文字どおりの <code>*</code>。credentialsが有効だと出し分けモードに落ち、<code>allowAllOrigins</code> のせいで照合が常に真になり、<mark>誰のOriginでもエコーします</mark>。</li>
+        <li><b>設定ファイルを見ても気付けません。</b><code>*</code> としか書いていないからです。実際のレスポンスヘッダーを見て初めて分かります。</li>
+        <li><b>直し方は1つ。</b><code>supports_credentials =&gt; true</code> にするなら、<code>allowed_origins</code> から <code>*</code> を消して<mark>オリジンを列挙する</mark>。このとき末尾スラッシュを付けないこと(上の仕様のとおり、1文字で不一致になります)。</li>
+        <li><b>preflightでも同じ値が返ることを実測済みです。</b>出力全文は検証一式(<code>_labs/2026-08-19_laravel-cors/</code>)にあります。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section class="section section-c" id="s7">
+    <h2><span class="step">7</span>設定を直したのに変わらない — 原因は2つある</h2>
+
+    <article class="item">
+      <h3>config:cache のあとは、artisanコマンドまで古い値を言う</h3>
+      <p class="lead"><code>php artisan config:cache</code> は、全設定を1ファイルにまとめて読み込みを速くするコマンドです。これを打ったあとは、<code>config/cors.php</code> を直しても効きません。</p>
+
+      <div class="code term">
+        <div class="code-head">キャッシュ後に設定を書き換える(実測。$CFG は差し替え用設定の置き場)</div>
+        <pre>$ php artisan config:cache
+
+ INFO Configuration cached successfully.
+
+
+-- 7a. キャッシュ後に設定を書き換える
+$ cp $CFG/03-allowlist-2.php \
+ config/cors.php
+
+$ php artisan config:show cors
+
+ cors ..
+ paths ⇁ 0 .. api/*
+ paths ⇁ 1 .. sanctum/csrf-cookie
+ allowed_methods ⇁ 0 .. *
+<span class="ng-line"> allowed_origins ⇁ 0
+  https://game.example.com</span>
+ allowed_origins_patterns .. []
+ allowed_headers ⇁ 0 .. *
+ exposed_headers .. []
+ max_age .. 0
+ supports_credentials .. false
+
+$ curl -s -o /dev/null -D - \
+ -H "Origin: https://app.example.com" \
+ "$API"
+HTTP/1.1 200 OK
+<span class="ng-line">Access-Control-Allow-Origin:
+  https://game.example.com</span>
+
+-- 7b. config:clear のあと
+$ php artisan config:clear
+
+ INFO Configuration cache cleared
+  successfully.
+
+$ curl -s -o /dev/null -D - \
+ -H "Origin: https://app.example.com" \
+ "$API"
+HTTP/1.1 200 OK
+<span class="ok-line">Access-Control-Allow-Origin:
+  https://app.example.com
+Vary: Origin</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b>ファイルは2件に直っているのに、<code>config:show</code> も1件のままと言います。</b>「ファイルは新しい、artisanもcurlも古い」という混乱した状態になります。<code>php artisan config:clear</code>(または <code>config:cache</code> のやり直し)で直ります。</li>
+      </ul>
+
+      <h3>php artisan serve は、直後の2秒間だけ古い設定で答えることがある</h3>
+      <p class="lead">こちらはあまり知られていません。この記事の検証中に実際に踏み、<mark>同じスクリプトを3回流して3回とも違う結果が出た</mark>原因です。</p>
+
+      <div class="code term">
+        <div class="code-head">serve の実行環境をサーバー自身に言わせる(実測。$SAPI は検証用に足した確認ルート)</div>
+        <pre>-- 0b. serve は cli-server + OPcache
+$ curl -s "$SAPI" | jq -r ".[]"
+sapi=cli-server
+opcache.enable_cli=0
+opcache.revalidate_freq=2
+<span class="ng-line">opcache_get_status=true</span></pre>
+      </div>
+
+      <ul class="points">
+        <li><b><code>php artisan serve</code> は <code>cli</code> ではなく <code>cli-server</code> という実行形態で動きます。</b>そして <code>opcache.enable_cli=0</code>(CLIではOPcacheを使わない、という設定)でも、OPcache(PHPがファイルの解析結果を使い回す仕組み)は有効でした(<code>opcache_get_status=true</code>)。</li>
+        <li><b><code>opcache.revalidate_freq=2</code> なので、ファイル更新の確認は2秒に1回です。</b><code>revalidate_freq</code> は「スクリプトの更新を何秒おきに確認するか」という設定で(PHPマニュアル)、値の <code>2</code> は上の実測です。つまり<mark>設定を保存しても最大2秒は古いまま</mark>。「保存して即リロードしたら直っていない、もう一度押したら直った」はこれで説明が付きます。</li>
+        <li><b>本番のnginx/php-fpm構成では条件が違います。</b>この節は <code>php artisan serve</code> での実測で、本番構成では測っていません。</li>
+      </ul>
+
+      <details>
+        <summary>おまけの事故: artisan serve は kill してもポートが空かない</summary>
+        <div class="body">
+          <dl>
+            <dt>何が起きたか</dt>
+            <dd>検証スクリプトでサーバーを止めたはずが、前の実行のサーバーが応答して測定値が混ざりました。原因は起動の書き方です。<code>( cd app &amp;&amp; nohup php artisan serve … &amp; )</code> の形だと、<mark><code>$!</code> に入るのは中間シェルのPID</mark>で、killはそこにしか当たりません。本体(artisanと子の <code>php -S</code>)は丸ごと生き残り、ポートを掴み続けていました。</dd>
+            <dt>直し方</dt>
+            <dd><code>( cd app &amp;&amp; exec php artisan serve … ) &amp;</code> と <code>exec</code> を付けて、<code>$!</code> が本体を指すようにする。止めるときは<b>親(artisan)→子(php -S)</b>の順に。修正後のスクリプトは検証一式(<code>_labs/2026-08-19_laravel-cors/</code>)にあります。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ 8 ============ -->
+  <section class="section section-b" id="s8">
+    <h2><span class="step">8</span>CloudFrontが挟まると、Laravelだけでは完結しない</h2>
+
+    <article class="item">
+      <h3>Originが転送されなければ、Laravelは何も返せない</h3>
+      <p class="lead">ここからはAWSの話です。<mark>この章の根拠はAWS公式ドキュメントだけ</mark>で、この環境ではAWSを実行できないため実機では確認していません。</p>
+      <p class="lead">読者の現場の構成は「ブラウザ/WebView → CloudFront(CDN。利用者の近くに応答のコピーを置き、Laravelの代わりに返すキャッシュサーバー網) → ALB(負荷分散装置) → Laravel」です。</p>
+      <p class="lead">紛らわしい注意を1つ。AWSの用語では、CloudFrontの後ろにいる本体サーバー(ここではALB配下のLaravel)のことも<b>オリジン</b>(配信元)と呼びます。1章の「スキーム＋ホスト＋ポートの組」としてのオリジンとは別物です。</p>
+      <p class="lead">このとき、ブラウザが送った <code>Origin</code> ヘッダーがLaravelまで届くかどうかは、<mark>CloudFront側の転送設定で決まります</mark>。AWS公式ドキュメントが、CORSを機能させる条件をこう書いています。</p>
+
+      <div class="code wrap">
+        <div class="code-head">AWS「Request and response behavior for custom origins」— 原文＋訳</div>
+        <pre>Cross-origin resource sharing (CORS) —
+If you want CloudFront to respect cross-origin
+resource sharing settings, configure CloudFront
+to forward the Origin header to your origin.
+
+（CORSの設定を尊重させたいなら、Origin
+　ヘッダーをオリジンへ転送するように
+　CloudFrontを設定すること）</pre>
+      </div>
+
+      <p class="lead">3章で見たとおり、php-cors は <code>Origin</code> ヘッダーの有無だけを見て動きます。<mark>転送されなければ、Laravel側の設定が完璧でも出し分けモードではヘッダーが1本も出ません</mark>。症状は1章と同じ「curlは通るのにブラウザだけ落ちる」です。</p>
+      <p class="lead">さらに同じドキュメントには <code>Vary</code> の扱いも書かれています。転送対象にしていないヘッダー名がオリジンの返す <code>Vary</code> に入っていた場合、CloudFrontはその値を削除してからビューワー(利用者側)に返します(<code>Accept-Encoding</code> や <code>Cookie</code> など、削除しない例外も列挙されています)。つまり3章の <code>Vary: Origin</code> も、<code>Origin</code> を転送していなければ<mark>消されます</mark>。オリジン別の出し分けがキャッシュで混ざる条件が揃ってしまいます。</p>
+
+      <h3>CORSヘッダーを付けられる場所は3つある。だから1か所に決める</h3>
+      <p class="lead">CloudFrontにもALBにも、CORSヘッダーを付ける機能があります。全部ドキュメントで確認しました。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>場所</th><th>設定の名前</th><th>競合したとき</th><th>Originの出し分け</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Laravel</b></td>
+              <td data-label="設定の名前"><code>config/cors.php</code></td>
+              <td data-label="競合したとき">—</td>
+              <td data-label="Originの出し分け">できる(複数指定で照合＋<code>Vary: Origin</code> 自動)</td>
+            </tr>
+            <tr>
+              <td><b>CloudFront</b></td>
+              <td data-label="設定の名前">レスポンスヘッダーポリシー(CORS設定)</td>
+              <td data-label="競合したとき"><code>Origin override</code> で選ぶ。true=CloudFrontが勝ちオリジンの値は無視 / false=オリジンが勝つ(公式の明文)</td>
+              <td data-label="Originの出し分け">ドキュメントに記載なし(<code>*</code> か具体値、左端サブドメインのワイルドカード。例: <code>*.example.org</code>)</td>
+            </tr>
+            <tr>
+              <td><b>ALB</b></td>
+              <td data-label="設定の名前">リスナー属性 <code>routing.http.response.access_control_*</code>(既定オフ)</td>
+              <td data-label="競合したとき">有効化すると<mark>ターゲットの値を設定値で上書きする</mark>(公式の明文。切り替えの記載なし)</td>
+              <td data-label="Originの出し分け">動的に返す機能の記載なし(固定文字列を全レスポンスに付与)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="points">
+        <li><b>2か所以上で設定すると、必ずどちらかが無効になります。</b>CloudFrontの <code>Origin override=true</code> ならLaravelの値は無視。ALBで有効化すればLaravelの値は上書き。<mark>片方に寄せるのが唯一の正解です</mark>。</li>
+        <li><b>AWS既製のCORSポリシー(<code>SimpleCORS</code> / <code>CORS-With-Preflight</code>)は Override origin = No。</b>つまりLaravelがヘッダーを返していればLaravelが勝ちます。既に当たっていても、Laravel側に寄せる方針と両立します。</li>
+        <li><b>CloudFront/ALB側で付けるときの罠が1つ。</b><code>Access-Control-Allow-Headers: *</code> は <code>Authorization</code> を許可しません。Fetch仕様が <code>Authorization</code> を「CORS non-wildcard request-header name」と定めており、CloudFrontのドキュメントも「The Authorization header can't use a wildcard and must be listed explicitly.」と明記しています。<mark>Laravelの <code>['*']</code> が平気なのは、<code>*</code> ではなく要求されたヘッダー名を反射する実装だから</mark>です(4章)。固定文字列しか書けないCDN側でやると踏みます。</li>
+      </ul>
+
+      <h3>だから依頼はこうなる。「CORSはLaravelに置く。CloudFrontにはOriginの転送を頼む」</h3>
+
+      <figure>
+        <picture>
+          <source srcset="images/request-boundary-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/request-boundary.png" alt="CORS設定の置き場所と依頼先を示す責任分界点の図" loading="lazy">
+        </picture>
+        <figcaption>CORSヘッダーはLaravelで。CloudFrontに頼むのは「Originを届けること」だけ</figcaption>
+      </figure>
+
+      <p class="lead">ここから下は、インフラ会社にそのまま送れる文面です。文中のAWS用語を3つだけ。<b>ディストリビューション</b>はCloudFrontの配信設定のひとまとまり(IDで指定)、<b>ビヘイビア</b>はURLパスごとの配信ルール、<b>キャッシュキー</b>はCloudFrontが「同じリクエストだ」と判定する基準です。キャッシュキーに <code>Origin</code> が入っていないと、別のオリジン向けの応答が同じものとして使い回されます。</p>
+
+      <div class="code wrap">
+        <div class="code-head">依頼文(&lt;&gt; の箇所だけ埋めてください)</div>
+        <pre>【依頼】/api/* のCORS設定について
+
+対象: CloudFront ディストリビューション &lt;ID&gt;
+      パス &lt;/api/*&gt; のビヘイビア
+
+前提: CORSヘッダーはアプリ(Laravel)側で
+返す方針です。CloudFront / ALB 側での
+CORSヘッダーの追加は不要です。
+
+1) ビューワーからの Origin リクエスト
+   ヘッダーを、オリジン(ALB配下の
+   Laravel)まで転送する設定にして
+   ください。あわせてキャッシュキーにも
+   Origin を含めてください。
+   根拠(AWS公式ドキュメント):
+   「If you want CloudFront to respect
+    cross-origin resource sharing
+    settings, configure CloudFront to
+    forward the Origin header to your
+    origin.」
+   これが無いと、アプリ側の設定に
+   関係なくCORSが機能しません。
+
+2) このビヘイビアにレスポンスヘッダー
+   ポリシーでCORS系ヘッダーを付けて
+   いる場合は、その内容と
+   Origin override の値(true/false)を
+   教えてください。true の場合、
+   アプリが返す値は無視される仕様の
+   ため、二重管理を避けたいです。
+   (AWS既製の SimpleCORS /
+    CORS-With-Preflight は
+    Override origin = No なので
+    そのままで問題ありません)
+
+3) ALBのヘッダー変更機能
+   (リスナー属性 routing.http.response.
+    access_control_allow_origin
+    .header_value など)は有効化しないで
+   ください。有効化すると、ターゲットの
+   返す値を設定値で上書きする仕様の
+   ためです。
+
+4) OPTIONS のレスポンスをキャッシュする
+   設定にしている場合は教えてください。
+   その設定では Authorization ヘッダーが
+   オリジンに転送されない仕様のためです。
+
+5) 反映後、こちらでブラウザから /api/*
+   を呼び、Access-Control-Allow-Origin
+   が返ることを確認して連絡します。</pre>
+      </div>
+
+      <ul class="points">
+        <li><b>「なぜ」を公式ドキュメントの原文で添えています。</b>相手の会社は、根拠がある依頼なら判断が速くなります。逆に相手の設定を推測で語ると、確認の往復が増えます。</li>
+        <li><b>症状で伝えるときの対応表。</b>「WebViewでだけAPIが失敗する。curlでは通る」(クライアント側の言葉) ↔ 「Originヘッダーのオリジンへの転送」「レスポンスヘッダーポリシーの Origin override」「ALBのリスナー属性」(インフラ側の言葉)。この対で話すと通じます。</li>
+      </ul>
+
+      <h3>送る前の確認</h3>
+      <p class="lead">自分の側で先に潰せるものを潰します。<span class="cl-count">0 / 6</span></p>
+      <ul class="checklist" data-key="laravel-cors-2026-08-19">
+        <li><label><input type="checkbox"><span>APIのURLが <code>api/</code> で始まることを確認した(違うなら <code>cors.paths</code> への追加を依頼)</span></label></li>
+        <li><label><input type="checkbox"><span>許可オリジンに末尾スラッシュを付けていない(<code>https://example.com/</code> は不一致)</span></label></li>
+        <li><label><input type="checkbox"><span><code>supports_credentials =&gt; true</code> にするなら <code>allowed_origins</code> から <code>'*'</code> を消した</span></label></li>
+        <li><label><input type="checkbox"><span>設定変更のあと <code>config:clear</code>(または <code>config:cache</code> のやり直し)まで実行した</span></label></li>
+        <li><label><input type="checkbox"><span>CloudFrontが挟まる構成では、Originの転送を依頼文に入れた</span></label></li>
+        <li><label><input type="checkbox"><span>curlで通っただけで「直った」と判断していない(ブラウザで確認する)</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 これで「誰に何を頼むか」まで言えます</div>
+
+      <a class="next-up" href="../2026-08-14_webview-origin/">
+        <div class="label">NEXT →</div>
+        <div class="t">WebViewのfetchが失敗する理由 — Origin: null とCORSの関係</div>
+        <div class="d">5章の Origin: null をブラウザ側から掘った回です。nullを許可するとCookieごと穴が開くところまで実測しています。</div>
+      </a>
+    </article>
+  </section>
+
+  <!-- ============ もっと知りたい人へ ============ -->
+  <section class="section section-d" id="more">
+    <h2>もっと知りたい人へ</h2>
+    <article class="item">
+      <p class="lead">この記事の根拠ではありませんが、<mark>同じテーマを分かりやすく扱っている資料</mark>です。本文を読み、Fetch仕様と突き合わせて誤りが無いことを確認しました。</p>
+      <ul class="reads">
+        <li>
+          <span class="kind">記事</span>
+          <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS">Cross-Origin Resource Sharing (CORS)</a>
+          <span class="by">MDN Web Docs(Mozillaとコミュニティ)・2025年11月最終更新</span>
+          <span class="why">実際のHTTPリクエスト/レスポンスのログを丸ごと載せながら、preflight無しのリクエスト → preflight → credentials の順に積み上げて説明しています。「simple request は旧仕様の用語で、現行のFetch仕様は使っていない」と自分から注意書きしているのも誠実です。要点はFetch仕様と1項目ずつ照合して一致を確認しました。ただし<b>「credentialsを使わなくても Authorization だけは <code>*</code> で許可できない」規定(本文8章)には触れていない</b>ので、そこはこの記事で補ってください。Laravelの <code>config/cors.php</code> のコメントが公式に案内しているのもこのページです。</span>
+        </li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark><code>config/cors.php</code> の各キーの意味は公式ドキュメントに書かれていないため、根拠はすべて実装ソース(php-cors)と実測です。</p>
+
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          WHATWG「Fetch」<i>Living Standard</i>, 最終更新 2026年7月2日.
+          <span class="note">参照箇所: §2.2.1 CORS-safelisted method / §2.2.2 CORS-safelisted request-header・CORS non-wildcard request-header name / §3.3 CORS protocol / §3.3.5 CORS protocol and credentials / §3.3.6 Examples / §4.8 CORS-preflight fetch / 附録 Basic safe CORS protocol setup・CORS protocol and HTTP caches。1章・4章・6章の原文引用、preflightの発火条件と2xx必須、credentials併用時に <code>*</code> が使えない規定、<code>Authorization</code> がワイルドカード対象外である規定、<code>Vary: Origin</code> とキャッシュの規定の根拠。訳は筆者。</span>
+          <a href="https://fetch.spec.whatwg.org/#cors-protocol">https://fetch.spec.whatwg.org/#cors-protocol</a>（2026年8月19日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「Routing — Cross-Origin Resource Sharing (CORS)」<i>Laravel 13.x ドキュメント</i>.
+          <span class="note">参照箇所: CORS節。<code>HandleCors</code> がグローバルミドルウェアに自動で含まれること、<code>php artisan config:publish cors</code> で設定ファイルを生成すること(2章の原文引用)。12.x と 13.x で同一文面であることを両方取得して照合済み。設定キーの意味はこのドキュメントには書かれていない。</span>
+          <a href="https://laravel.com/docs/13.x/routing#cors">https://laravel.com/docs/13.x/routing#cors</a>（2026年8月19日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          laravel/framework「config/cors.php」<i>13.x ブランチ</i>.
+          <span class="note">参照箇所: ファイル全体。<code>paths =&gt; ['api/*', 'sanctum/csrf-cookie']</code> ほか既定値の根拠。12.x ブランチとバイト単位で同一であることを照合。取得はrawで行い、この環境ではgithub.comのblobページを開けなかったためrawのURLを載せます。</span>
+          <a href="https://raw.githubusercontent.com/laravel/framework/13.x/config/cors.php">https://raw.githubusercontent.com/laravel/framework/13.x/config/cors.php</a>（2026年8月19日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          laravel/framework「Illuminate\Http\Middleware\HandleCors」<i>12.x ブランチ</i>.
+          <span class="note">参照箇所: <code>handle()</code> / <code>hasMatchingPath()</code>。<code>paths</code> に一致しないリクエストにはヘッダーを付けず素通しすること、照合はリクエストのURLに対して行われること(2章)、preflightをミドルウェアが握って即応答すること(4章)の根拠。グローバル登録は同リポジトリの <code>Foundation/Configuration/Middleware.php</code> で確認。引用は12.xブランチだが、13.xとの差分は <code>getPathsByHost()</code> の書き方のみで挙動は同一(実測環境13.26.1のvendorは13.x版と一致することを確認)。</span>
+          <a href="https://raw.githubusercontent.com/laravel/framework/12.x/src/Illuminate/Http/Middleware/HandleCors.php">https://raw.githubusercontent.com/laravel/framework/12.x/src/Illuminate/Http/Middleware/HandleCors.php</a>（2026年8月19日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Fruitcake「CorsService.php」<i>fruitcake/php-cors v1.4.0</i>.
+          <span class="note">参照箇所: <code>configureAllowedOrigin()</code> / <code>configureAllowedHeaders()</code> / <code>configureAllowedMethods()</code> / <code>isCorsRequest()</code> / <code>handlePreflightRequest()</code>。3章に貼ったソースの出どころ。<code>['*']</code> が反射として実装されていること、preflightが204であること、<code>Origin</code> ヘッダーが無いと出し分けモードでは何も返さないことの根拠。Laravel 12.x / 13.x はいずれも <code>fruitcake/php-cors ^1.3</code> を要求(composer.jsonで確認)。</span>
+          <a href="https://raw.githubusercontent.com/fruitcake/php-cors/v1.4.0/src/CorsService.php">https://raw.githubusercontent.com/fruitcake/php-cors/v1.4.0/src/CorsService.php</a>（2026年8月19日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          The PHP Group「Runtime Configuration(OPcache)」<i>PHPマニュアル</i>.
+          <span class="note">参照箇所: <code>opcache.revalidate_freq</code>(「How often to check script timestamps for updates, in seconds.」)と <code>opcache.validate_timestamps</code>。7章の「ファイル更新の確認はN秒に1回」という設定の意味の根拠。値の <code>2</code> 自体は自分の実測(0b)。</span>
+          <a href="https://www.php.net/manual/en/opcache.configuration.php">https://www.php.net/manual/en/opcache.configuration.php</a>（2026年8月19日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Request and response behavior for custom origins」<i>Amazon CloudFront Developer Guide</i>.
+          <span class="note">参照箇所: Cross-origin resource sharing (CORS) の項(8章の原文引用)、HTTP response headers that CloudFront removes or replaces の <code>Vary</code> の項、OPTIONSレスポンスをキャッシュする設定では <code>Authorization</code> をオリジンに転送しない旨。依頼文の1)と4)の根拠。</span>
+          <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/RequestAndResponseBehaviorCustomOrigin.html">https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/RequestAndResponseBehaviorCustomOrigin.html</a>（2026年8月19日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Understanding response headers policies」<i>Amazon CloudFront Developer Guide</i>.
+          <span class="note">参照箇所: CORS headers の項の <code>Origin override</code>(true=ポリシーの値を使いオリジンの値を無視 / false=オリジンの値を使う)、および「The Authorization header can't use a wildcard and must be listed explicitly.」。8章の表と依頼文の2)の根拠。</span>
+          <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/understanding-response-headers-policies.html">https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/understanding-response-headers-policies.html</a>（2026年8月19日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「Using managed response headers policies」<i>Amazon CloudFront Developer Guide</i>.
+          <span class="note">参照箇所: <code>SimpleCORS</code> / <code>CORS-With-Preflight</code> の設定内容と Override origin = No であること。8章の「既製ポリシーはオリジンの値が優先」の根拠。</span>
+          <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-response-headers-policies.html">https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-response-headers-policies.html</a>（2026年8月19日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Amazon Web Services「HTTP header modification for your Application Load Balancer」「Enable HTTP header modification」<i>Elastic Load Balancing — Application Load Balancers</i>.
+          <span class="note">参照箇所: 1本目の Add response headers の項(有効化するとターゲットの値を設定値で上書きする旨)。既定でオフでリスナーごとに有効化が必要な旨と、リスナー属性名 <code>routing.http.response.access_control_*</code> は2本目(Enable HTTP header modification)。8章の表と依頼文の3)の根拠。Originを動的に返す機能は記載が無いことを確認(「できない」という明文は無いため、本文でも「記載なし」とだけ書いた)。</span>
+          <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/header-modification.html">https://docs.aws.amazon.com/elasticloadbalancing/latest/application/header-modification.html</a>（2026年8月19日参照）
+          <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/enable-header-modification.html">https://docs.aws.amazon.com/elasticloadbalancing/latest/application/enable-header-modification.html</a>（2026年8月19日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「WebView」<i>Android Developers リファレンス</i>.
+          <span class="note">参照箇所: <code>loadData()</code>(5章の原文引用)と <code>loadDataWithBaseURL()</code>。<code>window.origin</code> が <code>"null"</code> になる条件と、有効なHTTP/HTTPSのbaseUrlで直す方法の根拠。</span>
+          <a href="https://developer.android.com/reference/android/webkit/WebView">https://developer.android.com/reference/android/webkit/WebView</a>（2026年8月19日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          WHATWG「URL」<i>Living Standard</i>, 最終更新 2026年8月18日.
+          <span class="note">参照箇所: §4.7 Origin。<code>file:</code> のオリジンが実装依存であること(「left as an exercise to the reader」)、<code>data:</code> が不透明なオリジンになること。5章で「file://は必ずnull」と断定しない根拠。</span>
+          <a href="https://url.spec.whatwg.org/#concept-url-origin">https://url.spec.whatwg.org/#concept-url-origin</a>（2026年8月19日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          WHATWG「HTML」<i>Living Standard</i>, 最終更新 2026年8月18日.
+          <span class="note">参照箇所: §7.1.1 Origins。不透明なオリジン(opaque origin)が文字列 <code>"null"</code> にシリアライズされる規定。5章の「Origin: null の正体」の根拠。</span>
+          <a href="https://html.spec.whatwg.org/multipage/browsers.html#concept-origin-opaque">https://html.spec.whatwg.org/multipage/browsers.html#concept-origin-opaque</a>（2026年8月19日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          LaravelのCORS挙動の測定。PHP 8.4.19 / Laravel Framework 13.26.1 / fruitcake/php-cors v1.4.0 / Chromium 141.0.7390.37 / curl 8.5.0、2026年8月19日実施。
+          <span class="note">記事中の <code>.code term</code> の出力はすべて検証一式(<code>_labs/2026-08-19_laravel-cors/</code>)の <code>output.txt</code> / <code>browser-output.txt</code> からの抜粋で、<b>文言は1文字も変えていません</b>(幅380pxで読めるよう、スクリプト側で40桁に折り返してから実行)。curlの応答は <code>HTTP/</code>・<code>Access-Control-*</code>・<code>Vary</code> のヘッダー行だけをスクリプト側で抽出して表示しています(全ヘッダーは <code>output-raw.txt</code>)。ブロックの途中を省いた箇所は「(中略)」と明示しました。実測したのは13.26.1のみで、Laravel 12以前では測っていません(ドキュメントと既定値が12.xと同一であることは資料側で照合)。<b>AWS上での実行は行っていません</b>。8章はすべて公式ドキュメントの記述です。実機のWebView(Android/iOS)でも測っていません。7章の <code>serve</code> の挙動は開発サーバー固有で、nginx/php-fpm構成では未測定です。</span>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「CORSヘッダーはLaravel側に置き、CloudFrontにはOriginの転送だけ頼む」という8章の方針は、標準や規格ではなく筆者の運用上の目安です。
+          <span class="note">根拠にしたのは、複数オリジンの出し分けと <code>Vary: Origin</code> の自動付与ができるのが3か所のうちLaravelだけ(各ドキュメントとソースで確認した範囲)という事実ですが、「どこに置くべきか」自体を定めた標準はありません。依頼文の構成も筆者が組み立てたものです。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月19日時点の内容です。実測は PHP 8.4.19 / Laravel Framework 13.26.1 / Chromium 141.0.7390.37 で行いました。AWS(CloudFront / ALB)の記述は公式ドキュメントに基づき、実機では実行していません。検証一式は <code>_labs/2026-08-19_laravel-cors/</code> にあります。</div>
+    <div>公開: 2026年8月19日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

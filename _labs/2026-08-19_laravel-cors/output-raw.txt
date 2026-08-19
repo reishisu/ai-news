@@ -1,0 +1,512 @@
+
+================================
+0. 環境
+================================
+$ php artisan --version
+Laravel Framework 13.26.1
+
+$ php -r 'echo PHP_VERSION,PHP_EOL;'
+8.4.19
+
+コマンドの中で使う変数:
+API=http://127.0.0.1:8123/api/hello
+WEB=http://127.0.0.1:8123/hello
+OK_ORIGIN=https://game.example.com
+NG_ORIGIN=https://evil.example.com
+
+-- 0a. CORSは全リクエストを通る
+$ php artisan tinker --execute='
+use Illuminate\Contracts\Http\Kernel;
+foreach (app(Kernel::class)
+  ->getGlobalMiddleware() as $m)
+  echo class_basename($m), PHP_EOL;'
+ValidatePathEncoding
+InvokeDeferredCallbacks
+TrustProxies
+HandleCors
+PreventRequestsDuringMaintenance
+ValidatePostSize
+TrimStrings
+ConvertEmptyStringsToNull
+
+
+-- 0b. serve は cli-server + OPcache
+$ curl -s "$SAPI" | jq -r ".[]"
+sapi=cli-server
+opcache.enable_cli=0
+opcache.revalidate_freq=2
+opcache_get_status=true
+
+
+================================
+1. config/cors.php が無い状態
+================================
+(config/cors.php は置いていない)
+
+-- 1a. それでも設定は存在する
+$ php artisan config:show cors
+
+ cors .. 
+ paths ⇁ 0 .. api/* 
+ paths ⇁ 1 .. sanctum/csrf-cookie 
+ allowed_methods ⇁ 0 .. * 
+ allowed_origins ⇁ 0 .. * 
+ allowed_origins_patterns .. [] 
+ allowed_headers ⇁ 0 .. * 
+ exposed_headers .. [] 
+ max_age .. 0 
+ supports_credentials .. false 
+
+
+
+-- 1b. api/* のGETに Origin を付ける
+$ curl -s -o /dev/null -D - \
+ -H "Origin: $OK_ORIGIN" \
+ "$API"
+HTTP/1.1 200 OK
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:07 GMT
+Content-Type: application/json
+Access-Control-Allow-Origin: *
+
+
+
+-- 1c. api/ で始まらないパスに同じことを
+$ curl -s -o /dev/null -D - \
+ -H "Origin: $OK_ORIGIN" \
+ "$WEB"
+HTTP/1.1 200 OK
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:07 GMT
+Content-Type: application/json
+Set-Cookie: XSRF-TOKEN=eyJpdiI6IjU2ZG9nYUdUM0pUbjJMSUdsekh3WHc9PSIsInZhbHVlIjoiYjBtcUUraTZ0akRtd0FwTnp0c2hWVzRzeHBLWXQ1Vm1jYzQvSm5CRkpPdlJ5Y0dVdDlmQVFlVTVUZitqTWhTRzJ0REs4R3BsODNpanJUOHJvZkdPL0lnVkxVODBESDVOM2JnNWlSLy9Vc3JwOHp4Mkd2YWNvQmZvaE00ekFPaGwiLCJtYWMiOiI3MGNmYzMzY2M0MzhhMGRlOTA3NDUwYzBiNmQ5OTU2ZWI4YjM1ZWRlOTU3ZmNiYzQ5N2Y5ODVkZGQ1MjcwMzNhIiwidGFnIjoiIn0%3D; expires=Wed, 19 Aug 2026 10:54:07 GMT; Max-Age=7200; path=/; samesite=lax
+Set-Cookie: laravel-session=eyJpdiI6Ik43VUhBT1dmRnhDU2FnNC94WWx6VFE9PSIsInZhbHVlIjoiRVJRNDZRaVFrUDFMMUp5am9QWTQxcGQ1VVRvTVEwVlVrdjh0RUV0bnBsQ0JteGV2blhBa1lnOXBKL2loamlmKzdod3FLS1J4ZGYzSlBWdjZVYVB0L1BBUGRQZmlueFV6NXNGbm1DQVdqMzJuQWMzZ2p2Mm50bzJVaGRuN093bU8iLCJtYWMiOiIxOGFkZjZkODU0YzE5MGE3NmJkYWE2ZmMxMWU4NTFiYjExYjc2NmM3YjUzOTkwMjdkYjkzNmZhMTJmYzAwMmRkIiwidGFnIjoiIn0%3D; expires=Wed, 19 Aug 2026 10:54:07 GMT; Max-Age=7200; path=/; httponly; samesite=lax
+
+
+
+-- 1d. Origin を付けない
+$ curl -s -o /dev/null -D - "$API"
+HTTP/1.1 200 OK
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:07 GMT
+Content-Type: application/json
+Access-Control-Allow-Origin: *
+
+
+
+================================
+2. 許可オリジンを1件だけ書く
+================================
+
+-- 2a. 設定ファイルを出す
+$ php artisan config:publish cors
+
+ INFO Published 'cors' configuration file. 
+
+
+$ cp $CFG/02-allowlist-1.php \
+ config/cors.php
+
+$ php artisan config:show cors
+
+ cors .. 
+ paths ⇁ 0 .. api/* 
+ paths ⇁ 1 .. sanctum/csrf-cookie 
+ allowed_methods ⇁ 0 .. * 
+ allowed_origins ⇁ 0 https://game.example.com 
+ allowed_origins_patterns .. [] 
+ allowed_headers ⇁ 0 .. * 
+ exposed_headers .. [] 
+ max_age .. 0 
+ supports_credentials .. false 
+
+
+
+-- 2b. 許可したオリジンから
+$ curl -s -o /dev/null -D - \
+ -H "Origin: $OK_ORIGIN" \
+ "$API"
+HTTP/1.1 200 OK
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:09 GMT
+Content-Type: application/json
+Access-Control-Allow-Origin: https://game.example.com
+
+
+
+-- 2c. 許可していないオリジンから
+$ curl -s -o /dev/null -D - \
+ -H "Origin: $NG_ORIGIN" \
+ "$API"
+HTTP/1.1 200 OK
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:09 GMT
+Content-Type: application/json
+Access-Control-Allow-Origin: https://game.example.com
+
+
+
+-- 2d. 本文は返ってくるのか
+$ curl -s \
+ -H "Origin: $NG_ORIGIN" \
+ "$API"
+{"msg":"hello"}
+
+================================
+3. 許可オリジンを2件にする
+================================
+$ cp $CFG/03-allowlist-2.php \
+ config/cors.php
+
+$ php artisan config:show cors
+
+ cors .. 
+ paths ⇁ 0 .. api/* 
+ paths ⇁ 1 .. sanctum/csrf-cookie 
+ allowed_methods ⇁ 0 .. * 
+ allowed_origins ⇁ 0 https://game.example.com 
+ allowed_origins ⇁ 1 https://app.example.com 
+ allowed_origins_patterns .. [] 
+ allowed_headers ⇁ 0 .. * 
+ exposed_headers .. [] 
+ max_age .. 0 
+ supports_credentials .. false 
+
+
+
+-- 3a. 許可したオリジンから
+$ curl -s -o /dev/null -D - \
+ -H "Origin: $OK_ORIGIN" \
+ "$API"
+HTTP/1.1 200 OK
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:12 GMT
+Content-Type: application/json
+Access-Control-Allow-Origin: https://game.example.com
+Vary: Origin
+
+
+
+-- 3b. 許可していないオリジンから
+$ curl -s -o /dev/null -D - \
+ -H "Origin: $NG_ORIGIN" \
+ "$API"
+HTTP/1.1 200 OK
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:12 GMT
+Content-Type: application/json
+Vary: Origin
+
+
+
+================================
+4. preflight (OPTIONS)
+================================
+(許可オリジン2件のまま)
+
+-- 4a. 許可したオリジンから
+$ curl -s -o /dev/null -D - -X OPTIONS \
+ -H "Origin: $OK_ORIGIN" \
+ -H "Access-Control-Request-Method: \
+POST" \
+ -H "Access-Control-Request-Headers: \
+content-type" \
+ "$API"
+HTTP/1.0 204 No Content
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:12 GMT
+Access-Control-Allow-Origin: https://game.example.com
+Vary: Origin, Access-Control-Request-Method, Access-Control-Request-Headers
+Access-Control-Allow-Methods: POST
+Access-Control-Allow-Headers: content-type
+Access-Control-Max-Age: 0
+Content-type: text/html; charset=UTF-8
+
+
+
+-- 4b. 許可していないオリジンから
+$ curl -s -o /dev/null -D - -X OPTIONS \
+ -H "Origin: $NG_ORIGIN" \
+ -H "Access-Control-Request-Method: \
+POST" \
+ -H "Access-Control-Request-Headers: \
+content-type" \
+ "$API"
+HTTP/1.0 204 No Content
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:12 GMT
+Vary: Origin, Access-Control-Request-Method
+Content-type: text/html; charset=UTF-8
+
+
+
+-- 4c. 許可オリジンが1件だけのとき
+$ cp $CFG/02-allowlist-1.php \
+ config/cors.php
+
+$ curl -s -o /dev/null -D - -X OPTIONS \
+ -H "Origin: $NG_ORIGIN" \
+ -H "Access-Control-Request-Method: \
+POST" \
+ -H "Access-Control-Request-Headers: \
+content-type" \
+ "$API"
+HTTP/1.0 204 No Content
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:15 GMT
+Access-Control-Allow-Origin: https://game.example.com
+Vary: Access-Control-Request-Method, Access-Control-Request-Headers
+Access-Control-Allow-Methods: POST
+Access-Control-Allow-Headers: content-type
+Access-Control-Max-Age: 0
+Content-type: text/html; charset=UTF-8
+
+
+
+-- 4d. cors.paths に入らないパスへ
+$ curl -s -o /dev/null -D - -X OPTIONS \
+ -H "Origin: $OK_ORIGIN" \
+ -H "Access-Control-Request-Method: \
+POST" \
+ "$WEB"
+HTTP/1.1 200 OK
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Allow: GET,HEAD
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:15 GMT
+Content-Type: text/html; charset=utf-8
+
+
+
+================================
+5. Origin: null
+================================
+$ cp $CFG/03-allowlist-2.php \
+ config/cors.php
+
+
+-- 5a. null を許可リストに入れていない
+$ curl -s -o /dev/null -D - \
+ -H "Origin: null" \
+ "$API"
+HTTP/1.1 200 OK
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:18 GMT
+Content-Type: application/json
+Vary: Origin
+
+
+
+-- 5b. null を許可リストに入れた
+$ cp $CFG/04-allowlist-null.php \
+ config/cors.php
+
+$ php artisan config:show cors
+
+ cors .. 
+ paths ⇁ 0 .. api/* 
+ paths ⇁ 1 .. sanctum/csrf-cookie 
+ allowed_methods ⇁ 0 .. * 
+ allowed_origins ⇁ 0 https://game.example.com 
+ allowed_origins ⇁ 1 .. null 
+ allowed_origins_patterns .. [] 
+ allowed_headers ⇁ 0 .. * 
+ exposed_headers .. [] 
+ max_age .. 0 
+ supports_credentials .. false 
+
+
+$ curl -s -o /dev/null -D - \
+ -H "Origin: null" \
+ "$API"
+HTTP/1.1 200 OK
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:21 GMT
+Content-Type: application/json
+Access-Control-Allow-Origin: null
+Vary: Origin
+
+
+
+================================
+6. '*' と credentials を同時に
+================================
+$ cp $CFG/05-star-credentials.php \
+ config/cors.php
+
+$ php artisan config:show cors
+
+ cors .. 
+ paths ⇁ 0 .. api/* 
+ paths ⇁ 1 .. sanctum/csrf-cookie 
+ allowed_methods ⇁ 0 .. * 
+ allowed_origins ⇁ 0 .. * 
+ allowed_origins_patterns .. [] 
+ allowed_headers ⇁ 0 .. * 
+ exposed_headers .. [] 
+ max_age .. 0 
+ supports_credentials .. true 
+
+
+
+-- 6a. Origin を付けたGET
+$ curl -s -o /dev/null -D - \
+ -H "Origin: $NG_ORIGIN" \
+ "$API"
+HTTP/1.1 200 OK
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:24 GMT
+Content-Type: application/json
+Access-Control-Allow-Origin: https://evil.example.com
+Vary: Origin
+Access-Control-Allow-Credentials: true
+
+
+
+-- 6b. Origin を付けないGET
+$ curl -s -o /dev/null -D - "$API"
+HTTP/1.1 200 OK
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:24 GMT
+Content-Type: application/json
+Vary: Origin
+
+
+
+-- 6c. preflight
+$ curl -s -o /dev/null -D - -X OPTIONS \
+ -H "Origin: $NG_ORIGIN" \
+ -H "Access-Control-Request-Method: \
+POST" \
+ -H "Access-Control-Request-Headers: \
+content-type" \
+ "$API"
+HTTP/1.0 204 No Content
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:24 GMT
+Access-Control-Allow-Origin: https://evil.example.com
+Vary: Origin, Access-Control-Request-Method, Access-Control-Request-Headers
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Methods: POST
+Access-Control-Allow-Headers: content-type
+Access-Control-Max-Age: 0
+Content-type: text/html; charset=UTF-8
+
+
+
+================================
+7. config:cache の罠
+================================
+$ cp $CFG/02-allowlist-1.php \
+ config/cors.php
+
+$ php artisan config:cache
+
+ INFO Configuration cached successfully. 
+
+
+
+-- 7a. キャッシュ後に設定を書き換える
+$ cp $CFG/03-allowlist-2.php \
+ config/cors.php
+
+$ php artisan config:show cors
+
+ cors .. 
+ paths ⇁ 0 .. api/* 
+ paths ⇁ 1 .. sanctum/csrf-cookie 
+ allowed_methods ⇁ 0 .. * 
+ allowed_origins ⇁ 0 https://game.example.com 
+ allowed_origins_patterns .. [] 
+ allowed_headers ⇁ 0 .. * 
+ exposed_headers .. [] 
+ max_age .. 0 
+ supports_credentials .. false 
+
+
+$ curl -s -o /dev/null -D - \
+ -H "Origin: https://app.example.com" \
+ "$API"
+HTTP/1.1 200 OK
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:27 GMT
+Content-Type: application/json
+Access-Control-Allow-Origin: https://game.example.com
+
+
+
+-- 7b. config:clear のあと
+$ php artisan config:clear
+
+ INFO Configuration cache cleared successfully. 
+
+
+$ curl -s -o /dev/null -D - \
+ -H "Origin: https://app.example.com" \
+ "$API"
+HTTP/1.1 200 OK
+Host: 127.0.0.1:8123
+Connection: close
+X-Powered-By: PHP/8.4.19
+Cache-Control: no-cache, private
+Date: Wed, 19 Aug 2026 08:54:30 GMT
+Content-Type: application/json
+Access-Control-Allow-Origin: https://app.example.com
+Vary: Origin
+
+
+
+================================
+おわり
+================================
+サーバーを止めました
