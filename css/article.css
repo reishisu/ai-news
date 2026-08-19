@@ -393,3 +393,21 @@ details .body a { word-break: break-all; }
   .points { padding: 14px 16px; }
   .code pre { font-size: 12px; padding: 12px 13px; }
 }
+
+/* 動画版への誘導カード(masthead直下)。号ごとの動画URLは動画パイプラインが挿入する */
+.video-cta {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 18px; padding: 13px 16px; max-width: 560px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: var(--shadow); text-decoration: none; color: var(--text);
+  transition: border-color .15s ease;
+}
+.video-cta:hover { border-color: #e53935; }
+.video-cta .vc-play {
+  flex: 0 0 auto; width: 44px; height: 44px; border-radius: 12px;
+  background: #e53935; color: #fff; display: flex; align-items: center;
+  justify-content: center; font-size: 17px; padding-left: 3px;
+}
+.video-cta .vc-text { display: flex; flex-direction: column; gap: 2px; }
+.video-cta .vc-text b { font-size: 15px; font-weight: 800; line-height: 1.4; }
+.video-cta .vc-text span { color: var(--sub); font-size: 12.5px; }

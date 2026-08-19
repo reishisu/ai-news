@@ -791,3 +791,35 @@ Cursor / Gemini など）は更新頻度が高く、CHANGELOGを開けば毎日�
 件数を揃えるために細かい修正を拾うのは、いちばんやってはいけないことです。
 
 ---
+
+## 17. デイリーダイジェストの収集チェックリスト（X公式アカウント。2026/8/19追加）
+
+**料金・利用上限・提供終了・障害の告知は、changelogや公式ブログに載らず
+X(旧Twitter)が初出になることがある。** 実例: Claude Codeの週次利用上限50%増の
+8月31日までの延長は @ClaudeDevs のX投稿だけで告知され、8/19号で見落とした。
+毎朝の収集では、通常の巡回に加えて**以下の公式アカウントの直近24時間の投稿を必ず確認する。**
+
+### 確認するアカウント
+
+| 区分 | アカウント |
+|---|---|
+| AI開発ツール | @AnthropicAI・@ClaudeDevs・@OpenAI・@OpenAIDevs・@GoogleDeepMind・@GeminiApp・@MSFTCopilot・@Microsoft365・@GHchangelog・@cursor_ai |
+| モデル（オープン勢含む） | @AIatMeta・@xai・@MistralAI・@deepseek_ai・@Alibaba_Qwen・@Kimi_Moonshot・@Zai_org・@huggingface |
+| Web開発・インフラ | @awscloud・@laravelphp・@Docker・@vercel |
+| クライアント技術 | @ChromiumDev・@AndroidDev・@unity |
+| 生成メディア・業界 | @elevenlabsio・@runwayml・@pika_labs・@LumaLabsAI・@perplexity_ai |
+
+- ハンドルは変わることがある。見つからなければ検索で追い直し、この表を更新する
+- 拾うのは第16節の「載せる」に該当するものだけ（料金・利用上限・提供終了・
+  セキュリティ・仕様変更・障害・大きな新機能）。宣伝・再投稿は拾わない
+
+### 取得のしかた
+
+- タイムラインの列挙: WebSearch で `site:x.com/<ハンドル>` や
+  `from:<ハンドル>` を期間指定で検索する（x.comのプロフィールページは
+  JavaScript無しでは本文が取れない）
+- 個別の投稿本文: `https://cdn.syndication.twimg.com/tweet-result?id=<投稿ID>&token=a`
+  がJSONで返す（この環境から取得できることを確認済み）
+- **一次資料として使ってよいのは、当事者の公式アカウントによる告知だけ。**
+  それ以外のX投稿は入口(用語と論点)としてのみ使う（source-hunterの規律と同じ）。
+  引用するときは投稿URLと参照日を参考文献に載せる

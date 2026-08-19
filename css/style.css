@@ -189,3 +189,7 @@ img { max-width: 100%; }
   body { font-size: 15px; }
   .brand span { font-size: 13.5px; }
 }
+
+/* トップのYouTube版チップ */
+a.topbar-chip.yt { color: #e53935; text-decoration: none; font-weight: 700; }
+a.topbar-chip.yt:hover { border-color: #e53935; }
