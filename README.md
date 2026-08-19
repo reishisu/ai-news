@@ -1,95 +1,15 @@
 # AIニュース デイリーダイジェスト
 
-毎朝5:00 JSTに自動更新されるAIニュースまとめサイト
+https://reishisu.github.io/ai-news/
 
-公開URL: https://reishisu.github.io/ai-news/
+このリポジトリは **配信専用** です。GitHub Pages の配信元として、
+ビルド済みのサイト(記事HTML・CSS・JS・画像)と、記事が参照する
+検証一式(`_labs/`)だけを置いています。
 
-## 構成
+開発(記事の執筆・ビルド・検証・サムネイル生成)は非公開の
+開発リポジトリで行い、配信物だけをここへ同期しています。
+このリポジトリへの直接コミットは行いません。
 
-```
-├── index.html            # ホーム(記事一覧) — _build_index.py が自動生成
-├── css/
-│   ├── style.css         # ホーム用(検索・タグ・注目記事を含む)
-│   ├── article.css       # 記事(号)ページ共通 — 可読性優先の1カラム
-│   └── shared.css        # 全ページ共通(SNS共有バー)
-├── js/
-│   ├── shared.js         # 全ページ共通(SNS共有バー)
-│   ├── home.js           # ホームの検索・タグ絞り込み
-│   └── article.js        # 記事の仕掛け(進捗バー・コピー・クイズ等)
-├── contents/
-│   └── YYYY-MM-DD_連番/  # 各号
-│       ├── index.html    # 記事本文
-│       ├── meta.json     # 一覧カード用(category / tags / featured / title / summary / thumbnail)
-│       ├── images/       # 記事内の画像(PNG)とサムネイル
-│       └── _figures/     # 図版のSVGソース(非公開)
-├── _templates/
-│   └── home.html         # ホームのテンプレート
-├── _build_index.py       # サイトビルダー(ホーム生成+共有バー注入)
-├── _render_figures.py    # 図版レンダラー(SVG → PNG、ライト/ダーク2種)
-├── _fetch_popular.py     # GoatCounterから閲覧数を取得 → popular.json
-├── site.json             # サイト設定(アクセス解析のサイトコード)
-├── favicon.svg           # サイトアイコン
-└── ogp.png               # SNSシェア用OGP画像
-```
-
-`_` 始まりのファイル・ディレクトリはGitHub Pages(Jekyll)の公開対象から除外されます。
-
-## 図版について
-
-記事内の図版は**すべてPNG**です。`_figures/*.svg` をソースとして
-`python3 _render_figures.py <号のディレクトリ名>` を実行すると、
-ヘッドレスChromiumが2倍解像度でライト用 `name.png` とダーク用 `name-dark.png` を書き出します。
-HTML側は `<picture>` で出し分けます。SVGソースは色を直書きせず、
-`var(--fg)` `var(--sub)` `var(--new)` `var(--old)` `var(--track)` などの変数を使います。
-
-## 記事のメタ情報
-
-`contents/<記事>/meta.json` で一覧の見え方が決まります。
-
-```json
-{
-  "category": "AIで作る技術",
-  "tags": ["Claude Code", "入門"],
-  "featured": true,
-  "title": "記事タイトル",
-  "summary": "3〜4文の概要",
-  "thumbnail": "images/thumb.png"
-}
-```
-
-- `tags` — ホームのタグ絞り込みに使われます(多い順に並びます)
-- `featured` — `true` の記事が「🔥 注目の記事」に最大3件出ます(無ければ新しい順)
-- 検索はタイトル・概要・タグ・**本文**が対象。`?q=` と `?tag=` でURLに状態が残ります
-
-## アクセス解析と「よく読まれている記事」
-
-計測には [GoatCounter](https://www.goatcounter.com/)(無料・Cookieなし)を使います。
-
-**1. 計測を有効にする**
-`site.json` の `analytics.code` に GoatCounter のサイトコードを書くと、
-`_build_index.py` が全ページに計測タグを自動で埋め込みます。空なら何も埋め込まれません。
-
-```json
-{ "analytics": { "provider": "goatcounter", "code": "あなたのサイトコード" } }
-```
-
-**2. 閲覧数でランキングを出す(任意)**
-GoatCounterのAPIトークン(権限は Read statistics のみでよい)を環境変数に入れて実行します。
-
-```bash
-GOATCOUNTER_TOKEN=xxxxx python3 _fetch_popular.py       # 直近30日
-GOATCOUNTER_TOKEN=xxxxx python3 _fetch_popular.py 7     # 直近7日
-```
-
-`popular.json` が作られると、トップの見出しが「🔥 注目の記事」から
-**「🔥 よく読まれている記事」**(順位と閲覧数つき)に切り替わります。
-ファイルが無い・取得に失敗した場合は `featured` による表示のままなので、サイトは壊れません。
-
-**トークンはリポジトリに置かないでください。** 実行環境の環境変数に設定します。
-
-## 仕組み
-
-毎朝5:00 JSTのスケジュールタスク(Claude Code)がニュースを収集し、
-`contents/` に当日号を追加 → `_render_figures.py` で図版をPNG化 →
-`_build_index.py` でホームを再生成 → mainへpush。
-6:45 JSTのウォッチドッグが公開済みかを確認し、未公開なら生成からやり直します。
+- 記事の検証コード・実行結果: `_labs/<記事ディレクトリ名>/`
+  (`_` 始まりのディレクトリは GitHub Pages では配信されません)
+- 記事へのコメントは各記事末尾のコメント欄(GitHub Discussions)へ
