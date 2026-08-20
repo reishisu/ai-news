@@ -84,7 +84,7 @@ img, picture { max-width: 100%; }
   background: var(--card); border: 1px solid var(--line); border-radius: 14px;
   box-shadow: var(--shadow);
 }
-.summary h2 { font-size: 1.05rem; font-weight: 800; margin-bottom: 14px; }
+.summary h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 14px; }
 .summary ol { margin: 0; padding: 0; list-style: none; counter-reset: pt; }
 .summary li { position: relative; padding-left: 42px; counter-increment: pt; }
 .summary li + li { margin-top: 18px; padding-top: 18px; border-top: 1px dashed var(--line); }
@@ -109,10 +109,10 @@ img, picture { max-width: 100%; }
 .toc a:hover { color: var(--accent); text-decoration: underline; }
 
 /* ---------- セクション ---------- */
-.section { margin-top: 54px; scroll-margin-top: 70px; }
+.section { margin-top: 78px; scroll-margin-top: 78px; }
 .section > h2 {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  font-size: 1.32rem; font-weight: 800; line-height: 1.5;
+  font-size: 1.66rem; font-weight: 800; line-height: 1.5;
   padding-bottom: 12px; border-bottom: 2px solid var(--line);
 }
 .section > h2::before { content: ""; width: 6px; height: 1.15em; border-radius: 3px; background: var(--accent); flex: none; }
@@ -139,7 +139,17 @@ img, picture { max-width: 100%; }
 .tag.unk { color: var(--unk); background: var(--unk-bg); border-color: transparent; }
 
 .lead { margin-top: 14px; font-size: 1.02rem; line-height: 1.95; }
-.lead mark { background: var(--mark); color: inherit; padding: 1px 3px; border-radius: 3px; font-weight: 700; }
+/* mark は文脈を限定しないこと。.lead だけに当てていた時期があり、
+   .points と .summary の mark がブラウザ既定の純黄(#ffff00)に落ちていた。
+   純黄はテーマに追随しないので、ダークモードで最大コントラストのフレアになり、
+   「対応の要らない細部が一番目立つ」状態を作っていた(2026/8/20 に発見)。 */
+mark {
+  background: var(--mark); color: inherit; padding: 1px 3px;
+  border-radius: 3px; font-weight: 700;
+  /* 長い識別子(Profile#setOriginMatchedHeaders 等)を囲むと、
+     paddingのぶん幅380pxで溢れる。折り返しを許可しておく。 */
+  overflow-wrap: anywhere;
+}
 
 /* 要点3行 — 記憶に残す本体 */
 .points { margin-top: 16px; padding: 16px 20px; border-radius: 11px; background: var(--bg); border: 1px solid var(--line-soft); }
@@ -155,6 +165,14 @@ figure.hero img { aspect-ratio: 1200 / 628; object-fit: cover; }
 figure figcaption { margin-top: 8px; color: var(--sub); font-size: 13px; line-height: 1.7; text-align: center; }
 figure.thumb { float: right; width: 168px; margin: 4px 0 14px 20px; }
 figure.thumb img { border-radius: 9px; }
+/* 各項目の最終行は「今やること」に固定する運用(CLAUDE.md 第2節)。
+   位置が揃っている前提で、他の丸と見分けが付くよう地色を敷く。 */
+.points li:last-child {
+  background: var(--mark); border-radius: 8px;
+  padding: 8px 10px 8px 26px; margin-left: -4px;
+}
+.points li:last-child::before { left: 8px; }
+
 .item::after { content: ""; display: block; clear: both; }
 
 /* ---------- コード ---------- */
@@ -388,7 +406,13 @@ details .body a { word-break: break-all; }
   .summary li { padding-left: 36px; }
   .item { padding: 20px 18px; }
   .item h3 { font-size: 1.12rem; }
-  .section > h2 { font-size: 1.18rem; }
+  /* 章の切れ目は狭い画面ほど効かせる。項目見出し(1.12rem)との差が
+     5%しかなく、縮小すると章の境目が本文に溶けていた(2026/8/20)。 */
+  /* 章の切れ目は狭い画面ほど効かせる。項目見出し(1.12rem)との差が
+     5%しかなく、縮小すると章の境目が本文に溶けていた(2026/8/20)。
+     ただし上げすぎると、見出しが折り返して装飾バーだけが単独行になる。 */
+  .section > h2 { font-size: 1.38rem; }
+  .section > h2 .n { margin-left: 6px; }
   figure.thumb { float: none; width: 100%; margin: 16px 0 0; }
   .points { padding: 14px 16px; }
   .code pre { font-size: 12px; padding: 12px 13px; }
