@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-news：2026/08/21 — Claude Codeの週次上限+50%は8月31日まで、以降は元に戻りうる</title>
+<meta name="description" content="動きの少ない一日。実務者向けの2件だけを深掘りする。Claude Codeの週次利用上限+50%増は8月31日まで延長(@ClaudeDevs 8/18告知)で、以降は元に戻る可能性がある。Claude Code 2.1.237に結論先出しの出力スタイル「Concise」が追加。Web開発・インフラ/クライアント/研究/業界は既報または新規なしで特筆すべき動きなし。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI-news：2026/08/21 — Claude Codeの週次上限+50%は8月31日まで、以降は元に戻りうる">
+<meta property="og:description" content="静かな一日。Claude Codeの週次上限+50%増は8月31日までの延長で、9月以降は未定(@ClaudeDevs 8/18告知)。2.1.237に出力スタイル「Concise」。他4カテゴリは既報・新規なし。一次資料の原文つき。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-21_001/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-21_001/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=58c56a7d">
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">2026年8月21日(金)</div>
+    <h1>AI-news：2026/08/21 — Claude Codeの週次上限+50%は8月31日まで、以降は元に戻りうる</h1>
+    <div class="range">対象期間: 8月20日(木) 5:00 〜 8月21日(金) 5:00 JST</div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 今日の3行まとめ</h2>
+    <ol>
+      <li>
+        <b>Claude Codeの週次利用上限「+50%増」は8月31日まで延長。9月以降は元に戻る可能性がある</b>
+        <span>8月18日に@ClaudeDevsが告知した内容で、当サイトでは取り上げ損ねていた続報です。対象はPro / Max / Team / Enterpriseの<mark>週次</mark>上限。「恒久化を目指すが容量が逼迫しうる」とあり、9月1日以降は保証されていません。上限まで使う現場は、この日付を前提に重い作業の配分を考える材料になります。</span>
+      </li>
+      <li>
+        <b>Claude Code 2.1.237に、結論を先に出す出力スタイル「Concise」が追加された</b>
+        <span>前置きと途中経過のナレーションを省き、<mark>結果から書く</mark>スタイルです。作業の丁寧さは変えないと明記されています。<code>/config</code>のOutput styleで選べます。</span>
+      </li>
+      <li>
+        <b>Web開発・インフラ / クライアント技術 / 技術・研究 / モデル・業界は、特筆すべき動きなし</b>
+        <span>直近24時間で読者の対応が要る新規は確認できませんでした。該当しそうな項目(ロンドン新AZ・IAM上限・Terraform 1.15.9 CVEなど)は<mark>8/19号・8/20号で既報</mark>です。無理に埋めず、少ない号のまま出します。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#work">実務者向けのAI開発ツール(2件)</a></li>
+      <li><a href="#dev">Web開発・インフラ(動きなし)</a></li>
+      <li><a href="#client">クライアント技術(動きなし)</a></li>
+      <li><a href="#research">技術・研究(動きなし)</a></li>
+      <li><a href="#industry">モデル・業界(動きなし)</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 実務者向け ============ -->
+  <section class="section section-b" id="work">
+    <h2>🧰 実務者向けのAI開発ツール<span class="n">2件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude Codeの週次利用上限「+50%増」は8月31日まで — 以降は元に戻る可能性がある</h3>
+      <div class="tags">
+        <span class="tag">8/18 告知</span>
+        <span class="tag warn">⚠ 利用上限</span>
+        <span class="tag">Claude Code</span>
+      </div>
+      <p class="lead">週次の利用上限とは、各プランに設定された「1週間あたりに使える量」の枠です。その枠を一時的に50%増やしている措置の期限が、8月31日まで延びました。</p>
+      <div class="code wrap"><div class="code-head">@ClaudeDevs 2026年8月18日の投稿(原文)</div><pre>We're extending the 50% increase to weekly Claude Code limits through August 31.
+
+We hope to make this a permanent change to our plans, but strong demand for our models means that capacity may be tight over the coming weeks. We'll keep you posted as things develop.</pre></div>
+      <p class="lead">つまり「恒久化を目指すが約束はできない」という位置づけです。9月1日以降も続く保証はありません。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/claude-limit-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/claude-limit.png" alt="週次上限の+50%増は現在有効で8月31日まで。9月1日以降は未定で、元の上限に戻る可能性がある" loading="lazy">
+        </picture>
+        <figcaption>+50%増は8月31日まで。9月1日以降は未確定(元の上限へ戻りうる)。開始日5/13は報道ベース</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>対象は「週次」の上限で、プランはPro / Max / Team / Enterprise。</b>短時間(5時間)ごとの枠ではなく、週単位の枠が対象です。原文の「weekly Claude Code limits」に沿った記載で、当サイトでは実際の枠の数値は測っていません。</li>
+        <li><b>これは8月18日の告知で、当時取り上げ損ねていた続報です。</b>この種の上限・料金の変更は、changelogや公式ブログではなくX(旧Twitter)が初出になることがあります。今回も@ClaudeDevsの投稿のみでの告知でした。日付が過去である点を踏まえて読んでください。</li>
+        <li><b>今やること。</b>週次の枠まで使い切る使い方をしているなら、8月31日という期限を頭に入れておく。9月に入って上限の体感が変わったら、この延長が切れた可能性を最初に疑う。恒久化されるかは「未定」なので、続報を待つ。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude Code 2.1.237 — 結論を先に出す出力スタイル「Concise」が追加</h3>
+      <div class="tags">
+        <span class="tag">8/20 8:57 JST</span>
+        <span class="tag">新機能</span>
+        <span class="tag">Claude Code</span>
+      </div>
+      <p class="lead">出力スタイルは、Claudeの返答の書き方を切り替える設定です。新しく「Concise(簡潔)」が組み込みで追加されました。</p>
+      <div class="code wrap"><div class="code-head">CHANGELOG 2.1.237 の原文</div><pre>Added a built-in "Concise" output style: Claude leads with results and skips preamble and narration, while doing the work just as thoroughly. Select it under Output style in /config.</pre></div>
+      <p class="lead">結果から先に書き、前置きと途中経過のナレーションを省きます。「作業そのものは同じだけ丁寧にやる(doing the work just as thoroughly)」と明記されているので、省くのは説明の量であって作業の中身ではありません。</p>
+
+      <ul class="points">
+        <li><b>選び方。</b><code>/config</code>のOutput styleから選択します。返答の前置きが冗長だと感じていた人向けの、体感が変わる設定です。</li>
+        <li><b>公開時刻。</b>npmレジストリの記録で2.1.237は2026-08-19T23:57Z(日本時間8/20 8:57)。同じ版で「LLMゲートウェイ/カスタムbase URL利用時のプロンプトキャッシュ」の不具合も直っていますが、これは該当環境だけの修正です。</li>
+        <li><b>今やること。対応は不要。</b>返答が長いと感じるなら<code>/config</code>で「Concise」を試す、というだけの任意の設定です。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ Web開発・インフラ ============ -->
+  <section class="section section-c" id="dev">
+    <h2>🧑‍💻 Web開発・インフラ<span class="n">動きなし</span></h2>
+    <article class="item">
+      <p class="lead">直近24時間で、読者の実務スタック(Laravel / TiDB / AWS / Terraform / Docker)に、対応が要る新規は確認できませんでした。</p>
+      <p class="none">特筆すべき動きなし</p>
+      <ul class="points">
+        <li><b>確認したが今回は該当しなかったもの。</b>AWS What's Newの8/20付は SageMaker の推論レコメンド・Direct Connect のインバウンドprefix制御・Marketplace の通知で、いずれも読者の本線(ECS / Fargate / ALB / CloudFront / IAM)の外でした。ロンドンの新AZとIAMのポリシー上限10→20は<b>8/20号で既報</b>、Terraform 1.15.9の<code>.terraformignore</code> CVEも<b>8/20号で既報</b>です。Laravel / TiDB本体は当ウィンドウで新リリースなし。</li>
+        <li><b>今やること。対応は不要。</b>上記はいずれも既報または対象外のため、この号での新規対応はありません。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ クライアント技術 ============ -->
+  <section class="section section-a" id="client">
+    <h2>📱 クライアント技術<span class="n">動きなし</span></h2>
+    <article class="item">
+      <p class="lead">WebView / Unity Web / VRChat(ワールド)のいずれも、対応が要る新規は確認できませんでした(直近1週間まで確認)。</p>
+      <p class="none">特筆すべき動きなし</p>
+      <ul class="points">
+        <li><b>確認したもの。</b>Chrome for Androidは8月19日にv152へ更新されましたが、内容は「stability and performance improvements」でCVEの記載はなく、WebViewの挙動が変わる話ではありません。WebView v152の全面安定版展開が8月25日に来る点は<b>8/19号で既報</b>です。Unity Web(WebGPU)・VRChat Worlds SDK / VCCは当ウィンドウで新リリースなし。</li>
+        <li><b>今やること。対応は不要。</b>WebViewに依存するアプリがある場合のみ、8/19号で触れた「8月25日のv152全面展開」を検証の締切として意識しておく。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 技術・研究 ============ -->
+  <section class="section section-c" id="research">
+    <h2>🔬 技術・研究<span class="n">動きなし</span></h2>
+    <article class="item">
+      <p class="lead">直近24時間で、読者に紹介したい新規の注目論文・ベンチマーク・オープンウェイトモデルは確認できませんでした。</p>
+      <p class="none">特筆すべき動きなし</p>
+    </article>
+  </section>
+
+  <!-- ============ モデル・業界 ============ -->
+  <section class="section section-a" id="industry">
+    <h2>🏢 モデル・業界<span class="n">動きなし</span></h2>
+    <article class="item">
+      <p class="lead">直近24時間で、一次資料で確認できる新モデル発表・確定した処分や成立などの「確定した事実」は確認できませんでした。</p>
+      <p class="none">特筆すべき動きなし</p>
+      <ul class="points">
+        <li><b>方針。</b>資金調達や買収の話は月次でまとめた二次情報が多く、当ウィンドウに日付が確定した一次情報を確認できたものがありませんでした。法律・規制は解釈の要る話を書かない方針のため、確定した事実が無い日は載せません。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料だけに基づいています。<mark>読んでいない資料は引用しません。</mark>本サイトの環境では、この号のどの項目についても実機での再現・検証は行っていません。掲載した全URLは取得時にHTTPステータス(200)を確認しています。</p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          ClaudeDevs(Anthropic公式)「We're extending the 50% increase to weekly Claude Code limits through August 31.」<i>X (旧Twitter)</i>, 2026年8月18日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所(投稿全文): 「We're extending the 50% increase to weekly Claude Code limits through August 31. We hope to make this a permanent change to our plans, but strong demand for our models means that capacity may be tight over the coming weeks. We'll keep you posted as things develop.」本文取得はcdn.syndication.twimg.comのtweet-result(投稿ID 2089798442306711646)。当事者の公式アカウントによる告知のため一次資料とした。</span></details>
+          <a href="https://x.com/ClaudeDevs/status/2089798442306711646">https://x.com/ClaudeDevs/status/2089798442306711646</a>（2026年8月21日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          「週次上限の+50%増は2026年5月13日開始で、以降くり返し延長」— 図中の開始日(5/13)の根拠。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">開始日と「くり返し延長」の経緯は二次的なまとめ記事(explainx.ai等)にのみ拠っており、Anthropicの一次告知で開始日を確認できていない。図では「5月13日〜(報道)」と明示し、確定事実として扱わない。8月31日までの延長のみが上記の一次資料で確認できる部分。</span></details>
+          <a href="https://x.com/ClaudeDevs/status/2089798442306711646">（一次確認できたのは8/31までの延長のみ）</a>
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「CHANGELOG.md (2.1.237)」<i>anthropics/claude-code (raw.githubusercontent.com)</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「Added a built-in "Concise" output style: Claude leads with results and skips preamble and narration, while doing the work just as thoroughly. Select it under Output style in /config」「Fixed prompt caching for sessions using an LLM gateway or custom base URL」。取得時点でmainのCHANGELOG末尾の最新記載は2.1.237。</span></details>
+          <a href="https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md">https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md</a>（2026年8月21日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          npm「@anthropic-ai/claude-code」<i>registry.npmjs.org</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: timeフィールド「2.1.237: 2026-08-19T23:57:54.833Z」——公開時刻(日本時間8/20 8:57)の根拠。なお2.1.238が2026-08-20T18:01Zに存在するが、dist-tags.latestは2.1.237で、mainのCHANGELOGに2.1.238の記載が無いため内容は記述しない(未公開)。</span></details>
+          <a href="https://registry.npmjs.org/@anthropic-ai/claude-code">https://registry.npmjs.org/@anthropic-ai/claude-code</a>（2026年8月21日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Chrome for Android Update (Chrome 152)」<i>Chrome Releases</i>, 2026年8月19日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「This release includes stability and performance improvements.」——CVEの記載は無く、セキュリティ修正としての新規性が無いことの根拠。クライアント技術を「動きなし」とした判断に使用。</span></details>
+          <a href="https://chromereleases.googleblog.com/2026/08/chrome-for-android-update_01032947341.html">https://chromereleases.googleblog.com/2026/08/chrome-for-android-update_01032947341.html</a>（2026年8月21日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          AWS「What's New (RSS)」<i>aws.amazon.com/about-aws/whats-new/recent/feed</i>, 2026年8月20日分.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 8月20日付の項目は「Generative AI Inference Recommendation for Amazon SageMaker」「AWS Direct Connect introduces inbound prefix controls」「AWS Marketplace now supports category-based notifications」。読者の本線(ECS/Fargate/ALB/CloudFront/IAM/S3/VPC)に該当する新規が無いことの根拠。8/19付のIAM 20ポリシー・ロンドン新AZは8/20号で既報。</span></details>
+          <a href="https://aws.amazon.com/about-aws/whats-new/recent/feed/">https://aws.amazon.com/about-aws/whats-new/recent/feed/</a>（2026年8月21日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「静かな日は無理に件数を埋めない」— 掲載可否の判断基準について。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">不具合修正のみの項目や、既報の焼き直しを件数のために載せないのは本サイトの編集方針(CLAUDE.md 第16節)であり、規格や標準ではない筆者側の運用上の目安。今号を2件+特筆なし4件で出したのはこの方針による。</span></details>
+          <a href="https://reishisu.github.io/ai-news/">https://reishisu.github.io/ai-news/</a>（2026年8月21日参照）
+        </li>
+      </ol>
+    </article>
+  </section>
+
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

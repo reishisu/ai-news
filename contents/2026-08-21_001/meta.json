@@ -1,0 +1,9 @@
+{
+  "category": "デイリーダイジェスト",
+  "tags": ["Claude Code", "Anthropic", "利用上限"],
+  "featured": false,
+  "title": "AI-news：2026/08/21 — Claude Codeの週次上限+50%は8月31日まで、以降は元に戻りうる",
+  "summary": "動きの少ない一日。実務者向けの2件だけを深掘りした。Claude Codeの週次利用上限+50%増は8月31日までの延長で、9月以降は元に戻る可能性がある(@ClaudeDevs 8/18告知)。2.1.237に結論を先出しする出力スタイル「Concise」が追加。Web開発・インフラ/クライアント/研究/業界は既報または新規なしで特筆すべき動きなし。",
+  "thumbnail": "images/thumb.png",
+  "thumb": { "main": "週次上限+50%は8/31まで", "sub": "9月以降は元に戻りうる" }
+}

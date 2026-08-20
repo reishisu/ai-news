@@ -30,16 +30,15 @@
 <main class="container">
 
   <section class="hero">
-    <a class="hero-card" href="contents/2026-08-20_001/">
-      <img class="hero-thumb" src="contents/2026-08-20_001/images/thumb.png" alt="" width="1280" height="720" fetchpriority="high">
+    <a class="hero-card" href="contents/2026-08-21_001/">
       <div class="hero-body">
         <div class="hero-meta">
           <span class="hero-badge">最新号</span>
           <span class="hero-cat">デイリーダイジェスト</span>
-          <span class="hero-date">2026年8月20日(木)</span>
+          <span class="hero-date">2026年8月21日(金)</span>
         </div>
-        <h1 class="hero-title">AI-news：2026/08/20 — AWSの新AZ追加で、AZを自動選択する構成だけが止まった</h1>
-        <p class="hero-sum">ロンドン(eu-west-2)に4つ目のAZが追加された直後、AZ一覧を自動取得してEC2を起動する構成だけがエラーになった(復旧済み)。新AZにはデフォルトサブネットが無かったため。Claude Code 2.1.236はサンドボックスの読み取り拒否がリネームで回避できた穴を閉鎖。IAMロールのポリシー上限は10個から20個へ。Terraform 1.15.9は.terraformignoreの除外漏れCVEを修正した。</p>
+        <h1 class="hero-title">AI-news：2026/08/21 — Claude Codeの週次上限+50%は8月31日まで、以降は元に戻りうる</h1>
+        <p class="hero-sum">動きの少ない一日。実務者向けの2件だけを深掘りした。Claude Codeの週次利用上限+50%増は8月31日までの延長で、9月以降は元に戻る可能性がある(@ClaudeDevs 8/18告知)。2.1.237に結論を先出しする出力スタイル「Concise」が追加。Web開発・インフラ/クライアント/研究/業界は既報または新規なしで特筆すべき動きなし。</p>
         <span class="hero-go">この号を読む</span>
       </div>
     </a>
@@ -73,7 +72,7 @@
   <section class="posts">
     <div class="posts-head">
       <h2>記事一覧</h2>
-      <span class="posts-count"><b id="hitCount">29</b>件</span>
+      <span class="posts-count"><b id="hitCount">30</b>件</span>
     </div>
 
     <div class="finder">
@@ -86,8 +85,8 @@
       <button class="tag-chip is-on" type="button" data-tag="">すべて</button>
       <button class="tag-chip" type="button" data-tag="実測">#実測<i>18</i></button>
       <button class="tag-chip" type="button" data-tag="公式ドキュメント">#公式ドキュメント<i>15</i></button>
+      <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>9</i></button>
       <button class="tag-chip" type="button" data-tag="AWS">#AWS<i>8</i></button>
-      <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>8</i></button>
       <button class="tag-chip" type="button" data-tag="WebView">#WebView<i>8</i></button>
       <button class="tag-chip" type="button" data-tag="セキュリティ">#セキュリティ<i>8</i></button>
       <button class="tag-chip" type="button" data-tag="入門">#入門<i>8</i></button>
@@ -99,6 +98,7 @@
       <button class="tag-chip" type="button" data-tag="iOS">#iOS<i>3</i></button>
       <button class="tag-chip" type="button" data-tag="エージェント設計">#エージェント設計<i>3</i></button>
       <button class="tag-chip" type="button" data-tag="オープンウェイト">#オープンウェイト<i>3</i></button>
+      <button class="tag-chip" type="button" data-tag="Anthropic">#Anthropic<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="CORS">#CORS<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="DeepSeek">#DeepSeek<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="Gemini">#Gemini<i>2</i></button>
@@ -113,6 +113,18 @@
     </div>
 
     <div class="post-list" id="postList">
+      <a class="post-card" href="contents/2026-08-21_001/"
+         data-tags="Claude Code|Anthropic|利用上限" data-category="デイリーダイジェスト"
+         data-date="2026-08-21" data-search="ai-news：2026/08/21 — claude codeの週次上限+50%は8月31日まで、以降は元に戻りうる 動きの少ない一日。実務者向けの2件だけを深掘りした。claude codeの週次利用上限+50%増は8月31日までの延長で、9月以降は元に戻る可能性がある(@claudedevs 8/18告知)。2.1.237に結論を先出しする出力スタイル「concise」が追加。web開発・インフラ/クライアント/研究/業界は既報または新規なしで特筆すべき動きなし。 デイリーダイジェスト claude code anthropic 利用上限 ai-news：2026/08/21 — claude codeの週次上限+50%は8月31日まで、以降は元に戻りうる aiニュース デイリーダイジェスト 2026年8月21日(金) ai-news：2026/08/21 — claude codeの週次上限+50%は8月31日まで、以降は元に戻りうる 対象期間: 8月20日(木) 5:00 〜 8月21日(金) 5:00 jst ⭐ 今日の3行まとめ claude codeの週次利用上限「+50%増」は8月31日まで延長。9月以降は元に戻る可能性がある 8月18日に@claudedevsが告知した内容で、当サイトでは取り上げ損ねていた続報です。対象はpro / max / team / enterpriseの 週次 上限。「恒久化を目指すが容量が逼迫しうる」とあり、9月1日以降は保証されていません。上限まで使う現場は、この日付を前提に重い作業の配分を考える材料になります。 claude code 2.1.237に、結論を先に出す出力スタイル「concise」が追加された 前置きと途中経過のナレーションを省き、 結果から書く スタイルです。作業の丁寧さは変えないと明記されています。 /config のoutput styleで選べます。 web開発・インフラ / クライアント技術 / 技術・研究 / モデル・業界は、特筆すべき動きなし 直近24時間で読者の対応が要る新規は確認できませんでした。該当しそうな項目(ロンドン新az・iam上限・terraform 1.15.9 cveなど)は 8/19号・8/20号で既報 です。無理に埋めず、少ない号のまま出します。 目次 実務者向けのai開発ツール(2件) web開発・インフラ(動きなし) クライアント技術(動きなし) 技術・研究(動きなし) モデル・業界(動きなし) 参考文献 🧰 実務者向けのai開発ツール 2件 anthropic claude codeの週次利用上限「+50%増」は8月31日まで — 以降は元に戻る可能性がある 8/18 告知 ⚠ 利用上限 claude code 週次の利用上限とは、各プランに設定された「1週間あたりに使える量」の枠です。その枠を一時的に50%増やしている措置の期限が、8月31日まで延びました。 @claudedevs 2026年8月18日の投稿(原文) we're extending the 50% increase to weekly claude code limits through august 31. we hope to make this a permanent change to our plans, but strong demand for our models means that capacity may be tight over the coming weeks. we'll keep you posted as things develop. つまり「恒久化を目指すが約束はできない」という位置づけです。9月1日以降も続く保証はありません。 +50%増は8月31日まで。9月1日以降は未確定(元の上限へ戻りうる)。開始日5/13は報道ベース 対象は「週次」の上限で、プランはpro / max / team / enterprise。 短時間(5時間)ごとの枠ではなく、週単位の枠が対象です。原文の「weekly claude code limits」に沿った記載で、当サイトでは実際の枠の数値は測っていません。 これは8月18日の告知で、当時取り上げ損ねていた続報です。 この種の上限・料金の変更は、changelogや公式ブログではなくx(旧twitter)が初出になることがあります。今回も@claudedevsの投稿のみでの告知でした。日付が過去である点を踏まえて読んでください。 今やること。 週次の枠まで使い切る使い方をしているなら、8月31日という期限を頭に入れておく。9月に入って上限の体感が変わったら、この延長が切れた可能性を最初に疑う。恒久化されるかは「未定」なので、続報を待つ。 anthropic claude code 2.1.237 — 結論を先に出す出力スタイル「concise」が追加 8/20 8:57 jst 新機能 claude code 出力スタイルは、claudeの返答の書き方を切り替える設定です。新しく「concise(簡潔)」が組み込みで追加されました。 changelog 2.1.237 の原文 added a built-in &quot;concise&quot; output style: claude leads with results and skips preamble and narration, while doing the work just as thoroughly. select it under output style in /config. 結果から先に書き、前置きと途中経過のナレーションを省きます。「作業そのものは同じだけ丁寧にやる(doing the work just as thoroughly)」と明記されているので、省くのは説明の量であって作業の中身ではありません。 選び方。 /config のoutput styleから選択します。返答の前置きが冗長だと感じていた人向けの、体感が変わる設定です。 公開時刻。 npmレジストリの記録で2.1.237は2026-08-19t23:57z(日本時間8/20 8:57)。同じ版で「llmゲートウェイ/カスタムbase url利用時のプロンプトキャッシュ」の不具合も直っていますが、これは該当環境だけの修正です。 今やること。対応は不要。 返答が長いと感じるなら /config で「concise」を試す、というだけの任意の設定です。 🧑‍💻 web開発・インフラ 動きなし 直近24時間で、読者の実務スタック(laravel / tidb / aws / terraform / docker)に、対応が要る新規は確認できませんでした。 特筆すべき動きなし 確認したが今回は該当しなかったもの。 aws what's newの8/20付は sagemaker の推論レコメンド・direct connect のインバウンドprefix制御・marketplace の通知で、いずれも読者の本線(ecs / fargate / alb / cloudfront / iam)の外でした。ロンドンの新azとiamのポリシー上限10→20は 8/20号で既報 、terraform 1.15.9の .terraformignore cveも 8/20号で既報 です。laravel / tidb本体は当ウィンドウで新リリースなし。 今やること。対応は不要。 上記はいずれも既報または対象外のため、この号での新規対応はありません。 📱 クライアント技術 動きなし webview / unity web / vrchat(ワールド)のいずれも、対応が要る新規は確認できませんでした(直近1週間まで確認)。 特筆すべき動きなし 確認したもの。 chrome for androidは8月19日にv152へ更新されましたが、内容は「stability and performance improvements」でcveの記載はなく、webviewの挙動が変わる話ではありません。webview v152の全面安定版展開が8月25日に来る点は 8/19号で既報 です。unity web(webgpu)・vrchat worlds sdk / vccは当ウィンドウで新リリースなし。 今やること。対応は不要。 webviewに依存するアプリがある場合のみ、8/19号で触れた「8月25日のv152全面展開」を検証の締切として意識しておく。 🔬 技術・研究 動きなし 直近24時間で、読者に紹介したい新規の注目論文・ベンチマーク・オープンウェイトモデルは確認できませんでした。 特筆すべき動きなし 🏢 モデル・業界 動きなし 直近24時間で、一次資料で確認できる新モデル発表・確定した処分や成立などの「確定した事実」は確認できませんでした。 特筆すべき動きなし 方針。 資金調達や買収の話は月次でまとめた二次情報が多く、当ウィンドウに日付が確定した一次情報を確認できたものがありませんでした。法律・規制は解釈の要る話を書かない方針のため、確定した事実が無い日は載せません。 参考文献 この記事の主張は、次の資料だけに基づいています。 読んでいない資料は引用しません。 本サイトの環境では、この号のどの項目についても実機での再現・検証は行っていません。掲載した全urlは取得時にhttpステータス(200)を確認しています。 一次資料 claudedevs(anthropic公式)「we're extending the 50% increase to weekly claude code limits through august 31.」 x (旧twitter) , 2026年8月18日. 参照箇所を見る 参照箇所(投稿全文): 「we're extending the 50% increase to weekly claude code limits through august 31. we hope to make this a permanent">
+        <div class="post-thumb-ph">📰</div>
+        <div class="post-body">
+          <div class="post-date"><span class="post-cat">デイリーダイジェスト</span>2026年8月21日(金)</div>
+          <h3 class="post-title">AI-news：2026/08/21 — Claude Codeの週次上限+50%は8月31日まで、以降は元に戻りうる</h3>
+          <p class="post-summary">動きの少ない一日。実務者向けの2件だけを深掘りした。Claude Codeの週次利用上限+50%増は8月31日までの延長で、9月以降は元に戻る可能性がある(@ClaudeDevs 8/18告知)。2.1.237に結論を先出しする出力スタイル「Concise」が追加。Web開発・インフラ/クライアント/研究/業界は既報または新規なしで特筆すべき動きなし。</p>
+          <div class="post-tags"><span class="post-tag">#Claude Code</span><span class="post-tag">#Anthropic</span><span class="post-tag">#利用上限</span></div>
+          <span class="post-more">続きを読む →</span>
+        </div>
+      </a>
       <a class="post-card" href="contents/2026-08-20_001/"
          data-tags="AWS|IAM|セキュリティ|Claude Code|Terraform|WebView" data-category="デイリーダイジェスト"
          data-date="2026-08-20" data-search="ai-news：2026/08/20 — awsの新az追加で、azを自動選択する構成だけが止まった ロンドン(eu-west-2)に4つ目のazが追加された直後、az一覧を自動取得してec2を起動する構成だけがエラーになった(復旧済み)。新azにはデフォルトサブネットが無かったため。claude code 2.1.236はサンドボックスの読み取り拒否がリネームで回避できた穴を閉鎖。iamロールのポリシー上限は10個から20個へ。terraform 1.15.9は.terraformignoreの除外漏れcveを修正した。 デイリーダイジェスト aws iam セキュリティ claude code terraform webview ai-news：2026/08/20 — awsの新az追加で、azを自動選択する構成だけが止まった aiニュース デイリーダイジェスト 2026年8月20日(木) ai-news：2026/08/20 — awsの新az追加で、azを自動選択する構成だけが止まった 対象期間: 8月19日(水) 5:00 〜 8月20日(木) 5:00 jst ▶ この号を動画で見る（10分） ずんだもん×四国めたんの掛け合い・毎朝更新のyoutube版 ⭐ 今日の3行まとめ ロンドン(eu-west-2)に4つ目のazが追加された直後、az一覧を自動取得してec2を起動する構成だけがエラーになった 新しいazにはデフォルトサブネットが無かったためです。日本時間で 8/19 9:00〜8/20 3:00 、既存インスタンスへの影響はありません。「新azの追加」は今後も必ず起きるイベントなので、azを動的に選ぶ自動化を持っている現場は前提を洗う機会です。 claude code 2.1.236で、macosサンドボックスの読み取り拒否ルール( **/.env )が「名前を変えれば読める」状態ではなくなった これまでは拒否対象のファイルをリネームすると回避できました。 拒否が許可範囲の内側でも優先 され、一致したディレクトリの中身も対象になります。auto modeの既定挙動も3点変わっています。 terraform 1.15.9が、 .terraformignore で除外したはずのファイルがアップロードに混ざり得るcve-2026-14978を修正 unicode正規化の不備が原因で、影響するのはterraform enterprise / hcp terraformへのアップロードです。機密ファイルを .terraformignore で除外している構成は、cliを上げたうえで除外が効いているか再確認を。 目次 実務者向けのai開発ツール(3件) web開発・インフラ(4件) クライアント技術(1件) 技術・研究(2件) モデル・業界(1件) 参考文献 🧰 実務者向けのai開発ツール 3件 anthropic claude code 2.1.236 — サンドボックスの読み取り拒否が「名前を変えれば読める」状態ではなくなった 8/20 3:45 jst ⚠ セキュリティ claude code サンドボックスは、claude codeのファイル読み書きやコマンド実行を決めた範囲に閉じ込める仕組みです。その読み取り拒否ルールに、macosで穴がありました。 changelog 2.1.236 の原文 wildcard read-deny rules (e.g. **/.env) now take precedence inside allowed read regions, cover matched directories' contents, and can't be bypassed by renaming the denied file 裏を返すと、これまでは 拒否対象のファイルをリネームすれば読めた ということです。 機密ファイルの除外設定を回避する3つの経路(リネーム・許可範囲との競合・ディレクトリ配下)が塞がれた 公開時刻はnpmレジストリの記録で2026-08-19t18:45z(日本時間8/20 3:45)。macosでサンドボックスの拒否ルールを使っているなら、更新してください。 auto modeの既定も3点変わった。 ① monitor の許可ルールはauto mode中は保留され、bashと同じレビューを通るように。②bedrock / vertex ai / foundry経由とテレメトリ無効時のクラシファイア(コマンドの危険度を判定する仕組み)の既定がclaude apiと同一に。③リポジトリに status.showuntrackedfiles=no を設定して git status のクリーン判定を偽装する手が効かなくなりました。 許可ルールを作り込んでいる現場は、auto modeでの確認頻度が変わる可能性があります。 新しい環境変数 anthropic_default_model 。 新規セッションが起動時に使うモデルを指定します。既存の anthropic_model との違いは、原文の「a /model pick still overrides it and persists across restarts (unlike anthropic_model )」—— セッション中の /model 選択が再起動後も残る 点です。起動モデルを固定したいci用途では挙動差を確認してから使い分けてください。 今やること。 macosで **/.env のような拒否ルールに機密の保護を任せているなら2.1.236以降へ。それより前のバージョンは「リネームで回避できる状態」だと認識しておく。 cursor cursorのクラウドエージェントが常時稼働型に — pr監視・slack連携・定期実行の「subscriptions」 8/19 新機能 cursor 8月19日付のchangelogで、エージェントを「毎回起動する道具」から「置いておく仕組み」へ寄せる機能がまとめて入りました。中核はsubscriptionsです。 cursor changelog の原文 cursor can now monitor your prs, watch a slack thread, or run scheduled tasks. cursor agent subscribes to an event source (a thread or conversation) and wakes when something happens. prやslackスレッドを購読し、動きがあったら起きて作業します。 まだクラウドエージェント限定。 原文に「subscriptions are available for cloud agents only, for now.」と明記されています。ローカルのエージェントでは使えません。 ほかに3つ。 スキルを常時有効にできる custom modes 、独立した仮想マシン上で動く subagents 、長期の目標を与える /goal コマンド 。エージェントの作業中でも、中断させずに指示を送れる操舵性の改善も入っています。 今やること。 pr監視やslack起点の自動運用をcursorでやりたい場合は、subscriptionsの対象イベントと /goal の書き方をchangelogで確認する。 varonis / microsoft 個人向けcopilotの「cosnitch」修正 — リンクを1回開くだけで接続済みのgmail等から情報が抜けた 8/18(米国時間)修正 ⚠ セキュリティ microsoft copilot 発見したvaronis threat labsは、こう書いています。 varonis の原文 varonis threat labs uncovered another one-click vulnerability in microsoft copilot personal dubbed cosnitch (critical, cve-2026-24301) varonis の原文（攻撃の起点） no click, no confirmation, no user action. one link is all it takes. 細工されたリンクを開くだけで、確認なしにプロンプトが実行されました。msrcの評価は critical、cvss 8.8 です。 何が抜けたか。 varonis の原文 an injected prompt can query the victim's connected apps (gmail, drive, calendar, onedrive), encode the results into a url, and exfiltrate them via copilot's built-in url-fetch capability to an attacker-controlled webhook. 接続済みサービスの中身をurlに詰めて、copilot自身のurl取得機能で外へ送る流れです。 要約からメモリを汚染する経路もあった。 「a crafted webpage, when summarized by copilot, injects attacker instructions into the victim's permanent memory store.」——細工ページを要約させると、攻撃者の指示が 永続メモリに残り続ける 設計上の穴も同時に報告されています(いずれもパッチ済み)。 対象は個人向けcopilot(copilot personal)だけ。 m365 copilot(enterprise)は対象外です。同じvaronisがenterprise版に見つけた脆弱性は別件(searchleak)なので、混同しないでください。 利用者の対応は不要。 msrcのfaqに「this vulnerability has already been fully mitigated by microsoft. there is no action f">
