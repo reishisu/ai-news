@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 300" font-family="sans-serif">
+  <text x="320" y="30" text-anchor="middle" font-size="17" font-weight="bold" fill="var(--fg)">IAMロール1つに付けられるマネージドポリシーの数</text>
+
+  <!-- 従来 -->
+  <text x="120" y="70" text-anchor="middle" font-size="14" font-weight="bold" fill="var(--old)">従来の既定</text>
+  <rect x="60" y="85" width="120" height="60" rx="10" fill="none" stroke="var(--old)" stroke-width="3"/>
+  <text x="120" y="127" text-anchor="middle" font-size="30" font-weight="bold" fill="var(--old)">10</text>
+
+  <!-- 矢印 -->
+  <line x1="195" y1="115" x2="255" y2="115" stroke="var(--fg)" stroke-width="3"/>
+  <path d="M255 115 l-12 -7 v14 z" fill="var(--fg)"/>
+
+  <!-- 新既定 -->
+  <text x="330" y="70" text-anchor="middle" font-size="14" font-weight="bold" fill="var(--new)">新しい既定(自動適用)</text>
+  <rect x="270" y="85" width="120" height="60" rx="10" fill="none" stroke="var(--new)" stroke-width="4"/>
+  <text x="330" y="127" text-anchor="middle" font-size="30" font-weight="bold" fill="var(--new)">20</text>
+
+  <!-- 矢印2 -->
+  <line x1="405" y1="115" x2="465" y2="115" stroke="var(--sub)" stroke-width="3" stroke-dasharray="6 5"/>
+  <path d="M465 115 l-12 -7 v14 z" fill="var(--sub)"/>
+
+  <!-- 上限 -->
+  <text x="540" y="70" text-anchor="middle" font-size="14" font-weight="bold" fill="var(--sub)">申請すれば</text>
+  <rect x="480" y="85" width="120" height="60" rx="10" fill="none" stroke="var(--sub)" stroke-width="3" stroke-dasharray="6 5"/>
+  <text x="540" y="127" text-anchor="middle" font-size="30" font-weight="bold" fill="var(--sub)">25</text>
+
+  <text x="120" y="175" text-anchor="middle" font-size="13" fill="var(--sub)">上限に当たると</text>
+  <text x="120" y="192" text-anchor="middle" font-size="13" fill="var(--sub)">統合や申請が必要だった</text>
+  <text x="330" y="175" text-anchor="middle" font-size="13" fill="var(--sub)">既存ロールにも適用。</text>
+  <text x="330" y="192" text-anchor="middle" font-size="13" fill="var(--sub)">作業は不要</text>
+  <text x="540" y="175" text-anchor="middle" font-size="13" fill="var(--sub)">Service Quotas で</text>
+  <text x="540" y="192" text-anchor="middle" font-size="13" fill="var(--sub)">引き上げをリクエスト</text>
+
+  <text x="320" y="250" text-anchor="middle" font-size="13" fill="var(--sub)">対象はロールのみ。ユーザー・グループの上限は変わっていない</text>
+  <text x="320" y="272" text-anchor="middle" font-size="13" fill="var(--sub)">全商用リージョン・GovCloud(US)・中国リージョンで有効</text>
+</svg>

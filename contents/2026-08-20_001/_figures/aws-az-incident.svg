@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 340" font-family="sans-serif">
+  <text x="320" y="28" text-anchor="middle" font-size="17" font-weight="bold" fill="var(--fg)">ロンドンの新AZ追加で何が起きたか(太平洋時間)</text>
+
+  <!-- 縦のタイムライン -->
+  <line x1="90" y1="60" x2="90" y2="300" stroke="var(--track)" stroke-width="3"/>
+
+  <!-- 8/18 AZ追加 -->
+  <circle cx="90" cy="80" r="7" fill="var(--b)"/>
+  <text x="115" y="76" font-size="14" font-weight="bold" fill="var(--fg)">8/18  eu-west-2 に4つ目のAZを追加</text>
+  <text x="115" y="94" font-size="13" fill="var(--sub)">新AZにはデフォルトサブネットが無かった</text>
+
+  <!-- 17:00 障害開始 -->
+  <circle cx="90" cy="130" r="7" fill="var(--c)"/>
+  <text x="115" y="126" font-size="14" font-weight="bold" fill="var(--c)">8/18 17:00  EC2起動エラーが発生</text>
+  <text x="115" y="144" font-size="13" fill="var(--sub)">AZ一覧を自動取得して起動する自動化が</text>
+  <text x="115" y="160" font-size="13" fill="var(--sub)">新AZを引き当てて失敗(既存への影響なし)</text>
+
+  <!-- 8/19 9:00 原因特定 -->
+  <circle cx="90" cy="200" r="7" fill="var(--sub)"/>
+  <text x="115" y="196" font-size="14" font-weight="bold" fill="var(--fg)">8/19 9:00  原因を特定</text>
+  <text x="115" y="214" font-size="13" fill="var(--sub)">デフォルトサブネット不在時に起動が失敗</text>
+
+  <!-- 11:00 復旧 -->
+  <circle cx="90" cy="252" r="7" fill="var(--new)"/>
+  <text x="115" y="248" font-size="14" font-weight="bold" fill="var(--new)">8/19 11:00  完全復旧</text>
+  <text x="115" y="266" font-size="13" fill="var(--sub)">日本時間では 8/19 9:00 〜 8/20 3:00 に相当</text>
+
+  <text x="320" y="322" text-anchor="middle" font-size="13" fill="var(--sub)">障害報告のAZ表記は euw2-az4(AZ ID)。告知のAZ名は eu-west-2d</text>
+</svg>

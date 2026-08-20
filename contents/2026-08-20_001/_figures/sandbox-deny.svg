@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 330" font-family="sans-serif">
+  <text x="320" y="28" text-anchor="middle" font-size="17" font-weight="bold" fill="var(--fg)">**/.env の読み取り拒否ルール(macOSサンドボックス)</text>
+
+  <!-- 左: 従来 -->
+  <text x="165" y="66" text-anchor="middle" font-size="15" font-weight="bold" fill="var(--old)">2.1.235 まで</text>
+  <rect x="40" y="80" width="250" height="200" rx="12" fill="none" stroke="var(--old)" stroke-width="3"/>
+  <text x="60" y="112" font-size="14" fill="var(--fg)" font-family="monospace">.env</text>
+  <text x="230" y="112" font-size="14" font-weight="bold" fill="var(--new)" text-anchor="end">拒否 ✓</text>
+  <line x1="55" y1="126" x2="275" y2="126" stroke="var(--track)" stroke-width="1"/>
+  <text x="60" y="156" font-size="14" fill="var(--fg)" font-family="monospace">mv .env a.txt</text>
+  <text x="60" y="182" font-size="13" fill="var(--sub)">リネームすると</text>
+  <text x="270" y="182" font-size="14" font-weight="bold" fill="var(--c)" text-anchor="end">読めてしまう</text>
+  <line x1="55" y1="196" x2="275" y2="196" stroke="var(--track)" stroke-width="1"/>
+  <text x="60" y="226" font-size="13" fill="var(--sub)">許可済み範囲の内側では</text>
+  <text x="60" y="244" font-size="13" fill="var(--sub)">拒否ルールが負けることがある</text>
+
+  <!-- 右: 新 -->
+  <text x="475" y="66" text-anchor="middle" font-size="15" font-weight="bold" fill="var(--new)">2.1.236 から</text>
+  <rect x="350" y="80" width="250" height="200" rx="12" fill="none" stroke="var(--new)" stroke-width="4"/>
+  <text x="370" y="112" font-size="14" fill="var(--fg)" font-family="monospace">.env</text>
+  <text x="540" y="112" font-size="14" font-weight="bold" fill="var(--new)" text-anchor="end">拒否 ✓</text>
+  <line x1="365" y1="126" x2="585" y2="126" stroke="var(--track)" stroke-width="1"/>
+  <text x="370" y="156" font-size="14" fill="var(--fg)" font-family="monospace">mv .env a.txt</text>
+  <text x="540" y="182" font-size="14" font-weight="bold" fill="var(--new)" text-anchor="end">拒否 ✓</text>
+  <text x="370" y="182" font-size="13" fill="var(--sub)">リネームしても</text>
+  <line x1="365" y1="196" x2="585" y2="196" stroke="var(--track)" stroke-width="1"/>
+  <text x="370" y="226" font-size="13" fill="var(--sub)">許可範囲の内側でも拒否が優先。</text>
+  <text x="370" y="244" font-size="13" fill="var(--sub)">一致したディレクトリの中身も対象</text>
+
+  <text x="320" y="312" text-anchor="middle" font-size="13" fill="var(--sub)">機密ファイルの除外設定が「名前を変えれば読める」状態ではなくなった</text>
+</svg>

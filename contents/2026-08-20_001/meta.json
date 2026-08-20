@@ -1,0 +1,9 @@
+{
+  "category": "デイリーダイジェスト",
+  "tags": ["AWS", "IAM", "セキュリティ", "Claude Code", "Terraform", "WebView"],
+  "featured": false,
+  "title": "AI-news：2026/08/20 — AWSの新AZ追加で、AZを自動選択する構成だけが止まった",
+  "summary": "ロンドン(eu-west-2)に4つ目のAZが追加された直後、AZ一覧を自動取得してEC2を起動する構成だけがエラーになった(復旧済み)。新AZにはデフォルトサブネットが無かったため。Claude Code 2.1.236はサンドボックスの読み取り拒否がリネームで回避できた穴を閉鎖。IAMロールのポリシー上限は10個から20個へ。Terraform 1.15.9は.terraformignoreの除外漏れCVEを修正した。",
+  "thumbnail": "images/thumb.png",
+  "thumb": { "main": "新AZ追加で起動エラー", "sub": "AZを自動選択する構成だけ" }
+}
