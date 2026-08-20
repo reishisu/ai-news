@@ -13,7 +13,7 @@
 <meta property="og:url" content="https://reishisu.github.io/ai-news/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="css/style.css?v=77ddcc18">
+<link rel="stylesheet" href="css/style.css?v=fcd976ec">
 <link rel="stylesheet" href="css/shared.css?v=7e35954d">
 </head>
 <body>
@@ -24,20 +24,27 @@
     <span>AIニュース デイリーダイジェスト</span>
   </a>
   <span class="topbar-chip"><span class="dot"></span>毎朝 5:00 JST 更新</span>
-  <a class="topbar-chip yt" href="https://www.youtube.com/channel/UCoP6-AEWjJyD6c0qOTHcLJw" target="_blank" rel="noopener">▶ YouTube版</a>
+  <a class="topbar-chip yt" href="https://www.youtube.com/@ainews-daily-jp" target="_blank" rel="noopener">▶ YouTube版(毎朝)</a>
 </header>
 
 <main class="container">
 
   <section class="hero">
-    <picture>
-      <source srcset="images/hero-sp-dark.png" media="(max-width: 700px) and (prefers-color-scheme: dark)">
-      <source srcset="images/hero-sp.png" media="(max-width: 700px)">
-      <source srcset="images/hero-dark.png" media="(prefers-color-scheme: dark)">
-      <img class="hero-img" src="images/hero.png" alt="AIニュース デイリーダイジェスト" width="2560" height="800">
-    </picture>
-    <p>世界中のAIニュースを集めて一次情報で裏を取り、日本語のダイジェストとして毎朝お届けします。あわせて、AIを使った設計・開発・実装、Web開発とインフラ、WebViewやUnity Webなどのクライアント技術、チームで成果を出すための進め方まで、実際に手を動かして確かめた実践記事を掲載しています。</p>
+    <a class="hero-card" href="contents/2026-08-20_001/">
+      <img class="hero-thumb" src="contents/2026-08-20_001/images/thumb.png" alt="" width="1280" height="720" fetchpriority="high">
+      <div class="hero-body">
+        <div class="hero-meta">
+          <span class="hero-badge">最新号</span>
+          <span class="hero-cat">デイリーダイジェスト</span>
+          <span class="hero-date">2026年8月20日(木)</span>
+        </div>
+        <h1 class="hero-title">AI-news：2026/08/20 — AWSの新AZ追加で、AZを自動選択する構成だけが止まった</h1>
+        <p class="hero-sum">ロンドン(eu-west-2)に4つ目のAZが追加された直後、AZ一覧を自動取得してEC2を起動する構成だけがエラーになった(復旧済み)。新AZにはデフォルトサブネットが無かったため。Claude Code 2.1.236はサンドボックスの読み取り拒否がリネームで回避できた穴を閉鎖。IAMロールのポリシー上限は10個から20個へ。Terraform 1.15.9は.terraformignoreの除外漏れCVEを修正した。</p>
+        <span class="hero-go">この号を読む</span>
+      </div>
+    </a>
   </section>
+
 
   <section class="featured">
     <div class="posts-head"><h2>🔥 よく読まれている記事</h2><span class="posts-count">2026-08-20 時点</span></div>
@@ -46,19 +53,19 @@
           <span class="pick-rank">1</span>
           <span class="pick-cat">Web開発・インフラ</span>
           <span class="pick-title">LaravelのCORS設定はどこに書くか — 既定で開いている api/* と、絞るときの落とし穴</span>
-          <span class="pick-date">2026年8月19日(水) ・ 4 回</span>
+          <span class="pick-date">2026年8月19日(水)</span>
         </a>
         <a class="pick-card" href="contents/2026-08-19_001/">
           <span class="pick-rank">2</span>
           <span class="pick-cat">デイリーダイジェスト</span>
           <span class="pick-title">AI-news：2026/08/19 — Laravelのinバリデーションが厳密比較に変わった</span>
-          <span class="pick-date">2026年8月19日(水) ・ 4 回</span>
+          <span class="pick-date">2026年8月19日(水)</span>
         </a>
         <a class="pick-card" href="contents/2026-08-14_ai-basics/">
           <span class="pick-rank">3</span>
           <span class="pick-cat">AIで作る技術</span>
           <span class="pick-title">AIにコードを任せるまでの4段階 — プロンプトからループまで</span>
-          <span class="pick-date">2026年8月14日(金) ・ 4 回</span>
+          <span class="pick-date">2026年8月14日(金)</span>
         </a>
     </div>
   </section>
