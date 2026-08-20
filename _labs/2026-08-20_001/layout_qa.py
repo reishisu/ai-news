@@ -45,8 +45,9 @@ with sync_playwright() as p:
         bg = page.evaluate("""
           (() => { const el = document.querySelector('.code pre');
             if (!el) return 'no-code';
-            const b = getComputedStyle(el.parentElement).backgroundColor;
-            return b; })()
+            // 背景は pre 自身に付く(.code は透明のラッパー)。
+            // 親を見ると常に transparent で誤検知する。
+            return getComputedStyle(el).backgroundColor; })()
         """)
         print(f"[{width}px] .code の背景 = {bg}")
         if bg in ("rgba(0, 0, 0, 0)", "transparent"):

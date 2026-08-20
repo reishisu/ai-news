@@ -11,7 +11,7 @@
 <meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-20_001/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-20_001/images/thumb.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="../../css/article.css?v=8b4bfc04">
+<link rel="stylesheet" href="../../css/article.css?v=5dcc49d2">
 
 <link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
 
@@ -78,7 +78,9 @@
         <span class="tag warn">⚠ セキュリティ</span>
         <span class="tag">Claude Code</span>
       </div>
-      <p class="lead">サンドボックスは、Claude Codeのファイル読み書きやコマンド実行を決めた範囲に閉じ込める仕組みです。その読み取り拒否ルールに、macOSで穴がありました。原文は「wildcard read-deny rules (e.g. <code>**/.env</code>) now take precedence inside allowed read regions, cover matched directories' contents, and can't be bypassed by renaming the denied file」——裏を返すと、これまでは<mark>拒否対象のファイルをリネームすれば読めた</mark>ということです。</p>
+            <p class="lead">サンドボックスは、Claude Codeのファイル読み書きやコマンド実行を決めた範囲に閉じ込める仕組みです。その読み取り拒否ルールに、macOSで穴がありました。</p>
+      <div class="code wrap"><div class="code-head">CHANGELOG 2.1.236 の原文</div><pre>wildcard read-deny rules (e.g. **/.env) now take precedence inside allowed read regions, cover matched directories' contents, and can't be bypassed by renaming the denied file</pre></div>
+      <p class="lead">裏を返すと、これまでは<mark>拒否対象のファイルをリネームすれば読めた</mark>ということです。</p>
 
       <figure>
         <picture>
@@ -105,7 +107,9 @@
         <span class="tag">新機能</span>
         <span class="tag">Cursor</span>
       </div>
-      <p class="lead">8月19日付のchangelogで、エージェントを「毎回起動する道具」から「置いておく仕組み」へ寄せる機能がまとめて入りました。中核のSubscriptionsの原文は「Cursor can now monitor your PRs, watch a Slack thread, or run scheduled tasks. Cursor Agent subscribes to an event source (a thread or conversation) and wakes when something happens.」——PRやSlackスレッドを購読し、動きがあったら起きて作業します。</p>
+            <p class="lead">8月19日付のchangelogで、エージェントを「毎回起動する道具」から「置いておく仕組み」へ寄せる機能がまとめて入りました。中核はSubscriptionsです。</p>
+      <div class="code wrap"><div class="code-head">Cursor changelog の原文</div><pre>Cursor can now monitor your PRs, watch a Slack thread, or run scheduled tasks. Cursor Agent subscribes to an event source (a thread or conversation) and wakes when something happens.</pre></div>
+      <p class="lead">PRやSlackスレッドを購読し、動きがあったら起きて作業します。</p>
 
       <ul class="points">
         <li><b>まだクラウドエージェント限定。</b>原文に「Subscriptions are available for cloud agents only, for now.」と明記されています。ローカルのエージェントでは使えません。</li>
@@ -122,9 +126,14 @@
         <span class="tag warn">⚠ セキュリティ</span>
         <span class="tag">Microsoft Copilot</span>
       </div>
-      <p class="lead">発見したVaronis Threat Labsの原文は「Varonis Threat Labs uncovered another one-click vulnerability in Microsoft Copilot Personal dubbed CoSnitch (critical, CVE-2026-24301)」、そして「no click, no confirmation, no user action. One link is all it takes.」——細工されたリンクを開くだけで、確認なしにプロンプトが実行されました。MSRCの評価は<mark>Critical、CVSS 8.8</mark>です。</p>
+            <p class="lead">発見したVaronis Threat Labsは、こう書いています。</p>
+      <div class="code wrap"><div class="code-head">Varonis の原文</div><pre>Varonis Threat Labs uncovered another one-click vulnerability in Microsoft Copilot Personal dubbed CoSnitch (critical, CVE-2026-24301)</pre></div>
+      <div class="code wrap"><div class="code-head">Varonis の原文（攻撃の起点）</div><pre>no click, no confirmation, no user action. One link is all it takes.</pre></div>
+      <p class="lead">細工されたリンクを開くだけで、確認なしにプロンプトが実行されました。MSRCの評価は<mark>Critical、CVSS 8.8</mark>です。</p>
 
-      <p class="lead">何が抜けたか。「An injected prompt can query the victim's connected apps (Gmail, Drive, Calendar, OneDrive), encode the results into a URL, and exfiltrate them via Copilot's built-in URL-fetch capability to an attacker-controlled webhook.」——接続済みサービスの中身をURLに詰めて、Copilot自身のURL取得機能で外へ送る流れです。</p>
+            <p class="lead">何が抜けたか。</p>
+      <div class="code wrap"><div class="code-head">Varonis の原文</div><pre>An injected prompt can query the victim's connected apps (Gmail, Drive, Calendar, OneDrive), encode the results into a URL, and exfiltrate them via Copilot's built-in URL-fetch capability to an attacker-controlled webhook.</pre></div>
+      <p class="lead">接続済みサービスの中身をURLに詰めて、Copilot自身のURL取得機能で外へ送る流れです。</p>
 
       <ul class="points">
         <li><b>要約からメモリを汚染する経路もあった。</b>「A crafted webpage, when summarized by Copilot, injects attacker instructions into the victim's permanent memory store.」——細工ページを要約させると、攻撃者の指示が<mark>永続メモリに残り続ける</mark>設計上の穴も同時に報告されています(いずれもパッチ済み)。</li>
@@ -147,9 +156,12 @@
         <span class="tag warn">⚠ 障害(復旧済み)</span>
         <span class="tag">AWS</span>
       </div>
-      <p class="lead">AZ(アベイラビリティーゾーン)は、リージョンの中で独立した電源・ネットワークを持つデータセンター群のことです。AWSは欧州(ロンドン)リージョン eu-west-2 に4つ目のAZ「eu-west-2d」を追加しました。原文は「With this new Availability Zone (eu-west-2d), customers can distribute applications across four Availability Zones in eu-west-2」。</p>
+            <p class="lead">AZ(アベイラビリティーゾーン)は、リージョンの中で独立した電源・ネットワークを持つデータセンター群のことです。AWSは欧州(ロンドン)リージョン eu-west-2 に4つ目のAZ「eu-west-2d」を追加しました。</p>
+      <div class="code wrap"><div class="code-head">AWS What's New の原文</div><pre>With this new Availability Zone (eu-west-2d), customers can distribute applications across four Availability Zones in eu-west-2</pre></div>
 
-      <p class="lead">その直後に障害報告が出ます。「Between August 18 5:00 PM and August 19 11:00 AM PDT, we experienced elevated errors launching EC2 instances in a newly launched Availability Zone (euw2-az4)」——日本時間では<mark>8/19 9:00〜8/20 3:00</mark>です。既存の稼働中インスタンスとリソースには影響がありませんでした。</p>
+            <p class="lead">その直後に障害報告が出ます。</p>
+      <div class="code wrap"><div class="code-head">AWS Health Dashboard の原文</div><pre>Between August 18 5:00 PM and August 19 11:00 AM PDT, we experienced elevated errors launching EC2 instances in a newly launched Availability Zone (euw2-az4)</pre></div>
+      <p class="lead">日本時間では<mark>8/19 9:00〜8/20 3:00</mark>です。既存の稼働中インスタンスとリソースには影響がありませんでした。</p>
 
       <figure>
         <picture>
@@ -175,7 +187,8 @@
         <span class="tag">仕様変更</span>
         <span class="tag">IAM</span>
       </div>
-      <p class="lead">マネージドポリシーは、権限(何をしてよいか)をまとめたJSONを部品化して、ロールに付け外しできるようにしたものです。1つのロールに付けられる数の既定が10個から20個になりました。原文は「AWS Identity and Access Management (IAM) has increased the default quota for managed policies per role from 10 to 20.」。</p>
+            <p class="lead">マネージドポリシーは、権限(何をしてよいか)をまとめたJSONを部品化して、ロールに付け外しできるようにしたものです。1つのロールに付けられる数の既定が10個から20個になりました。</p>
+      <div class="code wrap"><div class="code-head">AWS What's New の原文</div><pre>AWS Identity and Access Management (IAM) has increased the default quota for managed policies per role from 10 to 20.</pre></div>
 
       <figure>
         <picture>
@@ -200,7 +213,9 @@
         <span class="tag warn">⚠ セキュリティ</span>
         <span class="tag">Terraform</span>
       </div>
-      <p class="lead"><code>.terraformignore</code>は、Terraform Enterprise / HCP Terraformで実行するときに「この設定ディレクトリのうち、アップロードしないファイル」を指定する仕組みです。原文は「Update go-slug to v0.18.3 to mitigate CVE-2026-14978, which is a Unicode normalization issue that could lead to files not being correctly excluded via <code>.terraformignore</code> from upload to a Terraform Enterprise or HCP Terraform during a run」——Unicode正規化の不備で、<mark>除外したはずのファイルが混ざって上がり得ました</mark>。</p>
+            <p class="lead"><code>.terraformignore</code>は、Terraform Enterprise / HCP Terraformで実行するときに「この設定ディレクトリのうち、アップロードしないファイル」を指定する仕組みです。</p>
+      <div class="code wrap"><div class="code-head">Terraform CHANGELOG 1.15.9 の原文</div><pre>Update go-slug to v0.18.3 to mitigate CVE-2026-14978, which is a Unicode normalization issue that could lead to files not being correctly excluded via .terraformignore from upload to a Terraform Enterprise or HCP Terraform during a run</pre></div>
+      <p class="lead">Unicode正規化の不備で、<mark>除外したはずのファイルが混ざって上がり得ました</mark>。</p>
 
       <ul class="points">
         <li><b>影響するのはリモート実行のアップロード経路。</b>CHANGELOGの文言上、対象はTerraform Enterprise / HCP Terraformへのアップロードです。NVDの評価は<mark>CVSS 3.1で5.5(MEDIUM)</mark>、対象はgo-slug 0.4.0〜0.18.2(修正は0.18.3)。攻撃ベクターはローカル(AV:L)で、緊急対応というより「除外の前提が崩れていた」ことへの点検が主です。</li>
@@ -217,7 +232,9 @@
         <span class="tag">新機能</span>
         <span class="tag">TiDB</span>
       </div>
-      <p class="lead">TiDB Cloud Lakeは、TiDB Cloudのラインアップに2026年6月30日からパブリックプレビューとして加わっている製品です。8月18日のリリースノートに「TiDB Cloud Lake is now available on Alibaba Cloud in Japan (Tokyo) (ap-northeast-1).」とあり、対応環境の一覧は現在、AWSの5リージョン(オレゴン・東京・バージニア北部・シンガポール・ムンバイ)とAlibaba Cloud東京の6つです。</p>
+            <p class="lead">TiDB Cloud Lakeは、TiDB Cloudのラインアップに2026年6月30日からパブリックプレビューとして加わっている製品です。8月18日のリリースノートに、こうあります。</p>
+      <div class="code wrap"><div class="code-head">TiDB Cloud リリースノート の原文</div><pre>TiDB Cloud Lake is now available on Alibaba Cloud in Japan (Tokyo) (ap-northeast-1).</pre></div>
+      <p class="lead">対応環境の一覧は現在、AWSの5リージョン(オレゴン・東京・バージニア北部・シンガポール・ムンバイ)とAlibaba Cloud東京の6つです。</p>
 
       <ul class="points">
         <li><b>拡張の入り口も2つ増えた。</b>原文は「Expand Python extensibility and analytics engineering workflows for TiDB Cloud Lake with the new external Python UDF SDK and dbt adapter.」——<mark>Pythonでカスタム関数を書くSDK</mark>と、<mark>dbtで変換ワークフローを組むアダプタ</mark>です。</li>
@@ -239,7 +256,9 @@
         <span class="tag">新機能</span>
         <span class="tag">WebView</span>
       </div>
-      <p class="lead">androidx.webkitは、WebViewをアプリから制御するJetpackライブラリです。1.17.0の目玉は<code>WebViewCompat#navigate()</code>——原文は「Introduces a modern replacement for WebView#loadUrl.」。履歴エントリの置き換え、追跡できるNavigationオブジェクトの返却、状態保存・復元をまたいだヘッダーの一貫した持ち回りが挙げられています。</p>
+            <p class="lead">androidx.webkitは、WebViewをアプリから制御するJetpackライブラリです。1.17.0の目玉は WebViewCompat#navigate() です。</p>
+      <div class="code wrap"><div class="code-head">androidx.webkit 1.17.0 の原文</div><pre>Introduces a modern replacement for WebView#loadUrl.</pre></div>
+      <p class="lead">履歴エントリの置き換え、追跡できるNavigationオブジェクトの返却、状態保存・復元をまたいだヘッダーの一貫した持ち回りが挙げられています。</p>
 
       <p class="lead">ただし<code>navigate()</code>はまだ実験的(Opt-in)なAPIです。<code>@RequiresFeature</code>が付いており、実行時に<code>WebViewFeature.isFeatureSupported()</code>で端末側のWebView実装が対応しているかを確かめてから呼ぶ必要があります(未対応環境では<code>UnsupportedOperationException</code>)。ライブラリを1.17.0に上げただけでは「使える」とは限りません。</p>
 
@@ -264,7 +283,9 @@
         <span class="tag">8/18投稿</span>
         <span class="tag">エージェント設計</span>
       </div>
-      <p class="lead">エージェントの「ハーネス」(ツール呼び出しやループを回す実行基盤)を作り替えずに、そのままRL(強化学習)の学習ループへつなぐ約3,500行のフレームワークです。原文は「It supports arbitrary agent harnesses」——モデルとの通信をプロキシで受けるので、公式が例に挙げるAutoGenのような既存ハーネス側の変更はほぼ要らないという設計です。</p>
+      <p class="lead">エージェントの「ハーネス」(ツール呼び出しやループを回す実行基盤)を作り替えずに、そのままRL(強化学習)の学習ループへつなぐ約3,500行のフレームワークです。</p>
+      <div class="code wrap"><div class="code-head">論文アブストラクトの原文</div><pre>It supports arbitrary agent harnesses</pre></div>
+      <p class="lead">モデルとの通信をプロキシで受けるので、公式が例に挙げるAutoGenのような既存ハーネス側の変更はほぼ要らないという設計です。</p>
 
       <ul class="points">
         <li><b>数字が具体的。</b>「Using only 6K training examples and modest compute, RL improves Qwen3.5-9B on SWE-bench Verified from 41.8% to 56.4%, a 14.6-point absolute gain.」——<mark>学習データ6,000件</mark>でこの伸びと報告しています。</li>
@@ -280,7 +301,9 @@
         <span class="tag">8/18投稿</span>
         <span class="tag">エージェント設計</span>
       </div>
-      <p class="lead">シンガポール国立大学などの研究者(南方科技大学・オックスフォードも参加)による論文です。原文は「This paper argues that evolution strategies (ES) can be a better choice for fine-tuning long-horizon LLM agents.」——長く続くタスクではRLの報酬の割り当てが難しくなるのに対し、ES(進化戦略)は最終結果だけで最適化できるという主張です。</p>
+            <p class="lead">シンガポール国立大学などの研究者(南方科技大学・オックスフォードも参加)による論文です。</p>
+      <div class="code wrap"><div class="code-head">論文アブストラクトの原文</div><pre>This paper argues that evolution strategies (ES) can be a better choice for fine-tuning long-horizon LLM agents.</pre></div>
+      <p class="lead">長く続くタスクではRLの報酬の割り当てが難しくなるのに対し、ES(進化戦略)は最終結果だけで最適化できるという主張です。</p>
 
       <ul class="points">
         <li><b>メモリの主張が実務的。</b>「ES enables full-parameter optimization with only minimal, inference-level GPU memory, making it possible to fine-tune large LLMs.」——<mark>推論に必要な程度のGPUメモリ</mark>でフルパラメータ最適化ができるとしています。</li>
@@ -302,9 +325,17 @@
         <span class="tag">発表</span>
         <span class="tag">OpenAI</span>
       </div>
-      <p class="lead">公式Xアカウントの投稿(日本時間8/20 4:53)です。原文は「We will continue to offer Zero Data Retention for frontier models.」——ZDR(ゼロデータ保持。入出力をOpenAI側に残さない契約形態)を、フロンティアモデルでも提供し続けると明言しました。</p>
+            <p class="lead">公式Xアカウントの投稿(日本時間8/20 4:53)です。</p>
+      <div class="code wrap"><div class="code-head">OpenAI 公式X投稿の原文</div><pre>We will continue to offer Zero Data Retention for frontier models.</pre></div>
+      <p class="lead">ZDR(ゼロデータ保持。入出力をOpenAI側に残さない契約形態)を、フロンティアモデルでも提供し続けると明言しました。</p>
 
-      <p class="lead">続けて「safety systems also need to identify risks across related interactions. To help address those risks, we're previewing」として新しい安全監視方式を予告しています。名称は投稿本文ではなく添付の図解に「PRIVATE SAFETY PROCESSING / No OpenAI personnel access」と記載されており、図解には「OpenAI can only see the category and severity of the alert. No customer content.」——<mark>担当者は会話の中身に触れず、アラートの種類と深刻度だけを見る</mark>設計だと説明されています。</p>
+      <p class="lead">続けて、新しい安全監視方式を予告しています。</p>
+      <div class="code wrap"><div class="code-head">OpenAI 公式X投稿の原文（続き）</div><pre>safety systems also need to identify risks across related interactions. To help address those risks, we're previewing</pre></div>
+      <p class="lead">名称は投稿本文ではなく、添付の図解に書かれています。</p>
+      <div class="code wrap"><div class="code-head">添付図解の記載</div><pre>PRIVATE SAFETY PROCESSING / No OpenAI personnel access
+
+OpenAI can only see the category and severity of the alert. No customer content.</pre></div>
+      <p class="lead"><mark>担当者は会話の中身に触れず、アラートの種類と深刻度だけを見る</mark>設計だと説明されています。</p>
 
       <ul class="points">
         <li><b>詳細のブログは未確認。</b>この発表の公式ブログ記事はbot判定(403)で本文を取得できなかったため、この項目は<mark>X投稿と添付図解で確認できた範囲だけ</mark>で書いています(参考文献の「未確認」参照)。</li>

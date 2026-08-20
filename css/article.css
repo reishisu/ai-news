@@ -2,7 +2,9 @@
    方針: 読んで頭に入ることを最優先。1カラム・広い行間・明確な見出し階層。 */
 
 :root {
-  --bg: #f7f8fa;
+  /* カードとの明度差が 1.06:1 しかなく、縮小して眺めると記事全体が
+     切れ目のない1本の灰色の帯に見えていた。1.13:1 まで開く(2026/8/20 実測)。 */
+  --bg: #eef1f6;
   --card: #ffffff;
   --text: #14161a;
   --sub: #5b6472;
@@ -24,9 +26,11 @@
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #101216;
+    --bg: #0d0f12;
     --card: #191b1f;
-    --text: #f2f4f8;
+    /* 本文の白は #f2f4f8(--card比 15.66:1)だと長文でハレーションする。
+       13.4:1 まで落とす(AAA 7:1 の倍近くを維持)。2026/8/20 実測 */
+    --text: #dfe3ec;
     --sub: #aab3c0;
     --line: #2a2e35;
     --line-soft: #23262c;
@@ -52,7 +56,9 @@ body {
   color: var(--text);
   font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
   font-size: 17px;
-  line-height: 1.95;
+  /* 1.95 は行が離れすぎて、段落が"かたまり"に見えなくなる。
+     段落の切れ目(段落間マージン)より行間のほうが広い状態だった(2026/8/20 実測)。 */
+  line-height: 1.85;
   text-underline-offset: 3px;
 }
 a { color: var(--accent); }
@@ -75,7 +81,7 @@ img, picture { max-width: 100%; }
 
 .masthead { padding: clamp(30px, 6vw, 52px) 0 8px; }
 .masthead .eyebrow { color: var(--sub); font-size: 14px; font-weight: 600; letter-spacing: .02em; }
-.masthead h1 { margin-top: 8px; font-size: clamp(1.55rem, 4.6vw, 2.15rem); font-weight: 800; line-height: 1.45; letter-spacing: .01em; }
+.masthead h1 { margin-top: 8px; font-size: clamp(1.55rem, 4.6vw, 2.15rem); font-weight: 800; line-height: 1.38; letter-spacing: .01em; }
 .masthead .range { margin-top: 12px; color: var(--sub); font-size: 14px; }
 
 /* ---------- 今日の要点 ---------- */
@@ -87,7 +93,7 @@ img, picture { max-width: 100%; }
 .summary h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 14px; }
 .summary ol { margin: 0; padding: 0; list-style: none; counter-reset: pt; }
 .summary li { position: relative; padding-left: 42px; counter-increment: pt; }
-.summary li + li { margin-top: 18px; padding-top: 18px; border-top: 1px dashed var(--line); }
+.summary li + li { margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--line); }
 .summary li::before {
   content: counter(pt);
   position: absolute; left: 0; top: 4px;
@@ -97,23 +103,23 @@ img, picture { max-width: 100%; }
   display: flex; align-items: center; justify-content: center;
   line-height: 1;
 }
-.summary b { display: block; font-size: 1.02rem; line-height: 1.7; }
+.summary b { display: block; font-size: 1.02rem; line-height: 1.65; }
 .summary span { display: block; margin-top: 4px; color: var(--sub); font-size: .9rem; line-height: 1.8; }
 
 /* ---------- 目次 ---------- */
 .toc { margin: 26px 0; padding: 18px 22px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
 .toc h2 { font-size: .92rem; font-weight: 800; color: var(--sub); margin-bottom: 8px; }
 .toc ol { margin: 0; padding-left: 1.3em; font-size: .95rem; }
-.toc li { margin: 4px 0; }
+.toc li { margin: 6px 0; }
 .toc a { color: var(--text); text-decoration: none; }
 .toc a:hover { color: var(--accent); text-decoration: underline; }
 
 /* ---------- セクション ---------- */
-.section { margin-top: 78px; scroll-margin-top: 78px; }
+.section { margin-top: 88px; scroll-margin-top: 78px; }
 .section > h2 {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  font-size: 1.66rem; font-weight: 800; line-height: 1.5;
-  padding-bottom: 12px; border-bottom: 2px solid var(--line);
+  font-size: 1.66rem; font-weight: 800; line-height: 1.4;
+  padding-bottom: 13px; border-bottom: 2px solid var(--line);
 }
 .section > h2::before { content: ""; width: 6px; height: 1.15em; border-radius: 3px; background: var(--accent); flex: none; }
 .section > h2 .n { margin-left: auto; color: var(--sub); font-size: .78rem; font-weight: 600; }
@@ -123,22 +129,30 @@ img, picture { max-width: 100%; }
 .section-d > h2::before { background: var(--d); }
 
 /* ---------- ニュースカード ---------- */
+/* 余白の設計(2026/8/20 実測して組み直し)
+   項目間 40px / 項目内は最大 24px。以前は 28px 対 14〜16px で差が2倍しかなく、
+   カードの切れ目と段落の切れ目が同じ強さに見えていた。 */
 .item {
-  margin-top: 28px; padding: 26px 28px;
+  margin-top: 40px; padding: 26px 28px;
   background: var(--card); border: 1px solid var(--line); border-radius: 14px;
   box-shadow: var(--shadow);
 }
-.item .source { display: flex; align-items: center; gap: 8px; color: var(--sub); font-size: 13px; font-weight: 600; }
+.section > h2 + .item { margin-top: 20px; }
+.item .source { display: flex; align-items: center; gap: 8px; color: var(--sub); font-size: 13px; font-weight: 600; line-height: 1.6; }
 .item .source img { width: 17px; height: 17px; border-radius: 4px; }
-.item h3 { margin-top: 10px; font-size: 1.22rem; font-weight: 800; line-height: 1.6; letter-spacing: .005em; }
+.item h3 { margin-top: 7px; font-size: 1.3rem; font-weight: 800; line-height: 1.5; letter-spacing: .005em; }
 
-.tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
 .tag { font-size: 12px; font-weight: 600; padding: 3px 11px; border-radius: 999px; border: 1px solid var(--line); color: var(--sub); }
 .tag.ok { color: var(--ok); background: var(--ok-bg); border-color: transparent; }
 .tag.warn { color: var(--warn); background: var(--warn-bg); border-color: transparent; }
 .tag.unk { color: var(--unk); background: var(--unk-bg); border-color: transparent; }
 
-.lead { margin-top: 14px; font-size: 1.02rem; line-height: 1.95; }
+/* 段落は「行間より広い切れ目」で区切る。1.95 の行間に対し段落間が 14px だと、
+   段落の境目が行の隙間に埋もれる(2026/8/20 実測: 行の白 13px 対 段落の白 27px)。 */
+.lead { margin-top: 18px; font-size: 1.02rem; line-height: 1.85; }
+.lead + .lead { margin-top: 24px; }
+.item h3 + .lead, .section > h2 + .lead { margin-top: 14px; }
 /* mark は文脈を限定しないこと。.lead だけに当てていた時期があり、
    .points と .summary の mark がブラウザ既定の純黄(#ffff00)に落ちていた。
    純黄はテーマに追随しないので、ダークモードで最大コントラストのフレアになり、
@@ -152,17 +166,23 @@ mark {
 }
 
 /* 要点3行 — 記憶に残す本体 */
-.points { margin-top: 16px; padding: 16px 20px; border-radius: 11px; background: var(--bg); border: 1px solid var(--line-soft); }
-.points li { list-style: none; position: relative; padding-left: 22px; font-size: .97rem; line-height: 1.85; }
-.points li + li { margin-top: 8px; }
-.points li::before { content: ""; position: absolute; left: 4px; top: .78em; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.points { margin-top: 24px; padding: 18px 20px; border-radius: 11px; background: var(--bg); border: 1px solid var(--line); }
+/* 本文(1.02rem)より小さいと、要点のほうが"おまけ"に見える。ほぼ同寸に揃える。 */
+.points li { list-style: none; position: relative; padding-left: 22px; font-size: 1rem; line-height: 1.8; }
+/* 項目間 8px は、同じ項目の行と行の隙間(約13px)より狭かった。
+   結果、複数行の箇条書きが1つの塊に溶けていた(2026/8/20 実測)。 */
+.points li + li { margin-top: 22px; }
+.points li::before { content: ""; position: absolute; left: 4px; top: .65em; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
 .points b { font-weight: 700; }
+/* 各項目の先頭の <b> は「その項目の見出し」。行頭に立てて、太字だけを拾い読みできるようにする。
+   全記事で points の li は 100% <b> 始まり(1119件を実測)なので、揃った目次として機能する。 */
+.points > li > b:first-child { display: block; }
 
 /* ---------- 図版 ---------- */
-figure { margin: 20px 0 0; }
+figure { margin: 26px 0 0; }
 figure img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 11px; background: var(--card); }
 figure.hero img { aspect-ratio: 1200 / 628; object-fit: cover; }
-figure figcaption { margin-top: 8px; color: var(--sub); font-size: 13px; line-height: 1.7; text-align: center; }
+figure figcaption { margin-top: 9px; color: var(--sub); font-size: 13px; line-height: 1.75; text-align: center; }
 figure.thumb { float: right; width: 168px; margin: 4px 0 14px 20px; }
 figure.thumb img { border-radius: 9px; }
 /* 各項目の最終行は「今やること」に固定する運用(CLAUDE.md 第2節)。
@@ -171,7 +191,9 @@ figure.thumb img { border-radius: 9px; }
   background: var(--mark); border-radius: 8px;
   padding: 8px 10px 8px 26px; margin-left: -4px;
 }
-.points li:last-child::before { left: 8px; }
+/* 絶対配置の基準は li の padding box なので、padding-top のぶん丸だけが上に残る。
+   実測で約7px 高い位置に付いていた(2026/8/20)。 */
+.points li:last-child::before { left: 8px; top: calc(.65em + 8px); }
 
 .item::after { content: ""; display: block; clear: both; }
 
@@ -181,7 +203,7 @@ figure.thumb img { border-radius: 9px; }
   :root { --code-bg: #14171c; --code-fg: #e4e8ef; --term-bg: #0a0c0f; --term-fg: #dfe4ec; }
 }
 .code {
-  margin-top: 16px;
+  margin-top: 22px;
   border: 1px solid var(--line); border-radius: 11px; overflow: hidden;
 }
 .code-head {
@@ -201,7 +223,9 @@ figure.thumb img { border-radius: 9px; }
 /* 日本語まじりの文章ブロックは折り返す(コード/ログは折り返さない) */
 .code.wrap pre { white-space: pre-wrap; word-break: break-word; }
 .code.term .code-head { background: var(--term-bg); color: #9aa4b2; border-bottom-color: rgba(255,255,255,.12); }
-p code, li code, dd code, td code {
+/* 見出しの中の長い識別子も折り返す。h3 が抜けていて、幅380pxで
+   <h3><code>Profile#setOriginMatchedHeader</code></h3> が7px はみ出していた(2026/8/20 実測)。 */
+p code, li code, dd code, td code, h2 code, h3 code, h4 code, figcaption code {
   padding: 1px 6px; border-radius: 5px;
   background: var(--code-bg); color: var(--code-fg);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -237,7 +261,7 @@ p code, li code, dd code, td code {
 
 /* ---------- クイズ ---------- */
 .quiz {
-  margin-top: 20px; padding: 20px 22px;
+  margin-top: 28px; padding: 20px 22px;
   border: 2px dashed var(--line); border-radius: 14px; background: var(--card);
 }
 .quiz .q { font-weight: 800; font-size: 1.03rem; line-height: 1.7; }
@@ -256,8 +280,8 @@ p code, li code, dd code, td code {
 .quiz .ans { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); font-size: .96rem; line-height: 1.85; }
 
 /* ---------- チェックリスト ---------- */
-.checklist { margin-top: 14px; padding: 0; list-style: none; }
-.checklist li { margin-top: 8px; }
+.checklist { margin-top: 20px; padding: 0; list-style: none; }
+.checklist li { margin-top: 10px; }
 .checklist label {
   display: flex; align-items: flex-start; gap: 11px;
   padding: 12px 16px; border: 1px solid var(--line); border-radius: 11px;
@@ -276,11 +300,11 @@ p code, li code, dd code, td code {
 
 /* ---------- 参考文献 ---------- */
 .refs { margin: 4px 0 0; padding-left: 1.6em; font-size: .9rem; line-height: 1.85; color: var(--text); }
-.refs li { margin-top: 12px; }
+.refs li { margin-top: 16px; }
 .refs li::marker { color: var(--sub); font-weight: 700; }
 .refs i { font-style: normal; color: var(--sub); }
 .refs a { word-break: break-all; }
-.refs .note { display: block; margin-top: 2px; color: var(--sub); font-size: .85rem; }
+.refs .note { display: block; margin-top: 3px; color: var(--sub); font-size: .85rem; }
 .refs .flag {
   display: inline-block; margin-right: 6px; padding: 1px 8px; border-radius: 999px;
   font-size: .72rem; font-weight: 800; border: 1px solid var(--line);
@@ -292,7 +316,7 @@ p code, li code, dd code, td code {
 /* ---------- もっと知りたい人へ(参考文献とは別枠の紹介) ---------- */
 .reads { list-style: none; margin: 6px 0 0; padding: 0; }
 .reads li {
-  margin-top: 14px; padding: 14px 16px;
+  margin-top: 16px; padding: 15px 17px;
   border: 1px solid var(--line); border-radius: 11px; background: var(--card);
 }
 .reads .kind {
@@ -352,21 +376,21 @@ p code, li code, dd code, td code {
 }
 
 /* ---------- 詳細 ---------- */
-details { margin-top: 18px; border-top: 1px solid var(--line-soft); padding-top: 14px; }
+details { margin-top: 24px; border-top: 1px solid var(--line-soft); padding-top: 16px; }
 details summary { cursor: pointer; color: var(--accent); font-size: .93rem; font-weight: 700; list-style: none; }
 details summary::-webkit-details-marker { display: none; }
 details summary::before { content: "▸ "; }
 details[open] summary::before { content: "▾ "; }
-details .body { margin-top: 12px; font-size: .96rem; line-height: 1.9; }
+details .body { margin-top: 12px; font-size: .96rem; line-height: 1.85; }
 details .body dt { font-weight: 800; color: var(--sub); font-size: .85rem; margin-top: 12px; }
 details .body dt:first-child { margin-top: 0; }
 details .body dd { margin: 3px 0 0; }
 details .body a { word-break: break-all; }
 
-.none { color: var(--sub); margin-top: 20px; font-size: .97rem; }
+.none { color: var(--sub); margin-top: 24px; font-size: .97rem; }
 
 /* ---------- 比較表(狭い画面では横スクロール) ---------- */
-.table { margin-top: 18px; overflow-x: auto; border: 1px solid var(--line); border-radius: 11px; background: var(--card); }
+.table { margin-top: 24px; overflow-x: auto; border: 1px solid var(--line); border-radius: 11px; background: var(--card); }
 .table table { border-collapse: collapse; width: 100%; font-size: .93rem; line-height: 1.7; }
 .table th, .table td { padding: 10px 15px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line-soft); }
 .table thead th { background: var(--bg); color: var(--sub); font-size: .8rem; font-weight: 800; white-space: nowrap; }
@@ -400,12 +424,13 @@ details .body a { word-break: break-all; }
 .article-foot a:hover { text-decoration: underline; }
 
 @media (max-width: 600px) {
-  body { font-size: 16px; line-height: 1.9; }
+  body { font-size: 16px; line-height: 1.85; }
   .article { padding-bottom: 56px; }
   .summary { padding: 20px 18px; }
   .summary li { padding-left: 36px; }
-  .item { padding: 20px 18px; }
-  .item h3 { font-size: 1.12rem; }
+  .item { margin-top: 34px; padding: 22px 18px; }
+  .section > h2 + .item { margin-top: 18px; }
+  .item h3 { font-size: 1.2rem; }
   /* 章の切れ目は狭い画面ほど効かせる。項目見出し(1.12rem)との差が
      5%しかなく、縮小すると章の境目が本文に溶けていた(2026/8/20)。 */
   /* 章の切れ目は狭い画面ほど効かせる。項目見出し(1.12rem)との差が
@@ -414,7 +439,8 @@ details .body a { word-break: break-all; }
   .section > h2 { font-size: 1.38rem; }
   .section > h2 .n { margin-left: 6px; }
   figure.thumb { float: none; width: 100%; margin: 16px 0 0; }
-  .points { padding: 14px 16px; }
+  .points { padding: 16px 16px; }
+  .lead + .lead { margin-top: 22px; }
   .code pre { font-size: 12px; padding: 12px 13px; }
 }
 
