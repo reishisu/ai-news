@@ -461,3 +461,17 @@ details .body a { word-break: break-all; }
 .video-cta .vc-text { display: flex; flex-direction: column; gap: 2px; }
 .video-cta .vc-text b { font-size: 15px; font-weight: 800; line-height: 1.4; }
 .video-cta .vc-text span { color: var(--sub); font-size: 12.5px; }
+
+/* 参考文献の「参照箇所」は原文の再掲なので既定で畳む。
+   本文で読んだ英文が末尾でもう一度出てきて、記事の27%を占めていた(2026/8/20)。
+   リンクと確度ラベル(.flag)は畳まない — 第1節の検証可能性の要件はそのまま。 */
+.refs .note-d { margin: 6px 0; }
+.refs .note-d > summary {
+  cursor: pointer; list-style: none;
+  font-size: .82rem; color: var(--sub); font-weight: 700;
+  padding: 2px 0;
+}
+.refs .note-d > summary::-webkit-details-marker { display: none; }
+.refs .note-d > summary::before { content: "▸ "; }
+.refs .note-d[open] > summary::before { content: "▾ "; }
+.refs .note-d[open] > summary { margin-bottom: 4px; }
