@@ -1,0 +1,44 @@
+{
+ "period": "month",
+ "queries": 8,
+ "videos": 3,
+ "failed": [],
+ "rows": [
+  {
+   "id": "wL44Qup7EiM",
+   "title": "N+1 query problem | Eager Loading | solution | Node js | Laravel | #nodejsdeveloper #nodejsdeveloper",
+   "channel": "Novice Developer",
+   "views": 40,
+   "age_days": 14.0,
+   "length_sec": 223,
+   "query": "Laravel N+1",
+   "url": "https://youtu.be/wL44Qup7EiM",
+   "domain": "直接指定",
+   "per_day": 2.9
+  },
+  {
+   "id": "jcsrpeF5BdI",
+   "title": "Fix AWS ALB 502 BAD GATEWAY! | High P1 Incident Response (ECS Fargate OOM)",
+   "channel": "IT Matters",
+   "views": 38,
+   "age_days": 14.0,
+   "length_sec": 456,
+   "query": "ALB 502",
+   "url": "https://youtu.be/jcsrpeF5BdI",
+   "domain": "直接指定",
+   "per_day": 2.7
+  },
+  {
+   "id": "MMlMCh65xOw",
+   "title": "遅いAPIを改善する：N+1クエリとイーガーローディング（システム設計）",
+   "channel": "Knowledge Thrusters",
+   "views": 13,
+   "age_days": 14.0,
+   "length_sec": 360,
+   "query": "Laravel N+1",
+   "url": "https://youtu.be/MMlMCh65xOw",
+   "domain": "直接指定",
+   "per_day": 0.9
+  }
+ ]
+}

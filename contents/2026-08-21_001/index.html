@@ -42,8 +42,8 @@
         <span>8月18日に@ClaudeDevsが告知した内容で、当サイトでは取り上げ損ねていた続報です。対象はPro / Max / Team / Enterpriseの<mark>週次</mark>上限。「恒久化を目指すが容量が逼迫しうる」とあり、9月1日以降は保証されていません。上限まで使う現場は、この日付を前提に重い作業の配分を考える材料になります。</span>
       </li>
       <li>
-        <b>Claude Code 2.1.237に、結論を先に出す出力スタイル「Concise」が追加された</b>
-        <span>前置きと途中経過のナレーションを省き、<mark>結果から書く</mark>スタイルです。作業の丁寧さは変えないと明記されています。<code>/config</code>のOutput styleで選べます。</span>
+        <b>Claude Code 2.1.238で、プロジェクトの.mcp.jsonが書いたコマンドはフォルダを信頼するまで走らなくなった</b>
+        <span>ヘッダーを生成する<code>headersHelper</code>に<mark>信頼ダイアログの承認が必須</mark>になり、認証情報の環境変数も渡らなくなりました。非対話の<code>claude -p</code>でも同じなので、CIから使っているなら確認が要ります。前日の2.1.237で入った出力スタイル「Concise」も同じ節に載せています。</span>
       </li>
       <li>
         <b>Web開発・インフラ / クライアント技術 / 技術・研究 / モデル・業界は、特筆すべき動きなし</b>
@@ -55,7 +55,7 @@
   <nav class="toc">
     <h2>目次</h2>
     <ol>
-      <li><a href="#work">実務者向けのAI開発ツール(2件)</a></li>
+      <li><a href="#work">実務者向けのAI開発ツール(3件)</a></li>
       <li><a href="#dev">Web開発・インフラ(動きなし)</a></li>
       <li><a href="#client">クライアント技術(動きなし)</a></li>
       <li><a href="#research">技術・研究(動きなし)</a></li>
@@ -66,7 +66,7 @@
 
   <!-- ============ 実務者向け ============ -->
   <section class="section section-b" id="work">
-    <h2>🧰 実務者向けのAI開発ツール<span class="n">2件</span></h2>
+    <h2>🧰 実務者向けのAI開発ツール<span class="n">3件</span></h2>
 
     <article class="item">
       <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
@@ -113,6 +113,47 @@ We hope to make this a permanent change to our plans, but strong demand for our 
         <li><b>選び方。</b><code>/config</code>のOutput styleから選択します。返答の前置きが冗長だと感じていた人向けの、体感が変わる設定です。</li>
         <li><b>公開時刻。</b>npmレジストリの記録で2.1.237は2026-08-19T23:57Z(日本時間8/20 8:57)。同じ版で「LLMゲートウェイ/カスタムbase URL利用時のプロンプトキャッシュ」の不具合も直っていますが、これは該当環境だけの修正です。</li>
         <li><b>今やること。対応は不要。</b>返答が長いと感じるなら<code>/config</code>で「Concise」を試す、というだけの任意の設定です。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude Code 2.1.238 — .mcp.json のヘッダー生成コマンドに、フォルダの信頼承認が必要になった</h3>
+      <div class="tags">
+        <span class="tag">8/21 3:01 JST</span>
+        <span class="tag">⚠ 仕様変更</span>
+        <span class="tag">Claude Code</span>
+      </div>
+      <p class="lead">MCPサーバーとは、Claude Codeに外部のツールを足す仕組みです。その設定ファイル <code>.mcp.json</code> には、接続時のHTTPヘッダーを作るコマンド（<code>headersHelper</code>）を書けます。短命なトークンをその場で発行させるための機能です。</p>
+      <p class="lead">2.1.238から、<mark>このコマンドはフォルダの信頼ダイアログを承認するまで走りません</mark>。非対話の <code>claude -p</code> でも同じです。</p>
+      <div class="code wrap"><div class="code-head">CHANGELOG 2.1.238 の原文（信頼の要求）</div><pre>MCP `headersHelper` in a project `.mcp.json`, and inline MCP servers in project or `--add-dir` agent files, now require that folder's trust dialog to have been accepted (also under `claude -p`)</pre></div>
+      <p class="lead">あわせて、そのコマンドに<mark>認証情報の環境変数が渡らなくなりました</mark>。原文は「継承した認証情報の環境変数なしで走る」と書いています。</p>
+      <div class="code wrap"><div class="code-head">CHANGELOG 2.1.238 の原文（認証情報の扱い）</div><pre>MCP `headersHelper` from a project `.mcp.json`, plugin, or agent file runs without inherited credential env vars; user, managed and claude.ai-scope helpers now run from the Claude config dir</pre></div>
+
+      <p class="lead">同じ版で、手が覚えている操作も2つ変わりました。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>操作</th><th>2.1.237まで</th><th>2.1.238から</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>フルスクリーンで Ctrl+L / Cmd+K</td>
+              <td data-label="2.1.237まで">2回続けて押すと <code>/clear</code> が走った</td>
+              <td data-label="2.1.238から">常に再描画だけ。2回押しの <code>/clear</code> は廃止</td>
+            </tr>
+            <tr>
+              <td><code>claude mcp list</code> / <code>get</code></td>
+              <td data-label="2.1.237まで">無効にしたサーバーにも接続して疎通確認</td>
+              <td data-label="2.1.238から">接続せず <code>⊘ Disabled</code> と表示するだけ</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="points">
+        <li><b>非対話で動かしているなら先に確認。</b>信頼ダイアログの承認は <code>claude -p</code> でも必要です。CIやスクリプトからプロジェクトの <code>.mcp.json</code> を使っている場合、そのフォルダが承認済みかどうかで結果が変わります。</li>
+        <li><b>プラグイン導入時に確認が入る。</b>カタログの <code>headersHelper</code> は、実行するコマンドを表示したうえで <code>claude plugin install/update</code> が <code>[y/N]</code> を聞きます。自動化しているなら <code>-y</code> を渡します。</li>
+        <li><b>この項目は当日中に追記しました。</b>npmでの公開は2026-08-20T18:01Z（日本時間8/21 3:01）でしたが、朝5時の編集時点ではCHANGELOGに2.1.238の記載が無く、<code>dist-tags.latest</code> も2.1.237のままでした。中身を確認できないものは書かない方針（本サイトの規律）に従って保留し、記載が出たあとに追加しています。</li>
+        <li><b>今やること。</b><code>.mcp.json</code> に <code>headersHelper</code> を書いているプロジェクトがあるなら、更新後に一度そのフォルダを開いて信頼ダイアログを承認しておく。書いていないなら対応は不要で、Ctrl+L の2回押しで <code>/clear</code> されなくなったことだけ覚えておけばよい。</li>
       </ul>
     </article>
   </section>
@@ -184,14 +225,14 @@ We hope to make this a permanent change to our plans, but strong demand for our 
         </li>
         <li>
           <span class="flag primary">一次資料</span>
-          Anthropic「CHANGELOG.md (2.1.237)」<i>anthropics/claude-code (raw.githubusercontent.com)</i>.
-          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「Added a built-in "Concise" output style: Claude leads with results and skips preamble and narration, while doing the work just as thoroughly. Select it under Output style in /config」「Fixed prompt caching for sessions using an LLM gateway or custom base URL」。取得時点でmainのCHANGELOG末尾の最新記載は2.1.237。</span></details>
+          Anthropic「CHANGELOG.md (2.1.237 / 2.1.238)」<i>anthropics/claude-code (raw.githubusercontent.com)</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2.1.237の参照箇所: 「Added a built-in "Concise" output style: Claude leads with results and skips preamble and narration, while doing the work just as thoroughly. Select it under Output style in /config」「Fixed prompt caching for sessions using an LLM gateway or custom base URL」。2.1.238の参照箇所: 「MCP `headersHelper` in a project `.mcp.json`, and inline MCP servers in project or `--add-dir` agent files, now require that folder's trust dialog to have been accepted (also under `claude -p`)」「MCP `headersHelper` from a project `.mcp.json`, plugin, or agent file runs without inherited credential env vars; user, managed and claude.ai-scope helpers now run from the Claude config dir」「A catalog entry's `headersHelper` runs only when you install or update that plugin, after its command is shown; `claude plugin install/update` ask `[y/N]` (or pass `-y`)」「Changed Ctrl+L and Cmd+K in fullscreen to always just repaint — the double-press `/clear` shortcut was removed, and 1-row nvim terminals no longer trigger automatic `/clear` loops」「Changed `claude mcp list` and `claude mcp get` to show disabled servers as `⊘ Disabled` instead of connecting to them for a health check」。朝5時の編集時点ではCHANGELOG末尾の最新記載は2.1.237で、2.1.238の記載は当日中に取得し直して確認した。</span></details>
           <a href="https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md">https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md</a>（2026年8月21日参照）
         </li>
         <li>
           <span class="flag primary">一次資料</span>
           npm「@anthropic-ai/claude-code」<i>registry.npmjs.org</i>.
-          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: timeフィールド「2.1.237: 2026-08-19T23:57:54.833Z」——公開時刻(日本時間8/20 8:57)の根拠。なお2.1.238が2026-08-20T18:01Zに存在するが、dist-tags.latestは2.1.237で、mainのCHANGELOGに2.1.238の記載が無いため内容は記述しない(未公開)。</span></details>
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: timeフィールド「2.1.237: 2026-08-19T23:57:54.833Z」「2.1.238: 2026-08-20T18:01:54.712Z」——それぞれの公開時刻(日本時間8/20 8:57 / 8/21 3:01)の根拠。朝5時の編集時点では2.1.238はdist-tags.latestに入っておらず(latest=2.1.237)、CHANGELOGにも記載が無かったため保留した。当日中に再取得したところlatest=2.1.238となり、CHANGELOGの記載も確認できたため項目を追加した。</span></details>
           <a href="https://registry.npmjs.org/@anthropic-ai/claude-code">https://registry.npmjs.org/@anthropic-ai/claude-code</a>（2026年8月21日参照）
         </li>
         <li>
