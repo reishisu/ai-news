@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 330" font-family="sans-serif">
+  <text x="320" y="28" text-anchor="middle" font-size="17" font-weight="bold" fill="var(--fg)">Claude Code on the web から anthropic.com を叩いたときの経路</text>
+
+  <!-- before -->
+  <text x="24" y="62" font-size="14" font-weight="bold" fill="var(--old)">2.1.238 まで</text>
+  <rect x="24" y="74" width="140" height="44" rx="8" fill="var(--track)" stroke="var(--sub)" stroke-width="2"/>
+  <text x="94" y="94" text-anchor="middle" font-size="13" font-weight="bold" fill="var(--fg)">Bash / curl</text>
+  <text x="94" y="111" text-anchor="middle" font-size="11" fill="var(--sub)">セッション内</text>
+
+  <path d="M170 96 L300 96" stroke="var(--old)" stroke-width="3" fill="none"/>
+  <path d="M300 96 l-11 -6 l0 12 z" fill="var(--old)"/>
+  <text x="235" y="86" text-anchor="middle" font-size="12" font-weight="bold" fill="var(--old)">直通</text>
+
+  <rect x="306" y="74" width="150" height="44" rx="8" fill="var(--track)" stroke="var(--sub)" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="381" y="101" text-anchor="middle" font-size="13" fill="var(--sub)">プロキシを通らない</text>
+
+  <path d="M462 96 L520 96" stroke="var(--old)" stroke-width="3" fill="none"/>
+  <path d="M520 96 l-11 -6 l0 12 z" fill="var(--old)"/>
+  <rect x="526" y="74" width="94" height="44" rx="8" fill="var(--old)"/>
+  <text x="573" y="93" text-anchor="middle" font-size="12" font-weight="bold" fill="#ffffff">www /</text>
+  <text x="573" y="110" text-anchor="middle" font-size="12" font-weight="bold" fill="#ffffff">docs</text>
+
+  <!-- 区切り -->
+  <line x1="24" y1="146" x2="620" y2="146" stroke="var(--sub)" stroke-width="1" stroke-dasharray="4 4"/>
+
+  <!-- after -->
+  <text x="24" y="178" font-size="14" font-weight="bold" fill="var(--new)">2.1.239 から</text>
+  <rect x="24" y="190" width="140" height="44" rx="8" fill="var(--track)" stroke="var(--sub)" stroke-width="2"/>
+  <text x="94" y="210" text-anchor="middle" font-size="13" font-weight="bold" fill="var(--fg)">Bash / curl</text>
+  <text x="94" y="227" text-anchor="middle" font-size="11" fill="var(--sub)">セッション内</text>
+
+  <path d="M170 212 L300 212" stroke="var(--new)" stroke-width="3" fill="none"/>
+  <path d="M300 212 l-11 -6 l0 12 z" fill="var(--new)"/>
+
+  <rect x="306" y="190" width="150" height="44" rx="8" fill="var(--new)"/>
+  <text x="381" y="209" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">ネットワークプロキシ</text>
+  <text x="381" y="226" text-anchor="middle" font-size="11" fill="#ffffff">許可ドメインで判定</text>
+
+  <path d="M462 212 L520 212" stroke="var(--new)" stroke-width="3" fill="none"/>
+  <path d="M520 212 l-11 -6 l0 12 z" fill="var(--new)"/>
+  <rect x="526" y="190" width="94" height="44" rx="8" fill="var(--new)"/>
+  <text x="573" y="209" text-anchor="middle" font-size="12" font-weight="bold" fill="#ffffff">www /</text>
+  <text x="573" y="226" text-anchor="middle" font-size="12" font-weight="bold" fill="#ffffff">docs</text>
+
+  <!-- 結論 -->
+  <rect x="24" y="256" width="596" height="44" rx="8" fill="var(--track)" stroke="var(--c)" stroke-width="2"/>
+  <text x="322" y="275" text-anchor="middle" font-size="14" font-weight="bold" fill="var(--fg)">許可ドメインに入っていなければ、通っていた取得が落ちる</text>
+  <text x="322" y="293" text-anchor="middle" font-size="12" fill="var(--sub)">対象は api.anthropic.com 以外の anthropic.com ホスト（www, docs など）</text>
+
+  <text x="320" y="322" text-anchor="middle" font-size="11" fill="var(--sub)">出典: Claude Code CHANGELOG 2.1.239。挙動の再現確認は行っていない</text>
+</svg>

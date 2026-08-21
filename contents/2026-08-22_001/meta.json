@@ -1,0 +1,18 @@
+{
+  "category": "デイリーダイジェスト",
+  "tags": [
+    "WebView",
+    "セキュリティ",
+    "Claude Code",
+    "AWS",
+    "Chrome"
+  ],
+  "featured": true,
+  "title": "AI-news：2026/08/22 — Chrome 151に7件のセキュリティ修正、WebViewは別途更新が要る",
+  "summary": "Chrome 151.0.7922.173にCritical 1件を含む7件のセキュリティ修正。Android版にも同じ修正が入るが、Android System WebViewは別アプリで専用の告知が出ないため、自分で更新を確認する必要がある。Claude Code 2.1.239でweb版のBashからanthropic.comへの通信がプロキシ経由に変わった。",
+  "thumbnail": "images/thumb.png",
+  "thumb": {
+    "main": "Chrome 151に7件のCVE",
+    "sub": "WebViewは別アプリ。自分で更新する"
+  }
+}

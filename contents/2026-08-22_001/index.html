@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-news：2026/08/22 — Chrome 151に7件のセキュリティ修正、WebViewは別途更新が要る</title>
+<meta name="description" content="Chrome 151.0.7922.173でCritical 1件を含む7件のセキュリティ修正。Android版にも同じ修正が入るが、Android System WebView専用の告知は2015年9月を最後に出ていないため別途更新が要る。Claude Code 2.1.239でweb版のBashからanthropic.comへの通信がプロキシ経由に変わった。CloudFrontがS3 MRAPをOACで保護できるように。Claude SecurityがMythos 5で動くようになった。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI-news：2026/08/22 — Chrome 151に7件のセキュリティ修正、WebViewは別途更新が要る">
+<meta property="og:description" content="Chrome 151にCritical含む7件のCVE修正。Android版も同じだがWebViewの告知は出ないので自分で更新する。Claude Code 2.1.239でweb版のBashからの通信がプロキシ経由に。CloudFrontがS3 MRAPをOACで保護可能に。一次資料の原文つき。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-22_001/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-22_001/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=58c56a7d">
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">2026年8月22日(土)</div>
+    <h1>AI-news：2026/08/22 — Chrome 151に7件のセキュリティ修正、WebViewは別途更新が要る</h1>
+    <div class="range">対象期間: 8月21日(金) 5:00 〜 8月22日(土) 5:00 JST</div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 今日の3行まとめ</h2>
+    <ol>
+      <li>
+        <b>Chrome 151.0.7922.173 に7件のセキュリティ修正。Android版にも同じ修正が入る</b>
+        <span>深刻度Criticalが1件、Highが6件です。Android版のリリース告知にも「デスクトップ版と同じセキュリティ修正が入る」と明記されています。ただし<mark>Android System WebView は別アプリで、専用の告知は出ません</mark>。WebViewに依存するアプリがあるなら、Playストアで自分で更新を確認する必要があります。</span>
+      </li>
+      <li>
+        <b>Claude Code on the web で、Bashからanthropic.comを叩く経路が変わった（2.1.239）</b>
+        <span>api.anthropic.com 以外のホスト（www、docsなど）へのリクエストが、セッションのネットワークプロキシを通るようになりました。<mark>環境の許可ドメイン設定が効くようになる</mark>ので、これまで通っていた取得が落ちる可能性があります。</span>
+      </li>
+      <li>
+        <b>Web開発・インフラは1件、モデル・業界は1件、技術・研究は特筆すべき動きなし</b>
+        <span>CloudFrontがS3 Multi-Region Access PointをOACで保護できるようになりました（Lambda@Edgeでの自前署名が不要に）。Anthropicは Claude Security のスキャンを Claude Mythos 5 で動かせるようにし、OSS向けに3,500万ドルのクレジット枠を用意しました。件数を埋めるための項目は今回も入れていません。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#work">実務者向けのAI開発ツール(3件)</a></li>
+      <li><a href="#dev">Web開発・インフラ(1件)</a></li>
+      <li><a href="#client">クライアント技術(1件)</a></li>
+      <li><a href="#research">技術・研究(動きなし)</a></li>
+      <li><a href="#industry">モデル・業界(1件)</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 実務者向け ============ -->
+  <section class="section section-b" id="work">
+    <h2>🧰 実務者向けのAI開発ツール<span class="n">3件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude Code on the web — Bashから anthropic.com を叩くとプロキシを通るようになった</h3>
+      <div class="tags">
+        <span class="tag">8/22 2:18 JST</span>
+        <span class="tag warn">⚠ 仕様変更</span>
+        <span class="tag">Claude Code</span>
+      </div>
+      <p class="lead">Claude Code on the web は、ブラウザ側で動くClaude Codeです。作業はクラウド上のコンテナで行われ、そこからの外向き通信は<b>ネットワークプロキシ</b>が仲介します。環境ごとに「どのドメインへ出てよいか」を決めておく仕組みです。</p>
+      <p class="lead">2.1.239 で、そのプロキシを通る対象が広がりました。</p>
+      <div class="code wrap"><div class="code-head">CHANGELOG 2.1.239 の原文</div><pre>Claude Code on the web: requests from Bash and other tools to non-API anthropic.com hosts (e.g. www, docs) now go through the session's network proxy, so your environment's allowed domains apply</pre></div>
+      <p class="lead">これまで <code>api.anthropic.com</code> 以外の anthropic.com ホストは素通りしていました。今後は<mark>環境の許可ドメインの判定を受けます</mark>。許可リストに入っていなければ、昨日まで通っていた <code>curl https://docs.anthropic.com/…</code> が落ちます。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/web-proxy-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/web-proxy.png" alt="2.1.238まではBashからwww/docs.anthropic.comへ直通していたが、2.1.239からはネットワークプロキシを経由し許可ドメインで判定される" loading="lazy">
+        </picture>
+        <figcaption>変わったのは経路。許可ドメインに入っていないホストは、ここで落ちる</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>影響するのはクラウドセッションだけ。</b>手元の端末で動かしている Claude Code には関係ありません。原文も「Claude Code on the web」と限定しています。</li>
+        <li><b>逆に言えば、環境のポリシーが効くようになったということ。</b>許可ドメインを絞っている組織では、これまで判定を受けずに通っていた経路が塞がったことになります。</li>
+        <li><b>今やること。</b>Claude Code on the web で anthropic.com のドキュメントを取得する手順を持っているなら、その環境の許可ドメインに <code>docs.anthropic.com</code> などが入っているか確認する。入っていなければ追加する。手元で動かしているだけなら対応は不要。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Windowsでもセッション間メッセージが使えるようになった</h3>
+      <div class="tags">
+        <span class="tag">8/22 2:18 JST</span>
+        <span class="tag">新機能</span>
+        <span class="tag">Claude Code</span>
+      </div>
+      <p class="lead">セッション間メッセージとは、別々に立ち上がっているClaude Codeのセッション同士が、互いを見つけて（<code>ListAgents</code>）文字を送り合える（<code>SendMessage</code>）仕組みです。8/21の号外で「macOS / Linux では有効化の操作なしに動いている」と書いた機能です。</p>
+      <div class="code wrap"><div class="code-head">CHANGELOG 2.1.239 の原文</div><pre>Windows: cross-session messaging is now available, so Claude Code sessions across your machines can message each other with `SendMessage` and find each other with `ListAgents`, as on macOS and Linux</pre></div>
+      <p class="lead">つまり Windows も、macOS / Linux と同じ状態になりました。<mark>使うと決めなくても、届く側としては有効です</mark>。</p>
+
+      <ul class="points">
+        <li><b>受け取りたくないときの設定。</b>2.1.238 の記載によれば、受信を拒否する設定は <code>crossSessionInbound: "refuse"</code> です。同版で、拒否したことが送信側に「refused」として返るようになりました（以前は成功したように見えていました）。</li>
+        <li><b>今やること。</b>Windows で Claude Code を複数立ち上げていて、他のセッションから指示が飛ぶのを避けたいなら <code>crossSessionInbound</code> を確認する。1セッションしか使っていないなら対応は不要。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Bedrock経由のClaude Codeが、プロキシ環境でAPI課金を倍にしていた</h3>
+      <div class="tags">
+        <span class="tag">8/22 2:18 JST</span>
+        <span class="tag warn">⚠ 課金</span>
+        <span class="tag">Claude Code</span>
+      </div>
+      <p class="lead">本サイトは通常「直りました」だけの項目を載せません。これは例外です。<mark>請求額が2倍になっていた</mark>という話なので、更新するかどうかの判断が要ります。</p>
+      <div class="code wrap"><div class="code-head">CHANGELOG 2.1.239 の原文</div><pre>Fixed Bedrock streaming behind proxies that strip the response Content-Type header, which silently doubled billed API calls by re-running every turn non-streaming</pre></div>
+      <p class="lead">条件は3つ重なったときです。Amazon Bedrock 経由でClaudeを使っている、その通信がプロキシを挟んでいる、そのプロキシがレスポンスの <code>Content-Type</code> ヘッダーを落とす。この状態だと、ストリーミングが失敗したと判断して<b>毎ターンを非ストリーミングでやり直していた</b>ため、課金対象のAPI呼び出しが2倍になっていました。</p>
+
+      <ul class="points">
+        <li><b>「silently」と書かれているのが厄介なところ。</b>画面上はふつうに動いていたので、請求書を見るまで気づけません。原文にも「静かに倍にしていた」とあります。</li>
+        <li><b>今やること。</b>Bedrock 経由で Claude Code を使っていて、企業プロキシを挟んでいるなら 2.1.239 へ上げる。あわせて過去のBedrockの請求を見て、想定より多く出ていなかったかを確認する。Bedrockを使っていないなら対応は不要。</li>
+      </ul>
+
+      <details>
+        <summary>2.1.239 の残り56行に何があったか（載せなかった理由）</summary>
+        <p class="lead">この版の <code>-</code> 行は全部で59行あり、うち記事にしたのは上の3件です。59行のうち「Fixed」で始まるのが38行、それ以外が21行。記事にした3件を引いた残り56行の内訳は、不具合修正が37行、それ以外が19行（体感の変わらない内部改善・表示調整と、特定の構成にしか効かない小さな追加）でした。</p>
+        <p class="lead">判断に迷ったものを挙げておきます。「データレジデンシー用ワークスペースのコスト表示に1.1倍の割増が反映されるようになった」（対象が限られる）、「Bedrock / Vertex / Foundry での新規インストールがフルスクリーンで始まるようになった」（見た目の既定変更で、実害がない）、「<code>/claude-api upgrade</code> でPythonの <code>anthropic</code> 0.x → 1.x 移行ができるようになった」（読者はPHPが主で、SDK 1.0.0自体は8/21の号外で既報）。いずれも「読んで何かする必要があるか」に「いいえ」と答えたので落としました。</p>
+      </details>
+    </article>
+  </section>
+
+  <!-- ============ Web開発・インフラ ============ -->
+  <section class="section section-c" id="dev">
+    <h2>🧑‍💻 Web開発・インフラ<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=aws.amazon.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">AWS</div>
+      <h3>CloudFrontがS3 Multi-Region Access PointをOACで保護できるようになった — Lambda@Edgeの自前署名が不要に</h3>
+      <div class="tags">
+        <span class="tag">8/21 3:30 JST</span>
+        <span class="tag">新機能</span>
+        <span class="tag">CloudFront</span>
+        <span class="tag">S3</span>
+      </div>
+      <p class="lead">用語を先に置きます。<b>OAC（Origin Access Control）</b>は、S3バケットへのアクセスを「指定したCloudFrontディストリビューション経由だけ」に絞る仕組みです。これが無いと、S3のURLを直接叩かれてCloudFrontを迂回されます。</p>
+      <p class="lead"><b>S3 Multi-Region Access Point（MRAP）</b>は、複数リージョンに複製したバケットを1つのエンドポイントでまとめる機能です。キャッシュミスのときに、一番近いリージョンから取ってきます。</p>
+      <p class="lead">これまで、この2つを組み合わせるには自分で署名を計算する必要がありました。</p>
+      <div class="code wrap"><div class="code-head">AWS What's New（2026年8月20日付）の原文</div><pre>Previously, customers had to compute and forward their own Asymmetric Signature Version 4 (SigV4a) Authorization header using a custom Lambda@Edge Function. Now, CloudFront natively signs requests to S3 MRAP origins.</pre></div>
+      <p class="lead">つまり、<mark>Lambda@Edgeで書いていた署名コードを外せる</mark>ようになりました。SigV4a は複数リージョンにまたがる署名方式で、Lambda@Edge はCloudFrontのエッジで動く小さな関数です。</p>
+
+      <ul class="points">
+        <li><b>使えない場所が1つある。</b>「CloudFrontの中国リージョンを除き、世界中で利用可能」と原文にあります。追加料金は無いと明記されています。</li>
+        <li><b>単一リージョン構成には関係がない。</b>ap-northeast-1 のバケット1つをCloudFrontで配っているだけなら、MRAP自体を使っていないので今回の変更の対象外です。従来どおりの OAC が使えます。</li>
+        <li><b>これは前号の拾い直しです。</b>公開は日本時間8月21日3:30で、前号（8/21）の対象期間内でしたが、そこでは「Web開発・インフラは動きなし」としていました。ここで訂正します。</li>
+        <li><b>今やること。対応は不要。</b>MRAPを使っていて、署名のためだけにLambda@Edgeを置いているなら、それを外せないか検討する。使っていなければ何もしなくてよい。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ クライアント技術 ============ -->
+  <section class="section section-a" id="client">
+    <h2>📱 クライアント技術<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=chromereleases.googleblog.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Google</div>
+      <h3>Chrome 151.0.7922.173 に7件のセキュリティ修正 — WebViewには専用の告知が出ない</h3>
+      <div class="tags">
+        <span class="tag">8/21 5:22 JST</span>
+        <span class="tag warn">⚠ セキュリティ</span>
+        <span class="tag">WebView</span>
+        <span class="tag">Chrome</span>
+      </div>
+      <p class="lead">デスクトップ版の安定版が 151.0.7922.173/.174 に上がり、7件のセキュリティ修正が入りました。深刻度は<mark>Criticalが1件、Highが6件</mark>です。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>深刻度</th><th>CVE</th><th>報告された箇所</th></tr></thead>
+          <tbody>
+            <tr><td>Critical</td><td data-label="CVE">CVE-2026-76017</td><td data-label="報告された箇所">Chromoting の解放後利用</td></tr>
+            <tr><td>High</td><td data-label="CVE">CVE-2026-76018</td><td data-label="報告された箇所">Import の権限昇格</td></tr>
+            <tr><td>High</td><td data-label="CVE">CVE-2026-76019</td><td data-label="報告された箇所">Workers の不正な認可</td></tr>
+            <tr><td>High</td><td data-label="CVE">CVE-2026-76020</td><td data-label="報告された箇所">V8 の競合状態</td></tr>
+            <tr><td>High</td><td data-label="CVE">CVE-2026-76021</td><td data-label="報告された箇所">DOM の解放後利用</td></tr>
+            <tr><td>High</td><td data-label="CVE">CVE-2026-76022</td><td data-label="報告された箇所">Network のバッファオーバーフロー</td></tr>
+            <tr><td>High</td><td data-label="CVE">CVE-2026-76023</td><td data-label="報告された箇所">Linux Toolkit Theming の資源制御不備</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">「どれが自分のアプリに効くのか」は、いまは判断できません。Googleが詳細を伏せているためです。</p>
+      <div class="code wrap"><div class="code-head">Chrome Releases（2026年8月20日付）の原文</div><pre>Note: Access to bug details and links may be kept restricted until a majority of users are updated with a fix.</pre></div>
+      <p class="lead">だから読者側の判断は「中身を見て決める」ではなく「更新する」の一択になります。</p>
+
+      <p class="lead">Android版にも同じ修正が入ります。こちらは告知に明記があります。</p>
+      <div class="code wrap"><div class="code-head">Chrome for Android Update（2026年8月20日付）の原文</div><pre>Android releases contain the same security fixes as their corresponding Desktop releases (Windows &amp; Mac: 151.0.7922.173/174, Linux: 151.0.7922.173) unless otherwise noted.</pre></div>
+
+      <p class="lead">問題はここからです。<b>Android System WebView は Chrome とは別のアプリ</b>で、Playストアから別々に更新されます。そして<mark>WebView専用のリリース告知は、2015年9月を最後に出ていません</mark>（Chrome Releases の「Android WebView」ラベルを取得して確認しました。最新の投稿は2015年9月8日）。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/webview-update-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/webview-update.png" alt="Chromium 151.0.7922.173の修正はChromeデスクトップ・Chrome for Android・Android System WebViewの3つに届くが、告知が出るのは前の2つだけ" loading="lazy">
+        </picture>
+        <figcaption>WebViewだけ告知が無い。Chromeを更新してもWebViewは別アプリなので直らない</figcaption>
+      </figure>
+
+      <p class="lead">WebViewに依存するアプリを作っているなら、確認する手順はこうなります。タップでチェックできます。<span class="cl-count">0 / 3</span></p>
+      <ul class="checklist" data-key="chrome151-webview-2026-08-22">
+        <li><label><input type="checkbox"><span>検証端末のPlayストアで「Android System WebView」を開き、更新が出ていないか見る</span></label></li>
+        <li><label><input type="checkbox"><span>Chrome for Android も同じ端末で更新する（WebViewの提供元がChromeになっている端末があるため）</span></label></li>
+        <li><label><input type="checkbox"><span>更新後に、WebViewを使う画面を一通り触って挙動が変わっていないか確認する</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 これで Chrome 151 の修正が入った WebView で検証できています</div>
+
+      <ul class="points">
+        <li><b>デスクトップとAndroidで公開時刻が違う。</b>デスクトップ版の告知が日本時間8月21日5:22、Android版が同7:00です。Android版は「数日かけてPlayに出る」と書かれているので、端末に届くのはもう少し後になります。</li>
+        <li><b>Unity Web / VRChat（ワールド）は今回の対象期間で新しい動きなし。</b>Unityのエディタ更新は8月19日の 6000.0.82f1 LTS が最新で、Web関連の変更は確認できませんでした。VRChat の Worlds SDK は6月17日の 3.10.4 が最新、Developer Update も8月13日が直近で、新規はありません。</li>
+        <li><b>今やること。</b>WebViewを使うアプリを持っているなら、検証端末で Android System WebView を更新して回帰を見る。Criticalの1件は Chromoting という箇所の報告なので、自分のアプリに効くかどうかは現時点では判断できない — 詳細が公開されるまでは「更新する」で対応する。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 技術・研究 ============ -->
+  <section class="section section-c" id="research">
+    <h2>🔬 技術・研究<span class="n">動きなし</span></h2>
+    <article class="item">
+      <p class="lead">直近24時間で、読者に紹介したい新規の注目論文・ベンチマーク・オープンウェイトモデルは確認できませんでした。</p>
+      <p class="none">特筆すべき動きなし</p>
+      <ul class="points">
+        <li><b>確認したもの。</b>Hugging Face の trending 上位25件はいずれも公開日が8月19日以前で、当ウィンドウに主要ラボの新規公開はありませんでした。エージェントのコンテキスト管理まわりの論文も、検索で当たったものは6〜7月の投稿で新規ではありません。</li>
+        <li><b>今やること。対応は不要。</b></li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ モデル・業界 ============ -->
+  <section class="section section-a" id="industry">
+    <h2>🏢 モデル・業界<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude Security のスキャンが Claude Mythos 5 で動くようになった — OSS向けに3,500万ドルのクレジット枠も</h3>
+      <div class="tags">
+        <span class="tag">8/21 発表</span>
+        <span class="tag">新機能</span>
+        <span class="tag">セキュリティ</span>
+      </div>
+      <p class="lead">Claude Security は、リポジトリを走査して脆弱性を見つけ、修正案を出す機能です。8月21日付の公式ブログで、このスキャンが最上位モデル Claude Mythos 5 で動くようになったと発表されました。</p>
+      <div class="code wrap"><div class="code-head">Anthropic 公式ブログ（2026年8月21日）の原文</div><pre>Starting today, Claude Security scans now run on Claude Mythos 5. Claude Security scans codebases for vulnerabilities and suggests patches for human review; it's currently in public beta for Claude Enterprise customers, and scans with Mythos 5 are billed as standard token usage under your existing plan, with no separate add-on.</pre></div>
+      <p class="lead">対象は <b>Claude Enterprise プランのpublic beta</b>で、追加のアドオン契約は不要、通常のトークン利用として課金されます。</p>
+
+      <ul class="points">
+        <li><b>モデルそのものに触れるわけではない。</b>スキャン結果は CWE分類・確信度・深刻度・修正案として返り、修正の実装は組織が Claude Code で使えるモデルで行う、と書かれています。「Mythosのスキャンが他の場面へのMythos利用を広げることはない」と明記されています。すべての修正は人のレビューと承認が必要です。</li>
+        <li><b>OSS向けに3,500万ドルのクレジット枠。</b>Defender Advantage Fund（0xDAF）として、OSSの脆弱性修正・走査と修正の自動化・新しい手法の実験に取り組む組織へクレジットを提供する、とあります。</li>
+        <li><b>今やること。対応は不要。</b>Claude Enterprise を契約している組織のみ、管理コンソールから有効化できる。個人プランや Team プランには関係がない。OSSを運営していて資金が要るなら、この枠の存在を覚えておく。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark>本サイトの環境では、この号のどの項目についても実機での再現・検証は行っていません（AWS・Bedrock・Android実機のいずれも操作していません）。掲載した全URLは取得時にHTTPステータス(200)を確認しています。</p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「CHANGELOG.md (2.1.239)」<i>anthropics/claude-code</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「Claude Code on the web: requests from Bash and other tools to non-API anthropic.com hosts (e.g. www, docs) now go through the session's network proxy, so your environment's allowed domains apply」「Windows: cross-session messaging is now available, so Claude Code sessions across your machines can message each other with `SendMessage` and find each other with `ListAgents`, as on macOS and Linux」「Fixed Bedrock streaming behind proxies that strip the response Content-Type header, which silently doubled billed API calls by re-running every turn non-streaming」。あわせて2.1.238の「Cross-session messaging: sending to a session on this machine that refuses inbound messages (e.g. `crossSessionInbound: "refuse"`) now reports "refused" to the sender instead of a silent success」を、受信拒否の設定名の根拠に使用。</span></details>
+          <a href="https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md">https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md</a>（2026年8月22日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          2.1.239 の変更行を機械的に数えた結果（59行）。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月22日、上記CHANGELOGを取得し、awk で「## 2.1.239」のブロックだけを抜き、行頭が「- 」の行を数えて59行と確認。うち「Fixed」で始まる行が38行、それ以外が21行。記事にしたのは3件（うち1件はFixed行のBedrock二重課金）で、落としたのは56件。再現用のスクリプトは _labs/2026-08-22_001/count_changelog.sh に置いた。この数え方は本サイトの手順（CLAUDE.md 第16節）に従ったもの。</span></details>
+          <a href="https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md">https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md</a>（2026年8月22日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          npm「@anthropic-ai/claude-code」<i>registry.npmjs.org</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: timeフィールド「2.1.239: 2026-08-21T17:18:54.506Z」——公開時刻（日本時間8月22日2:18）の根拠。同時に dist-tags.latest が 2.1.239 であることも確認した。</span></details>
+          <a href="https://registry.npmjs.org/@anthropic-ai/claude-code">https://registry.npmjs.org/@anthropic-ai/claude-code</a>（2026年8月22日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Stable Channel Update for Desktop」<i>Chrome Releases</i>, 2026年8月20日（日本時間8月21日5:22）.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「The Stable channel has been updated to 151.0.7922.173/.174 for Windows and Mac and 151.0.7922.173 for Linux」「This update includes 7 security fixes.」「Note: Access to bug details and links may be kept restricted until a majority of users are updated with a fix.」および CVE 7件の列挙（Critical CVE-2026-76017: Use after free in Chromoting / High CVE-2026-76018: Privilege elevation in Import / High CVE-2026-76019: Incorrect authorization in Workers / High CVE-2026-76020: Race condition in V8 / High CVE-2026-76021: Use after free in DOM / High CVE-2026-76022: Buffer overflow in Network / High CVE-2026-76023: Improper resource control in Linux Toolkit Theming）。表の内容はこの列挙をそのまま訳したもの。</span></details>
+          <a href="https://chromereleases.googleblog.com/2026/08/stable-channel-update-for-desktop_0404570826.html">https://chromereleases.googleblog.com/2026/08/stable-channel-update-for-desktop_0404570826.html</a>（2026年8月22日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Chrome for Android Update (Chrome 151.0.7922.173)」<i>Chrome Releases</i>, 2026年8月20日（日本時間8月21日7:00）.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「Android releases contain the same security fixes as their corresponding Desktop releases (Windows &amp; Mac: 151.0.7922.173/174, Linux: 151.0.7922.173) unless otherwise noted.」「It'll become available on Google Play over the next few days.」——Android版に同じ修正が入ることと、端末に届くまで時間差があることの根拠。</span></details>
+          <a href="https://chromereleases.googleblog.com/2026/08/chrome-for-android-update_0418479132.html">https://chromereleases.googleblog.com/2026/08/chrome-for-android-update_0418479132.html</a>（2026年8月22日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          「WebView専用のリリース告知は2015年9月を最後に出ていない」の根拠。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月22日、Chrome Releases のラベル別フィード（/feeds/posts/default/-/Android%20WebView）をJSON形式で取得。返ってきた投稿のうち最新は「Android WebView Stable Update」2015-09-08T16:23:00 で、それ以降の投稿は存在しなかった。ブログのラベル一覧の表示も「Android WebView 19」と少数のまま。これは筆者が取得して数えた結果であり、Googleが「もう出さない」と表明したわけではない。</span></details>
+          <a href="https://chromereleases.googleblog.com/2015/09/android-webview-stable-update.html">https://chromereleases.googleblog.com/2015/09/android-webview-stable-update.html</a>（2026年8月22日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          The Chromium Projects「Android WebView」<i>chromium.org</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「Android WebView is one of the six supported platforms for Chromium」——WebViewがChromiumを基盤にしていることの根拠。なお、このページにはWebViewの更新経路やバージョン対応についての記述は無い。</span></details>
+          <a href="https://www.chromium.org/developers/androidwebview/">https://www.chromium.org/developers/androidwebview/</a>（2026年8月22日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          AWS「Amazon CloudFront now supports Origin Access Control (OAC) for Amazon S3 Multi-Region Access Points」<i>AWS What's New</i>, 2026年8月20日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「Previously, customers had to compute and forward their own Asymmetric Signature Version 4 (SigV4a) Authorization header using a custom Lambda@Edge Function. Now, CloudFront natively signs requests to S3 MRAP origins.」「CloudFront OAC support for Amazon S3 MRAP origins is available worldwide, except in the CloudFront China region.」「There are no additional fees associated with this feature」。公開時刻（日本時間8月21日3:30）はAWS What's Newのフィードの pubDate「Thu, 20 Aug 2026 18:30:00 GMT」による。</span></details>
+          <a href="https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-cloudfront-oac-s3-mrap">https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-cloudfront-oac-s3-mrap</a>（2026年8月22日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Bringing the cybersecurity capabilities of Claude Mythos 5 to more defenders」<i>Anthropic Blog</i>, 2026年8月21日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「Starting today, Claude Security scans now run on Claude Mythos 5. … it's currently in public beta for Claude Enterprise customers, and scans with Mythos 5 are billed as standard token usage under your existing plan, with no separate add-on.」「Claude then scans the codebase for vulnerabilities, and returns each finding with a CWE (Common Weakness Enumeration) category, confidence and severity ratings, and a suggested fix.」「The Mythos scan itself does not extend Mythos access to other surfaces. Every patch must be reviewed and approved by a human before it can be implemented.」「$35 million in credits for open-source security. Our new Defender Advantage Fund (0xDAF) will provide $35 million in credits to organizations working to patch vulnerabilities in open-source projects…」</span></details>
+          <a href="https://claude.com/blog/bringing-claude-mythos-5-to-more-defenders">https://claude.com/blog/bringing-claude-mythos-5-to-more-defenders</a>（2026年8月22日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Unity「Latest Unity LTS Releases」<i>unity.com</i>（VRChatは creators.vrchat.com と ask.vrchat.com も併せて確認）.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: Unityのリリースフィードの最新が「Unity 6000.0.82f1 LTS」（Wed, 19 Aug 2026 13:32）で、当ウィンドウ内の新規が無いことの根拠。VRChatはSDKリリース一覧の最新が3.10.4（2026年6月17日）、Ask フォーラムの Developer Update の最新が2026年8月13日で、いずれも当ウィンドウ外。VRChatのSDKリリース一覧はcurlで403のためWebFetch経由で取得し、フォーラムは ask.vrchat.com の検索APIで取得した。</span></details>
+          <a href="https://unity.com/releases/editor/releases.xml">https://unity.com/releases/editor/releases.xml</a>（2026年8月22日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          「Android System WebView を更新すれば Chrome 151 と同じ修正が入る」— 本文では断定していません。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">GoogleはWebViewのバージョンとChromeのバージョンの対応を、当ウィンドウで公表していない。Chromiumが同じ基盤であること（chromium.org）と、Chrome for AndroidにCVE修正が入ること（Chrome Releases）は確認できたが、「WebViewの何番にいつ入るか」は一次資料で確認できなかった。本文のチェックリストは、確認できた事実（別アプリであり、Playストアから更新する）に基づく運用上の手順であり、バージョン対応の主張ではない。</span></details>
+          <a href="https://www.chromium.org/developers/androidwebview/">（確認できたのはChromium基盤であることまで）</a>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「静かな日は無理に件数を埋めない」— 掲載可否の判断基準について。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">不具合修正だけの項目や、読者の実務スタックの外にある小さな機能追加を件数のために載せないのは本サイトの編集方針（CLAUDE.md 第16節）であり、規格や標準ではない筆者側の運用上の目安。今号でも、当ウィンドウのAWS What's New 6件（Deadline Cloud / Glue 6.0 の30%値下げ / SES / ラスベガスのLocal Zone / Timestream / EC2のリージョン追加）、GitHub Changelog 3件、Chromeの開発版2件、Docker・DeepMindのブログ各1件は、読者の実務スタックの外か対応が要らないものとして落とした。Bedrockの二重課金だけは「修正」だが、請求額が変わるため例外として載せている。</span></details>
+          <a href="https://reishisu.github.io/ai-news/">https://reishisu.github.io/ai-news/</a>（2026年8月22日参照）
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
