@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-news：2026/08/21 号外 — Claude Codeのセッション間メッセージは、有効にする操作なしで動いている</title>
+<meta name="description" content="収集の穴を塞ぐ巡回を作り、拾い直した4件。Claude Codeのセッション間メッセージは2.1.224から有効化操作なしでオン(Bedrock経由では非提供)。Anthropic Python SDKが1.0.0になりBedrockはregion未指定で起動時にValueError。公式のセッション運用ガイド。DeepSeek HarnessはMITの開発者プレビュー。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI-news：2026/08/21 号外 — Claude Codeのセッション間メッセージは、有効にする操作なしで動いている">
+<meta property="og:description" content="changelogにもXにも載らない一次資料を拾う巡回を作り、落としていた4件を回収した。セッション間メッセージの既定、Python SDK 1.0.0の破壊的変更、公式の運用ガイド、DeepSeek HarnessのMIT化。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-21_002/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-21_002/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=58c56a7d">
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">2026年8月21日(金)</div>
+    <h1>AI-news：2026/08/21 号外 — Claude Codeのセッション間メッセージは、有効にする操作なしで動いている</h1>
+    <div class="range">収集の穴を塞いで拾い直した4件（対象期間: 8月7日〜8月21日）</div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 今日の3行まとめ</h2>
+    <ol>
+      <li>
+        <b>Claude Codeのセッション間メッセージは2.1.224から「有効にする操作なし」で動いている</b>
+        <span>公式ドキュメントに「有効にする操作は何もなく、messaging はオンになっている」と書かれています。届いたメッセージは<mark>自分で打ったプロンプトと同じように利用量に計上され</mark>、アイドルなら新しいターンが始まります。macOS / Linux のみで、<mark>Amazon Bedrock経由では提供されません</mark>。止め方は本文に。</span>
+      </li>
+      <li>
+        <b>Anthropic Python SDKが1.0.0に — Bedrockはregion未指定だと起動時に落ちる</b>
+        <span>これまでは警告を出して<mark>us-east-1へ暗黙にフォールバック</mark>していたのが、構築時に<code>ValueError</code>になりました。ほかにPython最低版が3.9→3.10、HTTP層が<code>httpx</code>から<code>httpx2</code>へ、<code>temperature</code>等がメソッドから削除、旧Text Completions APIが削除。</span>
+      </li>
+      <li>
+        <b>公式のセッション運用ガイドと、DeepSeek HarnessのMIT公開</b>
+        <span>Anthropicが8/14に運用ガイドを公開。<mark>会話の途中で<code>/model</code>や<code>/effort</code>を変えるとキャッシュが壊れて会話全体が再送になる</mark>、と明記されました。DeepSeek Harnessは公式・MITの開発者プレビューで、READMEに破壊的変更の予告があります。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#why">なぜ号外なのか — 収集網に穴があった</a></li>
+      <li><a href="#work">実務者向けのAI開発ツール(4件)</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ なぜ号外なのか ============ -->
+  <section class="section section-c" id="why">
+    <h2>🔧 なぜ号外なのか — 収集網に穴があった</h2>
+    <article class="item">
+      <p class="lead">毎朝のダイジェストは、各社の変更履歴（changelog）と公式Xアカウントを見て作っています。8月21日に自分の記事を点検したところ、<mark>その2つに載らない型の一次資料を丸ごと落としていた</mark>ことが分かりました。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/collection-gap-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/collection-gap.png" alt="変更履歴と公式Xで拾える発表イベント型に対し、公式ガイド・OSS公開・ドキュメントだけの機能追加は発表の形を取らないため巡回から漏れる" loading="lazy">
+        </picture>
+        <figcaption>左は発表の形を取るので拾える。右は形を取らないので、イベントを追う巡回からは構造的に漏れる。</figcaption>
+      </figure>
+
+      <p class="lead">落としたのは3件で、どれも同じ型でした。ベンダーが出す<b>運用ガイド</b>、<b>OSSの公開</b>、<b>ドキュメントにだけ載る機能</b>です。発表イベントの形を取らないので、イベントを追う巡回からは構造的に漏れます。</p>
+
+      <p class="lead">対策として、フィード・サイトマップ・npm/PyPIのレジストリを前回との差分で見る巡回を作りました。最初の実行で、落としていた公式ガイドが実際に出てきました。この号は、その巡回で拾い直した4件です。</p>
+
+      <ul class="points">
+        <li><b>レジストリが要になる。</b>OSSの公開はブログやXより先にパッケージレジストリへ出ることがあります。実際DeepSeek Harnessは、npmへの最初の投入が公式発表の3日前でした。</li>
+        <li><b>到達できないことは、無いことの証拠にならない。</b>この環境からは github.com が403です。それを根拠に「確認できない」と判断して1件を保留にしていましたが、公式サイトを開けば製品として載っていました。</li>
+        <li><b>今やること。対応は不要。</b>読み物として読んでください。以降の4件が本題です。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 実務者向け ============ -->
+  <section class="section section-b" id="work">
+    <h2>🧰 実務者向けのAI開発ツール<span class="n">4件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=code.claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude Codeのセッション間メッセージは、有効にする操作なしで動いている — 止め方と、Bedrockでは使えないこと</h3>
+      <div class="tags">
+        <span class="tag">2.1.224 / 8月7日</span>
+        <span class="tag">⚠ 既定の挙動</span>
+        <span class="tag">Claude Code</span>
+      </div>
+      <p class="lead">Claude Codeは2.1.224で、別々に開いているセッション同士がメッセージを送り合う機能を入れました。相手を探す<code>ListAgents</code>と、送る<code>SendMessage</code>の2つです。</p>
+      <p class="lead">読者にとっての要点は機能そのものではなく、<mark>これが有効化の操作なしで動いている</mark>ことです。公式ドキュメントがそう書いています。</p>
+      <div class="code wrap"><div class="code-head">公式ドキュメント（cross-session messaging）の原文</div><pre>Cross-session messaging requires Claude Code v2.1.224 or later and runs on macOS and Linux. When a session meets the requirements, messaging is on with nothing to enable.</pre></div>
+
+      <p class="lead">届くかどうかは、送る側と受け取る側の<b>権限モードの組み合わせ</b>でメッセージごとに決まります。設定としての既定値はありません。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>受け取る側</th><th>送る側が通常</th><th>送る側が権限確認を飛ばす設定</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>通常（権限確認が出る）</td>
+              <td data-label="送る側が通常">そのまま届く</td>
+              <td data-label="送る側が権限確認を飛ばす設定">承認待ちで保留</td>
+            </tr>
+            <tr>
+              <td>権限確認を飛ばす設定</td>
+              <td data-label="送る側が通常">承認待ちで保留</td>
+              <td data-label="送る側が権限確認を飛ばす設定">そのまま届く</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">つまり<b>普通に使っているセッションは、届いたメッセージをそのまま受け取ります。</b>受け取ったあとの扱いも書かれています。</p>
+      <div class="code wrap"><div class="code-head">公式ドキュメント（配達後の扱い）の原文</div><pre>Once delivered, the message counts toward usage like a prompt you type</pre></div>
+
+      <ul class="points">
+        <li><b>アイドルなら新しいターンが始まる。</b>ターンの実行中に届いた場合は、ツールの実行を中断せず、ツール呼び出しの合間に読まれます。</li>
+        <li><b>AWS経由では、そもそも機能が無い。</b>Amazon Bedrock・Claude Platform on AWS・Google CloudのAgent Platform・Microsoft Foundry 経由では提供されません。ネイティブWindowsも対象外です（WSL 2の中のLinuxは対象）。</li>
+        <li><b>2.1.236で<code>notify_when_idle</code>が加わった。</b>同じマシンの別セッションに「次にアイドルになったら1回だけ知らせて」と頼めます。opt-in・1回限り・ポーリングなしで、購読は12時間で失効します。送る側と受け取る側の両方が2.1.236以降である必要があります。</li>
+      </ul>
+
+      <details class="note-d"><summary>止め方の設定を見る</summary>
+        <div class="code"><div class="code-head">settings.json（受信も送信も止める）</div><pre>{
+  "permissions": {
+    "deny": ["SendMessage", "ListAgents"]
+  },
+  "crossSessionInbound": "refuse"
+}</pre></div>
+      </details>
+
+      <ul class="checklist" data-key="cross-session-2026-08-21">
+        <li><label><input type="checkbox"><span>Claude Code のバージョンが 2.1.224 以降か確認した</span></label></li>
+        <li><label><input type="checkbox"><span>同時に複数のセッションを開く使い方をしているか整理した</span></label></li>
+        <li><label><input type="checkbox"><span>受け取りたくない場合、<code>crossSessionInbound</code> を <code>refuse</code> にした</span></label></li>
+      </ul>
+      <p class="lead">上から順に潰してください。<span class="cl-count">0 / 3</span></p>
+
+      <p class="lead"><b>今やること。</b>macOS / Linux で2.1.224以降を使い、同時に複数のセッションを開いているなら、既に話しかけられる状態です。受け取りたくなければ<code>crossSessionInbound</code>を<code>refuse</code>にし、送信も止めるなら<code>SendMessage</code>と<code>ListAgents</code>を<code>deny</code>に足す。<b>Amazon Bedrock経由で使っているなら、この機能は提供されないので対応は不要です。</b></p>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=pypi.org&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">PyPI / Anthropic</div>
+      <h3>Anthropic Python SDKが1.0.0に — Bedrockはregion未指定だと起動時に落ちる</h3>
+      <div class="tags">
+        <span class="tag">8/21 4:58 JST</span>
+        <span class="tag">⚠ 破壊的変更</span>
+        <span class="tag">AWS</span>
+      </div>
+      <p class="lead">PythonからClaudeを呼ぶ公式ライブラリ<code>anthropic</code>が、0.125.0から1.0.0に上がりました。0番台から1.0への変更なので、互換性のない変更が入っています。</p>
+      <p class="lead">AWSを使っている読者に一番効くのはBedrockです。<mark>これまではリージョンが見つからないと警告だけ出して<code>us-east-1</code>で動いていた</mark>のが、構築した時点で例外になります。</p>
+      <div class="code wrap"><div class="code-head">移行ガイド MIGRATION.md の原文</div><pre>`AnthropicBedrock` / `AsyncAnthropicBedrock` used to log a warning and silently fall back to `us-east-1` when no AWS region could be found. They now raise a `ValueError` at construction time instead.</pre></div>
+      <p class="lead">気付かないうちに<code>us-east-1</code>で動いていた構成は、上げた瞬間に起動しなくなります。<b>落ちるのは良いこと</b>で、意図しないリージョンで課金され続けるより先に分かります。</p>
+
+      <div class="code"><div class="code-head">直し方（どれか1つ）</div><pre>AnthropicBedrock(aws_region="ap-northeast-1")
+
+# または環境変数
+export AWS_REGION=ap-northeast-1</pre></div>
+
+      <ul class="points">
+        <li><b>探す順番も増えている。</b>1.0.0は <code>aws_region</code> 引数 → <code>AWS_REGION</code> / <code>AWS_DEFAULT_REGION</code> → 指定した<code>aws_profile</code>のboto3設定、の順で解決します。移行ガイドには「以前はプロファイル引数がリージョン検索で無視されていた」と書かれています。</li>
+        <li><b>Pythonの最低版が3.9から3.10へ。</b>3.9の環境では<code>pip</code>が1.0.0を選ばず、0.125.0までしか入りません。Pydanticはv1・v2とも引き続き使えます。</li>
+        <li><b>HTTP層が<code>httpx</code>から<code>httpx2</code>へ。</b>古い<code>httpx</code>のクライアントを渡すと<code>TypeError</code>になるので、黙って壊れることはありません。ただし<code>respx</code> / <code>pytest-httpx</code> / <code>vcrpy</code>やOpenTelemetry・Sentryの計測は、<b>動き続けるのにSDKの通信だけ見えなくなります</b>。起動時に<code>httpx2.alias_httpx()</code>を呼びます。</li>
+        <li><b><code>temperature</code> / <code>top_p</code> / <code>top_k</code>がメソッドから消えた。</b>APIから消えたのではなく引数から消えただけなので、必要なら<code>extra_body={"temperature": 0.2}</code>で素通しします。</li>
+        <li><b>旧Text Completions APIが削除。</b><code>client.completions.create()</code>と<code>HUMAN_PROMPT</code> / <code>AI_PROMPT</code>が無くなりました。Messages APIへ移します。</li>
+      </ul>
+
+      <p class="lead"><b>今やること。</b>すぐ上げる必要はありません。<code>requirements.txt</code>に<code>anthropic</code>をバージョン指定なしで書いているなら、<b>次のビルドで勝手に1.0.0が入る</b>ので、まず<code>anthropic&lt;1</code>で固定して落ち着いて移行する。Bedrockを使っているなら、上げる前に<code>aws_region</code>か<code>AWS_REGION</code>が明示されているかだけ先に確認する。</p>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude Codeの公式運用ガイド — 会話の途中でモデルを切り替えると、会話全体が送り直しになる</h3>
+      <div class="tags">
+        <span class="tag">8月14日</span>
+        <span class="tag">公式ガイド</span>
+        <span class="tag">Claude Code</span>
+      </div>
+      <p class="lead">Anthropicが8月14日、Claude Codeのセッション運用ガイドを公開しました（著者 Lydia Hallie）。changelogにもXにも出ない型の一次資料で、当サイトが落としていたものです。</p>
+      <p class="lead">中身は「トークンの単価を決めるもの」と「セッションが送る量を決めるもの」の2部構成です。<mark>一番効くのは、キャッシュが壊れるタイミング</mark>でした。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/cache-break-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/cache-break.png" alt="リクエストはツール定義・システムプロンプト・会話の順に送られ、先頭から一致した部分だけがキャッシュされる。モデルやeffortを変えるとキャッシュキーが変わり全体が再送になる" loading="lazy">
+        </picture>
+        <figcaption>キャッシュはリクエストの先頭から一致している必要がある。前半が変わると、後ろは全部が計算し直しになる。</figcaption>
+      </figure>
+
+      <div class="code wrap"><div class="code-head">公式ガイドの原文（送られる順番）</div><pre>The cache has to match from the very start of the request forward, and requests always go out in the same order: tool definitions, then the system prompt, then the conversation (with CLAUDE.md at the front of it).</pre></div>
+
+      <ul class="points">
+        <li><b>モデルごとに別のキャッシュがある。</b>会話の途中で<code>/model</code>を切り替えると、次のターンで会話全体が満額で送り直しになります。plan モードを出入りするたびにモデルが変わる<code>opusplan</code>も同じです。</li>
+        <li><b>キャッシュの有効期間はサブスクで1時間、APIキーで5分。</b>ターンのたびに時計が戻ります。席を離れる前に<code>/compact</code>しておくと、キャッシュが生きているうちに要約できて安く済みます。</li>
+        <li><b>直前の数ターンが要らないだけなら<code>/rewind</code>のほうが安い。</b>末尾を切るだけなので手前はキャッシュに残ります。<code>/compact</code>は会話全体を書き換えるので必ずコストがかかります。</li>
+        <li><b>ファイルは名前で書かず<code>@</code>で指す。</b>メッセージに直接添付されるので、読みに行く呼び出しが1回、探す必要がある場合は検索も省けます。</li>
+        <li><b>出力は入力のおよそ5倍の価格。</b>1トークンずつ生成するためGPUの占有時間が長い、と説明されています（200トークンの応答は200回のモデル実行）。</li>
+      </ul>
+
+      <p class="lead"><b>今やること。</b>新しいセッションで<code>/context</code>を1回だけ実行し、CLAUDE.mdとMCPのツール定義がどれだけ場所を取っているか見る。そのうえで、タスクを変えるときは<code>/clear</code>、モデルと effort は<b>着手前に</b>決めて途中で変えない、席を離れる前に<code>/compact</code>、の3つを習慣にする。</p>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=deepseek.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">DeepSeek</div>
+      <h3>DeepSeek HarnessはMITの開発者プレビュー — 公式発表の3時間前にBSDからMITへ切り替わっていた</h3>
+      <div class="tags">
+        <span class="tag">8月13日</span>
+        <span class="tag">新機能</span>
+        <span class="tag">OSS</span>
+      </div>
+      <p class="lead">ハーネスとは、モデルの周りを固める土台のことです。エージェントのループ、道具の呼び出し、セッションの記録、サンドボックス、承認、UI。Claude Codeでいう「Claude Code側」の部分がそれにあたります。</p>
+      <p class="lead">DeepSeekが自社のハーネスを<mark>MITライセンスで公開</mark>しました（コマンド名は<code>dsh</code>）。ただし<mark>開発者プレビュー</mark>で、READMEが大文字で警告しています。</p>
+      <div class="code wrap"><div class="code-head">リポジトリ README の原文</div><pre>DeepSeek Harness is currently in _developer preview_ and is iterating rapidly. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**</pre></div>
+
+      <ul class="points">
+        <li><b>「DeepSeek版のClaude Code」ではない。</b>モデルアダプタ自体がプラグインで、設定からAnthropic・OpenAI・Bedrock・Vertex・Azure・Codex・任意のOpenAI互換エンドポイントを挿せます。公式は「エージェントループ自体を含め全部がプラグインで、設定から差し替えられる」と書いています。</li>
+        <li><b>ライセンスは途中で変わっている。</b>npmの版ごとのメタデータを全10版たどると、8月10〜12日に出た<code>0.0.1-rc.x</code>の3版は<b>BSD-3-Clause</b>で、<code>0.1.0-rc.2</code>（8月13日 09:48 UTC）以降がMITです。公式発表（同日 13:02 UTC）の<b>3時間13分前</b>に切り替わっていました。</li>
+        <li><b>Plan modeは実行を止める機能ではない。</b>公式リファレンスが「soft guidance（緩い誘導）」と明記し、サンドボックスと承認ポリシーは独立して働くので別々に設定が要る、としています。</li>
+      </ul>
+
+      <p class="lead"><b>今やること。対応は不要。</b>乗り換えの判断をする段階ではありません。確認は1つだけで、ロックファイルに<code>@deepseek-ai/dsh</code>の<code>0.0.1-rc.x</code>が入っていないか見る。入っていればBSD-3-Clauseのままなので、社内の使用許諾表に写しているなら書き換えが要ります。本番とCIには入れないこと。</p>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料だけに基づいています。<mark>読んでいない資料は引用しません。</mark>掲載した一次資料はすべて本文を取得して該当箇所を読み、原文を確認しています。</p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Cross-session messaging」<i>Claude Code Docs</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「Cross-session messaging requires Claude Code v2.1.224 or later and runs on macOS and Linux. When a session meets the requirements, messaging is on with nothing to enable.」「Once delivered, the message counts toward usage like a prompt you type」「The receiving Claude reads the message between tool calls during an active turn, so a running tool is never interrupted. When the receiving session is idle, Claude Code starts a new turn with the message.」「Operating system: available on macOS and Linux, including Linux inside WSL 2. Claude Code doesn't offer cross-session messaging on native Windows.」「Provider: not available on Amazon Bedrock, Claude Platform on AWS, Google Cloud's Agent Platform, or Microsoft Foundry.」配達可否の表は「The receiving session prompts for permissions: Claude Code delivers each message. It holds one for your approval only when the sending session identifies itself as bypassing permission prompts.」および受信側がbypass時の対になる記述に基づく。<b>crossSessionInbound の「既定値」は書いていない</b>——設定ドキュメントの表の末列は Default ではなく Example であり、値が適用されないときは権限モードの組み合わせでメッセージごとに決まる、と本文が述べているため。</span></details>
+          <a href="https://code.claude.com/docs/en/cross-session-messaging">https://code.claude.com/docs/en/cross-session-messaging</a>（2026年8月21日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「CHANGELOG.md (2.1.224 / 2.1.236)」<i>anthropics/claude-code</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 2.1.224「Added cross-session `SendMessage`: Claude Code sessions can now message each other, on any of your machines, with `ListAgents` to discover them (macOS and Linux)」「Added `crossSessionInbound` and `dialogExpiry` settings: cross-session messages sent to a session running with bypassed permissions are held for your approval, and messages to other sessions auto-deliver」。2.1.236「Added `notify_when_idle` to cross-session `SendMessage`: ask another Claude Code session on this machine to send one notice when it next goes idle — opt-in, one-shot, no polling (macOS and Linux)」。</span></details>
+          <a href="https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md">https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md</a>（2026年8月21日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Migrating to v1」<i>anthropics/anthropic-sdk-python・MIGRATION.md</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「`AnthropicBedrock` / `AsyncAnthropicBedrock` used to log a warning and silently fall back to `us-east-1` when no AWS region could be found. They now raise a `ValueError` at construction time instead.」「The minimum supported Python version has increased from 3.9 to 3.10.」「The SDK's HTTP layer moved from `httpx`, which is no longer actively maintained, to `httpx2` - an API-compatible fork maintained by the Pydantic team.」「the configuration of the boto3 session for the given `aws_profile` (previously the profile argument was ignored for region lookup).」「The sampling parameters are only gone from the method signatures, not from the API: models that predate the change still honour them.」旧Text Completions APIの削除も同ファイルの該当節による。<b>github.comは403のため、jsDelivrのCDN経由で本文を取得した。</b>なお Claude Platform on AWS 向けの <code>AnthropicAWS</code> は別物で、0.125.0の時点で既にリージョン未指定時に例外を投げていた（今回変わったのは <code>AnthropicBedrock</code> 系のみ）。</span></details>
+          <a href="https://cdn.jsdelivr.net/gh/anthropics/anthropic-sdk-python@main/MIGRATION.md">https://cdn.jsdelivr.net/gh/anthropics/anthropic-sdk-python@main/MIGRATION.md</a>（2026年8月21日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          PyPI「anthropic」<i>pypi.org</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 1.0.0 のwheel公開時刻 2026-08-20T19:58:58.725997Z（日本時間8/21 4:58）、直前が 0.125.0（2026-08-19T22:00:44Z）。1.0.0 の <code>requires_python</code> は「&gt;=3.10」で、0.125.0 / 0.124.0 は「&gt;=3.9」。依存は <code>httpx2&lt;3,&gt;=2.0.0</code> で httpx への依存は無い。</span></details>
+          <a href="https://pypi.org/pypi/anthropic/json">https://pypi.org/pypi/anthropic/json</a>（2026年8月21日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Lydia Hallie「Maximizing the value of your Claude Code sessions」<i>Anthropic</i>, 2026年8月14日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「The cache has to match from the very start of the request forward, and requests always go out in the same order: tool definitions, then the system prompt, then the conversation (with CLAUDE.md at the front of it).」「/model: every model has its own cache, so on the next turn the entire conversation gets prefilled again at full price. (This includes opusplan, which switches models every time you go in or out of plan mode.)」「Time: every turn resets the clock, but the cache expires after an hour on a subscription or five minutes on an API key」「This happens one token at a time; a 200-token response is 200 runs of the model, one after the other. Per token, decode keeps the GPU busy for a lot longer, which is why output is priced at roughly 5x input.」「Tip: if the last few turns went somewhere you don't want to keep, /rewind to just before them instead of running /compact.」「@-mention files instead of naming them.」「Run /context once in a fresh session.」<b>削減率・金額は記事に書かれていないので載せていない。</b>0.1倍・2倍・5倍は単価の比であって効果量ではない。</span></details>
+          <a href="https://claude.com/blog/maximizing-the-value-of-your-claude-code-sessions">https://claude.com/blog/maximizing-the-value-of-your-claude-code-sessions</a>（2026年8月21日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          DeepSeek「DeepSeek Harness」<i>公式サイト・公式ドキュメント・README</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: README「DeepSeek Harness (`dsh`) is an open-source agent harness developed by DeepSeek AI.」「DeepSeek Harness is currently in _developer preview_ and is iterating rapidly. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**」。公式リファレンス「Every part of the product is a plugin, including the model adapter, the tool registry, the session log, and the agent loop itself, so every part is replaceable from configuration.」「Plan mode is soft guidance. Sandbox mode and approval policy enforce restrictions independently; neither reads or writes plan state, so deployments configure them separately.」公式サイトのナビゲーションに製品として掲載されていることも確認した。<b>GitHubのスター数・fork数は書いていない</b>——この環境からgithub.comは403で、出回っている数字はいずれも二次資料のため。<b>0.1.1-rc.1 / rc.2 の変更内容も書いていない</b>（変更履歴が公開されていない）。</span></details>
+          <a href="https://www.deepseek.com/harness/">https://www.deepseek.com/harness/</a>（2026年8月21日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          npm「@deepseek-ai/dsh」<i>registry.npmjs.org</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 全10版のtimeとlicenseフィールド。0.0.1-rc.1（2026-08-10T19:41:11Z）／rc.2（08-11T15:24:24Z）／rc.5（08-12T22:36:12Z）が BSD-3-Clause、0.1.0-rc.2（2026-08-13T09:48:26Z）以降の7版が MIT。公式Xの発表は 2026-08-13T13:02:03Z なので、MIT化はその3時間13分前。同梱LICENSEファイルでも両端の2版（0.0.1-rc.1 = BSD 3-Clause、0.1.1-rc.2 = MIT）を展開して確認した。同じ切り替えは <code>@deepseek-ai/dsh-plan-mode</code> でも独立に確認できる。</span></details>
+          <a href="https://registry.npmjs.org/@deepseek-ai/dsh">https://registry.npmjs.org/@deepseek-ai/dsh</a>（2026年8月21日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          DeepSeek公式X（@deepseek_ai）の発表投稿（2026-08-13T13:02:03Z）。
+          <details class="note-d"><summary>なぜ未確認か</summary><span class="note">投稿は長文投稿で、取得できたテキストは275文字で「built around one」の途中で切れている。全文を読めていないため、この投稿からは<b>発表時刻とMITライセンスでの公開という事実だけ</b>を採り、内容の要約には使っていない。ハーネスの中身に関する記述は、すべて公式ドキュメントとREADMEから取っている。</span></details>
+          <a href="https://x.com/deepseek_ai/status/2087887408440164663">https://x.com/deepseek_ai/status/2087887408440164663</a>（2026年8月21日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          収集網の穴と、それを塞ぐ巡回の実行結果。
+          <details class="note-d"><summary>測り方を見る</summary><span class="note">2026年8月21日、当サイトの全記事に対して <code>notify_when_idle</code> / <code>DeepSeek Harness</code> / <code>Cordis</code> / <code>Maximizing the value</code> を検索し、いずれも0件であることを確認した（既報なし）。巡回ツール（<code>_watch_sources.py</code>）は16の巡回先をフィード・サイトマップ・ページ・npm・PyPIの5方式で取得し、前回との差分を出す。最初の実行で、落としていた公式ガイドを実際に検出した。<b>この環境でClaude Codeのセッション間メッセージを実際に送受信してはいない。DeepSeek Harnessも起動していない。</b>いずれもドキュメントと配布物を読んだだけである。</span></details>
+          <a href="https://reishisu.github.io/ai-news/">https://reishisu.github.io/ai-news/</a>（2026年8月21日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「<code>anthropic&lt;1</code> でまず固定する」という順序について。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">移行ガイドは固定を勧めておらず、アップグレード手順（<code>pip install --upgrade "anthropic&gt;=1,&lt;2"</code>）を示している。先に固定してから移行する、というのは標準や公式の推奨ではなく、バージョン指定なしで運用している現場を想定した筆者の運用上の目安。</span></details>
+          <a href="https://cdn.jsdelivr.net/gh/anthropics/anthropic-sdk-python@main/MIGRATION.md">https://cdn.jsdelivr.net/gh/anthropics/anthropic-sdk-python@main/MIGRATION.md</a>（2026年8月21日参照）
+        </li>
+      </ol>
+    </article>
+  </section>
+
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<svg viewBox="0 0 640 330" xmlns="http://www.w3.org/2000/svg" role="img">
+
+  <text x="320" y="24" fill="var(--sub)" font-size="12" font-weight="700" text-anchor="middle">リクエストは毎回この順で送られ、先頭から一致した分だけがキャッシュに乗る</text>
+
+  <!-- 帯: 送信順 -->
+  <rect x="12" y="42" width="168" height="52" rx="8" fill="var(--track)" stroke="var(--sub)" stroke-width="1.2"/>
+  <text x="96" y="66" fill="var(--fg)" font-size="13.5" font-weight="800" text-anchor="middle">ツール定義</text>
+  <text x="96" y="86" fill="var(--sub)" font-size="11" text-anchor="middle">MCPのツールもここ</text>
+
+  <rect x="188" y="42" width="168" height="52" rx="8" fill="var(--track)" stroke="var(--sub)" stroke-width="1.2"/>
+  <text x="272" y="66" fill="var(--fg)" font-size="13.5" font-weight="800" text-anchor="middle">システムプロンプト</text>
+  <text x="272" y="86" fill="var(--sub)" font-size="11" text-anchor="middle">モデルとeffortで変わる</text>
+
+  <rect x="364" y="42" width="264" height="52" rx="8" fill="var(--track)" stroke="var(--sub)" stroke-width="1.2"/>
+  <text x="496" y="66" fill="var(--fg)" font-size="13.5" font-weight="800" text-anchor="middle">会話（先頭にCLAUDE.md）</text>
+  <text x="496" y="86" fill="var(--sub)" font-size="11" text-anchor="middle">ターンごとに後ろへ伸びる</text>
+
+  <path d="M12 106 L628 106" stroke="var(--track)" stroke-width="2"/>
+
+  <!-- 通常時 -->
+  <text x="12" y="132" fill="var(--sub)" font-size="12" font-weight="700">そのまま続けたとき</text>
+  <rect x="12" y="142" width="480" height="30" rx="6" fill="var(--a)" opacity="0.30"/>
+  <rect x="492" y="142" width="136" height="30" rx="6" fill="var(--b)" opacity="0.40"/>
+  <text x="252" y="162" fill="var(--fg)" font-size="12.5" font-weight="700" text-anchor="middle">キャッシュから読む（入力の0.1倍）</text>
+  <text x="560" y="162" fill="var(--fg)" font-size="12.5" font-weight="700" text-anchor="middle">新しい分だけ</text>
+
+  <!-- 切り替えたとき -->
+  <text x="12" y="206" fill="var(--sub)" font-size="12" font-weight="700">途中で /model や /effort を変えたとき</text>
+  <rect x="12" y="216" width="616" height="30" rx="6" fill="var(--c)" opacity="0.38"/>
+  <text x="320" y="236" fill="var(--fg)" font-size="13" font-weight="800" text-anchor="middle">先頭が変わるので、会話全体が満額で送り直し</text>
+
+  <!-- 注記 -->
+  <path d="M12 262 L628 262" stroke="var(--track)" stroke-width="2"/>
+  <text x="12" y="286" fill="var(--fg)" font-size="12.5" font-weight="700">キャッシュが消える条件</text>
+  <text x="12" y="308" fill="var(--sub)" font-size="12">/model ・ /effort ・ fast mode の切り替え ／ /compact ／ 時間切れ</text>
+  <text x="12" y="326" fill="var(--sub)" font-size="12">時間切れはサブスクで1時間、APIキーで5分。ターンのたびに時計は戻る</text>
+
+</svg>

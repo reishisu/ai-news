@@ -1,0 +1,50 @@
+<svg viewBox="0 0 640 366" xmlns="http://www.w3.org/2000/svg" role="img">
+
+  <!-- 見出し -->
+  <text x="164" y="26" fill="var(--sub)" font-size="12" font-weight="700" text-anchor="middle">拾えていた（発表の形を取る）</text>
+  <text x="474" y="26" fill="var(--sub)" font-size="12" font-weight="700" text-anchor="middle">落としていた（形を取らない）</text>
+  <path d="M319 40 L319 232" stroke="var(--sub)" stroke-width="1.2" stroke-dasharray="5 5"/>
+
+  <!-- 左: 巡回できていた -->
+  <rect x="12" y="44" width="292" height="52" rx="10" fill="var(--track)" stroke="var(--a)" stroke-width="1.8"/>
+  <text x="30" y="68" fill="var(--fg)" font-size="14" font-weight="800">変更履歴（changelog）</text>
+  <text x="30" y="88" fill="var(--sub)" font-size="11.5">版が上がると行が増える。日次で追える</text>
+
+  <rect x="12" y="106" width="292" height="52" rx="10" fill="var(--track)" stroke="var(--a)" stroke-width="1.8"/>
+  <text x="30" y="130" fill="var(--fg)" font-size="14" font-weight="800">公式Xアカウント</text>
+  <text x="30" y="150" fill="var(--sub)" font-size="11.5">料金・上限・障害はここが初出になる</text>
+
+  <rect x="12" y="168" width="292" height="52" rx="10" fill="var(--track)" stroke="var(--a)" stroke-width="1.8"/>
+  <text x="30" y="192" fill="var(--fg)" font-size="14" font-weight="800">リリースノート</text>
+  <text x="30" y="212" fill="var(--sub)" font-size="11.5">日付と版数が付いて出る</text>
+
+  <!-- 右: 落としていた -->
+  <rect x="336" y="44" width="292" height="52" rx="10" fill="var(--track)" stroke="var(--c)" stroke-width="1.8"/>
+  <text x="354" y="68" fill="var(--fg)" font-size="14" font-weight="800">公式の運用ガイド</text>
+  <text x="354" y="88" fill="var(--sub)" font-size="11.5">いつ出たか分からない。版数も付かない</text>
+
+  <rect x="336" y="106" width="292" height="52" rx="10" fill="var(--track)" stroke="var(--c)" stroke-width="1.8"/>
+  <text x="354" y="130" fill="var(--fg)" font-size="14" font-weight="800">OSSの公開</text>
+  <text x="354" y="150" fill="var(--sub)" font-size="11.5">レジストリへの投入が告知より先のことがある</text>
+
+  <rect x="336" y="168" width="292" height="52" rx="10" fill="var(--track)" stroke="var(--c)" stroke-width="1.8"/>
+  <text x="354" y="192" fill="var(--fg)" font-size="14" font-weight="800">ドキュメントだけの機能</text>
+  <text x="354" y="212" fill="var(--sub)" font-size="11.5">changelogの1行を読み落とすと辿り着けない</text>
+
+  <!-- 下: 対策 -->
+  <path d="M12 240 L628 240" stroke="var(--track)" stroke-width="2"/>
+  <text x="320" y="266" fill="var(--sub)" font-size="12" font-weight="700" text-anchor="middle">塞ぎ方 — 差分で見る巡回を足す</text>
+
+  <rect x="12" y="280" width="196" height="62" rx="10" fill="var(--track)" stroke="var(--sub)" stroke-width="1.2"/>
+  <text x="110" y="304" fill="var(--fg)" font-size="13.5" font-weight="800" text-anchor="middle">フィード / サイトマップ</text>
+  <text x="110" y="326" fill="var(--sub)" font-size="11.5" text-anchor="middle">更新日で新着だけ拾う</text>
+
+  <rect x="222" y="280" width="196" height="62" rx="10" fill="var(--track)" stroke="var(--b)" stroke-width="1.8"/>
+  <text x="320" y="304" fill="var(--fg)" font-size="13.5" font-weight="800" text-anchor="middle">パッケージレジストリ</text>
+  <text x="320" y="326" fill="var(--sub)" font-size="11.5" text-anchor="middle">公開が告知より先に出る</text>
+
+  <rect x="432" y="280" width="196" height="62" rx="10" fill="var(--track)" stroke="var(--sub)" stroke-width="1.2"/>
+  <text x="530" y="304" fill="var(--fg)" font-size="13.5" font-weight="800" text-anchor="middle">前回との差分だけ</text>
+  <text x="530" y="326" fill="var(--sub)" font-size="11.5" text-anchor="middle">毎朝ゼロから読み直さない</text>
+
+</svg>
