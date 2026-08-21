@@ -1,9 +1,18 @@
 {
   "category": "デイリーダイジェスト",
-  "tags": ["Claude Code", "Anthropic", "AWS", "DeepSeek", "OSS"],
+  "tags": [
+    "Claude Code",
+    "Anthropic",
+    "AWS",
+    "DeepSeek",
+    "OpenRouter"
+  ],
   "featured": false,
   "title": "AI-news：2026/08/21 号外 — Claude Codeのセッション間メッセージは、有効にする操作なしで動いている",
-  "summary": "収集網の穴を塞ぐ巡回を作り、落としていた4件を拾い直した号外。Claude Codeのセッション間メッセージは2.1.224から有効化操作なしでオンになっており、Bedrock経由では提供されない。Anthropic Python SDKが1.0.0になり、Bedrockはregion未指定だと起動時にValueErrorになる。公式のセッション運用ガイドと、MITで公開されたDeepSeek Harnessも扱う。",
+  "summary": "収集網の穴を塞ぐ巡回を作り、落としていた4件を拾い直した号外。Claude Codeのセッション間メッセージは2.1.224から有効化操作なしでオンになっており、Bedrock経由では提供されない。Anthropic Python SDKが1.0.0になり、Bedrockはregion未指定だと起動時にValueErrorになる。今朝OpenRouterに現れた匿名モデル「Ox Alpha」は無料だがプロンプトが提供者に保持される。公式のセッション運用ガイドとDeepSeek HarnessのMIT公開も扱う。",
   "thumbnail": "images/thumb.png",
-  "thumb": { "main": "止める操作をしていない", "sub": "セッション間メッセージは既定で動いている" }
+  "thumb": {
+    "main": "止める操作をしていない",
+    "sub": "セッション間メッセージは有効化の操作なしで動く"
+  }
 }

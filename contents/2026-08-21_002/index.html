@@ -42,8 +42,8 @@
         <span>これまでは警告を出して<mark>us-east-1へ暗黙にフォールバック</mark>していたのが、構築時に<code>ValueError</code>になりました。ほかにPython最低版が3.9→3.10、HTTP層が<code>httpx</code>から<code>httpx2</code>へ、<code>temperature</code>等がメソッドから削除、旧Text Completions APIが削除。</span>
       </li>
       <li>
-        <b>公式のセッション運用ガイドと、DeepSeek HarnessのMIT公開</b>
-        <span>Anthropicが8/14に運用ガイドを公開。<mark>会話の途中で<code>/model</code>や<code>/effort</code>を変えるとキャッシュが壊れて会話全体が再送になる</mark>、と明記されました。DeepSeek Harnessは公式・MITの開発者プレビューで、READMEに破壊的変更の予告があります。</span>
+        <b>正体を明かさないモデル「Ox Alpha」がOpenRouterに現れた — 無料だが、プロンプトは提供者に保持される</b>
+        <span>今朝5時すぎの登場で、100万トークンの文脈・画像と動画の入力・価格ゼロ。ただし提供者は匿名で、モデルページに<mark>プロンプトと出力は提供者に保持される</mark>と明記されています。試すのは自由でも、<mark>業務のコードや秘密情報は送らない</mark>判断材料になります。公式のセッション運用ガイドとDeepSeek HarnessのMIT公開も本文で扱います。</span>
       </li>
     </ol>
   </section>
@@ -53,6 +53,7 @@
     <ol>
       <li><a href="#why">なぜ号外なのか — 収集網に穴があった</a></li>
       <li><a href="#work">実務者向けのAI開発ツール(4件)</a></li>
+      <li><a href="#industry">モデル・業界(1件)</a></li>
       <li><a href="#refs">参考文献</a></li>
     </ol>
   </nav>
@@ -228,6 +229,42 @@ export AWS_REGION=ap-northeast-1</pre></div>
     </article>
   </section>
 
+  <!-- ============ モデル・業界 ============ -->
+  <section class="section section-a" id="industry">
+    <h2>🏢 モデル・業界<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=openrouter.ai&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">OpenRouter</div>
+      <h3>正体を明かさないモデル「Ox Alpha」がOpenRouterに — 無料だが、プロンプトは提供者に保持される</h3>
+      <div class="tags">
+        <span class="tag">8/21 5:04 JST</span>
+        <span class="tag">新モデル</span>
+        <span class="tag">OpenRouter</span>
+      </div>
+      <p class="lead">OpenRouterとは、いろいろな会社のAIモデルを1つの窓口から呼べる仲介サービスです。そこに今朝、<mark>作った会社を明かさないモデル</mark>「Ox Alpha」が載りました。モデル一覧APIの登録時刻は日本時間8月21日 5:04、公式Xの告知は6:02です（当サイトの朝5時の号の、対象期間の直後でした）。</p>
+      <div class="code wrap"><div class="code-head">OpenRouter 公式Xの告知（全文）</div><pre>🥷 New stealth model: Ox Alpha
+
+Ox Alpha is a frontier model built for efficient coding, sustained agentic work, and real-world production use.
+
+- 1M token context window
+- Text, image, and video input
+
+Try it now and share feedback to improve the model!</pre></div>
+
+      <ul class="points">
+        <li><b>中身。</b>文脈は1,048,576トークン、最大出力131,072トークン。テキスト・画像・動画を入力できます。価格は入力・出力とも0ドル（プレビュー中）。</li>
+        <li><b>提供者は匿名。</b>モデルページには「このプレビューの間は匿名でいることを選んだ第三者の提供者が開発・運営している」とあります。誰が作ったかは公表されていません。</li>
+        <li><b>無料の終了時期は書かれていない。</b>「1週間」と書く記事も出回っていますが、公式ページにその記載はありません。確認できないので当サイトは書きません。</li>
+      </ul>
+
+      <p class="lead">読者が判断に使うべきなのは、性能の噂ではなく<mark>データの扱い</mark>です。モデルページに明記されています。</p>
+      <div class="code wrap"><div class="code-head">モデルページの原文（データの扱い）</div><pre>Prompts and completions for this model are retained by the provider and are not used for training</pre></div>
+      <p class="lead">つまり、送ったプロンプトと出力は<b>匿名の提供者の手元に保持されます</b>。「学習には使わない」は提供者の申告で、誰の申告かは分かりません。</p>
+
+      <p class="lead"><b>今やること。</b>個人の実験で試すのは自由です。ただし<b>業務のコード・顧客情報・秘密情報は送らない</b>こと。無料で高性能なものには理由があり、この場合の対価は「誰か分からない相手にプロンプトが渡り、保持される」ことです。会社で使うかは、この1点だけで判断できます。</p>
+    </article>
+  </section>
+
   <!-- ============ 参考文献 ============ -->
   <section class="section section-d" id="refs">
     <h2>参考文献</h2>
@@ -281,6 +318,18 @@ export AWS_REGION=ap-northeast-1</pre></div>
           DeepSeek公式X（@deepseek_ai）の発表投稿（2026-08-13T13:02:03Z）。
           <details class="note-d"><summary>なぜ未確認か</summary><span class="note">投稿は長文投稿で、取得できたテキストは275文字で「built around one」の途中で切れている。全文を読めていないため、この投稿からは<b>発表時刻とMITライセンスでの公開という事実だけ</b>を採り、内容の要約には使っていない。ハーネスの中身に関する記述は、すべて公式ドキュメントとREADMEから取っている。</span></details>
           <a href="https://x.com/deepseek_ai/status/2087887408440164663">https://x.com/deepseek_ai/status/2087887408440164663</a>（2026年8月21日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          OpenRouter「Ox Alpha」<i>openrouter.ai（モデルページとモデル一覧API）</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: モデルページ「Ox Alpha is a reasoning model designed for coding, sustained agentic work, and production workloads.」「It is developed and operated by a third-party provider who has chosen to remain anonymous during this preview.」「Prompts and completions for this model are retained by the provider and are not used for training」。モデル一覧API（/api/v1/models）の該当エントリ: id「stealth/ox-alpha」、created 1787256295（日本時間2026年8月21日 5:04）、context_length 1,048,576、pricing prompt/completion とも「0」。<b>無料期間の長さ・提供者の正体・第三者によるベンチマーク数値は一次資料に無いので書いていない。</b>説明文はモデルページでは「a reasoning model」、公式X投稿では「a frontier model built for efficient coding」と表現が異なるため、それぞれの出典に紐付けて引用した。</span></details>
+          <a href="https://openrouter.ai/stealth/ox-alpha">https://openrouter.ai/stealth/ox-alpha</a>（2026年8月21日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          OpenRouter（公式X・認証済み）「New stealth model: Ox Alpha」, 2026年8月21日 6:02 JST.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 投稿全文（本文に転載）。取得はcdn.syndication.twimg.comのtweet-result（投稿ID 2090544970923184269）で、投稿時刻はIDのタイムスタンプから2026-08-20T21:02:16Z（日本時間8/21 6:02）。短い投稿のため全文を取得できている。</span></details>
+          <a href="https://x.com/OpenRouter/status/2090544970923184269">https://x.com/OpenRouter/status/2090544970923184269</a>（2026年8月21日参照）
         </li>
         <li>
           <span class="flag self">自分の実測</span>
