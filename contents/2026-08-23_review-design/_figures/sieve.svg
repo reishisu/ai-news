@@ -1,0 +1,37 @@
+<svg viewBox="0 0 400 318" xmlns="http://www.w3.org/2000/svg" role="img">
+  <defs>
+    <marker id="dn" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0 0 L10 0 L5 10 z" fill="var(--sub)"/>
+    </marker>
+  </defs>
+
+  <rect x="10" y="6" width="380" height="34" rx="8" fill="var(--track)" stroke="var(--sub)" stroke-width="1"/>
+  <text x="200" y="29" text-anchor="middle" font-size="14.5" font-weight="800" fill="var(--fg)">レビューで指摘したい欠陥　14件</text>
+  <path d="M200 42 L200 52" fill="none" stroke="var(--sub)" stroke-width="1.6" marker-end="url(#dn)"/>
+
+  <rect x="10" y="56" width="380" height="50" rx="8" fill="var(--track)" stroke="var(--b)" stroke-width="2"/>
+  <text x="24" y="79" font-size="14" font-weight="800" fill="var(--fg)">1. 書式と明らかな誤り</text>
+  <text x="24" y="97" font-size="12" fill="var(--sub)">ruff（既製）</text>
+  <text x="376" y="79" text-anchor="end" font-size="14" font-weight="800" fill="var(--b)">6件が落ちた</text>
+  <text x="376" y="97" text-anchor="end" font-size="12.5" font-weight="800" fill="var(--fg)">残り 8</text>
+  <path d="M200 108 L200 118" fill="none" stroke="var(--sub)" stroke-width="1.6" marker-end="url(#dn)"/>
+
+  <rect x="10" y="122" width="380" height="50" rx="8" fill="var(--track)" stroke="var(--b)" stroke-width="2"/>
+  <text x="24" y="145" font-size="14" font-weight="800" fill="var(--fg)">2. 型と構造</text>
+  <text x="24" y="163" font-size="12" fill="var(--sub)">mypy（既製）</text>
+  <text x="376" y="145" text-anchor="end" font-size="14" font-weight="800" fill="var(--b)">3件が落ちた</text>
+  <text x="376" y="163" text-anchor="end" font-size="12.5" font-weight="800" fill="var(--fg)">残り 5</text>
+  <path d="M200 174 L200 184" fill="none" stroke="var(--sub)" stroke-width="1.6" marker-end="url(#dn)"/>
+
+  <rect x="10" y="188" width="380" height="50" rx="8" fill="var(--track)" stroke="var(--a)" stroke-width="2"/>
+  <text x="24" y="211" font-size="14" font-weight="800" fill="var(--fg)">3. 自チームの規約</text>
+  <text x="24" y="229" font-size="12" fill="var(--sub)">自作 81行（AST）</text>
+  <text x="376" y="211" text-anchor="end" font-size="14" font-weight="800" fill="var(--a)">3件が落ちた</text>
+  <text x="376" y="229" text-anchor="end" font-size="12.5" font-weight="800" fill="var(--fg)">残り 2</text>
+  <path d="M200 240 L200 250" fill="none" stroke="var(--sub)" stroke-width="1.6" marker-end="url(#dn)"/>
+
+  <rect x="10" y="254" width="380" height="52" rx="8" fill="var(--track)" stroke="var(--c)" stroke-width="2.5"/>
+  <text x="24" y="277" font-size="14" font-weight="800" fill="var(--c)">4. 人が読む</text>
+  <text x="24" y="296" font-size="12.5" fill="var(--fg)">仕様にしか正解が無い</text>
+  <text x="376" y="286" text-anchor="end" font-size="15" font-weight="800" fill="var(--c)">2件</text>
+</svg>

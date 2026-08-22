@@ -1,0 +1,46 @@
+== 1. ruff / 書式と静的検査 ==
+orders.py:3:8: F401 [*] `hashlib`
+  imported but unused
+orders.py:32:47: B006 Do not use
+  mutable data structures for
+  argument defaults
+orders.py:61:15: F821 Undefined name
+  `gateway`
+orders.py:62:5: E722 Do not use bare
+  `except`
+orders.py:64:5: F841 Local variable
+  `receipt` is assigned to but never
+  used
+orders.py:71:13: F541 [*] f-string
+  without any placeholders
+Found 6 errors.
+[*] 2 fixable with the `--fix` option
+  (2 hidden fixes can be enabled with
+  the `--unsafe-fixes` option).
+
+== 2. mypy / 型 ==
+orders.py:29: error: Value of type
+  "dict[Any, Any] | None" is not
+  indexable  [index]
+orders.py:37: error: Value of type
+  "dict[Any, Any] | None" is not
+  indexable  [index]
+orders.py:61: error: Name "gateway"
+  is not defined  [name-defined]
+orders.py:72: error: Argument 1 to
+  "shipping_fee" has incompatible
+  type "str"; expected "int"
+  [arg-type]
+orders.py:78: error: Incompatible
+  return value type (got "list[Any]",
+  expected "int")  [return-value]
+
+== 3. bandit / セキュリティ ==
+(出力なし = 指摘0件)
+
+== 4. 自作ルール house_rules.py ==
+orders.py:35 HR01 ループ内でDB取得
+orders.py:37 HR01 ループ内でDB取得
+orders.py:49 HR03 金額が float
+orders.py:59 HR02 ログに秘密を渡した
+-- 4 件

@@ -30,16 +30,16 @@
 <main class="container">
 
   <section class="hero">
-    <a class="hero-card" href="contents/2026-08-23_001/">
-      <img class="hero-thumb" src="contents/2026-08-23_001/images/thumb.png" alt="" width="1280" height="720" fetchpriority="high">
+    <a class="hero-card" href="contents/2026-08-23_review-design/">
+      <img class="hero-thumb" src="contents/2026-08-23_review-design/images/thumb.png" alt="" width="1280" height="720" fetchpriority="high">
       <div class="hero-body">
         <div class="hero-meta">
           <span class="hero-badge">最新号</span>
-          <span class="hero-cat">デイリーダイジェスト</span>
+          <span class="hero-cat">チームで作る技術</span>
           <span class="hero-date">2026年8月23日(日)</span>
         </div>
-        <h1 class="hero-title">AI-news：2026/08/23 — Laravelのキュー投入リスナーがdebounceできるようになった</h1>
-        <p class="hero-sum">Laravel v13.26.0で、キュー投入されたイベントリスナーに #[DebounceFor] が付けられるようになりました（実際に動かして4回→1回を確認）。Androidのアプリごとのメモリ上限がPixel以外へ広がります。iOS 26.6.1のCVE29件のうち21件がWebKit。DeepSeek APIは8月23日から土日が終日オフピーク価格に。</p>
+        <h1 class="hero-title">コードレビューの設計 — 機械に任せる観点と、人が見る観点の分け方</h1>
+        <p class="hero-sum">レビューで指摘したい欠陥を14件仕込んだコードに静的解析を当てると、9件が人の目に届く前に落ちました。残った5件は他人の注文が見える・トークンがログに出るなど、本番で事故になる種類だけ。うち3件は81行の自作ルールで機械側へ降ろせます。振り分け表・PR説明の雛形・レビュー手順のチェックリストを配ります。</p>
         <span class="hero-go">この号を読む</span>
       </div>
     </a>
@@ -73,7 +73,7 @@
   <section class="posts">
     <div class="posts-head">
       <h2>記事一覧</h2>
-      <span class="posts-count"><b id="hitCount">33</b>件</span>
+      <span class="posts-count"><b id="hitCount">34</b>件</span>
     </div>
 
     <div class="finder">
@@ -84,20 +84,20 @@
       </div>
       <div class="tag-bar" id="tagBar">
       <button class="tag-chip is-on" type="button" data-tag="">すべて</button>
-      <button class="tag-chip" type="button" data-tag="実測">#実測<i>19</i></button>
-      <button class="tag-chip" type="button" data-tag="公式ドキュメント">#公式ドキュメント<i>15</i></button>
+      <button class="tag-chip" type="button" data-tag="実測">#実測<i>20</i></button>
+      <button class="tag-chip" type="button" data-tag="公式ドキュメント">#公式ドキュメント<i>16</i></button>
       <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>11</i></button>
       <button class="tag-chip" type="button" data-tag="AWS">#AWS<i>10</i></button>
       <button class="tag-chip" type="button" data-tag="WebView">#WebView<i>9</i></button>
       <button class="tag-chip" type="button" data-tag="セキュリティ">#セキュリティ<i>9</i></button>
       <button class="tag-chip" type="button" data-tag="入門">#入門<i>8</i></button>
       <button class="tag-chip" type="button" data-tag="Laravel">#Laravel<i>6</i></button>
+      <button class="tag-chip" type="button" data-tag="プロジェクト管理">#プロジェクト管理<i>5</i></button>
+      <button class="tag-chip" type="button" data-tag="リード">#リード<i>5</i></button>
       <button class="tag-chip" type="button" data-tag="Android">#Android<i>4</i></button>
       <button class="tag-chip" type="button" data-tag="DeepSeek">#DeepSeek<i>4</i></button>
       <button class="tag-chip" type="button" data-tag="iOS">#iOS<i>4</i></button>
       <button class="tag-chip" type="button" data-tag="テスト">#テスト<i>4</i></button>
-      <button class="tag-chip" type="button" data-tag="プロジェクト管理">#プロジェクト管理<i>4</i></button>
-      <button class="tag-chip" type="button" data-tag="リード">#リード<i>4</i></button>
       <button class="tag-chip" type="button" data-tag="Anthropic">#Anthropic<i>3</i></button>
       <button class="tag-chip" type="button" data-tag="VRChat">#VRChat<i>3</i></button>
       <button class="tag-chip" type="button" data-tag="エージェント設計">#エージェント設計<i>3</i></button>
@@ -110,10 +110,23 @@
       <button class="tag-chip" type="button" data-tag="デプロイ">#デプロイ<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="フック">#フック<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="料金改定">#料金改定<i>2</i></button>
+      <button class="tag-chip" type="button" data-tag="設計">#設計<i>2</i></button>
       </div>
     </div>
 
     <div class="post-list" id="postList">
+      <a class="post-card" href="contents/2026-08-23_review-design/"
+         data-tags="レビュー|設計|リード|プロジェクト管理|実測|公式ドキュメント" data-category="チームで作る技術"
+         data-date="2026-08-23" data-search="コードレビューの設計 — 機械に任せる観点と、人が見る観点の分け方 レビューで指摘したい欠陥を14件仕込んだコードに静的解析を当てると、9件が人の目に届く前に落ちました。残った5件は他人の注文が見える・トークンがログに出るなど、本番で事故になる種類だけ。うち3件は81行の自作ルールで機械側へ降ろせます。振り分け表・pr説明の雛形・レビュー手順のチェックリストを配ります。 チームで作る技術 レビュー 設計 リード プロジェクト管理 実測 公式ドキュメント コードレビューの設計 — 機械に任せる観点と、人が見る観点の分け方 aiニュース デイリーダイジェスト チームで作る技術 ｜ 2026年8月23日(日) コードレビューの設計 — 機械に任せる観点と、人が見る観点の分け方 欠陥を14件仕込んだコードに静的解析を当てて、どこまで機械側に降ろせるかを実測しました。振り分け表とpr説明の雛形を配ります。 ⏱ 約20分 リード向け テンプレ配布 実測あり ⭐ 3行で言うと 既製の静的解析3種は、仕込んだ14件のうち9件を落とした 残った5件は、他人の注文が見える・トークンがログに出る・境界が仕様と逆、といった 本番で事故になる種類だけ でした。安いものが機械に、高いものが人に残ります。 残った5件のうち3件は、80行の自作ルールで機械側へ降ろせた n+1・秘密のログ出力・金額をfloatで持つ、の3つ。「人が見るしかない」と思っている観点は、実際にはかなり減らせます。 最後まで残った2件は、正解がリポジトリの外にあった 権限の設計と、境界の値（3000円「以上」か「超」か）。 人がレビューで読むのは、ここに絞ってよい というのが今回の結論です。 目次 実測: 既製ツールは14件中9件。残った5件が事故になるやつ 残り5件のうち3件は、80行の自作ルールで落ちた 機械に降ろせるかは、3つの質問で決まる aiレビューは規約層に置く — 承認は動かせないと両社が明記している そのまま使うもの（雛形・振り分け表・チェックリスト） 失敗パターンと、その兆候 参考文献 1 実測: 既製ツールは14件中9件。残った5件が事故になるやつ 注文apiに、指摘したい欠陥を14件仕込んだ レビューで実際に書きそうな指摘を14種類選び、1つのファイルに埋めました。書式の粗さから権限チェック漏れまで、粒度はバラバラです。 仕込んだのは 「機械が捕まえそうな9件」と「人が読まないと分からないつもりの5件」 。狙いは、その線引きが本当に正しいかを数えることです。 orders.py（抜粋・仕込んだ欠陥にidを振ってある） def show_order(order_id: int, current_user_id: int) -&gt; dict: order = db.fetch_order(order_id) # d10: 取得した注文が current_user_id のものか確認していない # d08: order は none かもしれない return {&quot;id&quot;: order[&quot;id&quot;], &quot;total&quot;: order[&quot;total&quot;]} def shipping_fee(subtotal: int) -&gt; int: # d12: 仕様は「3000円以上で無料」。&gt; だと 3000円ちょうどが有料になる if subtotal &gt; free_ship_yen: return 0 return 500 def charge(order_id: int, token: str) -&gt; bool: # d13: トークンをログに出している log.info(&quot;charge o=%s tok=%s&quot;, order_id, token) try: res = gateway.charge(order_id, token) # d02: gateway が未定義 except: # d03: bare except return false receipt = json.dumps(res) # d06: receipt を使っていない return true 全14件の一覧は _labs/2026-08-23_review-design/defects.md にあります。以下は実行結果をそのまま貼ったものです。 ruff・mypy・bandit を当てた。banditは0件だった python 3.11.15 / ruff 0.15.8 / mypy 1.19.1 / bandit 1.9.4。 2026年8月23日にこの環境で実行しました。 加工せずそのまま貼ります。 $ ./run_all.sh（既製ツールの分） == 1. ruff / 書式と静的検査 == orders.py:3:8: f401 [*] `hashlib` imported but unused orders.py:32:47: b006 do not use mutable data structures for argument defaults orders.py:61:15: f821 undefined name `gateway` orders.py:62:5: e722 do not use bare `except` orders.py:64:5: f841 local variable `receipt` is assigned to but never used orders.py:71:13: f541 [*] f-string without any placeholders found 6 errors. [*] 2 fixable with the `--fix` option (2 hidden fixes can be enabled with the `--unsafe-fixes` option). == 2. mypy / 型 == orders.py:29: error: value of type &quot;dict[any, any] | none&quot; is not indexable [index] orders.py:37: error: value of type &quot;dict[any, any] | none&quot; is not indexable [index] orders.py:61: error: name &quot;gateway&quot; is not defined [name-defined] orders.py:72: error: argument 1 to &quot;shipping_fee&quot; has incompatible type &quot;str&quot;; expected &quot;int&quot; [arg-type] orders.py:78: error: incompatible return value type (got &quot;list[any]&quot;, expected &quot;int&quot;) [return-value] == 3. bandit / セキュリティ == (出力なし = 指摘0件) 出力は40桁で折り返しています。 narrow.py が折るだけで、 文字は一字も変えていません 。29行目と37行目は同じ欠陥（d08）が2か所にあるためです。 ruffが6件、mypyがさらに3件。 d02（未定義の名前）は両方が指摘しました。d01〜d09 の9件全部が、人の目に届く前に落ちています。 banditは0件。 セキュリティ用の静的解析を足しても、残り5件は1件も増えませんでした。 残った5件は、全部「本番で事故になるやつ」だった 機械が落とした9件は、未使用のimportや型の食い違いです。 直さなくても、たいてい本番は動きます。 残った5件はこうでした。 id 残った欠陥 起きること d10 注文の持ち主を確認していない 他人の注文が見える（情報漏洩） d11 ループの中でdbを引く 件数が増えると本番だけ落ちる d12 境界が仕様と逆 3000円ちょうどの客に送料を取る d13 トークンをログに出す ログを見られると決済できる d14 金額をfloatで持つ 合計が1円ずれる。再現しにくい これがレビュー設計の出発点です。 機械は安い欠陥から順に落とし、高い欠陥だけを人に回してくる。 だから、人が「未使用のimportがあります」と書いている状態は、いちばんもったいない。 q. 人のレビューで最初にやめるべき指摘はどれ？ 変数名が分かりにくい 使っていないimportが残っている この操作、他人のデータも取れませんか 正解は2番。既製のlinterが確実に落とす種類なので、人が書く価値がありません。1番は機械が判定できず（正解が文脈にある）、3番は今回どのツールも捕まえられなかった種類です。 「機械が確実に落とすもの」を人が指摘している間は、レビューの時間が高い欠陥に届きません。 2 残り5件のうち3件は、80行の自作ルールで落ちた 「人が見るしかない」は、たいてい思い込み 残った5件を眺めると、3件は コードの中だけを見て機械的に判定できます 。 d11（n+1）。 ループの中でデータ取得を呼んでいるか、を見るだけです。 d13（秘密のログ出力）。 ログ関数の引数名に token / secret / password が入っているか。 d14（金額をfloat）。 金額を表す名前の戻り値・注釈が float かどうか。 3つとも「うちのチームではこうする」という 規約 です。既製のlinterに入っていないのは、規約が会社ごとに違うからで、難しいからではありません。 house_rules.py（抜粋・全体は81行） db = (&quot;fetch&quot;, &quot;find&quot;, &quot;query&quot;, &quot;select&quot;, &quot;get&quot;) loggers = (&quot;log&quot;, &quot;logger&quot;, &quot;logging&quot;) secret = (&quot;token&quot;, &quot;secret&quot;, &quot;password&quot;, &quot;authorization&quot;) money = (&quot;pric">
+        <img class="post-thumb" src="contents/2026-08-23_review-design/images/thumb.png" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;post-thumb-ph&quot;>📰</div>'">
+        <div class="post-body">
+          <div class="post-date"><span class="post-cat">チームで作る技術</span>2026年8月23日(日)</div>
+          <h3 class="post-title">コードレビューの設計 — 機械に任せる観点と、人が見る観点の分け方</h3>
+          <p class="post-summary">レビューで指摘したい欠陥を14件仕込んだコードに静的解析を当てると、9件が人の目に届く前に落ちました。残った5件は他人の注文が見える・トークンがログに出るなど、本番で事故になる種類だけ。うち3件は81行の自作ルールで機械側へ降ろせます。振り分け表・PR説明の雛形・レビュー手順のチェックリストを配ります。</p>
+          <div class="post-tags"><span class="post-tag">#レビュー</span><span class="post-tag">#設計</span><span class="post-tag">#リード</span><span class="post-tag">#プロジェクト管理</span></div>
+          <span class="post-more">続きを読む →</span>
+        </div>
+      </a>
       <a class="post-card" href="contents/2026-08-23_001/"
          data-tags="Laravel|Android|iOS|VRChat|DeepSeek|実測" data-category="デイリーダイジェスト"
          data-date="2026-08-23" data-search="ai-news：2026/08/23 — laravelのキュー投入リスナーがdebounceできるようになった laravel v13.26.0で、キュー投入されたイベントリスナーに #[debouncefor] が付けられるようになりました（実際に動かして4回→1回を確認）。androidのアプリごとのメモリ上限がpixel以外へ広がります。ios 26.6.1のcve29件のうち21件がwebkit。deepseek apiは8月23日から土日が終日オフピーク価格に。 デイリーダイジェスト laravel android ios vrchat deepseek 実測 ai-news：2026/08/23 — laravelのキュー投入リスナーがdebounceできるようになった aiニュース デイリーダイジェスト 2026年8月23日(日) ai-news：2026/08/23 — laravelのキュー投入リスナーがdebounceできるようになった 対象期間: 8月21日(金) 5:00 〜 8月23日(日) 5:00 jst（土曜は各社の告知がほぼ止まるため、48時間に広げました） ▶ この号を動画で見る（11分） ずんだもん×四国めたんの掛け合い・毎朝更新のyoutube版 ⭐ 今日の3行まとめ laravel v13.26.0 で、キュー投入されたリスナーに #[debouncefor] が付けられるようになった 同じイベントが短時間に何度も飛んだとき、 最後の1回だけを処理する 仕組みです。ジョブ側には前からありましたが、リスナー側は今回が初めてです。ecs on fargate のように複数コンテナで動かしているなら、公式ドキュメントが「全サーバーが同じキャッシュを見ていること」を条件に挙げています。 github copilot の slack 連携が public preview に slack のスレッドで @github を呼ぶとエージェントが動き、調査からプルリクエスト作成までやります。 管理者が copilot cloud agent ポリシーを有効にしないと使えません 。対象は copilot business / enterprise です。 androidのアプリごとのメモリ上限がpixel以外へ広がる。webviewアプリとunityアプリはピークを測っておく 超えるとまず遅くなり、さらに超えるとプロセスごと落とされます。 上限の具体的な数値は公開されていません ので、play console の android vitals でいまの自分の分布を記録しておくのが、唯一できる備えです。 目次 実務者向けのai開発ツール(1件) web開発・インフラ(1件) クライアント技術(3件) 技術・研究(2件) モデル・業界(3件) 参考文献 🧰 実務者向けのai開発ツール 1件 github slackから @github を呼ぶとcopilotが動く — 管理者の有効化が要る 8/22 1:07 jst public preview github copilot slack の github 連携アプリが更新されました。これまでも通知の受信やissueの作成・操作はできましたが、今回から 会話の中でコーディングエージェントを動かせる ようになりました。 dm・チャンネル・スレッドのどこでも @github にメンションするとセッションが始まります。 github changelog の原文（できること） answer questions about your code and github activity. triage bug reports, update existing issues, or create and label new issues. investigate failures, implement changes, and validate its work in a secure cloud sandbox. open a pull request and provide a link to the conversation for review. 会社をまたいでslackで連携している現場だと、「この不具合どっち側？」の会話からそのまま調査を投げられます。作られたissueやプルリクエストは copilot アプリの名義 になり、権限は既存のgithubの設定の範囲を超えません。 レビューの逃げ道も用意されています。リポジトリの管理者は、 copilot名義のプルリクエストにだけ追加の承認を必須にできます 。エージェントが書いたものが人の目を通らずにマージされるのを防ぐためのものです。 ただし、 入れれば使えるわけではありません。 3つ条件があります。 プラン。 copilot business か copilot enterprise の組織のみ。個人プランは対象外です。 管理者の操作。 組織の管理者が「copilot cloud agent ポリシー」を有効にしておく必要があります。 枠の消費。 使った分は既存のcopilotの割り当てを消費し、cloud agent の予算設定で管理します。新しい料金体系ではありません。 今やること。 すぐ使う予定がなければ対応は不要。copilot business / enterprise を契約していて試したいなら、管理者にcloud agentポリシーの有効化を頼むところから。 🧑‍💻 web開発・インフラ 1件 laravel キュー投入したリスナーを「最後の1回だけ」にできる — #[debouncefor] v13.26.0 / 8/18 新機能 laravel 先に言葉の確認です。 イベント は「何かが起きた」という知らせ、 リスナー はそれを受け取って動く処理です。リスナーに shouldqueue を付けると、その場では動かずキュー（あとで処理する行列）に積まれます。 困るのは 同じイベントが短時間に何度も飛ぶとき です。商品を5回編集すれば検索インデックスの更新が5回積まれます。最後の1回で結果は同じなのに、4回ぶんが無駄になります。 連続する発火を1本にまとめる。まとめる単位は debounceid が決める この環境で実際に動かしました。0.5秒おきに同じイベントを4回投げて、リスナーが何回動いたかを数えたものです。 laravel 13.26.1 / php 8.4.19 で実行（加工せずそのまま） # queue=database(sqlite) cache=file $ php artisan demo:debounce plain 1回目を発火 2回目を発火 3回目を発火 4回目を発火 4秒待つ キューを流す 発火 4 回 / 実行 4 回 $ php artisan demo:debounce debounce 1回目を発火 2回目を発火 3回目を発火 4回目を発火 4秒待つ キューを流す 発火 4 回 / 実行 1 回 属性を付けただけで 4回 → 1回 になります。再現用の一式は _labs/2026-08-23_001/laravel/ に置きました。 書き方はこうです。 公式ドキュメント（events）に載っている例 use illuminate\contracts\queue\shouldqueue; use illuminate\queue\attributes\debouncefor; #[debouncefor(30)] class updateproductsearchindex implements shouldqueue { public function handle(productupdated $event): void { // 検索インデックスの更新… } public function debounceid(productupdated $event): string { return (string) $event-&gt;product-&gt;getkey(); } } debounceid が「どれとどれを同じ扱いにするか」を決めます。上の例は商品ごとなので、 商品aの連打と商品bの連打は別々にまとまります 。ここを書かないと全部が1本にまとまってしまうので、実質必須だと思ってください。 1つ落とし穴があります。 ずっと連打され続けると、いつまでも実行されません。 上限を付けるのが maxwait です。 最長120秒で必ず1回は走らせる #[debouncefor(30, maxwait: 120)] class updateproductsearchindex implements shouldqueue { // … } ecs on fargate で動かすなら、キャッシュの置き場所が条件になります。 「何回目か」を数えているのは キャッシュ です。ecs on fargate は同じコンテナを複数動かす仕組みなので、キャッシュがコンテナごとに分かれていると、それぞれが別々に数えてしまいます。 まとめる相手が見えていないと、まとまらない 公式ドキュメントもこれを条件として書いています。 laravel.com/docs/13.x/events の原文 if your application dispatches events from multiple web servers or containers, you should ensure that all of your servers are communicating with the same central cache server. つまり cache_store が file や array のままだと、タスクの数だけ処理が走ります。elasticache などを共通で指す設定が要ります。リスナー単位で変えたいときは debouncevia を生やします。 このリスナーだけ redis で数える public function debouncevia(productupdated">

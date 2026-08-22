@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>コードレビューの設計 — 機械に任せる観点と、人が見る観点の分け方</title>
+<meta name="description" content="レビューで指摘したい欠陥を14件仕込んだコードに、ruff・mypy・banditを当てたら9件が落ちました。残った5件は全部、本番で事故になる種類でした。そのうち3件は81行の自作ルールで機械側へ降ろせます。振り分け表・PR説明の雛形・レビュー手順のチェックリスト付き。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="コードレビューの設計 — 機械に任せる観点と、人が見る観点の分け方">
+<meta property="og:description" content="欠陥14件を仕込んだコードに静的解析を当てると9件が落ち、残った5件が全部「事故になるやつ」でした。実測から、人が見る観点を絞り込みます。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-23_review-design/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-23_review-design/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=58c56a7d">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">チームで作る技術 ｜ 2026年8月23日(日)</div>
+    <h1>コードレビューの設計 — 機械に任せる観点と、人が見る観点の分け方</h1>
+    <div class="range">欠陥を14件仕込んだコードに静的解析を当てて、どこまで機械側に降ろせるかを実測しました。振り分け表とPR説明の雛形を配ります。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 約20分</span>
+      <span class="tag">リード向け</span>
+      <span class="tag">テンプレ配布</span>
+      <span class="tag">実測あり</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li>
+        <b>既製の静的解析3種は、仕込んだ14件のうち9件を落とした</b>
+        <span>残った5件は、他人の注文が見える・トークンがログに出る・境界が仕様と逆、といった<mark>本番で事故になる種類だけ</mark>でした。安いものが機械に、高いものが人に残ります。</span>
+      </li>
+      <li>
+        <b>残った5件のうち3件は、80行の自作ルールで機械側へ降ろせた</b>
+        <span>N+1・秘密のログ出力・金額をfloatで持つ、の3つ。「人が見るしかない」と思っている観点は、実際にはかなり減らせます。</span>
+      </li>
+      <li>
+        <b>最後まで残った2件は、正解がリポジトリの外にあった</b>
+        <span>権限の設計と、境界の値（3000円「以上」か「超」か）。<mark>人がレビューで読むのは、ここに絞ってよい</mark>というのが今回の結論です。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">実測: 既製ツールは14件中9件。残った5件が事故になるやつ</a></li>
+      <li><a href="#s2">残り5件のうち3件は、80行の自作ルールで落ちた</a></li>
+      <li><a href="#s3">機械に降ろせるかは、3つの質問で決まる</a></li>
+      <li><a href="#s4">AIレビューは規約層に置く — 承認は動かせないと両社が明記している</a></li>
+      <li><a href="#s5">そのまま使うもの（雛形・振り分け表・チェックリスト）</a></li>
+      <li><a href="#s6">失敗パターンと、その兆候</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>実測: 既製ツールは14件中9件。残った5件が事故になるやつ</h2>
+
+    <article class="item">
+      <h3>注文APIに、指摘したい欠陥を14件仕込んだ</h3>
+      <p class="lead">レビューで実際に書きそうな指摘を14種類選び、1つのファイルに埋めました。書式の粗さから権限チェック漏れまで、粒度はバラバラです。</p>
+      <p class="lead">仕込んだのは <mark>「機械が捕まえそうな9件」と「人が読まないと分からないつもりの5件」</mark>。狙いは、その線引きが本当に正しいかを数えることです。</p>
+
+      <div class="code"><div class="code-head">orders.py（抜粋・仕込んだ欠陥にIDを振ってある）</div><pre>def show_order(order_id: int, current_user_id: int) -&gt; dict:
+    order = db.fetch_order(order_id)
+    # D10: 取得した注文が current_user_id のものか確認していない
+    # D08: order は None かもしれない
+    return {"id": order["id"], "total": order["total"]}
+
+
+def shipping_fee(subtotal: int) -&gt; int:
+    # D12: 仕様は「3000円以上で無料」。&gt; だと 3000円ちょうどが有料になる
+    if subtotal &gt; FREE_SHIP_YEN:
+        return 0
+    return 500
+
+
+def charge(order_id: int, token: str) -&gt; bool:
+    # D13: トークンをログに出している
+    log.info("charge o=%s tok=%s", order_id, token)
+    try:
+        res = gateway.charge(order_id, token)    # D02: gateway が未定義
+    except:                                       # D03: bare except
+        return False
+    receipt = json.dumps(res)                     # D06: receipt を使っていない
+    return True</pre></div>
+
+      <p class="lead">全14件の一覧は <code>_labs/2026-08-23_review-design/defects.md</code> にあります。以下は実行結果をそのまま貼ったものです。</p>
+    </article>
+
+    <article class="item">
+      <h3>ruff・mypy・bandit を当てた。banditは0件だった</h3>
+      <p class="lead">Python 3.11.15 / ruff 0.15.8 / mypy 1.19.1 / bandit 1.9.4。</p>
+      <p class="lead">2026年8月23日にこの環境で実行しました。<mark>加工せずそのまま貼ります。</mark></p>
+
+      <div class="code term"><div class="code-head">$ ./run_all.sh（既製ツールの分）</div><pre>== 1. ruff / 書式と静的検査 ==
+orders.py:3:8: F401 [*] `hashlib`
+  imported but unused
+orders.py:32:47: B006 Do not use
+  mutable data structures for
+  argument defaults
+orders.py:61:15: F821 Undefined name
+  `gateway`
+orders.py:62:5: E722 Do not use bare
+  `except`
+orders.py:64:5: F841 Local variable
+  `receipt` is assigned to but never
+  used
+orders.py:71:13: F541 [*] f-string
+  without any placeholders
+Found 6 errors.
+[*] 2 fixable with the `--fix` option
+  (2 hidden fixes can be enabled with
+  the `--unsafe-fixes` option).
+
+== 2. mypy / 型 ==
+orders.py:29: error: Value of type
+  &quot;dict[Any, Any] | None&quot; is not
+  indexable  [index]
+orders.py:37: error: Value of type
+  &quot;dict[Any, Any] | None&quot; is not
+  indexable  [index]
+orders.py:61: error: Name &quot;gateway&quot;
+  is not defined  [name-defined]
+orders.py:72: error: Argument 1 to
+  &quot;shipping_fee&quot; has incompatible
+  type &quot;str&quot;; expected &quot;int&quot;
+  [arg-type]
+orders.py:78: error: Incompatible
+  return value type (got &quot;list[Any]&quot;,
+  expected &quot;int&quot;)  [return-value]
+
+== 3. bandit / セキュリティ ==
+(出力なし = 指摘0件)</pre></div>
+
+      <p class="lead">出力は40桁で折り返しています。<code>narrow.py</code> が折るだけで、<mark>文字は一字も変えていません</mark>。29行目と37行目は同じ欠陥（D08）が2か所にあるためです。</p>
+
+      <ul class="points">
+        <li><b>ruffが6件、mypyがさらに3件。</b>D02（未定義の名前）は両方が指摘しました。D01〜D09 の9件全部が、人の目に届く前に落ちています。</li>
+        <li><b>banditは0件。</b>セキュリティ用の静的解析を足しても、残り5件は1件も増えませんでした。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <h3>残った5件は、全部「本番で事故になるやつ」だった</h3>
+      <p class="lead">機械が落とした9件は、未使用のimportや型の食い違いです。<mark>直さなくても、たいてい本番は動きます。</mark></p>
+      <p class="lead">残った5件はこうでした。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>ID</th><th>残った欠陥</th><th>起きること</th></tr></thead>
+          <tbody>
+            <tr><td><b>D10</b></td><td data-label="残った欠陥">注文の持ち主を確認していない</td><td data-label="起きること">他人の注文が見える（情報漏洩）</td></tr>
+            <tr><td><b>D11</b></td><td data-label="残った欠陥">ループの中でDBを引く</td><td data-label="起きること">件数が増えると本番だけ落ちる</td></tr>
+            <tr><td><b>D12</b></td><td data-label="残った欠陥">境界が仕様と逆</td><td data-label="起きること">3000円ちょうどの客に送料を取る</td></tr>
+            <tr><td><b>D13</b></td><td data-label="残った欠陥">トークンをログに出す</td><td data-label="起きること">ログを見られると決済できる</td></tr>
+            <tr><td><b>D14</b></td><td data-label="残った欠陥">金額をfloatで持つ</td><td data-label="起きること">合計が1円ずれる。再現しにくい</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">これがレビュー設計の出発点です。<mark>機械は安い欠陥から順に落とし、高い欠陥だけを人に回してくる。</mark></p>
+      <p class="lead">だから、人が「未使用のimportがあります」と書いている状態は、いちばんもったいない。</p>
+
+      <div class="quiz">
+        <p class="q">Q. 人のレビューで最初にやめるべき指摘はどれ？</p>
+        <button class="opt" type="button" data-correct="false">変数名が分かりにくい</button>
+        <button class="opt" type="button" data-correct="true">使っていないimportが残っている</button>
+        <button class="opt" type="button" data-correct="false">この操作、他人のデータも取れませんか</button>
+        <p class="ans" hidden>正解は2番。既製のlinterが確実に落とす種類なので、人が書く価値がありません。1番は機械が判定できず（正解が文脈にある）、3番は今回どのツールも捕まえられなかった種類です。<b>「機械が確実に落とすもの」を人が指摘している間は、レビューの時間が高い欠陥に届きません。</b></p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>残り5件のうち3件は、80行の自作ルールで落ちた</h2>
+
+    <article class="item">
+      <h3>「人が見るしかない」は、たいてい思い込み</h3>
+      <p class="lead">残った5件を眺めると、3件は<mark>コードの中だけを見て機械的に判定できます</mark>。</p>
+      <ul class="points">
+        <li><b>D11（N+1）。</b>ループの中でデータ取得を呼んでいるか、を見るだけです。</li>
+        <li><b>D13（秘密のログ出力）。</b>ログ関数の引数名に token / secret / password が入っているか。</li>
+        <li><b>D14（金額をfloat）。</b>金額を表す名前の戻り値・注釈が float かどうか。</li>
+      </ul>
+      <p class="lead">3つとも「うちのチームではこうする」という<mark>規約</mark>です。既製のlinterに入っていないのは、規約が会社ごとに違うからで、難しいからではありません。</p>
+
+      <div class="code"><div class="code-head">house_rules.py（抜粋・全体は81行）</div><pre>DB = (&quot;fetch&quot;, &quot;find&quot;, &quot;query&quot;, &quot;select&quot;, &quot;get&quot;)
+LOGGERS = (&quot;log&quot;, &quot;logger&quot;, &quot;logging&quot;)
+SECRET = (&quot;token&quot;, &quot;secret&quot;, &quot;password&quot;, &quot;authorization&quot;)
+MONEY = (&quot;price&quot;, &quot;total&quot;, &quot;subtotal&quot;, &quot;fee&quot;, &quot;amount&quot;, &quot;yen&quot;)
+
+（中略・name_of と root_of の定義。12〜23行目）
+
+class Rules(ast.NodeVisitor):
+    def __init__(self):
+        self.hits = []
+        self.depth = 0
+
+    def _loop(self, node):
+        self.depth += 1
+        self.generic_visit(node)
+        self.depth -= 1
+
+    visit_For = _loop
+    visit_While = _loop
+
+    def visit_Call(self, node):
+        fn = name_of(node.func)
+        # HR01: ループの中でデータ取得を呼んでいる
+        if self.depth and any(fn.startswith(p) for p in DB):
+            self.hit(node, &quot;HR01&quot;, &quot;ループ内でDB取得&quot;)
+        # HR02: ログに秘密を渡している
+        if root_of(node.func) in LOGGERS:
+            for a in node.args:
+                if any(s in name_of(a).lower() for s in SECRET):
+                    self.hit(node, &quot;HR02&quot;, &quot;ログに秘密を渡した&quot;)
+        self.generic_visit(node)</pre></div>
+
+      <p class="lead">Pythonの標準ライブラリ <code>ast</code> だけで書けます。同じことは PHP なら <code>nikic/PHP-Parser</code>、PHPStan の自作ルールでもできます。</p>
+    </article>
+
+    <article class="item">
+      <h3>実行結果: 3件が機械側に落ちた</h3>
+
+      <div class="code term"><div class="code-head">$ ./run_all.sh（自作ルールの分）</div><pre>== 4. 自作ルール house_rules.py ==
+orders.py:35 HR01 ループ内でDB取得
+orders.py:37 HR01 ループ内でDB取得
+orders.py:49 HR03 金額が float
+orders.py:59 HR02 ログに秘密を渡した
+-- 4 件</pre></div>
+
+      <p class="lead">35行目と37行目は同じループの中なので、N+1の指摘が2つ出ています。<mark>これで14件中12件を、レビュアーが読む前に機械が見つけたことになります。</mark></p>
+
+      <figure>
+        <picture>
+          <source srcset="images/sieve-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/sieve.png" alt="14件の欠陥が、ruff で6件、mypy で3件、自作ルールで3件と順に落ちて、最後に2件だけ人に残る流れ" loading="lazy">
+        </picture>
+        <figcaption>安いものから順に落ち、最後に残った2件（D10・D12）は仕様にしか正解が無かった。</figcaption>
+      </figure>
+
+      <details>
+        <summary>この数字を一般化しないでください</summary>
+        <div class="body">
+          <dl>
+            <dt>密度が現実と違う</dt>
+            <dd>1ファイルに14件は、実際のコードよりずっと濃い状態です。「機械が86%」のような比率を、そのままチームの見積もりに使わないでください。</dd>
+            <dt>言語がPythonなのは環境の都合</dt>
+            <dd>この環境から github.com が403で、composer が PHPStan を取得できませんでした。PHP版は作れていません。</dd>
+            <dt>分けて考えるための材料として使う</dt>
+            <dd>「どの層で落ちるか」の並びは言語によらず同じです。比率ではなく、順番のほうを持ち帰ってください。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <h3>最後まで残った2件は、正解がリポジトリの外にあった</h3>
+      <p class="lead">D10（権限チェック漏れ）と D12（境界が仕様と逆）。この2件だけは、コードをいくら眺めても正しいかどうかが決まりません。</p>
+      <ul class="points">
+        <li><b>D10。</b>「注文を見られるのは本人だけか、店舗の管理者も見られるか」は仕様側の決めごとです。</li>
+        <li><b>D12。</b><code>&gt;</code> と <code>&gt;=</code> のどちらが正しいかは、コードのどこにも書いていません。</li>
+      </ul>
+      <p class="lead">つまり<mark>人がレビューで読むのは、この2種類だけでよい</mark>ということです。逆に、この2種類を読む時間が取れていないレビューは、形だけになっています。</p>
+    </article>
+  </section>
+
+  <section class="section section-a" id="s3">
+    <h2><span class="step">3</span>機械に降ろせるかは、3つの質問で決まる</h2>
+
+    <article class="item">
+      <h3>難しさではなく「正解のありか」で分ける</h3>
+      <p class="lead">「N+1の検出は難しいから人が見る」は判断を間違えます。難易度ではなく、<mark>合否がどこで決まるか</mark>で分けてください。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/decide-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/decide.png" alt="Q1コードだけで合否が決まるか、Q2既製ツールに同じルールがあるか、Q3合否の条件を1文の規約として書けるか、の3問で行き先が決まる判断フロー" loading="lazy">
+        </picture>
+        <figcaption>「いいえ」が出たところで行き先が決まる。3問を通り抜けたものだけが自作ルールになる。</figcaption>
+      </figure>
+
+      <ul class="points">
+        <li><b>Q1で「いいえ」なら人。</b>仕様・権限・業務の決めごとが要るものです。ここは何を足しても機械化できません。</li>
+        <li><b>Q2で「はい」なら既製ツール。</b>自分で書かず、設定を1行足して終わらせます。</li>
+        <li><b>Q3が本命。</b>「ループの中でDBを呼ばない」のように<mark>1文で書ける規約なら、その日のうちに機械へ降ろせます</mark>。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <h3>Q3で詰まるのは、規約が決まっていないから</h3>
+      <p class="lead">「1文で書けない」と感じたら、それは実装の問題ではなくチームの合意が無いというサインです。</p>
+      <p class="lead">実際にやること。</p>
+      <ul class="points">
+        <li><b>過去3件を数える。</b>同じ指摘が3件そろわないなら、規約にするほど頻度がありません。チェックリストに置くだけにします。</li>
+        <li><b>合否の条件を1文にする。</b>例:「金額は int（最小単位）で持つ。float 禁止」。1文にできたらルールを書く。できないなら、まだ人が見る段階です。</li>
+      </ul>
+      <p class="lead">この「過去3件」は私の運用上の目安で、標準でも規格でもありません。<mark>2件以下で規約を作ると、例外の議論のほうが高くつきます。</mark></p>
+    </article>
+
+    <article class="item">
+      <h3>降ろす先は2層ある。混ぜると必ず無効化される</h3>
+      <p class="lead">Googleの静的解析基盤 Tricorder の設計が公開されています。<mark>「ビルドを止める層」と「レビューに表示するだけの層」を分けている</mark>のが要点です。</p>
+
+      <div class="code wrap"><div class="code-head">『Software Engineering at Google』第20章 — 表示するだけの層に入れる条件</div><pre>Be understandable
+Be actionable and easy to fix
+Produce less than 10% effective false positives
+Have the potential for significant impact on code quality</pre></div>
+
+      <p class="lead">同じ章は、<b>ビルドを止めてよい層</b>の条件を別に並べています。条件が1つ増えて、しかも厳しくなります。</p>
+
+      <div class="code wrap"><div class="code-head">同・ビルドを止めてよい層の条件</div><pre>Actionable and easy to fix (whenever possible, the error should include a suggested fix that can be applied mechanically)
+Produce no effective false positives (the analysis should never stop the build for correct code)
+Report issues affecting only correctness rather than style or best practices</pre></div>
+
+      <p class="lead">止める層は誤検知ゼロが条件で、対象は正しさだけ。スタイルやベストプラクティスは止める層に入れない、と明記されています。</p>
+      <p class="lead">同章は<b>コンパイラの警告</b>についても書いています。開発者は警告を無視すると繰り返し分かったからです。</p>
+      <p class="lead"><mark>エラーにするか、出さないかの二択</mark>にした、とあります（レビュー時に指摘を「表示」する層は、これとは別に置かれています）。</p>
+
+      <div class="code wrap"><div class="code-head">同・警告について</div><pre>We also aim to never issue compiler warnings. We have found repeatedly that developers ignore compiler warnings. We either enable a compiler check as an error (and break the build) or don&#x27;t show it in compiler output.</pre></div>
+
+      <ul class="points">
+        <li><b>今回の3ルールは「表示するだけの層」。</b>誤検知が出うるので、CIを落とすのではなくPRにコメントするところから始めます。</li>
+        <li><b>差分だけに当てる。</b>変更された行にだけ実行し、既存の違反は放置します。Googleも新規に入った警告に絞ると書いています。</li>
+        <li><b>誤検知が1割を超えたらルールを消す。</b>例外リストを育て始めた時点で、そのルールは規約ではなくなっています。</li>
+      </ul>
+
+      <details>
+        <summary>「誤検知」の数え方が独特で、これが有用</summary>
+        <div class="body">
+          <dl>
+            <dt>effective false positive（実質的な誤検知）</dt>
+            <dd>同章の定義は「開発者がその指摘を見て、何も行動しなかったもの」です。原文は <code>An issue is an "effective false positive" if developers did not take some positive action after seeing the issue.</code>。指摘が技術的に間違っていても、読みやすさのために直したなら誤検知に数えません。</dd>
+            <dt>なぜこの数え方が良いか</dt>
+            <dd>ルールを残すか消すかを、<b>議論ではなく行動の記録で決められます</b>。「この指摘は正しいはずだ」という言い合いになりません。</dd>
+            <dt>実績値</dt>
+            <dd>同章によると、Tricorder は1日5万件を超えるレビュー変更を解析し、アナライザは100種以上、<b>全体の実質的な誤検知率は5%弱</b>。「Not useful」のクリックは1日250回とされています。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <section class="section section-d" id="s4">
+    <h2><span class="step">4</span>AIレビューは規約層に置く — 承認は動かせないと両社が明記している</h2>
+
+    <article class="item">
+      <h3>先に断り: AIレビューはこの環境で動かせていない</h3>
+      <p class="lead">今回の実測は静的解析までです。<mark>AIレビューの効き目については、公式ドキュメントに書いてあることだけを書きます。</mark></p>
+      <p class="lead">それでも、置き場所を決めるのに必要なことは全部書いてあります。</p>
+    </article>
+
+    <article class="item">
+      <h3>両社とも「承認は動かさない」と明記している</h3>
+      <p class="lead">導入で最初に気になるのは、承認フローが変わるかどうかです。答えは変わりません。</p>
+
+      <div class="code wrap"><div class="code-head">GitHub Docs「Using Copilot code review」の原文</div><pre>Copilot always leaves a &quot;Comment&quot; review, not an &quot;Approve&quot; review or a &quot;Request changes&quot; review. This means that Copilot&#x27;s reviews do not count toward required approvals for the pull request, and Copilot&#x27;s reviews will not block merging changes.</pre></div>
+
+      <p class="lead">Anthropic の Code Review も、同じことを1文で書いています。</p>
+
+      <div class="code wrap"><div class="code-head">Claude Code Docs「Code Review」の原文</div><pre>Findings are tagged by severity and don&#x27;t approve or block your PR, so existing review workflows stay intact.</pre></div>
+
+      <p class="lead">つまり<mark>AIレビューは既存の体制に足すだけ</mark>で、承認の責任は人に残ったままです。「導入したら人のレビューを減らす」という設計には、公式の側が乗ってきません。</p>
+    </article>
+
+    <article class="item">
+      <h3>見落とさない保証は無い、とも書いてある</h3>
+
+      <div class="code wrap"><div class="code-head">GitHub Docs「About Copilot code review」の原文</div><pre>Copilot is not guaranteed to spot all problems or issues in a pull request. Sometimes it will make mistakes. Always validate Copilot&#x27;s feedback carefully. Supplement Copilot&#x27;s feedback with a human review.</pre></div>
+
+      <p class="lead">今回の実測でいう<mark>D10（権限）や D12（境界）のような層を、AIに預けきることはできない</mark>ということです。</p>
+      <p class="lead">意味は1つ。AIレビューを入れても、第5節のチェックリストの4番と5番は残ります。</p>
+    </article>
+
+    <article class="item">
+      <h3>規約層をAIに任せるなら、規約をリポジトリに書く</h3>
+      <p class="lead">第3節のQ3で「1文の規約に落とせた」ものは、ASTルールにもAIにも渡せます。両社とも、渡し方を用意しています。</p>
+
+      <div class="code wrap"><div class="code-head">Claude Code Docs「Code Review」の原文（別々の2箇所）</div><pre>You can tune what Claude flags by adding a CLAUDE.md or REVIEW.md file to your repository.
+
+Length has a cost: a long REVIEW.md dilutes the rules that matter most.</pre></div>
+
+      <p class="lead">GitHub の側は、精度が上がる条件をもっと直接に書いています。</p>
+
+      <div class="code wrap"><div class="code-head">GitHub Docs「About Copilot code review」の原文</div><pre>The more Copilot knows about the code in your repository, the tools you use, and your coding standards and practices, the more accurate and useful its reviews will become.</pre></div>
+
+      <p class="lead">どちらも同じことを言っています。<mark>規約を書いていないチームでは、AIも規約層を見られません。</mark></p>
+      <p class="lead">第3節の「1文にする」作業は、ASTルールのためだけのものではなかったわけです。</p>
+      <p class="lead">長さに注意、という但し書きも同じです。全部を書くと効かなくなります。</p>
+    </article>
+
+    <article class="item">
+      <h3>3つの置き場所の使い分け</h3>
+      <p class="lead">AIに置き場所がある理由は、Google自身が測っています。自社のAIレビュー基盤が<b>最も頻繁に指摘した違反の上位50件</b>を調べた論文の一節です。</p>
+
+      <div class="code wrap"><div class="code-head">Vijayvergiya et al.「AI-Assisted Assessment of Coding Practices in Modern Code Review」（AIware &#39;24）</div><pre>For 33/50 (66%) of these best practices, violation detection is beyond the scope of traditional static analysis.</pre></div>
+
+      <p class="lead">Googleのこの50件でいえば、第3節のQ3で「1文の規約に落とせなかった」側が3分の2を占めた、ということです。</p>
+      <p class="lead">比率がそのまま自分のチームに当てはまるとは限りません。ただし<mark>そこにAIの持ち場がある</mark>ことは、この数字で説明が付きます。</p>
+      <p class="lead">ここからは私の運用上の判断です。標準でも公式の推奨でもありません。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>見たいもの</th><th>自作ルール</th><th>AIレビュー</th><th>人</th></tr></thead>
+          <tbody>
+            <tr><td><b>毎回同じ答えになる規約</b><br><span class="cap">N+1・金額の型・秘密のログ</span></td>
+                <td data-label="自作ルール">◎ ここに置く</td>
+                <td data-label="AIレビュー">△ 答えが揺れる</td>
+                <td data-label="人">× 忘れる</td></tr>
+            <tr><td><b>文脈が要る規約</b><br><span class="cap">この関数だけ例外、のような話</span></td>
+                <td data-label="自作ルール">× 書けない</td>
+                <td data-label="AIレビュー">◎ ここに置く</td>
+                <td data-label="人">○ できるが遅い</td></tr>
+            <tr><td><b>仕様との一致・境界の値</b></td>
+                <td data-label="自作ルール">× 正解が外にある</td>
+                <td data-label="AIレビュー">△ 仕様を渡せば一部</td>
+                <td data-label="人">◎ ここに置く</td></tr>
+            <tr><td><b>権限の設計</b></td>
+                <td data-label="自作ルール">△ 呼び出しの有無だけ</td>
+                <td data-label="AIレビュー">△ 提案は出る</td>
+                <td data-label="人">◎ ここに置く</td></tr>
+            <tr><td><b>承認するかどうか</b></td>
+                <td data-label="自作ルール">×</td>
+                <td data-label="AIレビュー">× 公式が明記</td>
+                <td data-label="人">◎ 人だけ</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead"><mark>ASTルールで済むものをAIに投げないこと。</mark>毎回同じ答えが要る場所に、揺れる仕組みを置く理由がありません。速度も費用も自作ルールのほうが有利です。</p>
+
+      <details>
+        <summary>AIの指摘にも重みが付いている（公式の分類）</summary>
+        <div class="body">
+          <dl>
+            <dt>Claude Code の Code Review</dt>
+            <dd>公式ドキュメントによると、findings は <b>Important</b>（マージ前に直すべきバグ）/ <b>Nit</b>（軽微。ブロックしない）/ <b>Pre-existing</b>（このPRが持ち込んだものではない既存のバグ）の3段階でタグ付けされます。第5節の must / should / nit とは語も定義も別ですが、<b>重みを付けて扱うという発想は同じ</b>です（Pre-existing は重みではなく、そのPRが持ち込んだかどうかの区別です）。</dd>
+            <dt>だから何をするか</dt>
+            <dd>AIの指摘を人のレビューコメントと同じ列に流さないこと。重みのラベルを人の指摘にも付けておくと、両方が同じ物差しで並びます。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <h3>入れれば速くなる、とは限らない（査読済みの反証）</h3>
+      <p class="lead">ICSE 2025 の実務トラックに、企業でAIレビューbotを導入した前後を測った報告があります。</p>
+      <p class="lead">導入されたのは10プロジェクト（238名）。<mark>定量分析の対象は、そのうち3プロジェクト・4,335件のPR</mark>です。</p>
+
+      <ul class="points">
+        <li><b>botの指摘の73.8%は解決された。</b>指摘そのものは無駄になっていません。</li>
+        <li><b>PRが閉じるまでの平均は 5時間52分 → 8時間20分に増えた</b>（全体、p&lt;0.001）。プロジェクト別では減った例もあります。</li>
+        <li><b>人のコメント数は減らなかった。</b>PRあたり0.31件→0.28件で、統計的に有意な差はありませんでした（botは3.65件）。</li>
+      </ul>
+
+      <p class="lead">読み方は1つです。AIレビューは「人のレビューを置き換えて速くする道具」ではなく、<mark>「指摘を増やす道具」</mark>でした。増えた指摘の分だけ、往復が増えることがあります。</p>
+      <p class="lead">だから第5節の重みラベルが要ります。AIの指摘にも must / should / nit を振り、nit は返信不要にしておかないと、往復が伸びる側に倒れます。</p>
+
+      <details>
+        <summary>AIレビューの当たり外れを、AIに判定させるのはまだ無理</summary>
+        <div class="body">
+          <dl>
+            <dt>実測</dt>
+            <dd>企業の実データ2,604件のbotコメントに対し、複数のモデルで「有用だったか」を判定させた研究（EASE 2026採録）では、人のラベルとの一致率は 0.44〜0.62 にとどまりました。</dd>
+            <dt>だから何をするか</dt>
+            <dd>採用率・却下率は<b>人が押した記録から数える</b>こと。自動評価に置き換えないでください。第6節の失敗パターン4で挙げた「却下率が0%か100%」は、この記録が無いと気づけません。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s5">
+    <h2><span class="step">5</span>そのまま使うもの（雛形・振り分け表・チェックリスト）</h2>
+
+    <article class="item">
+      <h3>まず、いまの観点を3列に振り分ける</h3>
+      <p class="lead">チームで最初にやるのは、レビューで実際に出ている指摘を並べて、この表に置き直すことです。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>観点</th><th>いま誰が見るか</th><th>移し方</th></tr></thead>
+          <tbody>
+            <tr><td><b>書式・未使用・明らかな誤り</b><br><span class="cap">import・命名規則・bare except</span></td>
+                <td data-label="いま誰が見るか">機械（既製）</td>
+                <td data-label="移し方">CIに入れる。人は指摘しない</td></tr>
+            <tr><td><b>型の不一致・Noneの扱い</b><br><span class="cap">引数の型・戻り値・nullable</span></td>
+                <td data-label="いま誰が見るか">機械（既製）</td>
+                <td data-label="移し方">型注釈を必須にして型チェッカーを通す</td></tr>
+            <tr><td><b>N+1・秘密のログ出力・金額の型</b><br><span class="cap">チームごとに違う決めごと</span></td>
+                <td data-label="いま誰が見るか">機械（自作）</td>
+                <td data-label="移し方">1文の規約に直してASTルールを書く</td></tr>
+            <tr><td><b>仕様との一致（境界の値）</b><br><span class="cap">以上／超、含む／含まない</span></td>
+                <td data-label="いま誰が見るか">人</td>
+                <td data-label="移し方">仕様の該当行をPR説明に貼らせる</td></tr>
+            <tr><td><b>権限（誰が呼べるか・誰のデータか）</b></td>
+                <td data-label="いま誰が見るか">人</td>
+                <td data-label="移し方">認可を1か所に集めれば一部は機械化できる</td></tr>
+            <tr><td><b>命名・責務の置き場所</b></td>
+                <td data-label="いま誰が見るか">人</td>
+                <td data-label="移し方">迷ったら nit にして止めない</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead"><mark>上の3行に「人」が入っていたら、それが最初に潰す対象です。</mark></p>
+    </article>
+
+    <article class="item">
+      <h3>PR説明の雛形（そのままコピーして <code>.github/pull_request_template.md</code> へ）</h3>
+      <p class="lead">レビュアーが人にしか見られない層を読むには、仕様と権限が書かれている必要があります。書かせるのは作者です。</p>
+
+      <div class="code wrap"><div class="code-head">pull_request_template.md</div><pre>## 何を変えたか（1文）
+
+
+## なぜ（仕様のどこ）
+- 仕様の該当箇所（URL か 引用）:
+- 前の挙動 → 後の挙動:
+
+## 境界と権限（ここだけは自己申告する）
+- この操作を呼べるのは:
+- 触るデータの持ち主をどこで確認しているか:
+- 境界の値（以上/超、含む/含まない）:
+
+## レビューで特に見てほしいところ
+- ファイル:
+- 理由:
+
+## 機械で確認済み
+- [ ] lint / 型 / 自チームのルール が緑
+- [ ] テストを追加した（追加したケース: ）
+
+## 戻し方
+- </pre></div>
+
+      <p class="lead">「境界と権限」の3行が肝です。<mark>ここを空欄で出せない形にしておくと、作者が自分で気づいて直します。</mark></p>
+    </article>
+
+    <article class="item">
+      <h3>レビュアーの手順（この順で見る）</h3>
+      <p class="lead">タップでチェックできます。 <span class="cl-count">0 / 8</span></p>
+      <ul class="checklist" data-key="review-design-2026-08-23">
+        <li><label><input type="checkbox"><span>CIが緑か見る。赤なら読まずに返す</span></label></li>
+        <li><label><input type="checkbox"><span>PR説明を読み、何の仕様を実装したか1文で言えるか確認する</span></label></li>
+        <li><label><input type="checkbox"><span>差分の入口（増えた公開関数・エンドポイント）から読む</span></label></li>
+        <li><label><input type="checkbox"><span>権限: この操作は誰が呼べるか。誰のデータを触るか</span></label></li>
+        <li><label><input type="checkbox"><span>境界: 仕様の「以上／超」「含む／含まない」と一致しているか</span></label></li>
+        <li><label><input type="checkbox"><span>失敗時: 例外・タイムアウト・途中で落ちたときにどうなるか</span></label></li>
+        <li><label><input type="checkbox"><span>置き場所: 似た機能が既にある場所と揃っているか</span></label></li>
+        <li><label><input type="checkbox"><span>すべての指摘に must / should / nit を付けたか</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 全部できた！</div>
+
+      <p class="lead">1〜3は5分で終わります。<mark>時間をかけるのは4と5だけ</mark>で、そこが今回の実測で最後まで残った層です。</p>
+    </article>
+
+    <article class="item">
+      <h3>指摘には必ず重みを付ける（3語だけ）</h3>
+      <p class="lead">重みが無い指摘は、作者が全部mustとして受け取ります。それが往復の回数を増やします。</p>
+
+      <div class="code wrap"><div class="code-head">レビューコメントの先頭に必ず1語を置く</div><pre>must:   直さないとマージしない。
+        壊れる・漏れる・仕様と違う。
+
+should: 直したほうがいい。
+        このPRでなくてよい（Issueにして番号を書く）。
+
+nit:    好み。直さなくてよい。返信も不要。</pre></div>
+
+      <ul class="points">
+        <li><b>must は理由を必ず書く。</b>「どういう入力で、何が起きるか」まで書けないなら、それは must ではありません。</li>
+        <li><b>nit に返信を求めない。</b>返信を求めた時点で、作者にとっては must と同じ重さになります。</li>
+        <li><b>should は番号を残す。</b>Issue にしないと、次のPRで同じ指摘が出ます。</li>
+      </ul>
+
+      <p class="lead">この3語は私の運用ですが、<code>Nit:</code> という接頭辞はGoogleのガイドにも同じ意図で載っています。</p>
+
+      <div class="code wrap"><div class="code-head">Google Code Review Developer Guide「What to Look For in a Code Review」</div><pre>If you want to improve some style point that isn&#x27;t in the style guide, prefix your comment with &quot;Nit:&quot; to let the developer know that it&#x27;s a nitpick that you think would improve the code but isn&#x27;t mandatory. Don&#x27;t block CLs from being submitted based only on personal style preferences.</pre></div>
+
+      <p class="lead">同ガイドは承認の基準もはっきり書いています。</p>
+
+      <div class="code wrap"><div class="code-head">同「The Standard of Code Review」</div><pre>In general, reviewers should favor approving a CL once it is in a state where it definitely improves the overall code health of the system being worked on, even if the CL isn&#x27;t perfect.</pre></div>
+
+      <p class="lead"><mark>完璧ではなく「確実にコードの健全性が上がる状態」で承認する</mark>、ということです。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s6">
+    <h2><span class="step">6</span>失敗パターンと、その兆候</h2>
+
+    <article class="item">
+      <h3>1. レビューが「linterの代打」になっている</h3>
+      <p class="lead"><b>兆候。</b>コメントの半分以上が、書式・命名・未使用のもの。</p>
+      <p class="lead"><b>起きること。</b>作者は指摘の総数で疲れ、重要な指摘が同じ列に埋もれます。今回の実測でいえば、9件の安い指摘の中に5件の高い指摘が混ざる状態です。</p>
+      <p class="lead">これは珍しい失敗ではありません。Microsoft Research の調査（ICSE 2013）が、実際のレビューコメント570件を分類しています。</p>
+
+      <div class="code wrap"><div class="code-head">Bacchelli &amp; Bird「Expectations, Outcomes, and Challenges Of Modern Code Review」</div><pre>Although &quot;defect finding&quot; is the top motivation and expected outcome of code review for many practitioners, the category &quot;defect&quot; is the only the fourth most frequent, out of nine items, with 78 (14%) comments.</pre></div>
+
+      <p class="lead">最多は「コード改善」の165件（29%）で、欠陥は14%。<mark>欠陥を探しているつもりで、実際には別のことを書いている</mark>という結果でした。</p>
+      <p class="lead">同論文には現場の声も載っています。</p>
+
+      <div class="code wrap"><div class="code-head">同・インタビューより</div><pre>[Some reviewers] focus on formatting mistakes because they are easy [...], but it doesn&#x27;t really help.</pre></div>
+
+      <p class="lead">Googleの『Software Engineering at Google』第20章は、同じことをもっと短く書いています。</p>
+
+      <div class="code wrap"><div class="code-head">『Software Engineering at Google』第20章</div><pre>pointing out formatting errors is not a good use of a human reviewer&#x27;s time.</pre></div>
+
+      <p class="lead"><mark>整形の指摘に人の時間を使わせない。</mark>そのために自動整形と静的解析を先に置く、という順番です。</p>
+      <p class="lead"><b>やること。</b>直近20件のPRのコメントを分類し、既製ツールで落とせるものを数える。1件でもあればCIに入れる。</p>
+    </article>
+
+    <article class="item">
+      <h3>2. 差分が大きすぎて、読んだふりになる</h3>
+      <p class="lead"><b>兆候。</b>変更が数十ファイルに及ぶPRに、コメントが2〜3件しか付かない。<mark>大きいPRほどコメントが減っていたら、読まれていません。</mark></p>
+      <p class="lead"><b>やること。</b>PRの行数とコメント数を並べて散布させる。相関が逆向き（大きいほどコメントが少ない）なら、まず分割の運用を決める。</p>
+
+      <details>
+        <summary>「1PRは何行まで」に正解はない（数字の出どころを確認した）</summary>
+        <div class="body">
+          <dl>
+            <dt>境界条件: 行数だけで一律に止めない</dt>
+            <dd>自動生成ファイル・移動だけのコミットは別枠にしてください。行数だけで止めると、フォーマッタの一括適用が通らなくなります。Googleのガイドも「ファイル1つの削除は1行の変更として数えてよい」「信頼できる自動リファクタが生成した大きなCLもある」と例外を挙げています。</dd>
+            <dt>Googleの書き方</dt>
+            <dd>Code Review Developer Guide は行数の閾値を明示的に置きません。原文は <code>There are no hard and fast rules about how large is "too large." 100 lines is usually a reasonable size for a CL, and 1000 lines is usually too large, but it's up to the judgment of your reviewer.</code>。ファイル数もサイズに含める、とあります。</dd>
+            <dt>Googleの実測値</dt>
+            <dd>ICSE-SEIP 2018 の論文によると、Googleの変更の中央値は<b>24行</b>、レビュアー数の中央値は<b>1人</b>、レビュー全体の所要時間の中央値は<b>4時間未満</b>。「200〜400行を60分かけて読む」という前提とは桁が違います。</dd>
+            <dt>よく引かれる「200〜400行」の出どころ</dt>
+            <dd>SmartBear社のホワイトペーパー『11 Best Practices for Peer Code Review』（PDFの作成日は2011年2月）で、Cisco社での2,500件のレビュー調査に基づくと書かれています。<b>査読論文ではなくベンダーの資料</b>で、同社の現行Webページとは数字が食い違います（原典「300-500 LOC/hour」「60-90分」 → 要約ページ「under 500 LOC per hour」「60分まで」）。目安として使うのは構いませんが、根拠の強さは Google の実測値と同じではありません。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <h3>3. 規約を作ったが、機械に降ろしていない</h3>
+      <p class="lead"><b>兆候。</b>ドキュメントに「金額は int で扱う」と書いてあるのに、レビューで毎回同じ指摘が出る。</p>
+      <p class="lead"><b>起きること。</b><mark>ドキュメントに書くだけの規約は、守られないのではなく、確認されていないだけです。</mark></p>
+      <p class="lead"><b>やること。</b>同じ指摘が3件出たら、その場でルールを書く。今回の <code>house_rules.py</code> は全体で81行、3ルールです。</p>
+    </article>
+
+    <article class="item">
+      <h3>4. AIの指摘を全部直してしまう</h3>
+      <p class="lead"><b>兆候。</b>AIが出した指摘の件数と、修正コミットの数がほぼ一致している。</p>
+      <p class="lead"><b>起きること。</b>指摘の重み付けが消え、<mark>nit相当の指摘に人の時間が吸われます</mark>。機械の指摘も must / should / nit に振り分けてから扱ってください。</p>
+      <p class="lead"><b>やること。</b>AIの指摘を採用したか却下したかを、PRのコメントに残す。却下率が0%か100%なら、どちらも運用が壊れています。</p>
+    </article>
+
+    <article class="item">
+      <h3>5. AIに書かせた分だけ、PRが大きくなっている</h3>
+      <p class="lead"><b>兆候。</b>AIを導入してから1PRあたりの行数が伸びた。レビューの所要時間も伸びた。</p>
+      <p class="lead">DORAのケイパビリティ「Working in small batches」に、この点の注記が加わっています（2025年12月8日更新）。</p>
+
+      <div class="code wrap"><div class="code-head">dora.dev「Working in small batches」の AI Note</div><pre>the cognitive load required to review a small chunk of machine-generated code may be higher per line than reviewing human-written code</pre></div>
+
+      <p class="lead"><b>やること。</b>生成量ではなく<mark>1つの自己完結した変更</mark>でPRを切る。同ページは「完了と確認に1週間より長くかかるまとまりは大きすぎる」とも書いています。</p>
+    </article>
+  </section>
+
+  <a class="next-up" href="../2026-08-14_test-design/">
+    <div class="label">NEXT →</div>
+    <div class="t">テスト設計の優先順位 — カバレッジより「壊れて困る順」</div>
+    <div class="d">レビューで人が見る層を絞ったら、次はテストで守る順番です。カバレッジの数字が上がってもバグが減らない理由を、実測で追いました。</div>
+  </a>
+
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「What to Look For in a Code Review」<i>Google Code Review Developer Guide</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: 冒頭 Design（<code>The most important thing to cover in a review is the overall design of the CL.</code>）、および Style 節の <code>Nit:</code> 接頭辞についての段落（<code>prefix your comment with "Nit:" to let the developer know that it's a nitpick ... Don't block CLs from being submitted based only on personal style preferences.</code>）。HTML版と、正典であるMarkdown原本（raw.githubusercontent.com の同ファイル113〜116行目）の両方を取得して照合しています。</span>
+          </details>
+          <a href="https://google.github.io/eng-practices/review/reviewer/looking-for.html">https://google.github.io/eng-practices/review/reviewer/looking-for.html</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「The Standard of Code Review」<i>Google Code Review Developer Guide</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: 承認の基準（<code>reviewers should favor approving a CL once it is in a state where it definitely improves the overall code health of the system being worked on, even if the CL isn't perfect.</code>）。本記事の第5節で「完璧を求めない」根拠にしています。</span>
+          </details>
+          <a href="https://google.github.io/eng-practices/review/reviewer/standard.html">https://google.github.io/eng-practices/review/reviewer/standard.html</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Small CLs」<i>Google Code Review Developer Guide</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: 行数の目安（<code>There are no hard and fast rules about how large is "too large." 100 lines is usually a reasonable size for a CL, and 1000 lines is usually too large, but it's up to the judgment of your reviewer.</code>）、およびファイル数もサイズに含めるという記述。第6節の details で使っています。</span>
+          </details>
+          <a href="https://google.github.io/eng-practices/review/developer/small-cls.html">https://google.github.io/eng-practices/review/developer/small-cls.html</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Caitlin Sadowski「Static Analysis」<i>Software Engineering at Google</i>（O'Reilly Media, 2020）第20章・全文公開版.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: Tricorder に採用するチェックの4条件（<code>Be understandable / Be actionable and easy to fix / Produce less than 10% effective false positives / Have the potential for significant impact on code quality</code>）、ビルドを止めてよい層の3条件（<code>Produce no effective false positives (the analysis should never stop the build for correct code)</code> ほか）、実質的な誤検知の定義（<code>An issue is an "effective false positive" if developers did not take some positive action after seeing the issue.</code>）、警告方針（<code>We also aim to never issue compiler warnings.</code>）、整形の指摘について（<code>pointing out formatting errors is not a good use of a human reviewer's time.</code>）、規模と実績値（<code>Tricorder analyzes more than 50,000 code review changes per day</code> / <code>The overall effective false-positive rate is just below 5%.</code>）。本文HTMLを取得し、引用した全文言を照合しました。</span>
+          </details>
+          <a href="https://abseil.io/resources/swe-book/html/ch20.html">https://abseil.io/resources/swe-book/html/ch20.html</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Caitlin Sadowski, Emma Söderberg, Luke Church, Michal Sipko, Alberto Bacchelli「Modern Code Review: A Case Study at Google」<i>Proc. ICSE-SEIP 2018</i>, pp.181-190, 2018年5月.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: 5.2 Quantifying The Review Process。変更行数の中央値24行（<code>the median number of lines modified is 24</code>）、レビュアー数の中央値1人（<code>with a median reviewer count of 1</code>）、レビュー全体の所要時間の中央値4時間未満（<code>The overall (all code sizes) median latency for the entire review process is under 4 hours.</code>）。PDF全文を取得して読み、DOI <code>10.1145/3183519.3183525</code> を Crossref で照合（著者5名・誌名・pp.181-190・2018年5月27日）しました。</span>
+          </details>
+          <a href="https://storage.googleapis.com/gweb-research2023-media/pubtools/4476.pdf">https://storage.googleapis.com/gweb-research2023-media/pubtools/4476.pdf</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Alberto Bacchelli, Christian Bird「Expectations, Outcomes, and Challenges of Modern Code Review」<i>Proc. 35th ICSE</i>, pp.712-721, 2013年5月.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: 第5節。コメント570件の分類で「欠陥」は9分類中4番目・78件（14%）にとどまり（<code>the category "defect" is the only the fourth most frequent, out of nine items, with 78 (14%) comments.</code>）、最多は「コード改善」の165件（29%）。および現場の声（<code>[Some reviewers] focus on formatting mistakes because they are easy [...], but it doesn't really help.</code>）。Microsoft Research 掲載のPDF全文を取得して読み、DOI <code>10.1109/ICSE.2013.6606617</code> を Crossref で照合（著者2名・誌名・pp.712-721・2013年5月）しました。</span>
+          </details>
+          <a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/ICSE202013-codereview.pdf">https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/ICSE202013-codereview.pdf</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Manushree Vijayvergiya ほか（Google）「AI-Assisted Assessment of Coding Practices in Modern Code Review」<i>ACM International Conference on AI-Powered Software (AIware '24)</i>, arXiv:2405.13565, 2024年5月.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: 同システムが最も頻繁に予測した違反URLの上位50件（<code>we sampled the top-50 most frequently predicted violations</code>）のうち33件（66%）が従来の静的解析の守備範囲外である、という記述（<code>For 33/50 (66%) of these best practices, violation detection is beyond the scope of traditional static analysis.</code>）。あわせて、実運用での有用率が54%前後で頭打ちになった旨（<code>the useful ratio plateaued at around 54%</code>）も読んでいます。PDF全文を取得し、arXiv API で著者・投稿日・掲載先コメントを照合しました。</span>
+          </details>
+          <a href="https://arxiv.org/pdf/2405.13565">https://arxiv.org/pdf/2405.13565</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Umut Cihan ほか「Automated Code Review In Practice」arXiv:2412.18531（ICSE 2025 SEIP トラック採録）, 2024年12月.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: RQ1〜RQ3。導入範囲は10プロジェクト・238名で、定量分析の対象はうち3プロジェクト・4,335件のPR（<code>238 practitioners across ten projects had access to the tool. We focused our analysis on three projects, encompassing 4,335 pull requests</code>）。botコメントの73.8%が Resolved（<code>73.8% of the comments are labeled as "Resolved,"</code>）、PRのクローズまでの平均が5時間52分から8時間20分へ有意に増加（<code>increased from five hours and 52 minutes ... to eight hours and 20 minutes ... (p-value &lt; 0.001)</code>）、人のコメントは0.31件→0.28件で有意差なし・botは3.65件。PDF全文を取得して該当節を読み、arXiv API で著者8名・投稿日・ICSE 2025 SEIP 採録のコメントを照合しました。</span>
+          </details>
+          <a href="https://arxiv.org/pdf/2412.18531">https://arxiv.org/pdf/2412.18531</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Veli Karakaya ほか「Understanding the Limits of Automated Evaluation for Code Review Bots in Practice」arXiv:2604.24525（EASE 2026 採録）, 2026年4月.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: 企業実データ2,604件のbotコメントに対する自動評価と人のラベルの一致率が約0.44〜0.62（<code>Agreement ratios range from approximately 0.44 to 0.62</code>）。PDFを取得して該当箇所を読み、arXiv API で著者4名・投稿日2026年4月27日・EASE 2026 採録のコメントを照合しました。</span>
+          </details>
+          <a href="https://arxiv.org/pdf/2604.24525">https://arxiv.org/pdf/2604.24525</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          GitHub Docs「Using GitHub Copilot code review」.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: 承認とマージへの影響（<code>Copilot always leaves a "Comment" review, not an "Approve" review or a "Request changes" review. This means that Copilot's reviews do not count toward required approvals for the pull request, and Copilot's reviews will not block merging changes.</code>）。ページHTMLを取得し、当該文を全文検索で照合しています。</span>
+          </details>
+          <a href="https://docs.github.com/en/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review">https://docs.github.com/en/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          GitHub Docs「About GitHub Copilot code review」.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: Validating Copilot code reviews 節（<code>Copilot is not guaranteed to spot all problems or issues in a pull request. Sometimes it will make mistakes. Always validate Copilot's feedback carefully. Supplement Copilot's feedback with a human review.</code>）、およびリポジトリの規約を知らせるほど精度が上がるという記述（<code>The more Copilot knows about the code in your repository, the tools you use, and your coding standards and practices, the more accurate and useful its reviews will become.</code>）。</span>
+          </details>
+          <a href="https://docs.github.com/en/copilot/concepts/agents/code-review">https://docs.github.com/en/copilot/concepts/agents/code-review</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Code Review」<i>Claude Code Docs</i>（research preview）.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: 承認とブロックの扱い（<code>Findings are tagged by severity and don't approve or block your PR, so existing review workflows stay intact.</code>）、設定ファイルによる調整（<code>You can tune what Claude flags by adding a CLAUDE.md or REVIEW.md file to your repository.</code> / <code>Length has a cost: a long REVIEW.md dilutes the rules that matter most.</code>）、重大度の3分類（🔴 Important =「A bug that should be fixed before merging」/ 🟡 Nit / 🟣 Pre-existing）。ページ本文を取得して該当箇所を読んでいます。</span>
+          </details>
+          <a href="https://code.claude.com/docs/en/code-review">https://code.claude.com/docs/en/code-review</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          DORA「Working in small batches」<i>dora.dev</i>, 2025年12月8日更新.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: AI Note（<code>the cognitive load required to review a small chunk of machine-generated code may be higher per line than reviewing human-written code</code>）、およびまとまりの大きさの目安（<code>Any batch of code that takes longer than a week to complete and check is too big.</code>）。ページ本文を取得して照合しました。</span>
+          </details>
+          <a href="https://dora.dev/capabilities/working-in-small-batches/">https://dora.dev/capabilities/working-in-small-batches/</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          SmartBear Software「11 Best Practices for Peer Code Review」（ホワイトペーパー、PDFの作成日 2011年2月28日）.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: Practice 1〜3（<code>Review fewer than 200-400 lines of code at a time.</code> / <code>Aim for an inspection rate of less than 300-500 LOC/hour.</code> / <code>Take enough time for a proper, slow review, but not more than 60-90 minutes.</code>）と、Cisco社での調査規模のサイドバー（<code>2500 code reviews, 50 programmers, and 3.2 million lines of code at Cisco Systems</code>）。PDF全文を取得して読みました。<b>査読論文ではなくベンダーの資料</b>であること、根拠の図が画像で数値表が無いこと、同社の現行Webページ（<a href="https://smartbear.com/learn/code-review/best-practices-for-peer-code-review/">smartbear.com の要約ページ</a>、こちらも取得済み）とは数字が食い違うことを本文に明記しています。</span>
+          </details>
+          <a href="https://static1.smartbear.co/support/media/resources/cc/11_best_practices_for_peer_code_review_redirected.pdf">https://static1.smartbear.co/support/media/resources/cc/11_best_practices_for_peer_code_review_redirected.pdf</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Jason Cohen『Best Kept Secrets of Peer Code Review』Smartbear Software, 2006年, 164ページ, ISBN 1-59916-067-6.
+          <details class="note-d"><summary>なぜ未確認か</summary>
+            <span class="note">SmartBearのホワイトペーパーが詳細をこの書籍に委ねているため書誌を Open Library API で照合しましたが（著者・出版年・ページ数・ISBNを確認）、<b>本文は読めていません</b>。よく引かれる「250行を超えるレビューは1,000行あたり37件以上の欠陥を出さなかった」という数字は、ホワイトペーパー本文には存在せず（全文検索で0件）、この書籍が出典と思われますが確認していないため、本記事では使っていません。</span>
+          </details>
+          <a href="https://openlibrary.org/api/books?bibkeys=ISBN:1599160676&amp;format=json&amp;jscmd=data">https://openlibrary.org/api/books?bibkeys=ISBN:1599160676</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Cisco社での2,500件のレビュー調査の生データ・実施年月.
+          <details class="note-d"><summary>なぜ未確認か</summary>
+            <span class="note">SmartBearのホワイトペーパーには図（画像）と本文の記述しかなく、数値表・参考文献・実施年の記載がありません。査読を経た論文版も見つかりませんでした。<b>「200〜400行」の根拠そのものを、私は原データで確認していません。</b>本記事ではこの数字を運用の目標として使っていません。</span>
+          </details>
+          <a href="https://static1.smartbear.co/support/media/resources/cc/11_best_practices_for_peer_code_review_redirected.pdf">同ホワイトペーパー内サイドバー</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          欠陥を14件仕込んだ <code>orders.py</code> に、ruff・mypy・bandit・自作の <code>house_rules.py</code> を当てた結果.
+          <details class="note-d"><summary>環境と測り方</summary>
+            <span class="note">2026年8月23日 JST、Python 3.11.15 / ruff 0.15.8（<code>--select E,F,B</code>）/ mypy 1.19.1（既定設定）/ bandit 1.9.4（既定ルール）。記事に貼った出力は<b>加工せずそのまま</b>で、表示幅40桁に折り返しただけです（折り返しは <code>narrow.py</code>。文字は一字も変えていません）。再現一式は <code>_labs/2026-08-23_review-design/</code>（<code>run_all.sh</code> と <code>output.txt</code>）。<b>仕込んだ欠陥の密度は実際のコードより高いので、9/14・12/14という比率を一般論に使わないでください。</b></span>
+          </details>
+        </li>
+        <li>
+          <span class="flag self">自分の実測（できなかったこと）</span>
+          PHP版は作れていない。AIレビューはこの環境で走らせていない.
+          <details class="note-d"><summary>詳しく</summary>
+            <span class="note">この環境から github.com が403のため、composer が PHPStan の配布物を取得できず、PHP版の同じ検証は行っていません。またAIレビュー（GitHub Copilot code review / Claude Code の Code Review）は<b>この環境で実行していません</b>。第4節の記述は、公式ドキュメントと査読済み論文の記述だけに基づいています。</span>
+          </details>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「同じ指摘が過去3件そろったら規約にする」「must / should / nit の3語」「3つの置き場所の使い分け表」.
+          <details class="note-d"><summary>詳しく</summary>
+            <span class="note">いずれも標準でも規格でも、公式の推奨でもありません。<b>筆者の運用上の目安</b>です。<code>Nit:</code> という語だけは Google Code Review Developer Guide に同じ意図で載っており、その箇所は本文に引用しています。重大度を3段階に分ける考え方は Claude Code の Code Review にもありますが、語も定義も本記事のものとは別です。</span>
+          </details>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月23日時点の内容です</div>
+    <div>公開: 2026年8月23日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
