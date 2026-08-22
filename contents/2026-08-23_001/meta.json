@@ -1,0 +1,15 @@
+{
+  "category": "デイリーダイジェスト",
+  "tags": [
+    "Laravel",
+    "Android",
+    "iOS",
+    "VRChat",
+    "DeepSeek",
+    "実測"
+  ],
+  "featured": true,
+  "title": "AI-news：2026/08/23 — Laravelのキュー投入リスナーがdebounceできるようになった",
+  "summary": "Laravel v13.26.0で、キュー投入されたイベントリスナーに #[DebounceFor] が付けられるようになりました（実際に動かして4回→1回を確認）。Androidのアプリごとのメモリ上限がPixel以外へ広がります。iOS 26.6.1のCVE29件のうち21件がWebKit。DeepSeek APIは8月23日から土日が終日オフピーク価格に。",
+  "thumbnail": "images/thumb.png"
+}

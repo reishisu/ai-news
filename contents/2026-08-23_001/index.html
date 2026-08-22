@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-news：2026/08/23 — Laravelのキュー投入リスナーがdebounceできるようになった</title>
+<meta name="description" content="Laravel v13.26.0で、キュー投入されたイベントリスナーに #[DebounceFor] が付けられるようになりました（実際に動かして4回→1回を確認）。Androidのアプリごとのメモリ上限がPixel以外へ広がります。iOS 26.6.1のCVE29件のうち21件がWebKit。DeepSeek APIは8月23日から土日が終日オフピーク価格に。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI-news：2026/08/23 — Laravelのキュー投入リスナーがdebounceできるようになった">
+<meta property="og:description" content="Laravel v13.26.0でキュー投入リスナーに #[DebounceFor] が使えるように（実測つき）。Androidのメモリ上限が拡大。iOS 26.6.1のWebKit脆弱性21件。DeepSeekが土日を終日オフピーク価格に。一次資料の原文つき。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-23_001/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-23_001/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=58c56a7d">
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">2026年8月23日(日)</div>
+    <h1>AI-news：2026/08/23 — Laravelのキュー投入リスナーがdebounceできるようになった</h1>
+    <div class="range">対象期間: 8月21日(金) 5:00 〜 8月23日(日) 5:00 JST（土曜は各社の告知がほぼ止まるため、48時間に広げました）</div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 今日の3行まとめ</h2>
+    <ol>
+      <li>
+        <b>Laravel v13.26.0 で、キュー投入されたリスナーに <code>#[DebounceFor]</code> が付けられるようになった</b>
+        <span>同じイベントが短時間に何度も飛んだとき、<mark>最後の1回だけを処理する</mark>仕組みです。ジョブ側には前からありましたが、リスナー側は今回が初めてです。ECS on Fargate のように複数コンテナで動かしているなら、公式ドキュメントが「全サーバーが同じキャッシュを見ていること」を条件に挙げています。</span>
+      </li>
+      <li>
+        <b>GitHub Copilot の Slack 連携が public preview に</b>
+        <span>Slack のスレッドで <code>@GitHub</code> を呼ぶとエージェントが動き、調査からプルリクエスト作成までやります。<mark>管理者が Copilot cloud agent ポリシーを有効にしないと使えません</mark>。対象は Copilot Business / Enterprise です。</span>
+      </li>
+      <li>
+        <b>Androidのアプリごとのメモリ上限がPixel以外へ広がる。WebViewアプリとUnityアプリはピークを測っておく</b>
+        <span>超えるとまず遅くなり、さらに超えるとプロセスごと落とされます。<mark>上限の具体的な数値は公開されていません</mark>ので、いま自分の分布を記録しておくのが唯一できる備えです。ほかに iOS 26.6.1 のWebKit脆弱性21件、VRChatのワールド内YouTube再生の停止、DeepSeek APIが8月23日から週末を終日オフピーク価格にする件を扱いました。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#work">実務者向けのAI開発ツール(1件)</a></li>
+      <li><a href="#dev">Web開発・インフラ(1件)</a></li>
+      <li><a href="#client">クライアント技術(3件)</a></li>
+      <li><a href="#research">技術・研究(2件)</a></li>
+      <li><a href="#industry">モデル・業界(3件)</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 実務者向け ============ -->
+  <section class="section section-b" id="work">
+    <h2>🧰 実務者向けのAI開発ツール<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=github.blog&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">GitHub</div>
+      <h3>Slackから <code>@GitHub</code> を呼ぶとCopilotが動く — 管理者の有効化が要る</h3>
+      <div class="tags">
+        <span class="tag">8/22 1:07 JST</span>
+        <span class="tag">public preview</span>
+        <span class="tag">GitHub Copilot</span>
+      </div>
+      <p class="lead">Slack の GitHub 連携アプリが更新されました。これまでも通知の受信やIssueの作成・操作はできましたが、今回から<b>会話の中でコーディングエージェントを動かせる</b>ようになりました。</p>
+      <p class="lead">DM・チャンネル・スレッドのどこでも <code>@GitHub</code> にメンションするとセッションが始まります。</p>
+
+      <div class="code wrap"><div class="code-head">GitHub Changelog の原文（できること）</div><pre>Answer questions about your code and GitHub activity.
+Triage bug reports, update existing issues, or create and label new issues.
+Investigate failures, implement changes, and validate its work in a secure cloud sandbox.
+Open a pull request and provide a link to the conversation for review.</pre></div>
+
+      <p class="lead">会社をまたいでSlackで連携している現場だと、「この不具合どっち側？」の会話からそのまま調査を投げられます。作られたIssueやプルリクエストは <b>Copilot アプリの名義</b>になり、権限は既存のGitHubの設定の範囲を超えません。</p>
+
+      <p class="lead">レビューの逃げ道も用意されています。リポジトリの管理者は、<b>Copilot名義のプルリクエストにだけ追加の承認を必須にできます</b>。エージェントが書いたものが人の目を通らずにマージされるのを防ぐためのものです。</p>
+
+      <p class="lead">ただし、<mark>入れれば使えるわけではありません。</mark>3つ条件があります。</p>
+
+      <ul class="points">
+        <li><b>プラン。</b>Copilot Business か Copilot Enterprise の組織のみ。個人プランは対象外です。</li>
+        <li><b>管理者の操作。</b>組織の管理者が「Copilot cloud agent ポリシー」を有効にしておく必要があります。</li>
+        <li><b>枠の消費。</b>使った分は既存のCopilotの割り当てを消費し、cloud agent の予算設定で管理します。新しい料金体系ではありません。</li>
+        <li><b>今やること。</b>すぐ使う予定がなければ対応は不要。Copilot Business / Enterprise を契約していて試したいなら、管理者にcloud agentポリシーの有効化を頼むところから。</li>
+      </ul>
+
+    </article>
+  </section>
+
+  <!-- ============ Web開発・インフラ ============ -->
+  <section class="section section-c" id="dev">
+    <h2>🧑‍💻 Web開発・インフラ<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=laravel.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Laravel</div>
+      <h3>キュー投入したリスナーを「最後の1回だけ」にできる — <code>#[DebounceFor]</code></h3>
+      <div class="tags">
+        <span class="tag">v13.26.0 / 8/18</span>
+        <span class="tag">新機能</span>
+        <span class="tag">Laravel</span>
+      </div>
+
+      <p class="lead">先に言葉の確認です。<b>イベント</b>は「何かが起きた」という知らせ、<b>リスナー</b>はそれを受け取って動く処理です。リスナーに <code>ShouldQueue</code> を付けると、その場では動かずキュー（あとで処理する行列）に積まれます。</p>
+
+      <p class="lead">困るのは<b>同じイベントが短時間に何度も飛ぶとき</b>です。商品を5回編集すれば検索インデックスの更新が5回積まれます。最後の1回で結果は同じなのに、4回ぶんが無駄になります。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/debounce-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/debounce.png" alt="同じイベントが30秒に4回飛んだとき、これまでは4回処理されたが、DebounceFor(30)を付けると最後の1回だけ処理される" loading="lazy">
+        </picture>
+        <figcaption>連続する発火を1本にまとめる。まとめる単位は <code>debounceId</code> が決める</figcaption>
+      </figure>
+
+      <p class="lead">この環境で実際に動かしました。0.5秒おきに同じイベントを4回投げて、リスナーが何回動いたかを数えたものです。</p>
+
+      <div class="code term"><div class="code-head">Laravel 13.26.1 / PHP 8.4.19 で実行（加工せずそのまま）</div><pre># QUEUE=database(sqlite) CACHE=file
+
+$ php artisan demo:debounce plain
+ 1回目を発火
+ 2回目を発火
+ 3回目を発火
+ 4回目を発火
+ 4秒待つ
+ キューを流す
+
+<span class="ng-line"> 発火 4 回 / 実行 4 回</span>
+
+$ php artisan demo:debounce debounce
+ 1回目を発火
+ 2回目を発火
+ 3回目を発火
+ 4回目を発火
+ 4秒待つ
+ キューを流す
+
+<span class="ok-line"> 発火 4 回 / 実行 1 回</span></pre></div>
+
+      <p class="lead">属性を付けただけで 4回 → 1回 になります。再現用の一式は <code>_labs/2026-08-23_001/laravel/</code> に置きました。</p>
+
+      <p class="lead">書き方はこうです。</p>
+
+      <div class="code"><div class="code-head">公式ドキュメント（Events）に載っている例</div><pre>use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\Attributes\DebounceFor;
+
+#[DebounceFor(30)]
+class UpdateProductSearchIndex implements ShouldQueue
+{
+    public function handle(ProductUpdated $event): void
+    {
+        // 検索インデックスの更新…
+    }
+
+    public function debounceId(ProductUpdated $event): string
+    {
+        return (string) $event-&gt;product-&gt;getKey();
+    }
+}</pre></div>
+
+      <p class="lead"><code>debounceId</code> が「どれとどれを同じ扱いにするか」を決めます。上の例は商品ごとなので、<b>商品Aの連打と商品Bの連打は別々にまとまります</b>。ここを書かないと全部が1本にまとまってしまうので、実質必須だと思ってください。</p>
+
+      <p class="lead">1つ落とし穴があります。<mark>ずっと連打され続けると、いつまでも実行されません。</mark>上限を付けるのが <code>maxWait</code> です。</p>
+
+      <div class="code"><div class="code-head">最長120秒で必ず1回は走らせる</div><pre>#[DebounceFor(30, maxWait: 120)]
+class UpdateProductSearchIndex implements ShouldQueue
+{
+    // …
+}</pre></div>
+
+      <p class="lead"><b>ECS on Fargate で動かすなら、キャッシュの置き場所が条件になります。</b></p>
+
+      <p class="lead">「何回目か」を数えているのは<b>キャッシュ</b>です。ECS on Fargate は同じコンテナを複数動かす仕組みなので、キャッシュがコンテナごとに分かれていると、それぞれが別々に数えてしまいます。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/debounce-cache-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/debounce-cache.png" alt="タスクごとのキャッシュだとタスクの数だけ処理が走るが、共通のキャッシュを1つ指せば全体で最後の1回だけになる" loading="lazy">
+        </picture>
+        <figcaption>まとめる相手が見えていないと、まとまらない</figcaption>
+      </figure>
+
+      <p class="lead">公式ドキュメントもこれを条件として書いています。</p>
+
+      <div class="code wrap"><div class="code-head">laravel.com/docs/13.x/events の原文</div><pre>If your application dispatches events from multiple web servers or containers, you should ensure that all of your servers are communicating with the same central cache server.</pre></div>
+
+      <p class="lead">つまり <code>CACHE_STORE</code> が <code>file</code> や <code>array</code> のままだと、タスクの数だけ処理が走ります。ElastiCache などを共通で指す設定が要ります。リスナー単位で変えたいときは <code>debounceVia</code> を生やします。</p>
+
+      <div class="code"><div class="code-head">このリスナーだけ redis で数える</div><pre>public function debounceVia(ProductUpdated $event): Repository
+{
+    return Cache::driver('redis');
+}</pre></div>
+
+      <p class="lead"><b>「重複を防ぐ」機能は2つあります。混ぜると例外で落ちます。</b></p>
+
+      <p class="lead">Laravel には似た機能の <code>ShouldBeUnique</code> が前からあります。<b>目的が違うので、使い分けが要ります。</b></p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>やりたいこと</th><th>使うもの</th><th>結果</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>処理中に来た同じものを<b>捨てたい</b></td>
+              <td data-label="使うもの"><code>ShouldBeUnique</code></td>
+              <td data-label="結果">最初の1回が走る。後は消える</td>
+            </tr>
+            <tr>
+              <td>連打が落ち着くまで<b>待って最後を拾いたい</b></td>
+              <td data-label="使うもの"><code>#[DebounceFor]</code></td>
+              <td data-label="結果">最後の1回が走る</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">「最新の内容で1回だけ更新したい」なら debounce、「二重決済を止めたい」なら unique です。</p>
+
+      <p class="lead">そして<b>両方を同じリスナーに付けることはできません。</b>これも実際に試しました。</p>
+
+      <div class="code term"><div class="code-head">両方付けたリスナーにイベントを投げた実行結果</div><pre>$ php artisan demo:conflict
+<span class="ng-line"> LogicException
+ A debounced listener cannot also
+ implement ShouldBeUnique.</span></pre></div>
+
+      <p class="lead">起動時ではなく<b>イベントを投げた瞬間</b>に落ちます。テストで踏むまで気付かない種類のものなので、先に知っておく価値があります。</p>
+
+      <details>
+        <summary>どうやって「最後の1回」にしているのか（読まなくても使えます）</summary>
+        <p class="lead">イベントが飛ぶたびに <code>DebounceLock</code> がキャッシュに印を置き、ジョブは <code>debounceFor</code> 秒だけ遅らせてキューに積まれます。</p>
+        <p class="lead">後から来たイベントが印を上書きするので、先に積まれたジョブは実行される時点で「自分はもう持ち主ではない」と分かり、何もせず終わります。最後に印を置いたものだけが実際に動きます。</p>
+        <p class="lead"><code>maxWait</code> を超えていた場合は遅延が0になり、その場でキューに積まれます。</p>
+      </details>
+
+      <p class="lead">使う前に確認することです。 <span class="cl-count">0 / 4</span></p>
+      <ul class="checklist" data-key="laravel-debounce-2026-08-23">
+        <li><label><input type="checkbox"><span>Laravel を v13.26.0 以上に上げた（v13.25.0 まではリスナー側は非対応）</span></label></li>
+        <li><label><input type="checkbox"><span><code>debounceId</code> を書いた（書かないと全イベントが1本にまとまる）</span></label></li>
+        <li><label><input type="checkbox"><span><code>CACHE_STORE</code> が全コンテナ共通の場所を指している</span></label></li>
+        <li><label><input type="checkbox"><span>そのリスナーが <code>ShouldBeUnique</code> を実装していない</span></label></li>
+      </ul>
+
+      <ul class="points">
+        <li><b>今やること。</b>Laravel 13系を使っていなければ対応は不要。使っていて「同じ処理が連続で走って重い」箇所に心当たりがあるなら、<code>#[DebounceFor]</code> とキャッシュの置き場所を確認する。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ クライアント技術 ============ -->
+  <section class="section section-a" id="client">
+    <h2>📱 クライアント技術<span class="n">3件</span></h2>
+    <p class="lead">この節だけは直近1週間まで遡っています（更新頻度が低いため）。各項目に日付を書きました。</p>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=android-developers.googleblog.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Google / Android</div>
+      <h3>Android 17 の「アプリごとのメモリ上限」がPixel以外にも広がる — 超えると遅くなり、さらに超えると落とされる</h3>
+      <div class="tags">
+        <span class="tag">8/20 4:00 JST</span>
+        <span class="tag warn">⚠ 仕様変更</span>
+        <span class="tag">Android</span>
+      </div>
+
+      <p class="lead">Android 17 には「1つのアプリが使ってよいメモリの上限」があります。これまでは Pixel だけでしたが、他メーカーにも広がることが告知されました。</p>
+
+      <div class="code wrap"><div class="code-head">Android Developers Blog の原文</div><pre>Over the coming year, an increasing number of manufacturers will leverage the Android per-app memory limits across their portfolio of device RAM configurations from 4GB to 16GB+ devices. If your app exceeds these limits, it will be slowed down and may be terminated.</pre></div>
+
+      <p class="lead">効くのは <b>4GB から 16GB以上まで全てのRAM構成</b>です。「安い端末だけの話」ではありません。</p>
+
+      <p class="lead">超えたときは2段階で罰があります。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>段階</th><th>何が起きるか</th><th>ユーザーから見ると</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>上限に達した</td>
+              <td data-label="何が起きるか">zRAM（圧縮メモリ）へ強制的に追い出される</td>
+              <td data-label="ユーザーから見ると">操作が引っかかる</td>
+            </tr>
+            <tr>
+              <td>さらに増えた</td>
+              <td data-label="何が起きるか">プロセスごと終了させられる</td>
+              <td data-label="ユーザーから見ると">アプリが落ちる</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead"><mark>WebViewを積んだアプリと Unity製アプリは、どちらもメモリのピークが出やすい側です。</mark>WebViewは別プロセスでも、Unityはアセットの読み込みで一気に伸びます。</p>
+
+      <p class="lead">落ちた原因がこれかどうかは、コードから判定できます。<code>ApplicationExitInfo</code> の終了理由が <code>REASON_OTHER</code> で、説明文に決まった文字列が入っているかを見ます。</p>
+
+      <div class="code wrap"><div class="code-head">判定のしかた（ブログ本文より）</div><pre>the exit reason is reported as REASON_OTHER and the description string will contain "MemoryLimiter:AnonSwap"</pre></div>
+
+      <p class="lead"><b>いくつがその上限なのか、具体的な数値は公開されていません。</b>ブログにも公式ドキュメントにも書かれていないので、閾値を推測して設計しないでください。代わりに、Play Console の Android vitals にある <code>Memory Usage (Anonymous RSS + swap)</code> と <code>Bitmap Memory Usage</code> で、いまの自分の分布を見ておくのが先です。</p>
+
+      <ul class="points">
+        <li><b>今やること。</b>Androidアプリを配っているなら、Play Console の Android vitals でメモリの現状値をいま記録しておく。落ちる報告が増えたときに比べる相手が要る。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=support.apple.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Apple</div>
+      <h3>iOS 26.6.1 のCVE29件のうち21件がWebKit — WKWebViewはアプリを作り直しても塞がらない</h3>
+      <div class="tags">
+        <span class="tag">8/17</span>
+        <span class="tag warn">⚠ セキュリティ</span>
+        <span class="tag">iOS</span>
+      </div>
+
+      <p class="lead">Apple が 8月17日に iOS / iPadOS 26.6.1 を、8月18日に Safari 26.6.1 を公開しました。</p>
+
+      <p class="lead">アドバイザリに載っているCVEを数えると<b>29件で、そのうち21件がWebKit系</b>でした（WebKit 19件・WebKit History 1件・WebKit Storage 1件）。影響はいずれも「悪意のあるWebコンテンツを処理すると」から始まる型です。</p>
+
+      <div class="code wrap"><div class="code-head">Apple のアドバイザリの原文（WebKitの項の一例）</div><pre>Impact: Processing maliciously crafted web content may lead to memory corruption
+Description: The issue was addressed with improved memory handling.</pre></div>
+
+      <p class="lead">ここが WebView を使う側の要点です。<mark>WKWebView と SFSafariViewController が使っているのはOS側のWebKitなので、アプリを直して出し直しても塞がりません。</mark>直るのはOSを更新したときだけです。</p>
+
+      <p class="lead">なお、このアドバイザリに「悪用が確認されている（actively exploited）」の記載は<b>1件もありません</b>（全文を検索して確認しました）。緊急でユーザーに更新を促す種類のものではない、という判断材料になります。</p>
+
+      <details>
+        <summary>古い端末を切っていない場合（iOS 18系）</summary>
+        <p class="lead">同じ8月17日に iOS / iPadOS 18.7.10 も出ています。対象は iPhone XS / XS Max / XR と第7世代iPadなどです。</p>
+        <p class="lead">こちらはCVEが122件と桁が違います。18系をまだサポート対象にしているなら、こちらの存在も把握しておいてください。</p>
+      </details>
+
+      <ul class="points">
+        <li><b>今やること。</b>検証端末を 26.6.1 に上げて、自社のWebViewコンテンツが今までどおり動くかだけ確認する。アプリ側の修正は不要（そもそも直せない）。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=feedback.vrchat.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">VRChat / yt-dlp</div>
+      <h3>ワールドのYouTube再生が止まっている — SDKを直しても直らない。VRChat側の更新待ち</h3>
+      <div class="tags">
+        <span class="tag">8/18〜（継続中）</span>
+        <span class="tag">VRChat ワールド</span>
+      </div>
+
+      <p class="lead">ワールドの Video Player に YouTube のURLを入れても再生されない、という報告が8月18日ごろから続いています。</p>
+
+      <p class="lead">先に切り分けだけ書きます。<mark>ワールド側のUdonやSDKを直しても直りません。</mark>URLを実際の動画ファイルの場所に変換しているのは、VRChatクライアントが同梱している別のツール（yt-dlp）だからです。</p>
+
+      <p class="lead">確認できたのは次の2つです。</p>
+
+      <ul class="points">
+        <li><b>yt-dlp 側は修正済み。</b>2026.08.19（8月20日8:48 JST公開）で、既定のクライアント一覧から <code>android_vr</code> を外し、<code>web_embedded</code> への切り替え先を足しています。</li>
+        <li><b>VRChat 側はまだ動いていない。</b>公式フィードバック板の「Update to yt-dlp 2026.08.19」は、8月23日の取得時点で <code>open</code> のままです。</li>
+      </ul>
+
+      <div class="code wrap"><div class="code-head">yt-dlp 2026.08.19 の Changelog（youtube の項から2行）</div><pre>Remove `android_vr` from default clients
+Add `web_embedded` client fallbacks</pre></div>
+
+      <p class="lead">「VRChatに同梱されているのが古い版だから起きている」という説明が板のコメントに付いていますが、<b>これは第三者の実測で、VRChat運営の発表ではありません。</b>当方でも再現していないので、原因はまだ確定していないものとして扱ってください。</p>
+
+      <ul class="points">
+        <li><b>今やること。</b>YouTubeのURLに頼った上映系・イベント系のワールドを持っているなら、当面は自前で置いたmp4に差し替えるか、来場者に事情を告知する。ワールド側のコード修正は無意味なので手を付けない。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 技術・研究 ============ -->
+  <section class="section section-c" id="research">
+    <h2>🔬 技術・研究<span class="n">2件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Anthropic が「CLAUDE.md は1ページ以内に」と書いた — 理由はコンテキストの取り合い</h3>
+      <div class="tags">
+        <span class="tag">8/21</span>
+        <span class="tag">Claude Code</span>
+        <span class="tag">運用</span>
+      </div>
+
+      <p class="lead">Anthropic が、開発の各工程をエージェント前提で組み直す運用ガイドを出しました。全体は Plan / Design / Build / Test / Deploy / Maintain の6段構成です。</p>
+
+      <p class="lead">この中で、多くの人が読み違えていそうな指示が1つありました。<code>CLAUDE.md</code>（リポジトリに置いて Claude に読ませる指示書）の長さについてです。</p>
+
+      <div class="code wrap"><div class="code-head">Anthropic のガイドの原文</div><pre>Keep it under a page, because Claude reads all of it at the start of a session and anything stale is taking up context for no benefit.</pre></div>
+
+      <p class="lead"><mark>「1ページ以内」で、理由は「セッションの最初に全部読まれるから」。</mark>長く書くほど丁寧、ではありません。古い記述が残っていると、その分だけ本題に使えるコンテキストが減ります。</p>
+
+      <p class="lead">では何を書くのか。ガイドは「新しく入った人が初日に必要なもの」を基準にしています。ビルド・テスト・リントのコマンド、実際に効いている規約、そして<b>Claudeが繰り返し間違えること</b>です。</p>
+
+      <div class="code wrap"><div class="code-head">足す基準（原文）</div><pre>A working rule helps here. When Claude makes a mistake twice, the correction goes into CLAUDE.md.</pre></div>
+
+      <p class="lead">「2回間違えたら書く」。裏を返すと、<b>1回も間違えていないことは書かない</b>ということです。先回りして書いた注意書きは、そのぶん場所を取るだけになります。</p>
+
+      <ul class="points">
+        <li><b>今やること。</b><code>CLAUDE.md</code> を置いているリポジトリがあるなら、長さを見る。1ページを大きく超えているなら、「Claudeが実際に2回以上間違えたこと」だけ残して削る。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">arXiv</div>
+      <h3>エージェントに記憶を持たせた5手法が、全部「記憶なし」に負けた — MemTrapBench</h3>
+      <div class="tags">
+        <span class="tag">8/21</span>
+        <span class="tag">エージェント設計</span>
+      </div>
+
+      <p class="lead">エージェントに「前のやりとりを覚えさせる」機能を足すのは、いま定番の改善策です。この論文はそこに待ったをかけています。</p>
+
+      <p class="lead">これまでの記憶系ベンチマークは「正しく保存され、正しく取り出せたか」を測ってきました。この論文が測るのは別のことです。<b>取り出した記憶が、いま解いている問題の推論をどう歪めるか。</b></p>
+
+      <div class="code wrap"><div class="code-head">Abstract の原文</div><pre>Experiments across two model families and five representative memory frameworks show that MemTrapBench is challenging: all evaluated memory strategies underperform the no-memory setting, with even the strongest methods suffering drops of more than 10%.</pre></div>
+
+      <p class="lead"><mark>評価した5つの記憶手法が、全部「記憶なし」より成績が悪くなりました。</mark>一番マシなものでも10%以上落ちています。正しく記録された、内容も関連している記憶であっても、そうなったという主張です。</p>
+
+      <p class="lead">ただし<b>読むときの注意が2つ</b>あります。</p>
+
+      <ul class="points">
+        <li><b>試したモデルは2種類だけ。</b>Gemini-3-Flash-Preview と Qwen3-30B-A3B-Instruct-2507 です。Claude や GPT の上位機は入っていません。「記憶機能は害」と一般化はできません。</li>
+        <li><b>対策もセットで提案されている。</b>AdaptiveMem という、推論時に「記憶の罠を避けろ」と指示する手法で、罠を緩和しつつ通常のベンチマークの成績は保てたとしています。</li>
+        <li><b>今やること。</b>対応は不要。ただしエージェントにメモリ機能を足すなら、<b>「記憶なし」の対照群を必ず一緒に測る</b>こと。足せば良くなる前提で進めないための材料として使える。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ モデル・業界 ============ -->
+  <section class="section section-a" id="industry">
+    <h2>🏢 モデル・業界<span class="n">3件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=api-docs.deepseek.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">DeepSeek</div>
+      <h3>DeepSeek APIが今日から「土日は終日オフピーク価格」に — 告知は料金ページの脚注1行だけ</h3>
+      <div class="tags">
+        <span class="tag">8/23 1:00 JST 発効</span>
+        <span class="tag">料金</span>
+        <span class="tag">DeepSeek</span>
+      </div>
+
+      <p class="lead">DeepSeek の API は8月16日から時間帯によって単価が変わる方式になっていて、<b>オフピークはピークのちょうど半額</b>です。そのルールが今日から変わりました。</p>
+
+      <div class="code wrap"><div class="code-head">公式の料金ページ・脚注(1) の原文</div><pre>Effective 00:00 (Beijing Time) on Sunday, August 23, 2026, we will adjust our peak/off-peak billing rules, with off-peak rates applying throughout the day on weekends (Saturdays and Sundays, Beijing Time).</pre></div>
+
+      <p class="lead">北京時間の日曜0時、つまり<b>日本時間の8月23日1時から</b>、土日はピーク・オフピークの区別をやめて全部オフピーク価格になります。</p>
+
+      <p class="lead">平日のピーク時間も確認しておきます。脚注には UTC で書かれているので、日本時間に直したものを並べます。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>時間帯</th><th>UTC（脚注の表記）</th><th>日本時間</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>ピーク（平日）</td><td data-label="UTC">01:00 - 04:00</td><td data-label="日本時間">10:00 - 13:00</td></tr>
+            <tr><td>ピーク（平日）</td><td data-label="UTC">06:00 - 10:00</td><td data-label="日本時間">15:00 - 19:00</td></tr>
+            <tr><td>それ以外</td><td data-label="UTC">上記以外</td><td data-label="日本時間">半額</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">気になるのは告知のされ方です。<mark>この変更は Change Log にも News ページにも公式Xにも出ておらず、料金ページの脚注1行だけにあります。</mark>変更履歴を見に行く運用だと気付けません。</p>
+
+      <ul class="points">
+        <li><b>今やること。</b>DeepSeek で評価ジョブやバッチを回しているなら、土日に寄せると半額になる。回していないなら対応は不要だが、<b>この会社の料金変更は脚注に出ることがある</b>と覚えておく。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=stripe.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Stripe / OpenRouter</div>
+      <h3>続報: StripeによるOpenRouter買収は8月19日に両社が正式発表していた — 金額は非公表</h3>
+      <div class="tags">
+        <span class="tag">8/19</span>
+        <span class="tag">訂正・続報</span>
+      </div>
+
+      <p class="lead">本サイトは8月18日号と19日号で、この買収を「報道のみで両社とも発表していない」として2日続けて扱いました。<b>その後8月19日に両社が発表しており、こちらで拾えていませんでした。</b>お詫びして追記します。</p>
+
+      <p class="lead">Stripe のニュースルームに「Stripe agrees to acquire OpenRouter」（2026年8月19日付）が、OpenRouter 側にも「OpenRouter is Joining Stripe」が出ています。</p>
+
+      <p class="lead">1点はっきりさせておきます。<mark>両社の発表文に金額の記載は一切ありません。</mark>「70億ドル」「75億ドル」といった数字は報道由来で、当事者は確定させていません。</p>
+
+      <p class="lead">OpenRouter を経由してモデルを呼んでいる場合に効くのは、次の一文です。</p>
+
+      <div class="code wrap"><div class="code-head">OpenRouter の発表の原文</div><pre>OpenRouter will continue to operate as it is: same mission, same name, same product, same roadmap. If you build on OpenRouter today, nothing about your integration changes.</pre></div>
+
+      <ul class="points">
+        <li><b>今やること。</b>対応は不要。OpenRouter を使っていても、いまのところ組み込みを変える必要はないと当事者が明言している。金額を引用するときは「報道のみ」と添える。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=openai.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">OpenAI / AWS</div>
+      <h3>GPT-5.6 Sol が値下げ — ただし11月21日までの販促価格</h3>
+      <div class="tags">
+        <span class="tag">8/21（PT）</span>
+        <span class="tag">料金</span>
+        <span class="tag">OpenAI</span>
+      </div>
+
+      <p class="lead">OpenAI が GPT-5.6 Sol のAPI価格を下げました。Amazon Bedrock も同日、同じ価格に追随しています。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>単位</th><th>新しい価格</th><th>下げ幅</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>入力 100万トークン</td><td data-label="新しい価格">$4</td><td data-label="下げ幅">20%</td></tr>
+            <tr><td>出力 100万トークン</td><td data-label="新しい価格">$20</td><td data-label="下げ幅">33.3%</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">読者はAPIを直接叩く立場ではないので、請求書がすぐ変わる話ではありません。押さえておく点は1つだけです。</p>
+
+      <div class="code wrap"><div class="code-head">AWS What's New の原文</div><pre>This promotional pricing is available at least through November 21, 2026.</pre></div>
+
+      <p class="lead"><mark>これは恒久的な値下げではなく「少なくとも11月21日まで」の販促価格です。</mark>この価格を前提に見積もりを立てると、年末に前提が変わる可能性があります。</p>
+
+      <ul class="points">
+        <li><b>今やること。</b>対応は不要。この値段でコスト試算をするときだけ、11月21日という期限を添えて渡す。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark>掲載した全URLは取得時にHTTPステータス(200)を確認しています。再現用の一式は <code>_labs/2026-08-23_001/</code> に置いてあります。</p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「Events — Debounced Event Listeners」<i>laravel.com/docs 13.x</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「Debounced Event Listeners」節。<code>#[DebounceFor(30)]</code> と <code>debounceId</code> のコード例、<code>maxWait</code> の例、<code>debounceVia</code> の例、および「Debounced listeners and unique listeners are mutually exclusive. A listener using the DebounceFor attribute should not implement ShouldBeUnique.」「If your application dispatches events from multiple web servers or containers, you should ensure that all of your servers are communicating with the same central cache server.」。記事のコード例はこの節のものを使い、<code>&lt;?php</code>・<code>namespace</code>・<code>use App\Events\ProductUpdated;</code> の3行を省いてコメントを日本語にした（そのまま貼っても <code>ProductUpdated</code> は解決しないので、実際に使うときは省いた行を戻すこと）。</span></details>
+          <a href="https://laravel.com/docs/13.x/events">https://laravel.com/docs/13.x/events</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「Illuminate\Events\Dispatcher (v13.26.1)」<i>laravel/framework ソースコード</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: <code>queueHandler()</code> 内の「A debounced listener cannot also implement ShouldBeUnique.」を投げる <code>LogicException</code>、および <code>DebounceLock::acquire()</code> に <code>$debounceFor</code> と <code>maxWait</code> を渡し、<code>$debounce['maxWaitExceeded']</code> が真なら遅延を0にする分岐。記事の「例外で落ちる」「maxWaitを超えたらその場で積まれる」の根拠。<code>DebounceFor</code> 属性の引数（<code>int $debounceFor</code> と <code>?int $maxWait</code>）は同版の Illuminate\Queue\Attributes\DebounceFor.php で確認した。</span></details>
+          <a href="https://cdn.jsdelivr.net/gh/laravel/framework@v13.26.1/src/Illuminate/Events/Dispatcher.php">https://cdn.jsdelivr.net/gh/laravel/framework@v13.26.1/src/Illuminate/Events/Dispatcher.php</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          「debounce がリスナー側に入ったのは v13.26.0 から」の確認。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月23日、jsDelivr 経由で v13.25.0 と v13.26.1 の同じファイルを取得し、"debounce" の出現回数を <code>grep -ci</code> で数えた。Events/Dispatcher.php は 0 → 14、Events/CallQueuedListener.php は 0 → 9、Queue/CallQueuedHandler.php は 11 → 11。<b>ジョブ側の debounce は v13.25.0 の時点で既にあり、今回増えたのはリスナー側だけ</b>と判断した根拠。<code>DebounceFor</code> 属性・<code>DebounceLock</code>・<code>JobDebounced</code> の3ファイルは v13.25.0 にも存在した。再現は _labs/2026-08-23_001/verify_sources.sh の手順3。</span></details>
+          <a href="https://cdn.jsdelivr.net/gh/laravel/framework@v13.26.1/src/Illuminate/Events/CallQueuedListener.php">https://cdn.jsdelivr.net/gh/laravel/framework@v13.26.1/src/Illuminate/Events/CallQueuedListener.php</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Packagist「laravel/framework」<i>packagist.org</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: versions の time フィールド。v13.26.0 が 2026-08-18T12:30:10+00:00、v13.26.1 が 2026-08-18T20:31:28+00:00。記事の「v13.26.0 / 8/18」の根拠。あわせて、この号の対象期間内に laravel/framework の新規リリースが無いことも同じ一覧で確認した（直近は v11.56.0 の 2026-08-20T12:38:31+00:00）。</span></details>
+          <a href="https://packagist.org/packages/laravel/framework">https://packagist.org/packages/laravel/framework</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          GitHub「The new GitHub Copilot experience in Slack」<i>GitHub Changelog</i>, 2026年8月21日（日本時間8月22日1:07）.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「Availability and getting started」節の「The public preview is available to organizations on GitHub Copilot Business and GitHub Copilot Enterprise plans. Usage counts against your existing Copilot entitlements and can be managed with existing Copilot cloud agent budgets.」「Make sure an administrator has enabled the Copilot cloud agent policy for your organization.」、および「Repository administrators can require an additional approval for any pull request attributed to the Copilot app identity before it can merge.」。本文に貼った4行は「What you can now do with @GitHub」節の箇条書きの原文。公開時刻はGitHub Changelogのフィード(github.blog/changelog/feed/)のpubDateをJSTに直して確認した。</span></details>
+          <a href="https://github.blog/changelog/2026-08-21-the-new-github-copilot-experience-in-slack/">https://github.blog/changelog/2026-08-21-the-new-github-copilot-experience-in-slack/</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          AWS「Amazon Bedrock announces reduced pricing for OpenAI GPT-5.6 Sol」<i>AWS What's New</i>, 2026年8月21日（日本時間8月22日5:11）.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「Sol now costs $4 per million input tokens and $20 per million output tokens—20% lower input pricing and 33.3% lower output pricing. This promotional pricing is available at least through November 21, 2026.」。同じ数値を OpenAI 側の changelog（Aug 21, Model: gpt-5.6-sol）でも突き合わせた: 「GPT-5.6 Sol now costs $4 per million input tokens and $20 per million output tokens, representing 20% lower input pricing and 33% lower output pricing. GPT-5.6 Sol's promotional pricing is available at least through November 21, 2026.」。下げ幅の表記が AWS は 33.3%、OpenAI は 33% と分かれているため、記事では出力側を 33.3% と書き、出典を AWS 側にそろえた。</span></details>
+          <a href="https://aws.amazon.com/about-aws/whats-new/2026/08/bedrock-openai-gpt-56-sol-reduced-pricing/">https://aws.amazon.com/about-aws/whats-new/2026/08/bedrock-openai-gpt-56-sol-reduced-pricing/</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          OpenAI「Changelog — August 2026」<i>platform.openai.com/docs</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: Aug 21 の「Update · Model: gpt-5.6-sol」エントリ。値下げ幅と販促期限の突き合わせに使用。ページ本体はJavaScriptで描画されるため、末尾に <code>.md</code> を付けた <code>https://platform.openai.com/docs/changelog.md</code> を curl で取得して読んだ（同ページに「Markdown versions of documentation pages are available by appending .md to the page URL」と明記されている）。</span></details>
+          <a href="https://platform.openai.com/docs/changelog">https://platform.openai.com/docs/changelog</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Claude Code 2.1.240 を落とした理由（変更行を機械的に数えた結果）。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月23日、CHANGELOG.md を取得し <code>awk '/^## 2\.1\.240$/{f=1;next} /^## /{f=0} f'</code> で 2.1.240 のブロックだけを抜き、行頭が「- 」の行を数えた。<b>結果は1行のみで、その内容は「Bug fixes and reliability improvements」</b>。<code>- Added</code> / <code>- Changed</code> / <code>- Removed</code> の行は0件。npm の time フィールドでは 2.1.240 は 2026-08-22T13:03:23.566Z（日本時間8月22日22:03）の公開で対象期間内だが、本サイトの手順（CLAUDE.md 第16節）により、不具合修正だけの版は項目にしない。再現は _labs/2026-08-23_001/verify_sources.sh の手順1と2。</span></details>
+          <a href="https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md">https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Laravel 13.26.1 で debounce を実際に動かした結果。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月23日、この記事を書いた環境（Linux / PHP 8.4.19 / Composer）で <code>composer create-project laravel/laravel</code> を実行し、入った laravel/framework は v13.26.1。<code>QUEUE_CONNECTION=database</code>（sqlite）・<code>CACHE_STORE=file</code> の1プロセス構成で、同じイベントを0.5秒おきに4回発火させ、4秒待ってから <code>queue:work --stop-when-empty</code> を流し、リスナーが書いたログの行数を数えた。属性なしで4回、<code>#[DebounceFor(3)]</code> ありで1回。<code>ShouldBeUnique</code> との併用は <code>event()</code> の時点で LogicException。<b>記事に貼った出力は加工せずそのまま</b>で、幅は出力側（COLUMNS=40 と wordwrap）で詰めた。再現一式は _labs/2026-08-23_001/laravel/（run_all.sh・DebounceDemo.php・DebounceConflict.php）、出力は _labs/2026-08-23_001/output.txt。<b>複数コンテナでの検証はしていない</b>（1プロセスのみ）。図版の「共通キャッシュが要る」は公式ドキュメントの記述であって、当方の実測ではない。</span></details>
+          <a href="https://laravel.com/docs/13.x/events">https://laravel.com/docs/13.x/events</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Preparing your app for broader memory limits」<i>Android Developers Blog</i>, 2026年8月19日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">著者は Blair Harmon（Director of Product Management, Android Platform）。参照箇所: 「Over the coming year, an increasing number of manufacturers will leverage the Android per-app memory limits across their portfolio of device RAM configurations from 4GB to 16GB+ devices. If your app exceeds these limits, it will be slowed down and may be terminated.」、Understanding Memory Limits 節の zRAM Swapping と Process Termination の2段階、「the exit reason is reported as REASON_OTHER and the description string will contain "MemoryLimiter:AnonSwap"」、および Android vitals の指標名「Memory Usage (Anonymous RSS + swap)」「Bitmap Memory Usage」。<b>上限の具体的な数値は、この記事にも公式ドキュメントにも書かれていない</b>ことを本文検索で確認したうえで「公開されていない」と書いた。なお本文がリンクしている developer.android.com/about/versions/17/app-memory-limits は404で、生きているのは behavior-changes-all#app-memory-limits の方。</span></details>
+          <a href="https://android-developers.googleblog.com/2026/08/app-broader-memory-limits.html">https://android-developers.googleblog.com/2026/08/app-broader-memory-limits.html</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Apple「About the security content of iOS 26.6.1 and iPadOS 26.6.1」<i>Apple Support</i>, 2026年8月17日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「Released August 17, 2026」と、各コンポーネント節のCVE。引用した2行は WebKit 節の「Impact: Processing maliciously crafted web content may lead to memory corruption」「Description: The issue was addressed with improved memory handling.」。件数は当方でページ本文をコンポーネント別に集計した結果で、CVEはユニーク29件、内訳は WebKit 19・Kernel 3・ImageIO 2・Audio 1・IOGPUFamily 1・Telephony 1・WebKit History 1・WebKit Storage 1。WebKit系の合計21件はこの3つを足したもの。「actively exploited」は<b>本文中に0件</b>（全文検索）。iOS 18.7.10 のCVE 122件は別ページ（support.apple.com/en-us/148287）で確認した。</span></details>
+          <a href="https://support.apple.com/en-us/148282">https://support.apple.com/en-us/148282</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「WKWebView はアプリを作り直しても塞がらない」という整理について。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">Apple のアドバイザリ自体に WKWebView という語は出てこない。WKWebView / SFSafariViewController が WebKit フレームワークのクラスであること（developer.apple.com/documentation/webkit/wkwebview のドキュメント階層）から導いた筆者の整理であって、Apple がそう書いているわけではない。ただし「WebKit の修正はOS更新で配られる」という帰結自体は、アドバイザリが iOS のバージョンに紐づいて出ていることと整合する。</span></details>
+          <a href="https://developer.apple.com/documentation/webkit/wkwebview">https://developer.apple.com/documentation/webkit/wkwebview</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          yt-dlp「Changelog 2026.08.19」<i>yt-dlp/yt-dlp</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 2026.08.19 の Extractor changes → youtube の項にある「Remove `android_vr` from default clients」（#17461）と「Add `web_embedded` client fallbacks」（#17462）。公開時刻は PyPI の JSON API で 2026.8.19 が 2026-08-19T23:48:56Z（日本時間8月20日8:48）と確認した。VRChat に同梱されている版とされる 2026.7.4 は 2026-07-04T22:42:12Z。github.com はこの環境から403のため、ソースは jsDelivr 経由で取得している。</span></details>
+          <a href="https://cdn.jsdelivr.net/gh/yt-dlp/yt-dlp@2026.08.19/Changelog.md">https://cdn.jsdelivr.net/gh/yt-dlp/yt-dlp@2026.08.19/Changelog.md</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          VRChatのワールド内YouTube再生が止まっている「原因」について。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">VRChat公式フィードバック板に「Update to yt-dlp 2026.08.19」という要望があり、2026年8月23日の取得時点で status が open であることは確認した（＝VRChat側がまだ対応していないことの裏付け）。しかし<b>「VRChatに同梱されているのが2026.07.04だから起きている」「android_vr が403を返す」は、板に付いた第三者のコメントによる実測であり、VRChat運営の発表ではない。</b>当方でもVRChatを起動しての再現はしていない。したがって原因は確定していないものとして書いた。VRChatのリリースノート（2026.3.1p1 / 2026.3.2 OPEN BETA）にも yt-dlp への言及は無い。</span></details>
+          <a href="https://feedback.vrchat.com/feature-requests/p/update-to-yt-dlp-20260819">https://feedback.vrchat.com/feature-requests/p/update-to-yt-dlp-20260819</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Louis Claxton「The AI-Native SDLC playbook」<i>Anthropic</i>, 2026年8月21日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: Build 段の CLAUDE.md についての記述。「Keep it under a page, because Claude reads all of it at the start of a session and anything stale is taking up context for no benefit.」「A working rule helps here. When Claude makes a mistake twice, the correction goes into CLAUDE.md.」および直前の「Cut the generated file down to what a new joiner would need on day one. Keep the build, test and lint commands, the conventions that matter, and the things Claude keeps getting wrong.」。日付と著者はページ上部の Date / Author(s) 欄から。</span></details>
+          <a href="https://claude.com/blog/the-ai-native-sdlc-playbook">https://claude.com/blog/the-ai-native-sdlc-playbook</a>（2026年8月21日付・2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          「MemTrapBench」<i>arXiv:2608.20202</i>, 2026年8月.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: Abstract の「Experiments across two model families and five representative memory frameworks show that MemTrapBench is challenging: all evaluated memory strategies underperform the no-memory setting, with even the strongest methods suffering drops of more than 10%.」と、対策手法 AdaptiveMem についての記述。<b>読んだのは arXiv API が返す Abstract 全文で、本文PDFは通読していない。</b>評価対象が Gemini-3-Flash-Preview と Qwen3-30B-A3B-Instruct-2507 の2モデルであることは、本文3.1節の実験設定による。v1の投稿は 2026-08-20T16:00:17Z、最終更新は 2026-08-22T20:04:29Z。DOI: 10.48550/arXiv.2608.20202</span></details>
+          <a href="https://arxiv.org/abs/2608.20202">https://arxiv.org/abs/2608.20202</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          DeepSeek「Models &amp; Pricing」<i>api-docs.deepseek.com</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 価格表の脚注(1)「Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC (all other hours are off-peak). Effective 00:00 (Beijing Time) on Sunday, August 23, 2026, we will adjust our peak/off-peak billing rules, with off-peak rates applying throughout the day on weekends (Saturdays and Sundays, Beijing Time).」。中国語版（/zh-cn/quick_start/pricing）の同じ脚注とも突き合わせた。日本時間への換算（UTC 01:00-04:00 → JST 10:00-13:00、UTC 06:00-10:00 → JST 15:00-19:00、北京時間0:00 → JST 1:00）は当方で行った。<b>この変更は Change Log にも News ページにも公式Xにも見当たらない</b>ことを、それぞれのページを取得して確認した。告知がいつ行われたかは特定できていない（Wayback Machine はこの環境から403で過去版と比較できなかった）。</span></details>
+          <a href="https://api-docs.deepseek.com/quick_start/pricing">https://api-docs.deepseek.com/quick_start/pricing</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Stripe「Stripe agrees to acquire OpenRouter…」<i>Stripe Newsroom</i>, 2026年8月19日 / OpenRouter「OpenRouter is Joining Stripe」.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: Stripe側の「SAN FRANCISCO AND DUBLIN—Stripe, the programmable financial services company, today announced that it has agreed to acquire OpenRouter, a leading AI model gateway and routing platform.」と日付「August 19, 2026」。OpenRouter側の「OpenRouter will continue to operate as it is: same mission, same name, same product, same roadmap. If you build on OpenRouter today, nothing about your integration changes.」。<b>金額の記載が無いこと</b>は、Stripe のページ本文で「billion」「million」「$」の出現をそれぞれ数えて0件であることを確認した。本サイトが8月18日号・19日号で「未発表」と書いたのは、その時点では正しかったが、8月19日の発表を後追いできていなかった。</span></details>
+          <a href="https://stripe.com/newsroom/news/stripe-agrees-to-acquire-openrouter">https://stripe.com/newsroom/news/stripe-agrees-to-acquire-openrouter</a>（2026年8月23日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          対象期間を48時間に広げた判断について。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">通常この号は「前日5:00〜当日5:00 JST」の24時間で作る。今回は8月22日が土曜で、AWS What's New は 8/22 5:11 JST を最後に当日の新規投稿が無く、GitHub Changelog も 8/22 2:28 JST が最後だった。24時間では中身が立たないため、本サイトの手順が認めている48時間（8/21 5:00〜8/23 5:00 JST）まで広げた。これは規格や公式の基準ではなく、運用上の判断である。Laravel v13.26.0 自体のリリースは8/18でこの窓の外だが、リスナー側の debounce が公式ドキュメントに載って読める形になったのを確認できたのが今回のため、日付を明示したうえで扱った。</span></details>
+          <a href="https://packagist.org/packages/laravel/framework">https://packagist.org/packages/laravel/framework</a>（2026年8月23日参照）
+        </li>
+      </ol>
+    </article>
+  </section>
+
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

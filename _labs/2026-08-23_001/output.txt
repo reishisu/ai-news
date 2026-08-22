@@ -1,0 +1,29 @@
+# 2026-08-23 05:28 JST
+# Laravel Framework 13.26.1
+# PHP 8.4.19
+# QUEUE=database(sqlite) CACHE=file
+
+$ php artisan demo:debounce plain
+ 1回目を発火
+ 2回目を発火
+ 3回目を発火
+ 4回目を発火
+ 4秒待つ
+ キューを流す
+
+ 発火 4 回 / 実行 4 回
+
+$ php artisan demo:debounce debounce
+ 1回目を発火
+ 2回目を発火
+ 3回目を発火
+ 4回目を発火
+ 4秒待つ
+ キューを流す
+
+ 発火 4 回 / 実行 1 回
+
+$ php artisan demo:conflict
+ LogicException
+ A debounced listener cannot also
+ implement ShouldBeUnique.
