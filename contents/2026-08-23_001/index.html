@@ -43,7 +43,7 @@
       </li>
       <li>
         <b>Androidのアプリごとのメモリ上限がPixel以外へ広がる。WebViewアプリとUnityアプリはピークを測っておく</b>
-        <span>超えるとまず遅くなり、さらに超えるとプロセスごと落とされます。<mark>上限の具体的な数値は公開されていません</mark>ので、いま自分の分布を記録しておくのが唯一できる備えです。ほかに iOS 26.6.1 のWebKit脆弱性21件、VRChatのワールド内YouTube再生の停止、DeepSeek APIが8月23日から週末を終日オフピーク価格にする件を扱いました。</span>
+        <span>超えるとまず遅くなり、さらに超えるとプロセスごと落とされます。<mark>上限の具体的な数値は公開されていません</mark>ので、Play Console の Android vitals でいまの自分の分布を記録しておくのが、唯一できる備えです。</span>
       </li>
     </ol>
   </section>
@@ -303,7 +303,7 @@ class UpdateProductSearchIndex implements ShouldQueue
 
       <div class="code wrap"><div class="code-head">判定のしかた（ブログ本文より）</div><pre>the exit reason is reported as REASON_OTHER and the description string will contain "MemoryLimiter:AnonSwap"</pre></div>
 
-      <p class="lead"><b>いくつがその上限なのか、具体的な数値は公開されていません。</b>ブログにも公式ドキュメントにも書かれていないので、閾値を推測して設計しないでください。代わりに、Play Console の Android vitals にある <code>Memory Usage (Anonymous RSS + swap)</code> と <code>Bitmap Memory Usage</code> で、いまの自分の分布を見ておくのが先です。</p>
+      <p class="lead"><b>いくつがその上限なのか、具体的な数値は公開されていません。</b>ブログにも公式ドキュメントにも書かれていないので、閾値を推測して設計しないでください。代わりに、Play Console の Android vitals にあるメモリ関連の2指標（匿名RSS＋スワップと、ビットマップの使用量）で、いまの自分の分布を見ておくのが先です。</p>
 
       <ul class="points">
         <li><b>今やること。</b>Androidアプリを配っているなら、Play Console の Android vitals でメモリの現状値をいま記録しておく。落ちる報告が増えたときに比べる相手が要る。</li>
@@ -355,10 +355,9 @@ Description: The issue was addressed with improved memory handling.</pre></div>
 
       <p class="lead">確認できたのは次の2つです。</p>
 
-      <ul class="points">
-        <li><b>yt-dlp 側は修正済み。</b>2026.08.19（8月20日8:48 JST公開）で、既定のクライアント一覧から <code>android_vr</code> を外し、<code>web_embedded</code> への切り替え先を足しています。</li>
-        <li><b>VRChat 側はまだ動いていない。</b>公式フィードバック板の「Update to yt-dlp 2026.08.19」は、8月23日の取得時点で <code>open</code> のままです。</li>
-      </ul>
+      <p class="lead"><b>yt-dlp 側は修正済みです。</b>2026.08.19（8月20日8:48 JST公開）で、既定のクライアント一覧から <code>android_vr</code> を外し、<code>web_embedded</code> への切り替え先を足しています。</p>
+
+      <p class="lead"><b>VRChat 側はまだ動いていません。</b>公式フィードバック板の「Update to yt-dlp 2026.08.19」は、8月23日の取得時点で <code>open</code> のままです。</p>
 
       <div class="code wrap"><div class="code-head">yt-dlp 2026.08.19 の Changelog（youtube の項から2行）</div><pre>Remove `android_vr` from default clients
 Add `web_embedded` client fallbacks</pre></div>
