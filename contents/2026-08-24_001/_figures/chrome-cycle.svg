@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 298" font-family="sans-serif">
+  <text x="230" y="30" text-anchor="middle" font-size="23" font-weight="bold" fill="var(--fg)">メジャー版が上がる間隔が半分になる</text>
+
+  <!-- これまで -->
+  <text x="16" y="72" font-size="21" font-weight="bold" fill="var(--sub)">これまで（4週間ごと）</text>
+  <line x1="16" y1="100" x2="444" y2="100" stroke="var(--track)" stroke-width="5"/>
+  <g fill="var(--old)">
+    <circle cx="60" cy="100" r="10"/>
+    <circle cx="204" cy="100" r="10"/>
+    <circle cx="348" cy="100" r="10"/>
+  </g>
+  <text x="60" y="130" text-anchor="middle" font-size="20" fill="var(--sub)">4週</text>
+  <text x="204" y="130" text-anchor="middle" font-size="20" fill="var(--sub)">4週</text>
+  <text x="348" y="130" text-anchor="middle" font-size="20" fill="var(--sub)">4週</text>
+
+  <!-- これから -->
+  <text x="16" y="176" font-size="21" font-weight="bold" fill="var(--new)">9月8日から（2週間ごと）</text>
+  <line x1="16" y1="204" x2="444" y2="204" stroke="var(--track)" stroke-width="5"/>
+  <g fill="var(--new)">
+    <circle cx="60" cy="204" r="10"/>
+    <circle cx="132" cy="204" r="10"/>
+    <circle cx="204" cy="204" r="10"/>
+    <circle cx="276" cy="204" r="10"/>
+    <circle cx="348" cy="204" r="10"/>
+  </g>
+  <text x="60" y="234" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">153</text>
+  <text x="60" y="258" text-anchor="middle" font-size="20" fill="var(--sub)">9/8</text>
+  <text x="140" y="234" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">154</text>
+  <text x="140" y="258" text-anchor="middle" font-size="20" fill="var(--sub)">9/22</text>
+
+  <text x="230" y="290" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">WebViewも同じ間隔かは未確認</text>
+</svg>

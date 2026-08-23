@@ -150,7 +150,7 @@
    "https://code.claude.com/docs/en/auto-mode-config@2026-08-22",
    "https://code.claude.com/docs/en/best-practices@2026-08-21",
    "https://code.claude.com/docs/en/champion-kit@2026-08-12",
-   "https://code.claude.com/docs/en/changelog@2026-08-22",
+   "https://code.claude.com/docs/en/changelog@2026-08-23",
    "https://code.claude.com/docs/en/channels@2026-08-21",
    "https://code.claude.com/docs/en/channels-reference@2026-08-19",
    "https://code.claude.com/docs/en/checkpointing@2026-08-21",
@@ -379,6 +379,7 @@
    "or:tencent/hy-mt2-1.8b",
    "or:tencent/hy-mt2-30b-a3b",
    "or:~z-ai/glm-latest",
+   "or:tencent/hy-mt2-7b",
    "or:z-ai/glm-5.3",
    "or:qwen/qwen3.8-27b",
    "or:dots-studio/dots-3-note-preview:free",
@@ -814,7 +815,6 @@
  },
  "npm claude-code": {
   "keys": [
-   "@anthropic-ai/claude-code@2.1.200",
    "@anthropic-ai/claude-code@2.1.201",
    "@anthropic-ai/claude-code@2.1.202",
    "@anthropic-ai/claude-code@2.1.203",
@@ -853,7 +853,8 @@
    "@anthropic-ai/claude-code@2.1.237",
    "@anthropic-ai/claude-code@2.1.238",
    "@anthropic-ai/claude-code@2.1.239",
-   "@anthropic-ai/claude-code@2.1.240"
+   "@anthropic-ai/claude-code@2.1.240",
+   "@anthropic-ai/claude-code@2.1.241"
   ],
   "license": "SEE LICENSE IN README.md"
  },

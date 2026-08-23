@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 372" font-family="sans-serif">
+  <text x="230" y="30" text-anchor="middle" font-size="23" font-weight="bold" fill="var(--fg)">請求が立つ先は1つか2つか</text>
+
+  <!-- Slack -->
+  <text x="16" y="70" font-size="21" font-weight="bold" fill="var(--sub)">Slack版</text>
+  <rect x="16" y="82" width="140" height="56" rx="9" fill="var(--track)" stroke="var(--sub)" stroke-width="2"/>
+  <text x="86" y="117" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">エージェント</text>
+
+  <line x1="160" y1="110" x2="204" y2="110" stroke="var(--sub)" stroke-width="3"/>
+  <path d="M204 110 l-10 -6 v12 z" fill="var(--sub)"/>
+
+  <rect x="208" y="82" width="236" height="56" rx="9" fill="var(--track)" stroke="var(--old)" stroke-width="3"/>
+  <text x="326" y="117" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">既存のCopilot枠だけ</text>
+
+  <!-- Teams -->
+  <text x="16" y="182" font-size="21" font-weight="bold" fill="var(--sub)">Teams版</text>
+  <rect x="16" y="194" width="140" height="140" rx="9" fill="var(--track)" stroke="var(--sub)" stroke-width="2"/>
+  <text x="86" y="271" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">エージェント</text>
+
+  <line x1="160" y1="225" x2="204" y2="225" stroke="var(--new)" stroke-width="3"/>
+  <path d="M204 225 l-10 -6 v12 z" fill="var(--new)"/>
+  <line x1="160" y1="303" x2="204" y2="303" stroke="var(--new)" stroke-width="3"/>
+  <path d="M204 303 l-10 -6 v12 z" fill="var(--new)"/>
+
+  <rect x="208" y="194" width="236" height="62" rx="9" fill="var(--track)" stroke="var(--new)" stroke-width="3"/>
+  <text x="326" y="222" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">AIクレジット</text>
+  <text x="326" y="246" text-anchor="middle" font-size="20" fill="var(--sub)">予算で上限を張る</text>
+
+  <rect x="208" y="272" width="236" height="62" rx="9" fill="var(--track)" stroke="var(--new)" stroke-width="3"/>
+  <text x="326" y="300" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">サンドボックス</text>
+  <text x="326" y="324" text-anchor="middle" font-size="20" fill="var(--sub)">別請求。予算も別枠</text>
+
+  <text x="230" y="364" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--new)">Teams版は財布が2つ</text>
+</svg>

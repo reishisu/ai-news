@@ -1,0 +1,19 @@
+{
+  "category": "デイリーダイジェスト",
+  "tags": [
+    "Chrome",
+    "WebView",
+    "Android",
+    "Copilot",
+    "DeepSeek",
+    "実測"
+  ],
+  "featured": true,
+  "title": "AI-news：2026/08/24 — Chromeが9月8日から2週間ごとのリリースになる",
+  "summary": "Chrome 153から、Chromeのリリースが4週間ごとではなく2週間ごとになります（安定版は9月8日）。同じ153でRelated Website Setsが削除され、Android WebViewも同時に対象です。Google Playは8月31日からAPI 36が必須。Teams版のCopilotはサンドボックスが別請求です。",
+  "thumbnail": "images/thumb.png",
+  "thumb": {
+    "main": "Chromeが2週ごとに",
+    "sub": "9月8日から。検証の周期を組み直す"
+  }
+}

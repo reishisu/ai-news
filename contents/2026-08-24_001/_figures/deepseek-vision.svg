@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 356" font-family="sans-serif">
+  <text x="230" y="30" text-anchor="middle" font-size="23" font-weight="bold" fill="var(--fg)">画像の渡し方は3通り。上限が違う</text>
+
+  <!-- 1 base64 -->
+  <rect x="16" y="48" width="428" height="84" rx="10" fill="var(--track)" stroke="var(--sub)" stroke-width="2"/>
+  <circle cx="44" cy="76" r="15" fill="var(--b)"/>
+  <text x="44" y="83" text-anchor="middle" font-size="20" font-weight="bold" fill="#fff">1</text>
+  <text x="68" y="84" font-size="20" font-weight="bold" fill="var(--fg)">base64 で埋め込む</text>
+  <text x="34" y="116" font-size="20" fill="var(--sub)">リクエスト全体で</text>
+  <text x="202" y="116" font-size="20" font-weight="bold" fill="var(--new)">48 MiB</text>
+  <text x="278" y="116" font-size="20" fill="var(--sub)">まで</text>
+
+  <!-- 2 url -->
+  <rect x="16" y="142" width="428" height="110" rx="10" fill="var(--track)" stroke="var(--sub)" stroke-width="2"/>
+  <circle cx="44" cy="170" r="15" fill="var(--c)"/>
+  <text x="44" y="177" text-anchor="middle" font-size="20" font-weight="bold" fill="#fff">2</text>
+  <text x="68" y="178" font-size="20" font-weight="bold" fill="var(--fg)">外部URLを渡す</text>
+  <text x="34" y="212" font-size="20" fill="var(--sub)">URLの長さ</text>
+  <text x="140" y="212" font-size="20" font-weight="bold" fill="var(--new)">8192文字</text>
+  <text x="252" y="212" font-size="20" fill="var(--sub)">画像</text>
+  <text x="296" y="212" font-size="20" font-weight="bold" fill="var(--new)">32 MiB</text>
+  <text x="34" y="242" font-size="20" fill="var(--sub)">取得完了まで</text>
+  <text x="162" y="242" font-size="20" font-weight="bold" fill="var(--new)">60秒</text>
+  <text x="222" y="242" font-size="20" fill="var(--sub)">以内</text>
+
+  <!-- 3 files api -->
+  <rect x="16" y="262" width="428" height="58" rx="10" fill="var(--track)" stroke="var(--sub)" stroke-width="2"/>
+  <circle cx="44" cy="291" r="15" fill="var(--d)"/>
+  <text x="44" y="298" text-anchor="middle" font-size="20" font-weight="bold" fill="#fff">3</text>
+  <text x="68" y="299" font-size="20" font-weight="bold" fill="var(--fg)">Files API に上げてから参照</text>
+
+  <text x="230" y="346" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">形式は中身で判定。拡張子は無関係</text>
+</svg>

@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-news：2026/08/24 — Chromeが9月8日から2週間ごとのリリースになる</title>
+<meta name="description" content="Chrome 153から、Chromeのリリースが4週間ごとではなく2週間ごとになります（安定版は9月8日）。同じ153でRelated Website Setsが削除され、Android WebViewも同時に対象です。Google Playは8月31日からAPI 36が必須。Teams版のCopilotはサンドボックスが別請求です。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI-news：2026/08/24 — Chromeが9月8日から2週間ごとのリリースになる">
+<meta property="og:description" content="Chromeが9月8日から2週間ごとのリリースに。同じChrome 153でRelated Website Setsが削除され、WebViewも対象。Google PlayのAPI 36必須は8月31日。一次資料の原文つき。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-24_001/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-24_001/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=58c56a7d">
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">2026年8月24日(月)</div>
+    <h1>AI-news：2026/08/24 — Chromeが9月8日から2週間ごとのリリースになる</h1>
+    <div class="range">対象期間: 8月23日(日) 5:00 〜 8月24日(月) 5:00 JST（日曜は各社の告知が止まるため、クライアント技術は直近1週間まで遡りました）。</div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 今日の3行まとめ</h2>
+    <ol>
+      <li>
+        <b>Chromeが9月8日から2週間ごとに出るようになる。WebViewの検証周期を組み直す</b>
+        <span>Chrome 153 が新しいサイクルの1本目です。安定版が9月8日、次の154が9月22日。<mark>メジャー版が月2回上がります</mark>。「4週に1回確認する」段取りのままだと追いつきません。なお<b>WebViewも2週間になるとは、まだどこにも書かれていません</b>（公式ページは「4週間前」のままです）。</span>
+      </li>
+      <li>
+        <b>同じ Chrome 153 で Related Website Sets が消える。WebViewも同時</b>
+        <span>削除の対象は desktop・android・<b>webview がすべて153</b>です。<code>document.requestStorageAccessFor()</code> も一緒に消えます。<mark>コードをこの名前で検索して1件も出なければ対応は不要</mark>です。サードパーティCookie自体は残ります。</span>
+      </li>
+      <li>
+        <b>Google Play は8月31日から API 36 が必須。締切まで7日</b>
+        <span>今週の告知ではありませんが、当媒体で扱っていなかったので改めて置きます。新規と更新の提出は Android 16 (API 36) 以上が要ります。<b>11月1日までの延長申請が可能</b>です。<code>targetSdkVersion</code> を上げるとWebViewの既定挙動も変わるので、確認の時間を含めて逆算してください。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#work">実務者向けのAI開発ツール(1件)</a></li>
+      <li><a href="#dev">Web開発・インフラ(0件)</a></li>
+      <li><a href="#client">クライアント技術(3件)</a></li>
+      <li><a href="#research">技術・研究(0件)</a></li>
+      <li><a href="#industry">モデル・業界(1件)</a></li>
+      <li><a href="#quiet">今日は何も出ていない — その裏取り</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 実務者向け ============ -->
+  <section class="section section-b" id="work">
+    <h2>🧰 実務者向けのAI開発ツール<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=github.blog&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">GitHub</div>
+      <h3>Teams から <code>@GitHub</code> を呼ぶと Copilot が動く — Slack版と課金条件が違う</h3>
+      <div class="tags">
+        <span class="tag">8/22 1:03 JST</span>
+        <span class="tag">前号の回収</span>
+        <span class="tag">public preview</span>
+        <span class="tag">GitHub Copilot</span>
+      </div>
+
+      <p class="lead">まず断っておきます。<b>前号（8/23）で扱ったSlack版と、同じ日に4分違いで出たものです。</b>前号はSlack版だけを載せて、こちらを落としていました。</p>
+
+      <p class="lead">できることはSlack版とほぼ同じです。Teams のチャネル・スレッド・DMで <code>@GitHub</code> にメンションすると、Copilot のクラウドエージェントのセッションが始まります。会話にいる人は誰でも質問や文脈を足せて、<b>リポジトリの書き込み権限がある人だけ</b>が実際の変更を走らせられます。</p>
+
+      <p class="lead">「同じ話なら省けばいい」と思うところですが、<mark>条件の書き方が3か所で違います。</mark>そこだけが今回の読みどころです。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>項目</th><th>Slack版（前号で掲載）</th><th>Teams版（今回）</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>プラン条件</td>
+              <td data-label="Slack版">Copilot Business か Enterprise の組織のみ</td>
+              <td data-label="Teams版">有料のCopilotプランなら対象（より広い）</td>
+            </tr>
+            <tr>
+              <td>課金</td>
+              <td data-label="Slack版">既存のCopilotの割り当てを消費するだけ</td>
+              <td data-label="Teams版">AIクレジットを消費。<b>さらにサンドボックスは別請求</b></td>
+            </tr>
+            <tr>
+              <td>管理者が有効化するもの</td>
+              <td data-label="Slack版">cloud agent ポリシー</td>
+              <td data-label="Teams版">cloud agent <b>と cloud sandboxes の2つ</b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">課金のところが一番大事なので、原文を出します。</p>
+
+      <div class="code wrap"><div class="code-head">GitHub Changelog「Availability and getting started」の原文</div><pre>The public preview is available with paid GitHub Copilot plans.
+GitHub Copilot cloud agent sessions started in Microsoft Teams
+consume AI credits. For organizations, cloud agent AI credit usage
+is governed by usage-based billing budgets. Cloud sandbox usage is
+billed separately and can be controlled with a product-level or
+SKU-level budget.</pre></div>
+
+      <p class="lead">最後の1文です。エージェントの利用そのもの（AIクレジット）と、それが動く場所（クラウドサンドボックス）で、<b>財布が2つに分かれています。</b>前号でSlack版について「新しい料金体系ではありません」と書きましたが、<mark>Teams版にはその説明が当てはまりません。</mark></p>
+
+      <figure>
+        <picture>
+          <source srcset="images/copilot-billing-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/copilot-billing.png" alt="Slack版は既存のCopilot枠だけを消費するのに対し、Teams版はAIクレジットとクラウドサンドボックスの2つの請求先に分かれることを示した図" loading="lazy">
+        </picture>
+        <figcaption>Teams版は請求先が2つ。止めるための予算設定もそれぞれ別に張る。</figcaption>
+      </figure>
+
+      <details class="note-d">
+        <summary>レビューの逃げ道 — Copilot名義のPRだけ承認を1つ増やせる</summary>
+        <p class="lead">Slack版と同じく用意されています。リポジトリの管理者は、Teams連携の名義で作られたプルリクエストにだけ承認を1つ足せます。</p>
+        <div class="code wrap"><div class="code-head">承認を足したときの挙動（原文）</div><pre>If you require two approvals in a repository, with this enabled
+you will need three for Copilot-created pull requests.</pre></div>
+      </details>
+
+      <details class="note-d">
+        <summary>使い始めるまでの手順（公式の記載どおり）</summary>
+        <p class="lead"><b>1.</b> 組織・エンタープライズの利用者は、管理者に cloud agent と cloud sandboxes の有効化を頼む。サンドボックスのポリシーは cloud agent と同じ設定を共有します。</p>
+        <p class="lead"><b>2.</b> Microsoft Teams 用の GitHub アプリを入れる。</p>
+        <p class="lead"><b>3.</b> Teams で <code>@GitHub</code> にメンションし、案内に従ってGitHubアカウントを繋ぐ。</p>
+        <p class="lead"><b>4.</b> パブリックチャネルでは、求められたら既定のリポジトリを設定する（DMでは既定のリポジトリは使いません）。</p>
+      </details>
+
+      <ul class="points">
+        <li><b>今やること。</b>Teamsで使う予定がなければ対応は不要。試すなら、管理者への依頼のときに<b>「cloud agent と cloud sandboxes の両方」</b>と伝え、サンドボックス側の予算設定も一緒に張ってもらうこと。片方だけ有効にしても動かず、予算を張らないと別枠で課金が伸びます。</li>
+      </ul>
+
+    </article>
+  </section>
+
+  <!-- ============ Web開発・インフラ ============ -->
+  <section class="section section-c" id="dev">
+    <h2>🧑‍💻 Web開発・インフラ<span class="n">0件</span></h2>
+    <article class="item">
+      <p class="lead">Laravel・PHP・TiDB・AWS・Terraform・Docker・PostgreSQL のいずれにも、対象期間の新規リリースと告知がありませんでした。何を見て「無い」と判断したかは<a href="#quiet">最後の節</a>に一覧で置いてあります。</p>
+      <p class="none">特筆すべき動きなし</p>
+    </article>
+  </section>
+
+  <!-- ============ クライアント技術 ============ -->
+  <section class="section section-a" id="client">
+    <h2>📱 クライアント技術<span class="n">3件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=developer.chrome.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Chrome for Developers</div>
+      <h3>Chromeが2週間ごとに出るようになる — 1本目の Chrome 153 は9月8日</h3>
+      <div class="tags">
+        <span class="tag">8/20 告知</span>
+        <span class="tag">9/8 から</span>
+        <span class="tag">Chrome 153</span>
+      </div>
+
+      <p class="lead">Chrome 153 のベータ告知に、短い注記が1行入りました。</p>
+
+      <div class="code wrap"><div class="code-head">Chrome 153 beta（2026年8月20日）の原文</div><pre>Note: Chrome 153 is the first Chrome release of the new
+two-week release cycle.</pre></div>
+
+      <p class="lead">方針も「9月8日から」という日付も、<b>2026年3月3日の告知の時点で既に公表されています。</b>今週動いたのは、その1本目が実際にベータへ出たことです。</p>
+
+      <p class="lead">日付は推測ではなく、Chromiumの公開スケジュールから引けます。<mark>153が9月8日、154が9月22日。ちょうど2週間です。</mark></p>
+
+      <figure>
+        <picture>
+          <source srcset="images/chrome-cycle-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/chrome-cycle.png" alt="Chromeのリリース間隔が4週間から2週間に変わり、153が9月8日、154が9月22日に安定版となることを示した図" loading="lazy">
+        </picture>
+        <figcaption>9月8日以降、メジャー版は月2回上がる。検証の周期がそのままだと追いつかない。</figcaption>
+      </figure>
+
+      <p class="lead">読者にとっての意味は、機能の話ではなく<b>段取りの話</b>です。「4週に1回、メジャー版が上がる前に確認する」という組み方をしているなら、9月8日以降そのままでは回りません。インフラ会社にヘッダーやキャッシュの確認を頼んでいる場合、依頼の周期も一緒にずれます。</p>
+
+      <p class="lead">ただし、<mark>WebViewが同じ2週間になるとは、まだどこにも書かれていません。</mark></p>
+
+      <p class="lead">Chrome側の告知が対象として挙げているのは Desktop・Android・iOS の3つで、Android System WebView は出てきません。そしてWebViewのベータ制度を説明した Android 公式ページは、<b>2026年8月11日に更新されているのに、いまも「4週間前に試せる」と書いたままです。</b></p>
+
+      <div class="code wrap"><div class="code-head">Android 公式「WebView Beta program」の原文（8月11日更新時点）</div><pre>The WebView Beta program gives you early access to new releases
+of Android WebView. We encourage all developers using WebView in
+their apps to join the Beta program so you can try out new WebView
+versions 4 weeks before they're released to the public.</pre></div>
+
+      <p class="lead">WebViewがChromeと同じ版番号で出ていること自体は公式に確認できますが、<b>「WebViewも2週サイクルになる」と明言した資料は見つけられませんでした。</b>ここは未確認として扱ってください。</p>
+
+      <ul class="points">
+        <li><b>今やること。</b>9月8日より前に、<b>WebViewやUnity Webの動作確認をどの周期で回すかを決め直す。</b>相手の会社に検証を頼んでいるなら、その周期も一緒に伝え直すこと。WebViewのベータが何週間前になるかは未確定なので、そこは9月に入ってから確認する。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=developer.chrome.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Chrome for Developers</div>
+      <h3>Chrome 153 で Related Website Sets が消える — Android WebView も同じ153で消える</h3>
+      <div class="tags">
+        <span class="tag">8/20 告知</span>
+        <span class="tag">9/8 から</span>
+        <span class="tag">削除</span>
+      </div>
+
+      <p class="lead">同じ Chrome 153 の「Deprecations and removals」に、削除が3件並んでいます。読者に関わるのは次の2件です。<b>Related Website Sets（RWS）と、それに紐づく <code>document.requestStorageAccessFor()</code> です</b>（残る1件は、非標準だった <code>_current</code> 宛てのナビゲーションの削除）。</p>
+
+      <p class="lead">RWS は、別々のドメインを「同じ運営のサイト群」として宣言し、その中でだけCookieを共有できるようにする仕組みでした。</p>
+
+      <div class="code wrap"><div class="code-head">削除の理由（Chrome 153 beta の原文）</div><pre>RWS was designed for use in a browser without third-party cookies.
+Following Chrome's announcement that the current approach to
+third-party cookies will be maintained, Related Website Sets is
+now removed from Chrome.</pre></div>
+
+      <p class="lead">つまり「サードパーティCookieを廃止する前提で作った仕組みだが、廃止しないことにしたので要らなくなった」という筋です。<b>サードパーティCookie自体は残ります。</b></p>
+
+      <p class="lead">重要なのは対象の範囲です。ChromeStatus の削除予定を見ると、<mark>desktop・android・webview がすべて 153</mark> で、<b>WebViewも同時に落ちます。</b></p>
+
+      <div class="code term"><div class="code-head">ChromeStatus の削除マイルストーンを引く</div><pre>$ curl -s https://chromestatus.com/api/v0/features/5194473869017088 | tail -c +6   | python3 -c "..."
+<span class="ok-line">name: Deprecate and Remove:</span>
+<span class="ok-line">      Related Website Sets (RWS)</span>
+<span class="ng-line">desktop=153 android=153 webview=153</span></pre></div>
+
+      <details class="note-d">
+        <summary>「status が Proposed のままだが、確定として書いてよいのか」</summary>
+        <p class="lead">ChromeStatus の <code>status.text</code> は、この2件ともいまだ <code>Proposed</code> です。字面だけ見ると未確定に読めます。</p>
+        <p class="lead">それでも確定扱いにしたのは、<b>(1) 種別が「機能の削除」で、削除先のマイルストーンが desktop / android / webview すべてに 153 と入っていること、(2) ベータ告知の本文が <code>is now removed from Chrome</code> と現在形で断定していること</b>の2つが揃っているためです。この判断は当方のもので、Google が「確定」と表示しているわけではありません。</p>
+      </details>
+
+      <p class="lead">同じ153では、XMLの解析エンジンがRust実装に変わる変更も入ります（<code>DOMParser</code>、<code>XMLHttpRequest</code> の <code>responseXML</code>、単体SVG画像などが対象）。こちらは互換性を保ったままの置き換えなので、原則として対応は不要です。</p>
+
+      <ul class="points">
+        <li><b>今やること。</b>まず該当するかだけ調べる。<b>コードを <code>requestStorageAccessFor</code> で検索して、1件も出なければ対応は不要です。</b>出たなら、9月8日までに別の方法へ移すか、影響範囲を洗い出しておくこと。RWSの登録をしている配信ドメインがある場合も同じです。WebView内でXMLを解析している画面があるなら、9月8日以降に1度だけ動作確認を。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=support.google.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Google Play</div>
+      <h3>Google Play は8月31日から API 36 が必須 — 締切まで7日</h3>
+      <div class="tags">
+        <span class="tag warn">⚠ 締切まで7日</span>
+        <span class="tag">8/31 から</span>
+        <span class="tag">Google Play</span>
+      </div>
+
+      <p class="lead"><b>これは今週出た告知ではありません。</b>ですが当媒体で一度も扱っておらず、<mark>締切が7日後</mark>なので改めて置きます。</p>
+
+      <div class="code wrap"><div class="code-head">Google Play「Target API level requirements」の原文</div><pre>Starting August 31, 2026:
+New apps and app updates must target Android 16 (API level 36)
+or higher to be submitted to Google Play; ...
+
+Existing apps must target Android 15 (API level 35) or higher to
+remain available to new users on devices running Android OS
+higher than your app's target API level.</pre></div>
+
+      <p class="lead">分けて読む必要があります。<b>これから出すもの</b>（新規アプリと、既存アプリの更新）は API 36 以上でないと提出できません。<b>すでに出ているもの</b>は、API 35 以上でないと、自分のtargetより新しいOSの端末で新規ユーザーに配信されなくなります。</p>
+
+      <p class="lead">間に合わない場合の逃げ道も同じページに書かれています。<b>2026年11月1日までの延長を申請できます</b>（申請フォームはPlay Consoleに年内提供予定と書かれています）。</p>
+
+      <p class="lead">WebViewでアプリを作っている読者にとっては、単なる数字の変更では済みません。<b><code>targetSdkVersion</code> を上げると、WebView まわりの既定の挙動も一緒に変わります。</b>上げてから動作確認する時間を含めて逆算してください。</p>
+
+      <ul class="points">
+        <li><b>今やること。</b>Google Play にアプリを出しているなら、<b>今日中に <code>targetSdkVersion</code> の値を確認する。</b>36未満なら、8月31日までに上げて提出するか、延長申請の準備に入る。上げたあとのWebViewの動作確認を必ず挟むこと。Playに出していないなら対応は不要。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <p class="lead"><b>Unity Web と VRChat ワールドは、直近1週間で該当なしでした。</b>Unity は 6000.0.82f1 と 6000.5.9f1（どちらも8月19日）が出ていますが、Web関連は不具合修正1件とテストの有効化だけです。VRChat は 2026.3.2 のオープンベータが出ており、ワールド側に関わる行は4件ともすべて修正でした。</p>
+    </article>
+  </section>
+
+  <!-- ============ 技術・研究 ============ -->
+  <section class="section section-c" id="research">
+    <h2>🔬 技術・研究<span class="n">0件</span></h2>
+    <article class="item">
+      <p class="lead">arXiv は<b>土日に新規の公表がありません</b>。直近の公表は8月21日(金)分で、次は8月24日(月) 9:00 JSTです。対象期間はちょうどその谷に当たります。Hugging Face の Daily Papers も8月22日・23日はどちらも空でした。</p>
+      <p class="none">特筆すべき動きなし</p>
+    </article>
+  </section>
+
+  <!-- ============ モデル・業界 ============ -->
+  <section class="section section-a" id="industry">
+    <h2>🏢 モデル・業界<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=api-docs.deepseek.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">DeepSeek</div>
+      <h3>DeepSeek APIに画像を読むモデルが増えた — モデル名を変えるだけで使える</h3>
+      <div class="tags">
+        <span class="tag">8/21</span>
+        <span class="tag">前号の回収</span>
+        <span class="tag">実験モデル</span>
+        <span class="tag">DeepSeek</span>
+      </div>
+
+      <p class="lead">DeepSeek の API に <code>deepseek-v4-flash-vision-exp</code> が追加されました。スクリーンショットの文字を読ませる、グラフを読み取らせる、といった使い方ができます。</p>
+
+      <p class="lead">導入の手間はほぼありません。<b>モデル名の文字列を差し替えるだけ</b>です。</p>
+
+      <div class="code wrap"><div class="code-head">DeepSeek 公式 Change Log（2026-08-21）の原文</div><pre>Today, the new multimodal vision understanding model
+DeepSeek-V4-Flash-Vision-Exp is now available on the DeepSeek API
+platform. This is an experimental model that can be accessed by
+setting model='deepseek-v4-flash-vision-exp'.</pre></div>
+
+      <p class="lead">気になるのは「画像対応にした分、文章が弱くなっていないか」ですが、公式はそこを否定しています。</p>
+
+      <div class="code wrap"><div class="code-head">テキスト性能について（原文）</div><pre>In terms of pure-text capabilities (agent, reasoning, world
+knowledge, etc.), DeepSeek-V4-Flash-Vision-Exp is on par with the
+official DeepSeek-V4-Flash.</pre></div>
+
+      <p class="lead">画像の渡し方は3通りで、それぞれ上限が決まっています。実装前に見ておく値はここです。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/deepseek-vision-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/deepseek-vision.png" alt="DeepSeekの画像入力3方式（base64埋め込み・外部URL・Files API）と、それぞれに掛かる48MiB・8192文字・32MiB・60秒の上限を示した図" loading="lazy">
+        </picture>
+        <figcaption>base64で埋めるとリクエスト全体の48MiBを食う。外部URLは文字数・容量・時間の3つで切られる。</figcaption>
+      </figure>
+
+      <p class="lead">対応している画像の形式は JPEG / PNG / GIF / WebP です。公式は<b>「拡張子や宣言されたMIMEタイプではなく、ファイルの中身から判定する」</b>と書いています。拡張子を付け替えただけのファイルは通りません。</p>
+
+      <details class="note-d">
+        <summary>公式が併記しているベンチマークの数値と、その注意書き</summary>
+        <p class="lead">Change Log には次の数値が並んでいます（原文のまま）: Terminal Bench 2.1: 83.9 / NL2Repo: 57.7 / DeepSWE: 59.3 / DSBench-Hard: 63.6 / AutomationBench (Public): 25.7 / ApexBench (Pass@1): 36.5 / Agents' Last Exam: 27.3 / Chartography: 64.3 / ZeroBench (Pass@5): 35.0。</p>
+        <p class="lead"><b>ただし同じページの脚注が、比較条件が対等でないことを明かしています。</b>原文は <code>in the ApexBench and Agents' Last Exam evaluations, the text model DeepSeek-V4-Flash ignores the multimodal elements within them</code> です。つまりこの2つは、比較相手のテキストモデルが問題文中の画像を見ないまま解いた結果と並べられています。差が大きく見えて当然なので、そのまま「性能が上がった」と読まないでください。</p>
+      </details>
+
+      <ul class="points">
+        <li><b>今やること。</b>DeepSeek を使っていないなら対応は不要。使っていて、図やスクリーンショットを読ませたい用途があるなら、モデル名を差し替えて試すところまではすぐできる。ただし<b>末尾が <code>-exp</code> の実験モデル</b>なので、本番に載せるかは別の判断として残すこと。オープンウェイトの公開はなく、API限定です。</li>
+      </ul>
+
+    </article>
+  </section>
+
+  <!-- ============ 今日は何も出ていない ============ -->
+  <section class="section section-b" id="quiet">
+    <h2>今日は何も出ていない — その裏取り</h2>
+
+    <article class="item">
+      <p class="lead">件数が少ない号を出すときは、<b>「探さなかった」のか「探したが無かった」のかが読者に分かりません。</b>ここに、何をどう確かめたかを置きます。</p>
+
+      <p class="lead">対象期間の24時間は、日本時間の日曜まるごとです。世界標準時では8月22日(土) 20:00 〜 8月23日(日) 20:00 にあたります。<mark>各社の告知が構造的に止まる時間帯</mark>でした。</p>
+
+      <p class="lead">確かめたのは、各社の changelog・公式ドキュメント・公式ブログ・パッケージレジストリの<b>10か所</b>です。この<b>24時間の窓</b>に入った更新は、Claude Code の1件だけでした。クライアント技術だけは更新頻度が低いため、いつもどおり直近1週間まで遡っており、そちらは3件見つかっています（<a href="#client">クライアント技術</a>）。</p>
+
+      <details class="note-d">
+        <summary>確かめた10か所と、それぞれの最終更新時刻を見る</summary>
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>確かめた先</th><th>最後に更新された時刻</th><th>期間内</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>AWS What's New</td><td data-label="最終更新">8/22 5:11 JST</td><td data-label="期間内">0件</td></tr>
+            <tr><td>Chrome Releases</td><td data-label="最終更新">8/21（Dev channel のみ）</td><td data-label="期間内">0件</td></tr>
+            <tr><td>Laravel 本体</td><td data-label="最終更新">v13.26.1 / 8/19 5:31 JST</td><td data-label="期間内">0件</td></tr>
+            <tr><td>PHP 全ブランチ</td><td data-label="最終更新">8.4.24 ほか / 7/30</td><td data-label="期間内">0件</td></tr>
+            <tr><td>Terraform 本体</td><td data-label="最終更新">1.15.9 / 8/19</td><td data-label="期間内">0件</td></tr>
+            <tr><td>TiDB</td><td data-label="最終更新">v8.5.7 / 7/9</td><td data-label="期間内">0件</td></tr>
+            <tr><td>Docker Engine</td><td data-label="最終更新">29.7.2 / 8/3</td><td data-label="期間内">0件</td></tr>
+            <tr><td>PostgreSQL</td><td data-label="最終更新">18.6 ほか / 8/13</td><td data-label="期間内">0件</td></tr>
+            <tr><td>arXiv（cs.AI）</td><td data-label="最終更新">8/21(金)。土日は公表なし</td><td data-label="期間内">0件</td></tr>
+            <tr><td>Claude Code</td><td data-label="最終更新">2.1.241 / 8/23 8:58 JST</td><td data-label="期間内">1件（下記）</td></tr>
+          </tbody>
+        </table>
+      </div>
+      </details>
+
+      <p class="lead">その1件が Claude Code 2.1.241 です。<b>これは載せませんでした。</b>その版の変更行を機械的に全部抜き出して数えた結果がこれです。</p>
+
+      <div class="code term"><div class="code-head">2.1.241 の変更行を数える</div><pre>$ awk '/^## 2\.1\.241$/{f=1;next} \
+    /^## /{f=0} f' CHANGELOG.md \
+    | grep '^- ' | cat -n
+<span class="ok-line">     1  - Bug fixes and reliability improvements</span>
+
+$ ... | grep -cE '^- (Added|Changed|Removed)'
+<span class="ng-line">0</span></pre></div>
+
+      <p class="lead">1行だけで、しかも中身は「不具合修正」です。<b>読者が判断することが1つもありません。</b>このサイトの決まりで、不具合修正だけの版は項目にしません。直前の 2.1.240 も同じ1行でした。</p>
+
+      <details class="note-d">
+        <summary>確かめられなかったこと（正直に書きます）</summary>
+        <p class="lead">上の「0件」は、<b>各社の changelog・公式ドキュメント・公式ブログ・障害情報・パッケージレジストリの範囲での0件</b>です。次の2つは今回この環境から取得できませんでした。</p>
+        <p class="lead"><b>X(旧Twitter)の公式アカウントのタイムライン。</b>取得に使っている経路が、今回は空の応答か429（回数制限）を返しました。<b>料金や利用上限の変更がXだけで告知される例は実際にあります</b>ので、「Xにも何も無かった」とは書けません。</p>
+        <p class="lead"><b>AWSの障害情報の詳細。</b>全体アナウンスが空であることは確認できましたが、個別イベントの一覧は403で読めませんでした。「期間内にAWSの障害が無かった」とは断定していません。</p>
+        <p class="lead">読めなかったものを「無かった」と書かないのが、このサイトの一番大事な決まりです。</p>
+      </details>
+
+      <ul class="points">
+        <li><b>今やること。</b>対応は不要。<b>日曜の朝に情報を追っても、追う先そのものが動いていない</b>ということだけ覚えておくと、週明けの巡回が楽になります。</li>
+      </ul>
+
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark>掲載した全URLは取得時にHTTPステータス(200)を確認しています。再現用の一式は <code>_labs/2026-08-24_001/</code> に置いてあります。</p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          GitHub「Shared agentic work with GitHub Copilot in Microsoft Teams」<i>GitHub Changelog</i>, 2026年8月21日（日本時間8月22日1:03）.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「Availability and getting started」節の「The public preview is available with paid GitHub Copilot plans. GitHub Copilot cloud agent sessions started in Microsoft Teams consume AI credits. For organizations, cloud agent AI credit usage is governed by usage-based billing budgets. Cloud sandbox usage is billed separately and can be controlled with a product-level or SKU-level budget.」と、同節の手順4項目（管理者による cloud agent と cloud sandboxes の有効化、Teams用GitHubアプリの導入、<code>@GitHub</code> へのメンションとアカウント接続、パブリックチャネルでの既定リポジトリ設定）。「Maintain compliance oversight」節の「If you require two approvals in a repository, with this enabled you will need three for Copilot-created pull requests.」。冒頭の「Participants with write access to the repository can trigger Copilot to make changes.」も本文の根拠。<b>記事に貼った原文は改行位置だけを幅に合わせて折り、語句は一字も変えていない。</b></span></details>
+          <a href="https://github.blog/changelog/2026-08-21-shared-agentic-work-with-github-copilot-in-microsoft-teams">https://github.blog/changelog/2026-08-21-shared-agentic-work-with-github-copilot-in-microsoft-teams</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          GitHub「The new GitHub Copilot experience in Slack」<i>GitHub Changelog</i>, 2026年8月21日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">対比表のSlack版の列の根拠。参照箇所: 「The public preview is available to organizations on GitHub Copilot Business and GitHub Copilot Enterprise plans. Usage counts against your existing Copilot entitlements and can be managed with existing Copilot cloud agent budgets.」「Make sure an administrator has enabled the Copilot cloud agent policy for your organization.」。<b>この資料は前号(8/23)で扱った際に本文を読んでおり、今回は対比のために該当箇所を読み直した。</b></span></details>
+          <a href="https://github.blog/changelog/2026-08-21-the-new-github-copilot-experience-in-slack">https://github.blog/changelog/2026-08-21-the-new-github-copilot-experience-in-slack</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          DeepSeek「Change Log — DeepSeek-V4-Flash-Vision-Exp Release」<i>DeepSeek API Docs</i>, 2026年8月21日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: <code>Date: 2026-08-21</code> のエントリ全体。モデル名の指定方法（<code>model='deepseek-v4-flash-vision-exp'</code>）、テキスト性能が既存版と同等である旨、およびベンチマークの数値9件と脚注「in the ApexBench and Agents' Last Exam evaluations, the text model DeepSeek-V4-Flash ignores the multimodal elements within them」。<b>記事が「比較条件が対等でない」と書いたのは、この脚注が根拠</b>であり、当方の評価ではない。</span></details>
+          <a href="https://api-docs.deepseek.com/updates">https://api-docs.deepseek.com/updates</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          DeepSeek「Vision」<i>DeepSeek API Docs / API Guides</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 冒頭の「Supported image formats: JPEG, PNG, GIF, and WebP. The format is detected from the actual file content, not from the file name or the declared MIME type.」、「1. Base64-encoded image (inline)」節の「The encoded data counts toward the 48 MiB request body limit」、「2. External image URL」節の「The URL must be at most 8192 characters, the image file may be at most 32 MiB, and the download must complete within 60 seconds.」。図版の上限値3種と、画像の渡し方が3通り（base64インライン / 外部URL / Files API）であることの根拠。</span></details>
+          <a href="https://api-docs.deepseek.com/guides/vision">https://api-docs.deepseek.com/guides/vision</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Claude Code 2.1.241 を項目にしなかった理由（変更行を機械的に数えた）。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月24日、npm レジストリの time フィールドで 2.1.241 の公開が <code>2026-08-22T23:58:33.046Z</code>（日本時間8月23日8:58）＝本号の対象期間内であることを確認した。そのうえで CHANGELOG.md を取得し <code>awk '/^## 2\.1\.241$/{f=1;next} /^## /{f=0} f'</code> でこの版のブロックだけを抜き、行頭が「- 」の行を数えた。<b>結果は1行のみで、内容は「Bug fixes and reliability improvements」</b>。<code>- Added</code> / <code>- Changed</code> / <code>- Removed</code> の行は0件。直前の 2.1.240 も同じ1行だった。公式ドキュメント側（code.claude.com/docs/en/changelog）でも同じ1行であることを突き合わせた。<b>記事に貼ったターミナル出力は、実際に流したコマンドと結果をそのまま貼っており、幅に合わせて行継続（<code>\</code>）を入れただけ。</b>なお 2.1.239 の「Bedrockのプロキシ環境でAPI課金が倍になる」修正は8月22日号で既報。github.com はこの環境から403のため jsDelivr 経由で取得した。再現は <code>_labs/2026-08-24_001/verify_sources.sh</code> の手順3。</span></details>
+          <a href="https://cdn.jsdelivr.net/gh/anthropics/claude-code@main/CHANGELOG.md">https://cdn.jsdelivr.net/gh/anthropics/claude-code@main/CHANGELOG.md</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          AWS に対象期間の告知が1件も無いことの確認。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月24日、AWS What's New の RSS を取得し、<code>&lt;item&gt;</code> 100件それぞれの <code>&lt;pubDate&gt;</code> を並べた。最新は <b>Fri, 21 Aug 2026 20:11:00 GMT（日本時間8月22日5:11）</b>で、本号の対象期間（8月22日20:00〜8月23日20:00 GMT）に入る item は0件だった。<b>フィード先頭にある <code>&lt;pubDate&gt;</code> はチャンネル自身の生成時刻（取得時は Sun, 23 Aug 2026 20:03:01 GMT）であって記事の日付ではない</b>ため、必ず item 内だけを見ること。再現は <code>_labs/2026-08-24_001/verify_sources.sh</code> の手順1。</span></details>
+          <a href="https://aws.amazon.com/about-aws/whats-new/recent/feed/">https://aws.amazon.com/about-aws/whats-new/recent/feed/</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Chrome に対象期間の新規リリースが無いことの確認。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月24日、Chrome Releases のトップを取得し、記事の日付見出し（曜日, 月 日, 年 の形）を並べた。最新は <b>Friday, August 21, 2026</b> の Dev channel 更新で、Stable channel の更新は Thursday, August 20, 2026 の 151.0.7922.173/.174 が最後。この Stable 版とセキュリティ修正7件は<b>8月22日号で既報</b>のため再掲していない。対象期間に WebView に関わる Stable の新規告知は無い。再現は <code>_labs/2026-08-24_001/verify_sources.sh</code> の手順2。</span></details>
+          <a href="https://chromereleases.googleblog.com/">https://chromereleases.googleblog.com/</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Rachel Andrew「Chrome 153 beta」<i>Chrome for Developers Blog</i>, 2026年8月20日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 冒頭の注記「Note: Chrome 153 is the first Chrome release of the new two-week release cycle.」、「Deprecations and removals」節の「Remove Related Website Sets」（「RWS was designed for use in a browser without third-party cookies. Following Chrome's announcement that the current approach to third-party cookies will be maintained, Related Website Sets is now removed from Chrome.」）と「Remove <code>document.requestStorageAccessFor</code>」（「It is only usable in Chrome to request storage access between Related Website Sets sites, therefore is removed along with Related Website Sets.」）、および「XML parsing in Rust for non-XSLT scenarios」節（対象は <code>DOMParser</code>・<code>XMLHttpRequest</code> の <code>responseXML</code>・単体SVG画像・外部SVG画像）。<b>記事に貼った原文は改行位置だけを幅に合わせて折り、語句は変えていない。</b>なお2週サイクルの方針そのものは2026年3月3日の「Get features faster with Chrome's two-week release cycle」で先に告知されている。</span></details>
+          <a href="https://developer.chrome.com/blog/chrome-153-beta">https://developer.chrome.com/blog/chrome-153-beta</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Related Website Sets の削除が WebView も対象であることと、153/154 の安定版の日付。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月24日、ChromeStatus のAPI（<code>chromestatus.com/api/v0/features/5194473869017088</code>）を取得し、<code>browsers.chrome</code> の <code>desktop</code> / <code>android</code> / <code>webview</code> を読んだ。<b>3つとも 153</b>。同じ手順で <code>document.requestStorageAccessFor</code>（5162221567082496）と XMLのRust化（5309598397497344）も webview=153 であることを確認した。あわせて <code>status.text</code> が <code>Proposed</code> のままであることも確認しており、記事の <code>details</code> にそのまま書いた（確定扱いにした判断根拠も同所に明記）。安定版の日付は Chromium Dashboard（<code>chromiumdash.appspot.com/fetch_milestone_schedule</code>）の実値で、<b>M153 の stable_date が 2026-09-08、M154 が 2026-09-22</b>（branch_point 2026-08-17 / earliest_beta 2026-08-19）。記事のターミナル出力は実際に流したコマンドと結果で、幅に合わせて行継続を入れ、Pythonの整形部分を <code>"..."</code> に省いた。</span></details>
+          <a href="https://chromestatus.com/api/v0/features/5194473869017088">https://chromestatus.com/api/v0/features/5194473869017088</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「WebView Beta program」<i>Android Developers</i>, 2026年8月11日更新.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 冒頭の「The WebView Beta program gives you early access to new releases of Android WebView. We encourage all developers using WebView in their apps to join the Beta program so you can try out new WebView versions 4 weeks before they're released to the public.」。ページ末尾の表示は <code>Last updated 2026-08-11 UTC</code>。<b>Chrome側の2週サイクルの告知が対象として挙げているのは Desktop / Android / iOS の3つで、Android System WebView は列挙されていない。</b>そのうえでこのページが8月11日更新時点でも「4 weeks」のままであることが、記事が「WebViewも2週間になるとは書かれていない」と述べた根拠。<b>WebViewが追随するか否かを述べた一次資料は見つけられなかったので、未確認として扱っている。</b></span></details>
+          <a href="https://developer.android.com/develop/ui/views/layout/webapps/webview-testing">https://developer.android.com/develop/ui/views/layout/webapps/webview-testing</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Target API level requirements for Google Play apps」<i>Google Play Console ヘルプ</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「Starting August 31, 2026:」以下の2項目（新規アプリと更新は Android 16 (API level 36) 以上でないと提出できない／既存アプリは Android 15 (API level 35) 以上でないと、targetより新しいOSの端末で新規ユーザーに配信されなくなる）と、「You will be able to request an extension to November 1, 2026 if you need more time to update your app. You'll be able to access your app's extension forms in Play Console later this year.」。<b>このページには「今週更新された」ことを示す日付表示は無く、本文が既に施行日を過去形ではなく将来の日付として書いている。</b>記事が「今週出た告知ではない」と断ったのはそのため。Wear OS / Android Automotive OS / Android TV / Android XR に別の水準が定められている点は、読者の対象外なので本文では省いた。</span></details>
+          <a href="https://support.google.com/googleplay/android-developer/answer/11926878">https://support.google.com/googleplay/android-developer/answer/11926878</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Unity「6000.0.82f1 / 6000.5.9f1 リリースノート」<i>Unity Releases</i>, 2026年8月19日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">記事が「Unity Web は該当なし」と書いた根拠。直近1週間に出たのは 6000.7.0a5（8/20・アルファ）、6000.0.82f1（8/19・LTS）、6000.5.9f1（8/19）、6000.6.0b9（8/18・ベータ）で、<b>本号の対象期間（8月23日5:00〜8月24日5:00 JST）に出たものは0件</b>（公式リリースAPI <code>services.api.unity.com/unity/editor/release/v1/releases</code> の <code>releaseDate</code> で確認）。Web関連の記載は、6000.0.82f1 が「WebGL: Fixed an issue where ASTC-compressed textures with multiple layers and mipmaps were having their texture data uploaded incorrectly.」の<b>不具合修正1件のみ</b>、6000.5.9f1 が「Editor: Enabled WebGLVideoShaderIncludeTests tests on MacOS.」の<b>テスト有効化1件のみ</b>。6000.6.0b9 の Web/WebGL 行は b8（8/12）と差分なし。「WebGL: Removed the experimental tag from WebGPU」は 6000.6.0b1（2026年6月23日）からある行で、<b>8月15日号で既報</b>のため新規としない。</span></details>
+          <a href="https://unity.com/releases/editor/whats-new/6000.0.82">https://unity.com/releases/editor/whats-new/6000.0.82</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          VRChat「VRChat 2026.3.2 (OPEN BETA)」<i>VRChat Documentation</i>, 2026年8月18日（Build 1896）・8月20日（Build 1897）.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">記事が「VRChat ワールド側は該当なし」と書いた根拠。ワールドに関わる記載は4件で、いずれも修正だった: 「Fixed an issue that could cause contacts in worlds to get the wrong contact point when colliding with a sphere shaped contact sender that has an offset.」「Udon: Corrected a case where a DataToken storing an int could not be converted into a long.」「Fixed a bug affecting LOD loading in worlds using WindZones.」「Fixed a bug that could cause VRChat to hang when launching multiple copies of it at once, such as when testing a world from the SDK.」。残りは Accessories / Look Editor / Action Menu / Camera / Profile などアバター・UI側で、当媒体の方針により扱わない。<b>「Internal changes to how Items are networked. If you notice anything off, let us know!」の1行は、何が変わるかが書かれておらずワールド作者の取る行動を特定できないため落とした（未確認）。</b>Worlds SDK の最新は 3.10.4（2026年6月17日）、Creator Companion は 2.5.0-beta.2（2026年6月25日）で、どちらも対象期間内のリリースは無い。<b>8月23日号で扱った「ワールドのYouTube再生が止まっている」件は、公式フィードバック板を再取得したが対応済みの状態表示は付いておらず、状況は変わっていない。</b></span></details>
+          <a href="https://docs.vrchat.com/docs/vrchat-202632-open-beta">https://docs.vrchat.com/docs/vrchat-202632-open-beta</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Web開発・インフラ側の各ソースに、対象期間の新規が無いことの確認。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月24日、それぞれの公式の一覧・APIを取得して最新項目の日時を読んだ。<b>Laravel</b>: Packagist API（<code>repo.packagist.org/p2/laravel/framework.json</code>）の <code>time</code> で v13.26.1 が 2026-08-18T20:31:28+00:00。<b>PHP</b>: <code>php.net/releases/active.php?json</code> で 8.2.33 / 8.3.33 / 8.4.24 / 8.5.9 がいずれも 2026年7月30日。<b>Terraform</b>: HashiCorp Releases API で 1.15.9 が 2026-08-19T14:30:22Z。<b>TiDB</b>: 安定版は 8.5.7 で、リリースノート本文（jsDelivr 経由の <code>pingcap/docs@master/releases/release-8.5.7.md</code>）に <code>Release date: July 9, 2026</code> と明記。<b>TiUPミラーの <code>released</code> フィールドは同じ版を 2026-08-19 と返すが、これはミラーへの再配置日であってリリース日ではない（約6週間ずれる）。</b><b>Docker</b>: Engine 29 のリリースノートの最新が 29.7.2 で、ページの <code>dateModified</code> が 2026-08-03T18:45:11+02:00。<b>PostgreSQL</b>: <code>postgresql.org/versions.rss</code> で 18.6 ほかが2026年8月13日。いずれも本号の対象期間（8月22日20:00〜8月23日20:00 GMT）に入るものは無い。</span></details>
+          <a href="https://repo.packagist.org/p2/laravel/framework.json">https://repo.packagist.org/p2/laravel/framework.json</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Ben Mason, Deepak Ravichandran「Get features faster with Chrome's two-week release cycle」<i>Chrome for Developers Blog</i>, 2026年3月3日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">記事が「方針も9月8日という日付も3月3日の時点で公表済み」と書いた根拠。参照箇所: 「The new release cycle means that a new beta and stable version of Chrome will ship every two weeks, starting from the stable release of Chrome 153 on September 8th. This applies to all platforms—Desktop, Android, and iOS. There will be no changes to the Dev and the Canary channels.」。<b>対象として挙がっているのが Desktop / Android / iOS の3つだけで、Android System WebView が列挙されていない</b>のもこの1文による。同ページの表は5段あり、<b>記事が言う「安定版の日付」は最下段の <code>Stable Release</code>（M153新=9月8日／M154新=9月22日）で、3段目の <code>Stable Cut</code>（M153新=8月25日）と取り違えると2週間ずれる</b>。Chromium Dashboard の <code>stable_date</code> と一致することを確認した。Extended Stable は8週サイクルのまま据え置きと明記されている。</span></details>
+          <a href="https://developer.chrome.com/blog/chrome-two-week-release">https://developer.chrome.com/blog/chrome-two-week-release</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          技術・研究が0件であることの確認（arXiv と Hugging Face）。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月24日に確認。<b>arXiv は土日に新規の公表が無い。</b><code>arxiv.org/list/cs.AI/recent</code> の公表日は Fri, 21 Aug 2026 / Thu, 20 Aug / Wed, 19 Aug … と並び、土曜・日曜の回が存在しない。次の公表は8月24日(月) 9:00 JST（＝8月24日00:00 UTC）で、本号の対象期間の外。<b>Hugging Face の Daily Papers</b> は API（<code>huggingface.co/api/daily_papers?date=</code>）で <code>2026-08-22</code> と <code>2026-08-23</code> がどちらも空の配列を返した（<code>2026-08-21</code> は26件）。あわせてモデル一覧を新着順・トレンド順で見たが、対象期間内に作成されたリポジトリは無かった。</span></details>
+          <a href="https://arxiv.org/list/cs.AI/recent">https://arxiv.org/list/cs.AI/recent</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          DeepSeek の新モデルにオープンウェイトの公開が無いことの確認と、告知日時の扱い。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月24日、Hugging Face の <code>deepseek-ai</code> 配下を新着順で見たところ、最新は DeepSeek-V4-Pro-0813（8月13日）で、<b><code>deepseek-v4-flash-vision-exp</code> に対応する重みの公開は無かった</b>。記事の「API限定です」はこれによる。<b>なお公式 Change Log の表記は <code>Date: 2026-08-21</code> の日付のみで、時刻は書かれていない。</b>そのため記事のタグは日付だけにしてある（OpenRouter のモデル一覧では同モデルの <code>created</code> が 2026-08-21T11:26:03 UTC だが、これは当事者の告知ではないので時刻の根拠には使っていない）。GitHub Copilot の Teams 版の「8/22 1:03 JST」は、github.blog のフィード（<code>github.blog/changelog/feed/</code>）の <code>pubDate</code>「Fri, 21 Aug 2026 16:03:36 +0000」をJSTに直したもの。Slack 版は同 16:07:15 で、本文の「4分違い」はこの差。</span></details>
+          <a href="https://huggingface.co/deepseek-ai">https://huggingface.co/deepseek-ai</a>（2026年8月24日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          X(旧Twitter)の公式アカウントの直近24時間の投稿。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">このサイトの手順では、料金・利用上限・提供終了・障害がXで先に告知される例があるため、毎朝主要アカウントを巡回することになっている。2026年8月24日は、タイムラインを列挙する経路が<b>空の応答（本文0バイト）または429（回数制限）</b>を返し、投稿の本文を1件も取得できなかった。個別投稿を引く経路は投稿IDが必要で、一覧が取れない状態では使えない。<b>したがって本号の「0件」は、changelog・公式ドキュメント・公式ブログ・障害情報・パッケージレジストリの範囲での0件であり、X経由の告知については確認できていない。</b>読めなかったものを「無かった」の根拠にはしない。</span></details>
+          <a href="https://x.com/ClaudeDevs">https://x.com/ClaudeDevs</a>（2026年8月24日参照・取得失敗）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          AWSの個別障害イベントの一覧。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月24日、AWS Health の全体アナウンス（<code>health.aws.amazon.com/public/announcement</code>）が <code>{"description":null}</code> を返すことは確認できた。しかし個別イベントのJSON（<code>servicedata-.../currentevents.json</code> ほか）は<b>403</b>で読めず、公開ページ側は2026年3月の古いデータしか返さなかった。<b>よって「対象期間にAWSの大規模障害が無かった」とは書いていない。</b>本文で断定しているのは「AWS What's New に新規の告知が0件だった」ことだけ。</span></details>
+          <a href="https://health.aws.amazon.com/health/status">https://health.aws.amazon.com/health/status</a>（2026年8月24日参照・一部取得失敗）
+        </li>
+      </ol>
+    </article>
+  </section>
+
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
