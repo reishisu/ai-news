@@ -1,0 +1,40 @@
+=== 1. minio/minio:latest の最終 push 日時 ===
+tag      latest
+pushed   2025-09-07
+
+=== 2. MinIO のリポジトリが保守終了と書いているか ===
+> [!NOTE]
+> **THIS REPOSITORY IS NO LONGER MAINTAINED.**
+>
+
+=== 3. Laravel Sail が指している image ===
+minio:
+    image: 'minio/minio:latest'
+
+=== 4. Claude Tag のドキュメントの更新日時（sitemap の lastmod）===
+08-24 19:54 add-connections
+08-24 19:54 attach-to-scope
+08-24 19:54 custom
+08-24 19:54 customize
+08-24 19:54 restrict-access
+08-24 19:10 setup-overview
+08-24 19:54 skills-repo
+
+=== 5. Claude Code の最新版と、その版の変更行 ===
+     1	- Bug fixes and reliability improvements
+
+=== 6. AWS What's New に読者のスタックの新着があるか ===
+  SageMaker MLflow now supports customer manag
+  Amazon Aurora now supports PostgreSQL 18.4, 
+  Amazon SageMaker HyperPod enhances support f
+  Amazon Connect Customer now supports informa
+  AWS ParallelCluster 3.16 adds an on-node dia
+  OpenAI GPT-5.6 Terra and Luna now available 
+  Amazon RDS for MySQL now supports new minor 
+期間内 7 件
+
+=== 7. VRChat の yt-dlp 更新要望が未解決か ===
+status     open
+score      25
+created    2026-08-20T06:39:17
+updatedAt  2026-08-24T13:03:40

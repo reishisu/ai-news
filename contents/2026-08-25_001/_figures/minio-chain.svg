@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 330" font-family="sans-serif">
+  <text x="230" y="28" text-anchor="middle" font-size="23" font-weight="bold" fill="var(--fg)">Sail の minio がたどり着く先</text>
+
+  <rect x="60" y="46" width="340" height="56" rx="9" fill="var(--track)" stroke="var(--sub)" stroke-width="2"/>
+  <text x="230" y="70" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">Laravel Sail の minio サービス</text>
+  <text x="230" y="92" text-anchor="middle" font-size="18" fill="var(--sub)">stubs/minio.stub</text>
+
+  <line x1="230" y1="102" x2="230" y2="130" stroke="var(--sub)" stroke-width="3"/>
+  <polygon points="230,140 223,126 237,126" fill="var(--sub)"/>
+
+  <rect x="60" y="142" width="340" height="52" rx="9" fill="var(--track)" stroke="var(--sub)" stroke-width="2"/>
+  <text x="230" y="174" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">image: minio/minio:latest</text>
+
+  <line x1="230" y1="194" x2="230" y2="222" stroke="var(--sub)" stroke-width="3"/>
+  <polygon points="230,232 223,218 237,218" fill="var(--sub)"/>
+
+  <rect x="20" y="234" width="420" height="80" rx="9" fill="var(--track)" stroke="var(--c)" stroke-width="3"/>
+  <text x="230" y="262" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--c)">最後に push されたのは 2025年9月7日</text>
+  <text x="230" y="288" text-anchor="middle" font-size="19" fill="var(--fg)">リポジトリは「もう保守しない」と表明済み</text>
+  <text x="230" y="308" text-anchor="middle" font-size="18" fill="var(--sub)">新しい脆弱性が出ても、この tag は動かない</text>
+</svg>

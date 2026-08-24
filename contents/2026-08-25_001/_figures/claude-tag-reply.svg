@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 352" font-family="sans-serif">
+  <text x="230" y="28" text-anchor="middle" font-size="23" font-weight="bold" fill="var(--fg)">チャンネルの発言に返信するかの分かれ道</text>
+
+  <rect x="118" y="48" width="224" height="46" rx="9" fill="var(--track)" stroke="var(--sub)" stroke-width="2"/>
+  <text x="230" y="78" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">誰かが発言する</text>
+
+  <line x1="230" y1="94" x2="230" y2="116" stroke="var(--sub)" stroke-width="3"/>
+  <text x="230" y="136" text-anchor="middle" font-size="20" fill="var(--sub)">@Claude を付けたか</text>
+
+  <!-- left: mentioned -->
+  <line x1="230" y1="148" x2="112" y2="148" stroke="var(--sub)" stroke-width="3"/>
+  <line x1="112" y1="148" x2="112" y2="180" stroke="var(--sub)" stroke-width="3"/>
+  <text x="112" y="172" text-anchor="middle" font-size="19" font-weight="bold" fill="var(--new)">付けた</text>
+  <rect x="16" y="186" width="192" height="72" rx="9" fill="var(--track)" stroke="var(--new)" stroke-width="3"/>
+  <text x="112" y="214" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">必ず返信する</text>
+  <text x="112" y="240" text-anchor="middle" font-size="18" fill="var(--sub)">数秒で絵文字が付く</text>
+
+  <!-- right: not mentioned -->
+  <line x1="230" y1="148" x2="348" y2="148" stroke="var(--sub)" stroke-width="3"/>
+  <line x1="348" y1="148" x2="348" y2="180" stroke="var(--sub)" stroke-width="3"/>
+  <text x="348" y="172" text-anchor="middle" font-size="19" font-weight="bold" fill="var(--c)">付けていない</text>
+  <rect x="252" y="186" width="192" height="72" rx="9" fill="var(--track)" stroke="var(--c)" stroke-width="3"/>
+  <text x="348" y="212" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">返信することがある</text>
+  <text x="348" y="238" text-anchor="middle" font-size="18" fill="var(--sub)">既定でオン</text>
+
+  <rect x="16" y="278" width="428" height="60" rx="9" fill="var(--track)" stroke="var(--sub)" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="230" y="304" text-anchor="middle" font-size="19" fill="var(--fg)">止めるには Respond automatically を切る</text>
+  <text x="230" y="328" text-anchor="middle" font-size="19" font-weight="bold" fill="var(--c)">設定はチャンネルごと。全体で一括はできない</text>
+</svg>

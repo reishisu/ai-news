@@ -1,0 +1,19 @@
+{
+  "category": "デイリーダイジェスト",
+  "tags": [
+    "Anthropic",
+    "Laravel",
+    "Docker",
+    "VRChat",
+    "公式ドキュメント",
+    "エージェント設計"
+  ],
+  "featured": true,
+  "title": "AI-news：2026/08/25 — Slackの@Claudeは既定でメンション無しでも返信する",
+  "summary": "SlackにClaudeを入れると、@メンションの無い発言にも既定で返信します。止める設定はチャンネル単位にしかありません。旧「Claude in Slack」はTeam/Enterpriseで廃止予定で、切り替えるとGitHubの接続は引き継がれません。MinIOのコミュニティ版は保守終了し、Laravel Sail のminioは2025年9月7日のイメージを指したままです。",
+  "thumbnail": "images/thumb.png",
+  "thumb": {
+    "main": "呼ばなくても返信する",
+    "sub": "SlackのClaudeは既定でオン。切るのはチャンネル単位"
+  }
+}

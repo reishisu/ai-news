@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-news：2026/08/25 — Slackの@Claudeは既定でメンション無しでも返信する</title>
+<meta name="description" content="Slackに入れたClaudeは、@メンションが無い発言にも既定で返信します。止める設定はチャンネル単位にしかありません。旧「Claude in Slack」はTeam/Enterpriseで廃止予定で、切り替えるとGitHubの接続は引き継がれません。MinIOのコミュニティ版は保守終了。Laravel Sailのminioは2025年9月7日のイメージを指したままです。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI-news：2026/08/25 — Slackの@Claudeは既定でメンション無しでも返信する">
+<meta property="og:description" content="SlackのClaudeは@メンション無しでも既定で返信し、止められるのはチャンネル単位だけ。旧版は廃止予定で接続は引き継がれません。MinIOのコミュニティ版は保守終了。一次資料の原文つき。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-25_001/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-25_001/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=7671feed">
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">2026年8月25日(火)</div>
+    <h1>AI-news：2026/08/25 — Slackの@Claudeは既定でメンション無しでも返信する</h1>
+    <div class="range">対象期間: 8月24日(月) 5:00 〜 8月25日(火) 5:00 JST</div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 今日の3行まとめ</h2>
+    <ol>
+      <li>
+        <b>SlackにClaudeを入れていると、@メンションの無い発言にも返信する。既定はオン</b>
+        <span>「メンションされたときだけ動く」ではありません。<mark>止める設定はチャンネルごとにしか無く、ワークスペース全体でまとめて切ることはできません</mark>。静かにしてほしいチャンネルは、1つずつ切って回る必要があります。</span>
+      </li>
+      <li>
+        <b>旧「Claude in Slack」はClaudeの法人向けプランで廃止予定。切替でGitHubの接続は引き継がれない</b>
+        <span>対象はClaudeのTeam / Enterpriseプラン（法人契約）で、Slackのプランの話ではありません。移行日は公表されておらず、契約窓口に聞く形です。<mark>移行日を過ぎると旧版（管理画面で Legacy と表示されるもの）のままのチャンネルは応答しなくなります</mark>。新版は各自のGitHub連携を引き継がないので、管理者が張り直すまでコードの依頼は動きません。</span>
+      </li>
+      <li>
+        <b>MinIOのコミュニティ版は保守終了。Laravel Sail は2025年9月7日のイメージを指したまま</b>
+        <span>Sail の <code>minio</code> サービスは <code>minio/minio:latest</code> を使いますが、そのタグは<b>約1年、新しい中身が公開（push）されていません</b>。ローカル検証用なので今日壊れる話ではありませんが、<b>今後 脆弱性（CVE）が出ても更新は来ません</b>。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#work">実務者向けのAI開発ツール(2件)</a></li>
+      <li><a href="#dev">Web開発・インフラ(1件)</a></li>
+      <li><a href="#client">クライアント技術(1件)</a></li>
+      <li><a href="#research">技術・研究(1件)</a></li>
+      <li><a href="#industry">モデル・業界(0件)</a></li>
+      <li><a href="#quiet">何を見て「無い」と判断したか</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 実務者向け ============ -->
+  <section class="section section-b" id="work">
+    <h2>🧰 実務者向けのAI開発ツール<span class="n">2件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Slackの@Claudeは、呼ばれなくても返信する — 切れるのはチャンネル単位だけ</h3>
+      <div class="tags">
+        <span class="tag">8/23 更新</span>
+        <span class="tag">Slackに入れている人</span>
+        <span class="tag">public beta</span>
+        <span class="tag">Claude Tag</span>
+      </div>
+
+      <p class="lead"><b>Claude Tag</b> は、Slackのチャンネルに <code>@Claude</code> を置く仕組みです。組織の共有アカウントとして動き、接続先やスキル（Claudeに教える手順書。次の項目で詳しく書きます）は管理者が決めます。</p>
+
+      <p class="lead">なお、まだ正式版ではなく <b>public beta</b>（試験公開）の段階です。</p>
+
+      <p class="lead">最初に知っておくべきなのは、<b>呼んでいない発言にも返信することがある</b>点です。しかも既定でそうなっています。</p>
+
+      <div class="code wrap"><div class="code-head">Claude Tag ドキュメント（返信の既定）</div><pre>The setting is on by default, so a channel
+Claude was just added to replies without
+@-mentions from the start.</pre></div>
+
+      <p class="lead">つまり、チャンネルに入れた瞬間から「たまに勝手に喋る」状態で始まります。どのくらい喋るかは、Claudeがチャンネルの履歴と記憶から判断します。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/claude-tag-reply-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/claude-tag-reply.png" alt="@Claudeを付けた発言には必ず返信し、付けていない発言にも既定では返信することがある。止めるにはチャンネルごとにRespond automaticallyを切る必要があることを示した図" loading="lazy">
+        </picture>
+        <figcaption>メンション無しの返信を止める設定はチャンネル単位。全体で一括して切る場所は無い。</figcaption>
+      </figure>
+
+      <p class="lead">問題は<b>止め方</b>です。設定は <code>Respond automatically</code> ひとつですが、置き場所に制約があります。</p>
+
+      <div class="code wrap"><div class="code-head">同ドキュメント（設定の置き場所）</div><pre>Each channel has its own copy of the
+setting, and there is no workspace- or
+organization-wide version. To make Claude
+mention-only across many channels, turn it
+off in each one.</pre></div>
+
+      <p class="lead">50チャンネルに入れたなら、50回切ることになります。<mark>導入を決める前に、入れるチャンネルを絞るほうが早い</mark>という判断材料です。</p>
+
+      <details class="note-d">
+        <summary>切り方は3通り。どれも同じ設定を変える</summary>
+        <p class="lead"><b>1.</b> Slackで直接頼む。<code>@Claude only respond in this channel when someone @-mentions you directly.</code> と書くと、Claudeが変更を確認して返します。この変更は<b>そのチャンネル全員に効きます</b>（自分だけ静かになるのではありません）。</p>
+        <p class="lead"><b>2.</b> Claudeの返信のフッターにある <b>Configure</b> リンクを開き、<code>Respond automatically</code> を切る。</p>
+        <p class="lead"><b>3.</b> 管理者は <code>claude.ai/admin-settings/claude-tag</code> の Slack タブから、該当スコープの Advanced で切る。<b>スコープ</b>とは、Claude Tag の設定をまとめて掛ける単位です（どのチャンネル群に効かせるかの区切り）。</p>
+        <p class="lead">なお、既にClaudeが入っているスレッドは別扱いです。チャンネル全体を切っても<b>そのスレッドだけは返信が続く</b>ので、スレッド内で個別に頼む必要があります。</p>
+      </details>
+
+      <p class="lead">もう1つ、<b>ClaudeのTeam / Enterpriseプラン（法人契約）</b>で使っている場合は、旧版の廃止が待っています。従来の「Claude in Slack」（Claude Code in Slack を含む。管理画面では <b>Legacy</b> と表示されます）は、各自のアカウントで動く仕組みでした。これがClaude Tagに置き換わります。</p>
+
+      <div class="code wrap"><div class="code-head">移行ドキュメントの警告文</div><pre>The earlier Claude in Slack app, shown as
+Legacy in admin settings, is being
+deprecated; check with your account team
+for the cutover date. After that date,
+channels still set to Legacy stop
+responding until the scope's Claude Tag
+version is set to New.</pre></div>
+
+      <p class="lead"><b>移行日は公表されていません。</b>「契約窓口に聞け」と書いてあるだけです。日付が公開資料に無い以上、当媒体からも書けません。</p>
+
+      <p class="lead">切り替えで何が消えるかは、はっきり書かれています。<b>新版は自分の接続を1つも持たずに始まります。</b></p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>切替後</th><th>どうなるか</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Slackアプリと <code>@Claude</code> の名前</td><td data-label="どうなるか">そのまま。入れ直しは原則不要</td></tr>
+            <tr><td>DM</td><td data-label="どうなるか">従来どおり各自の claude.ai アカウントで動く</td></tr>
+            <tr><td>GitHubリポジトリなどの接続</td><td data-label="どうなるか"><b>引き継がれない。</b>管理者が Access bundle（Claudeに渡す接続先をまとめた管理者向けの設定）に足すまで、コードの依頼をしても読みにいけるリポジトリが無い</td></tr>
+            <tr><td>過去のデータ</td><td data-label="どうなるか">移行されない</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="points">
+        <li><b>入れる予定があるなら。</b>入れるチャンネルを絞ってから始める。あとから全体を静かにする手段がありません。</li>
+        <li><b>法人契約の管理者なら。</b>契約窓口にLegacyの移行日を聞き、移行前にGitHub接続の張り直しを段取りしておく。</li>
+        <li><b>今やること。</b>SlackにClaudeを入れていなければ対応は不要。入れているなら上の2つ。</li>
+      </ul>
+
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claudeが自分のスキルにプルリクを出す仕組みが文書化された — マージは人がやる</h3>
+      <div class="tags">
+        <span class="tag">8/25 更新</span>
+        <span class="tag">Team/Enterprise の管理者</span>
+        <span class="tag">public beta</span>
+        <span class="tag">Claude Tag</span>
+      </div>
+
+      <p class="lead">この節の2件のうち、<b>対象期間内（8月24日5:00〜8月25日5:00 JST）に更新されたのはこちら</b>です。Claude Tag 配下は期間内に7ページ動いており、そのうち管理者向けの <b>skills repository</b> のページを取り上げます。<b>新設されたのか書き換えられたのかは、公開情報からは判別できません</b>（更新日しか取れないため）。</p>
+
+      <p class="lead">スキルとは、道具の使い方や手順を書いた指示のまとまりです（Claude Code と同じ形式）。これを<b>Gitリポジトリに置く</b>と、次のことが起きます。</p>
+
+      <div class="code wrap"><div class="code-head">スキルのリポジトリのドキュメント（冒頭）</div><pre>Put your org's Claude Tag skills in a git
+repository with auto-sync, grant Claude
+write access, and Claude can open pull
+requests to improve its own skills from
+what it learns in channels.</pre></div>
+
+      <p class="lead">チャンネルで指摘されたことを、Claude自身がスキルの修正案としてPRにする、という流れです。<mark>ただし勝手には出しません。</mark>頼まれたときだけです。</p>
+
+      <div class="code wrap"><div class="code-head">同ドキュメント（PRを出す条件）</div><pre>Claude won't open skill PRs unprompted.</pre></div>
+
+      <p class="lead">そして<b>マージは人の手です。</b>「Every skill change reaches channels only after a human approves the merge」と明記されています。マージするとリポジトリが自動で同期され、次のスレッドから新しいスキルが効きます。</p>
+
+      <details class="note-d">
+        <summary>用意するもの（公式の手順どおり）</summary>
+        <p class="lead"><b>1.</b> <b>private か internal の</b>GitHubリポジトリを作る（internal は法人向けGitHubの「組織内だけに公開」）。中身は Claude Code の<b>プラグインマーケットプレイス</b>の形にします。マーケットプレイスといっても売買ではなく、<b>Claudeが読み込むプラグインの目録の置き方の決まり</b>で、ルートの <code>.claude-plugin/marketplace.json</code> がその目録です（プラグインごとに1フォルダ）。<b>publicのリポジトリは選べません</b>ので、使いたければ private にフォークします。</p>
+        <p class="lead"><b>2.</b> <code>claude.ai/admin-settings/plugins</code> の Plugins ページで <b>Add plugins → Sync from GitHub</b>。<code>Sync automatically</code> は既定のままにします。</p>
+        <p class="lead"><b>3.</b> Access bundle の Repositories タブに、そのリポジトリを足す（Claudeが書き込めるようにするため）。</p>
+        <p class="lead"><b>4.</b> 同じ bundle の Plugins タブで、使うプラグインを<b>1つずつオンにする</b>（既定は全部オフ）。</p>
+      </details>
+
+      <p class="lead">なお、自分のプロジェクトの <code>.claude/skills/</code> に置いたスキルは、Slack側では<b>そのプロジェクトのリポジトリを渡したスレッドの中でしか効きません</b>。どのチャンネルでも効かせたいなら、上のスキル専用リポジトリに置きます。</p>
+
+      <ul class="points">
+        <li><b>使っているなら。</b>スキルを1つのprivateリポジトリに寄せるところから始める。あとから「Claudeに直させて人がレビューする」に切り替えられます。</li>
+        <li><b>今やること。</b>Claude Tagを使っていなければ対応は不要。使っているなら上の1つ。</li>
+      </ul>
+
+    </article>
+  </section>
+
+  <!-- ============ Web開発・インフラ ============ -->
+  <section class="section section-c" id="dev">
+    <h2>🧑‍💻 Web開発・インフラ<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=docker.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Docker / MinIO</div>
+      <h3>MinIOのコミュニティ版はもう更新されない — Laravel Sail の <code>minio</code> はそこを指している</h3>
+      <div class="tags">
+        <span class="tag">8/24 公開</span>
+        <span class="tag">提供終了</span>
+        <span class="tag">Laravel</span>
+        <span class="tag">Docker</span>
+      </div>
+
+      <p class="lead">きっかけは Docker が8月24日に出した記事です。中身は同社の有償サービスの案内ですが、<b>その前提になっている事実</b>のほうが読者に効きます。</p>
+
+      <p class="lead">MinIOは、<b>ファイルを出し入れする置き場</b>（オブジェクトストレージ。AWSのS3が代表）を手元に立てられるソフトです。S3と同じAPIで喋るので、<b>ローカルでS3の代わりに立てる用途</b>でよく使われています。</p>
+
+      <p class="lead">Laravel Sail（Laravel公式のDocker開発環境。<code>docker-compose.yml</code> を用意してくれる仕組み）にも、起動できるコンテナの1つとして入っています。そのMinIOのコミュニティ版が、もう保守されていません。</p>
+
+      <div class="code wrap"><div class="code-head">MinIO リポジトリ README（冒頭）</div><pre>&gt; [!NOTE]
+&gt; **THIS REPOSITORY IS NO LONGER MAINTAINED.**</pre></div>
+
+      <p class="lead">同じREADMEには、配布のしかたも書いてあります。</p>
+
+      <div class="code wrap"><div class="code-head">MinIO リポジトリ README（配布のしかた）</div><pre>The MinIO community edition is now
+distributed as source code only. We will no
+longer provide pre-compiled binary releases
+for the community version.</pre></div>
+
+      <p class="lead"><b>ビルド済みの配布も止まっています。</b>使いたければ自分でソースから作れ、という状態です。</p>
+
+      <p class="lead">では、いま Laravel Sail を使っている人は何を動かしているのか。実際に見に行きました。</p>
+
+      <div class="code term"><div class="code-head">Sail が指すイメージと、その最終 push</div><pre>$ curl -s .../sail@1.x/stubs/minio.stub \
+    | sed -n '1,2p'
+<span class="ng-line">minio:
+    image: 'minio/minio:latest'</span>
+
+$ curl -s .../minio/minio/tags/latest \
+    | python3 -c '...'
+tag      latest
+<span class="ng-line">pushed   2025-09-07</span></pre></div>
+
+      <p class="lead"><code>latest</code> という名前ですが、<mark>2025年9月7日から一度も更新されていません</mark>。約1年前のバイナリです。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/minio-chain-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/minio-chain.png" alt="Laravel Sail の minio サービスが minio/minio:latest を指し、そのタグは2025年9月7日を最後に更新されておらず、リポジトリも保守終了を表明していることを示した図" loading="lazy">
+        </picture>
+        <figcaption>Sail の既定は書き換えられていない。latest という名前だが、中身は約1年前で止まっている。</figcaption>
+      </figure>
+
+      <p class="lead">落ち着いて見てほしいのは、<b>これは今日壊れる話ではない</b>ことです。Sail の minio は<b>手元の開発環境</b>で動くもので、本番のS3とは関係ありません。動いているものが急に動かなくなるわけでもありません。</p>
+
+      <p class="lead">効いてくるのは<b>これから</b>です。今後 MinIO に脆弱性が見つかっても、このタグには修正が来ません。<b>「latest を引いているから最新のはず」という前提だけが崩れています。</b></p>
+
+      <p class="lead">確認は3つだけです。タップでチェックでき、進捗はこの端末に保存されます。 <span class="cl-count">0 / 3</span></p>
+
+      <ul class="checklist" data-key="minio-2026-08-25">
+        <li><label><input type="checkbox"><span>自分の <code>docker-compose.yml</code> に <code>minio</code> の行があるか見た</span></label></li>
+        <li><label><input type="checkbox"><span>あるなら、開発機の中だけか（CI＝テストを自動で回す環境や、検証環境で外に出ていないか）を確かめた</span></label></li>
+        <li><label><input type="checkbox"><span>外に出ているなら、S3そのものに寄せるか置き換えるかを、いつ決めるか相談した</span></label></li>
+      </ul>
+
+      <ul class="points">
+        <li><b>使っているなら。</b>上のチェックだけ済ませる。開発機の中だけで閉じているなら急ぎません。</li>
+        <li><b>今やること。</b>Sail で minio を使っていなければ対応は不要。<b>「latest だから安全」と考えるのをやめる</b>のが要点です。</li>
+      </ul>
+
+    </article>
+  </section>
+
+  <!-- ============ クライアント技術 ============ -->
+  <section class="section section-a" id="client">
+    <h2>📱 クライアント技術<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=vrchat.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">VRChat</div>
+      <h3>ワールドの動画再生は8月25日時点でも直っていない — 回避策はまだ戻さない</h3>
+      <div class="tags">
+        <span class="tag">8/25 時点</span>
+        <span class="tag">続報</span>
+        <span class="tag">動画プレイヤーを置く人</span>
+        <span class="tag">VRChat ワールド</span>
+      </div>
+
+      <p class="lead"><a href="../2026-08-23_001/">8月23日号</a>で扱った話の続きです。VRChatが同梱している <code>yt-dlp</code>（動画ページのURLから、実際に再生する動画データのURLを取り出すツール。ワールドの動画プレイヤーが内部で使っています）が古く、ワールドの動画プレイヤーでYouTubeが再生できない状態が続いています。</p>
+
+      <p class="lead">結論から書くと、<b>今朝の時点でも直っていません。</b>「直った」と書けるほうが記事としては収まりが良いのですが、事実がそうではありません。</p>
+
+      <div class="code term"><div class="code-head">更新要望の投稿データを見る</div><pre>status     open
+score      25
+created    2026-08-20T06:39:17
+updatedAt  2026-08-24T13:03:40</pre></div>
+
+      <p class="lead"><code>status</code> が <code>open</code> のままです。ページの見出しを目で読むだけだと、Canny（この掲示板の仕組み）の絞り込みラベルにある「Complete」を拾ってしまうので、<b>投稿そのもののデータを見る必要があります</b>。</p>
+
+      <p class="lead">クライアント側も見ました。<b>VRChat 2026.3.2 のオープンベータ（8月18日・Build 1896）の変更点に、yt-dlp も動画プレイヤーも1行も出てきません。</b>次のライブ版に入る見込みは、公開資料からは読めません。</p>
+
+      <p class="lead">直ったかどうかは、上の <code>status</code> が <code>open</code> でなくなるか、VRChatのリリースノートに yt-dlp の行が出るかで判断できます。来場者から「映らない」と言われたときのために、ワールド内の案内文もそのまま置いておくのが無難です。</p>
+
+      <ul class="points">
+        <li><b>今やること。</b>ワールドに動画プレイヤーを置いているなら、<b>入れた回避策をまだ戻さないこと</b>。置いていなければ対応は不要。</li>
+      </ul>
+
+    </article>
+  </section>
+
+  <!-- ============ 技術・研究 ============ -->
+  <section class="section section-c" id="research">
+    <h2>🔬 技術・研究<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">arXiv</div>
+      <h3>エージェントの設計は「1体を強くする」から「複数をどう繋ぐか」へ — 35人のサーベイ</h3>
+      <div class="tags">
+        <span class="tag">8/21 公開</span>
+        <span class="tag">サーベイ</span>
+      </div>
+
+      <p class="lead">Hugging Face（AIモデルと論文の共有サイト）の「今日の論文」で8月24日に並んだ21本のうち、<b>AIで開発する人にそのまま効く</b>のはこれでした。エージェントの作り方を、これまでの流れごと整理した<b>サーベイ</b>（新しい手法の提案ではなく、既存研究を集めて整理する種類の論文）です。<b>著者は35人います。</b></p>
+
+      <p class="lead">面白いのは、いま自分がやっていることに名前が付いている点です。著者らは、これまでの工夫を4つに分けています。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>呼び名</th><th>やっていること</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Prompt Engineering</td><td data-label="やっていること">指示の書き方で能力を引き出す</td></tr>
+            <tr><td>Context Engineering</td><td data-label="やっていること">何を読ませるかを管理する</td></tr>
+            <tr><td>Harness Engineering</td><td data-label="やっていること">道具と外部資源を組み立てる</td></tr>
+            <tr><td>Loop Engineering</td><td data-label="やっていること">振り返らせて改善を回す</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">そのうえで、<b>1体をいくら強くしても越えられない壁がある</b>と書いています。</p>
+
+      <div class="code wrap"><div class="code-head">論文の要旨（該当箇所）</div><pre>Augmenting one agent's capabilities or
+context cannot resolve this architectural
+mismatch; intelligence must instead be
+distributed across specialized agents and
+organized at the system level.</pre></div>
+
+      <p class="lead">噛み砕くと、<mark>「専門の違う仕事・依存し合う手順・並行実行・独立した検証・状態の保持」が同時に要る仕事は、1体の担当範囲を超える</mark>という主張です。著者らはこれを System Intelligence と呼び、繋ぎ方をグラフ（点と線で繋がりを表す構造。棒グラフの類ではありません）として設計する Graph Engineering を提案しています。</p>
+
+      <p class="lead">当媒体の書き方（調査・実証・執筆・事実検証を別々の役に振る）は、まさにこの型です。<b>ただしサーベイなので、新しい手法の性能を測った論文ではありません。</b>読むと自分の運用に名前が付く、という種類のものです。</p>
+
+      <ul class="points">
+        <li><b>覚えておくと使える。</b>AIに任せた作業が「見直しても精度が上がらない」ところで止まっているなら、指示を練り直すより<b>役を分けて検証役を別に立てる</b>ほうが効く、という整理の裏付けになります。</li>
+        <li><b>今やること。</b>対応は不要。</li>
+      </ul>
+
+    </article>
+  </section>
+
+  <!-- ============ モデル・業界 ============ -->
+  <section class="section section-a" id="industry">
+    <h2>🏢 モデル・業界<span class="n">0件</span></h2>
+    <article class="item">
+      <p class="lead">対象期間に、新モデルの発表・提供終了・料金の変更・確定した業界の出来事はありませんでした。何を見たかは<a href="#quiet">次の節</a>に置いてあります。</p>
+      <p class="none">特筆すべき動きなし</p>
+    </article>
+  </section>
+
+  <!-- ============ 裏取り ============ -->
+  <section class="section section-b" id="quiet">
+    <h2>何を見て「無い」と判断したか</h2>
+
+    <article class="item">
+      <p class="lead">件数の少ない号では、<b>「探さなかった」のか「探したが無かった」のか</b>が読者に分かりません。ここに置きます。</p>
+
+      <p class="lead">対象期間の24時間は、世界標準時では8月23日(日) 20:00 〜 8月24日(月) 20:00 にあたります。</p>
+
+      <details class="note-d">
+        <summary>確かめた先と、それぞれの最終更新を見る</summary>
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>確かめた先</th><th>最後に更新された時点</th><th>期間内</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Laravel 本体</td><td data-label="最終更新">v13.26.1 / 8/19</td><td data-label="期間内">0件</td></tr>
+            <tr><td>PHP 全ブランチ</td><td data-label="最終更新">8.5.9 / 7/30</td><td data-label="期間内">0件</td></tr>
+            <tr><td>TiDB</td><td data-label="最終更新">v8.5.7（リリースノート本文は7/9）</td><td data-label="期間内">0件</td></tr>
+            <tr><td>Terraform 本体</td><td data-label="最終更新">1.15.9 / 8/19</td><td data-label="期間内">0件</td></tr>
+            <tr><td>AWS プロバイダ</td><td data-label="最終更新">6.61.0 / 8/20</td><td data-label="期間内">0件</td></tr>
+            <tr><td>AWS What's New</td><td data-label="最終更新">7件あり（下記）</td><td data-label="期間内">採用0件</td></tr>
+            <tr><td>Chrome Releases</td><td data-label="最終更新">8/21（Dev channel）</td><td data-label="期間内">0件</td></tr>
+            <tr><td>Android Developers Blog</td><td data-label="最終更新">8/24（車載向け）</td><td data-label="期間内">対象外</td></tr>
+            <tr><td>Unity LTS</td><td data-label="最終更新">6000.0.82f1 / 8/19</td><td data-label="期間内">0件</td></tr>
+            <tr><td>VRChat Worlds SDK</td><td data-label="最終更新">3.10.4 / 6/17</td><td data-label="期間内">0件</td></tr>
+            <tr><td>Claude Code</td><td data-label="最終更新">2.1.242 / 8/25 4:16 JST</td><td data-label="期間内">1件（不採用）</td></tr>
+            <tr><td>Gemini API</td><td data-label="最終更新">8/13</td><td data-label="期間内">0件</td></tr>
+            <tr><td>GitHub Changelog</td><td data-label="最終更新">8/21</td><td data-label="期間内">0件</td></tr>
+            <tr><td>Cursor Changelog</td><td data-label="最終更新">8/19</td><td data-label="期間内">0件</td></tr>
+            <tr><td>主要オープンウェイト勢の公開モデル</td><td data-label="最終更新">Qwen 8/13 / DeepSeek 8/13（Hugging Face への最終アップロード）</td><td data-label="期間内">0件</td></tr>
+          </tbody>
+        </table>
+      </div>
+      </details>
+
+      <p class="lead">AWSは<b>期間内に7件</b>ありましたが、いずれも読者のスタック（ECS / Fargate / ALB / CloudFront / IAM）ではなく、障害・値上げ・提供終了・セキュリティのどれにも当たりません。SageMaker・Connect・ParallelCluster・Aurora PostgreSQL・RDS for MySQL の機能追加です。<b>読者が何かする必要が無いので落としました。</b></p>
+
+      <p class="lead">Claude Code は、期間内に出たのが <b>2.1.242</b> の1件です。あわせて直前の 2.1.241 も確認しました。<b>どちらも載せていません。</b>数えた結果がこれです。</p>
+
+      <div class="code term"><div class="code-head">2.1.241 の変更行を数える</div><pre>$ awk '/^## 2\.1\.241$/{f=1;next} \
+    /^## /{f=0} f' CHANGELOG.md \
+    | grep '^- ' | cat -n
+<span class="ng-line">     1  - Bug fixes and reliability improvements</span></pre></div>
+
+      <p class="lead">2.1.241 は1行だけで、中身は不具合修正です。読者が判断することがありません。<b>2.1.242 は npm（Claude Codeの配布元）に8月25日4:16 JSTに出ていますが、CHANGELOG にまだ項目がありません。</b>中身を読めていないので、何も書きません。</p>
+
+      <details class="note-d">
+        <summary>確かめられなかったこと（正直に書きます）</summary>
+        <p class="lead"><b>X(旧Twitter)の公式アカウント。</b>3アカウントで試しましたが、いずれも429（回数制限）で本文0バイトでした。<b>昨日に続いて2日連続で取得できていません。</b>料金や利用上限の変更がXだけで告知される例は実際にあるので、「Xにも何も無かった」とは書けません。</p>
+        <p class="lead"><b>AWSのセキュリティ速報の日付。</b>フィードは5件を「8月20日」として返しますが、実際に本文を開くと <code>Publication Date: 06/29/2026</code> でした。<b>この <code>&lt;pubDate&gt;</code> は当てになりません。</b>今回はこの経路では新規を判定できていません。</p>
+        <p class="lead"><b>Claude Code のドキュメント13ページ。</b>8月24日に更新されていますが、<b>どこが変わったかを取る手段がありません</b>。差分が読めないものを「新機能」とは書けないので、扱っていません。</p>
+      </details>
+
+      <ul class="points">
+        <li><b>自分で巡回する人へ。</b>AWSのフィードは、What's New もセキュリティ速報も日付が当てになりません（前者は先頭のチャンネル日時、後者は item の日時が実際の公開日とずれる）。</li>
+        <li><b>今やること。</b>対応は不要。</li>
+      </ul>
+
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark>掲載した全URLは取得時にHTTPステータスを確認しています。再現用の一式は <code>_labs/2026-08-25_001/</code> に置いてあります。</p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Control when Claude Tag responds」<i>Claude Docs</i>, 2026年8月23日更新（sitemap の lastmod が 2026-08-22T18:33Z）.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「Turn automatic replies on or off」節の「The setting is on by default, so a channel Claude was just added to replies without @-mentions from the start.」と「Each channel has its own copy of the setting, and there is no workspace- or organization-wide version. To make Claude mention-only across many channels, turn it off in each one.」。設定を変える3か所（Slackで直接頼む / Configureページ / 管理者ページ）の表、および「Threads Claude already joined keep forwarding replies, so quiet those individually」。冒頭の「Claude replies without an @-mention in DMs, in any thread it's already part of, and to channel messages it judges warrant a reply.」が図版の左右分岐の根拠。<b>記事に貼った原文は改行位置だけを幅に合わせて折り、語句は一字も変えていない</b>（引用符だけはASCIIに正規化している。原文は <code>scope’s</code> のように U+2019 を使う）。ページ冒頭に「Claude Tag is in public beta」の注記があるため、記事のタグにも public beta を付けた。</span></details>
+          <a href="https://claude.com/docs/claude-tag/users/when-claude-responds">https://claude.com/docs/claude-tag/users/when-claude-responds</a>（2026年8月25日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Migrate from the earlier Claude in Slack」<i>Claude Docs</i>, 2026年8月23日更新（lastmod 2026-08-22T15:59Z）.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 警告ブロックの「The earlier Claude in Slack app, shown as Legacy in admin settings, is being deprecated; check with your account team for the cutover date. After that date, channels still set to Legacy stop responding until the scope's Claude Tag version is set to New.」。表の根拠は「What stays the same」節（Slackアプリと <code>@Claude</code> の名前、DMは各自のclaude.aiアカウントのまま）と、手順3の「The New version starts with no access of its own. GitHub repositories and other connections do not carry over from individual users' linked accounts, so code requests in a switched channel have nothing to clone until you configure them.」、および冒頭の「no data migrates」。<b>移行日そのものはこの資料にも書かれていない</b>ため、記事でも日付を書いていない。</span></details>
+          <a href="https://claude.com/docs/claude-tag/admins/migrate-from-earlier">https://claude.com/docs/claude-tag/admins/migrate-from-earlier</a>（2026年8月25日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Set up Claude Tag」<i>Claude Docs</i>, 2026年8月25日 4:10 JST（lastmod 2026-08-24T19:10Z）.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">記事が「Team / Enterprise プラン（法人契約）の話であって、Slackのプランの話ではない」と書いた根拠。参照箇所: 前提条件の表の「A <b>Team or Enterprise plan</b> on claude.ai」の行にある「Claude Tag is available on Team and Enterprise plans, on Anthropic's first-party service. It isn't available on individual plans (Free, Pro, or Max), or for third-party deployments.」。同じ表の「Usage credits (Team plans)」の行に「Channel work draws from your organization's usage balance; on a Team plan nothing runs until credits are loaded」ともある。<b>このページも対象期間内（lastmod 2026-08-24T19:10Z）に更新されている。</b></span></details>
+          <a href="https://claude.com/docs/claude-tag/admins/setup-overview">https://claude.com/docs/claude-tag/admins/setup-overview</a>（2026年8月25日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Set up a skills repository Claude can update」<i>Claude Docs</i>, 2026年8月25日 4:54 JST（lastmod 2026-08-24T19:54Z）.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 冒頭の要約「Put your org's Claude Tag skills in a git repository with auto-sync, grant Claude write access, and Claude can open pull requests to improve its own skills from what it learns in channels.」、「Prompt Claude to propose updates」節の「Claude won't open skill PRs unprompted.」、「How updates propagate」節の表と直後の「Every skill change reaches channels only after a human approves the merge; Claude opens the PR, you merge it.」。<code>details</code> に書いた手順4段は「Set up the skills repository」の Steps をそのまま訳したもので、「A public repository can't be selected in the next step; fork it into a private one first.」「each is off until you enable it」も同節。<code>.claude/skills/</code> の扱いは別資料（migrate-from-earlier の手順3）の「those skills apply only in threads that have the repository」に拠る。</span></details>
+          <a href="https://claude.com/docs/claude-tag/admins/skills-repo">https://claude.com/docs/claude-tag/admins/skills-repo</a>（2026年8月25日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          MinIO「MinIO Quickstart Guide（README.md）」<i>minio/minio リポジトリ・master ブランチ</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 冒頭の注記「&gt; [!NOTE] &gt; **THIS REPOSITORY IS NO LONGER MAINTAINED.**」と、「Source-Only Distribution」節の「The MinIO community edition is now distributed as source code only. We will no longer provide pre-compiled binary releases for the community version.」。<b>github.com はこの環境から403のため、jsDelivr 経由で同じブランチの本文を取得して読んだ。</b>アーカイブされた日付はこのREADMEには書かれていないので、記事本文でも日付を断定していない。</span></details>
+          <a href="https://cdn.jsdelivr.net/gh/minio/minio@master/README.md">https://cdn.jsdelivr.net/gh/minio/minio@master/README.md</a>（2026年8月25日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「stubs/minio.stub」<i>laravel/sail リポジトリ・1.x ブランチ</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: ファイル全体（17行）。1〜2行目が <code>minio:</code> と <code>image: 'minio/minio:latest'</code>。ヘルスチェックが <code>mc ready local</code>、公開ポートが <code>9000</code>（API）と <code>8900</code>（コンソール）であることも同ファイルで確認した。<b>Sail の公式ドキュメント（laravel.com/docs/13.x/sail）には minio の記載が1件も無い</b>ため（取得して <code>minio</code> の出現数を数え、0だった）、記事では「Sail にサービスとして入っている」根拠をこの stub に限定している。取得は jsDelivr 経由。</span></details>
+          <a href="https://cdn.jsdelivr.net/gh/laravel/sail@1.x/stubs/minio.stub">https://cdn.jsdelivr.net/gh/laravel/sail@1.x/stubs/minio.stub</a>（2026年8月25日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          <code>minio/minio:latest</code> が2025年9月7日から更新されていないこと。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月25日、Docker Hub の公開API（<code>hub.docker.com/v2/repositories/minio/minio/tags/latest</code>）を取得し、<code>tag_last_pushed</code> が <code>2025-09-07T18:44:54.143784Z</code> であることを確認した。同リポジトリのタグ一覧を <code>ordering=last_updated</code> で引いても、最新は <code>RELEASE.2025-09-07T16-13-09Z</code> 系で、それ以降の push は無い（タグ総数1181）。<b>記事に貼ったターミナル出力は実際に流したコマンドと結果で、URLを幅に合わせて <code>...</code> で省略し、行継続（<code>\</code>）を入れただけ。</b>Dockerの記事が「2026年2月13日にアーカイブされた」と書いている点については、<b>その日付の一次資料に到達できていない</b>ため記事本文では使っていない。再現は <code>_labs/2026-08-25_001/verify_sources.sh</code> の手順1〜3。</span></details>
+          <a href="https://hub.docker.com/v2/repositories/minio/minio/tags/latest">https://hub.docker.com/v2/repositories/minio/minio/tags/latest</a>（2026年8月25日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Vishrut Iyengar「MinIO End of Life: How to Stay Patched and Audit-Ready with Docker ELS」<i>Docker Blog</i>, 2026年8月24日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">本文は取得して読んでおり、「On February 13, 2026, the MinIO open-source project was archived upstream.」と書かれていることは確認した。<b>ただしこの記事はDockerの有償サービス（Extended Lifecycle Support）の販促記事であり、アーカイブ日そのものの一次資料ではない。</b>MinIO側の公表でこの日付を確認できていないため、<code>unverified</code> とし、記事本文では日付を使っていない。この記事は「この話題が8月24日に動いた」という入口としてのみ使った。</span></details>
+          <a href="https://www.docker.com/blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/">https://www.docker.com/blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/</a>（2026年8月25日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          VRChatの動画再生の要望が8月25日時点で <code>open</code> のままであること。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月25日、要望ページのHTMLに埋め込まれた投稿データから <code>status</code> / <code>score</code> / <code>created</code> / <code>updatedAt</code> を抜いた。結果は <code>open</code> / <code>25</code> / <code>2026-08-20T06:39:17Z</code> / <code>2026-08-24T13:03:40Z</code>。<b>最初はページ本文を <code>grep -oiE 'complete|planned|in progress'</code> で見たが、Canny の絞り込みUIのラベルを拾って「Complete」が出てしまい、誤判定しかけた。</b>その失敗を踏まえて投稿オブジェクトから取り直しており、記事のターミナル出力は後者の結果をそのまま貼っている。あわせて VRChat 2026.3.2 (OPEN BETA) の変更点（docs.vrchat.com、updatedAt 2026-08-21T21:05Z）を取得し、<code>yt-dlp</code> / <code>video</code> / <code>youtube</code> のいずれも本文に1件も無いことを確認した。再現は <code>verify_sources.sh</code> の手順7。</span></details>
+          <a href="https://feedback.vrchat.com/feature-requests/p/update-to-yt-dlp-20260819">https://feedback.vrchat.com/feature-requests/p/update-to-yt-dlp-20260819</a>（2026年8月25日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Yuyuan Feng ら計35名「Graph Engineering in the Era of LLM Agents: From Individual Intelligence to System Intelligence」<i>arXiv:2608.21156</i>, 2026年8月21日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: Abstract。4つの呼び名の表は「paradigms including Prompt Engineering to elicit model capabilities, Context Engineering to manage information access, Harness Engineering to organize external tools and resources, and Loop Engineering to support continual reflection and self-improvement」に拠る。壁の説明は「many tasks require heterogeneous expertise, interdependent subtasks, parallel execution, independent verification, and persistent state, exceeding any single agent's organizational capacity」、引用した原文は「Augmenting one agent's capabilities or context cannot resolve this architectural mismatch; intelligence must instead be distributed across specialized agents and organized at the system level.」。<b>読んだのは arXiv API が返す書誌情報とAbstractであり、本文（PDF）は読んでいない。</b>そのため記事では手法の詳細や評価結果に触れていない。著者は35名、投稿は 2026-08-21T14:27:57Z。</span></details>
+          <a href="https://arxiv.org/abs/2608.21156">https://arxiv.org/abs/2608.21156</a>（2026年8月25日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          8月24日の Hugging Face「今日の論文」が21本で、そのうち上記1本を選んだこと。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月25日、<code>huggingface.co/api/daily_papers?date=2026-08-24</code> を取得し、21本すべての <code>id</code> / <code>title</code> / <code>upvotes</code> / <code>publishedAt</code> を並べた（8月23日は0本）。<b>選んだ基準は「AIで開発する人の手順が変わりうるか」の1つだけ</b>で、動画編集・画像再ランキング・量子化・料理ベンチマークなど、読者の実務から遠いものは落としている。arXiv:2608.21156 は upvotes 29 で3番目だが、上位2本（MoEのハイパーパラメータ転移、動画編集）は読者の作業に効かないと判断した。<b>これは当方の選別であり、注目度の順位ではない。</b></span></details>
+          <a href="https://huggingface.co/papers/date/2026-08-24">https://huggingface.co/papers/date/2026-08-24</a>（2026年8月25日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Claude Code の2件を項目にしなかった理由。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月25日、npm レジストリの <code>time</code> フィールドで <code>2.1.242</code> の公開が <code>2026-08-24T19:16:14.767Z</code>（日本時間8月25日4:16）＝対象期間内であることを確認した。ところが CHANGELOG.md（jsDelivr 経由、github.com は403）の最新見出しは <code>## 2.1.241</code> で、<b>2.1.242 のブロックは存在しない</b>。<code>awk '/^## 2\.1\.242$/{f=1;next} /^## /{f=0} f'</code> の出力は0行。公開ドキュメント側（code.claude.com/docs/en/changelog）でも最新は 2.1.241 だった。npm の tarball にも CHANGELOG は同梱されていない。中身が読めないので何も書いていない。<b>2.1.241（8月23日8:58 JST公開）は変更行が1行のみで「Bug fixes and reliability improvements」</b>、<code>- Added</code> / <code>- Changed</code> / <code>- Removed</code> は0件。記事のターミナル出力は実際の実行結果で、幅に合わせて行継続を入れただけ。再現は <code>verify_sources.sh</code> の手順5。</span></details>
+          <a href="https://cdn.jsdelivr.net/gh/anthropics/claude-code@main/CHANGELOG.md">https://cdn.jsdelivr.net/gh/anthropics/claude-code@main/CHANGELOG.md</a>（2026年8月25日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          AWS に対象期間の告知が7件あり、そのすべてを落としたこと。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月25日、AWS What's New の RSS を取得し、<code>&lt;item&gt;</code> 100件の <code>&lt;pubDate&gt;</code> を対象期間（8月23日20:00〜8月24日20:00 GMT）で絞った。該当は7件で、SageMaker MLflow のカスタマーマネージドキー対応、Aurora の PostgreSQL 18.4 ほか対応、SageMaker HyperPod の Ray 対応、Amazon Connect の情報抽出、ParallelCluster 3.16 の診断ツール、GovCloud での OpenAI GPT-5.6 提供、RDS for MySQL 8.4.11。<b>いずれも ECS / Fargate / ALB / CloudFront / IAM ではなく、障害・値上げ・提供終了・セキュリティのどれにも当たらない。</b>なお<b>フィード先頭の <code>&lt;pubDate&gt;</code> はチャンネル自身の生成時刻</b>なので、必ず item 内だけを見ること。再現は <code>verify_sources.sh</code> の手順6。</span></details>
+          <a href="https://aws.amazon.com/about-aws/whats-new/recent/feed/">https://aws.amazon.com/about-aws/whats-new/recent/feed/</a>（2026年8月25日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          AWSセキュリティ速報のRSSの日付が当てにならないこと。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月25日、AWS のセキュリティ速報RSSを取得したところ、先頭5件すべてが <code>2026-08-20</code> を返した。うち「CVE-2026-13762 and CVE-2026-13763 - Issue with HTTP/2 multi-frame request body inspection in AWS WAF」の本文を開くと、<b><code>Bulletin ID: 2026-048-AWS</code> / <code>Publication Date: 06/29/2026 13:15 PM PDT</code></b> だった。フィードの日付と実際の公開日が約2か月ずれている。<b>この経路では対象期間の新規を判定できないため、本号のセキュリティ0件の根拠にこのフィードを使っていない。</b>次回以降は個別ページの Publication Date を見ること。</span></details>
+          <a href="https://aws.amazon.com/security/security-bulletins/rss/2026-048-aws/">https://aws.amazon.com/security/security-bulletins/rss/2026-048-aws/</a>（2026年8月25日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          X(旧Twitter)の公式アカウントの直近24時間の投稿。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月25日、@AnthropicAI / @ClaudeDevs / @OpenAI の3アカウントについて <code>syndication.twitter.com</code> のタイムライン経路を試したが、<b>3件とも HTTP 429（回数制限）で本文20バイト</b>だった。昨日（8月24日号）も同じ経路が全滅しており、2日連続で取得できていない。<b>したがって本号の「0件」はXを含まない。</b>料金・利用上限の変更がXだけで告知される例は実際にあるため、「Xにも何も無かった」とは書いていない。</span></details>
+          <a href="https://syndication.twitter.com/srv/timeline-profile/screen-name/AnthropicAI">https://syndication.twitter.com/srv/timeline-profile/screen-name/AnthropicAI</a>（2026年8月25日参照。HTTP 429）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Claude Tag の各ドキュメントが「いつ更新されたか」の取り方。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">Claude の公開ドキュメントには更新日時が本文に出ない。そこで <code>claude.com/docs/sitemap.xml</code>（取得時216件）の <code>&lt;lastmod&gt;</code> を使った。2026年8月25日に取得し、対象期間（8月23日20:00〜8月24日20:00 UTC）に入る claude-tag 配下は7件で、<b><code>skills-repo</code> は 2026-08-24T19:54Z（日本時間8月25日4:54）</b>。<code>when-claude-responds</code> と <code>migrate-from-earlier</code> は 8月22日で、対象期間より前だったため記事の各項目に日付を明記した。<b>lastmod は発行元の申告値であり、内容のどこが変わったかまでは分からない。</b>そのため「新機能」とは書かず、文書に書いてある事実だけを記事にしている。再現は <code>verify_sources.sh</code> の手順4。</span></details>
+          <a href="https://claude.com/docs/sitemap.xml">https://claude.com/docs/sitemap.xml</a>（2026年8月25日参照）
+        </li>
+      </ol>
+    </article>
+  </section>
+
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
