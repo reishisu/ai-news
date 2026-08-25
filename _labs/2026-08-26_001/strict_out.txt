@@ -1,0 +1,6 @@
+value  loose  strict
+'1'    match  -     
+0.0    match  -     
+'ABC'  -      -     
+true   match  -     
+NULL   match  -     

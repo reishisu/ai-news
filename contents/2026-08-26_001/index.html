@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-news：2026/08/26 — Claudeの記憶がCoworkと共通になり、会話中に書き込まれる</title>
+<meta name="description" content="Claudeの記憶がチャットとCoworkで1つになり、会話が終わるのを待たずに書き込まれるようになりました。Free/Pro/Maxは既定でオンです。Laravel 13.27.0はin_arrayとdoesnt_containのバリデーションを厳密比較に変更。Chrome 152とAndroid System WebView 152が同じ日に出て、セキュリティ修正は327件です。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI-news：2026/08/26 — Claudeの記憶がCoworkと共通になり、会話中に書き込まれる">
+<meta property="og:description" content="Claudeの記憶がチャットとCoworkで1つになり、会話中に書き込まれるように。Free/Pro/Maxは既定でオン。Laravelはin_arrayを厳密比較へ。Chromeとwebviewは152へ。一次資料の原文つき。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-26_001/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-26_001/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=081fefa4">
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">2026年8月26日(水)</div>
+    <h1>AI-news：2026/08/26 — Claudeの記憶がCoworkと共通になり、会話中に書き込まれる</h1>
+    <div class="range">対象期間: 8月25日(火) 5:00 〜 8月26日(水) 5:00 JST</div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 今日の3行まとめ</h2>
+    <ol>
+      <li>
+        <b>Claudeの記憶が、チャットとCoworkで同じものになった</b>
+        <span>Cowork はクラウド側で作業を走らせるほうのClaudeです。これまでは会話が終わってから要約していましたが、話している最中に項目が足されます。<mark>Free / Pro / Max では既定でオン</mark>です。Team / Enterprise は管理者が可否を持ち、個人は自分で入れるまでオフのままです。</span>
+      </li>
+      <li>
+        <b>Laravel 13.27.0 で <code>in_array</code> と <code>doesnt_contain</code> のバリデーションが厳密比較になった</b>
+        <span>文字列の <code>"1"</code> と数値の <code>1</code> が別物として扱われます。<mark>今まで通っていた入力が落ちる可能性があります</mark>。同じ回で <code>contains</code> も厳密化されましたが、こちらは取り消されて元のままです。</span>
+      </li>
+      <li>
+        <b>Chrome 152 の安定版と Android System WebView 152 が同じ日に出た。セキュリティ修正は327件</b>
+        <span>重大度 Critical が10件。部品ごとに数えると ANGLE（WebGLの描画を担う層）が27件、アプリからブラウザを開く Custom Tabs が10件。<b>どちらもアプリからWebを出す側に効く範囲です。</b></span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#work">実務者向けのAI開発ツール(2件)</a></li>
+      <li><a href="#dev">Web開発・インフラ(2件)</a></li>
+      <li><a href="#client">クライアント技術(1件)</a></li>
+      <li><a href="#research">技術・研究(1件)</a></li>
+      <li><a href="#industry">モデル・業界(0件)</a></li>
+      <li><a href="#quiet">何を見て「無い」と判断したか</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 実務者向け ============ -->
+  <section class="section section-b" id="work">
+    <h2>🧰 実務者向けのAI開発ツール<span class="n">2件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claudeの記憶が1つになった — チャットで話したことがCoworkにも出る</h3>
+      <div class="tags">
+        <span class="tag">8/25 公開</span>
+        <span class="tag">Claudeを使っている人</span>
+        <span class="tag">既定の変更</span>
+        <span class="tag">Claude</span>
+      </div>
+
+      <p class="lead">Anthropicが8月25日に、Claudeのメモリー（過去の会話から覚えておく仕組み）の作りを変えたと発表しました。</p>
+
+      <p class="lead">まず用語です。Claude Cowork は、チャット画面ではなくクラウド側でまとまった作業を走らせるほうのClaudeです（公式の説明にも「When Cowork runs a task in the cloud」とあります）。<b>そのCoworkが、今回はじめて記憶を持ちました。</b>しかも中身はチャットと同じものです。</p>
+
+      <div class="code wrap"><div class="code-head">公式ブログ（冒頭）</div><pre>Starting today, the memory you use in chat is the same as in Claude Cowork.</pre></div>
+
+      <p class="lead">つまり、<b>チャットで一度説明したことを、Coworkに作業を頼むときに説明し直さなくてよくなった</b>ということです。逆向きも同じで、Coworkで出てきたことがチャットに戻ります。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/memory-one-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/memory-one.png" alt="以前はチャットにだけ記憶があり、Coworkには無かったが、8月25日から1つの記憶を両方が読み書きするようになったことを示した図" loading="lazy">
+        </picture>
+        <figcaption>Coworkが記憶を持ち、その中身はチャットと同じ。どちらで話したことも両方に届く。</figcaption>
+      </figure>
+
+      <p class="lead">変わったのは置き場所だけではありません。書き込む時点も変わりました。</p>
+
+      <div class="code wrap"><div class="code-head">同ブログ（書き込む時点）</div><pre>Claude now adds topics to memory as you chat, instead of summarizing conversations after they end.</pre></div>
+
+      <p class="lead">これまでは「会話が終わってから要約する」形でした。今は話している最中に項目が足されます。「これ覚えておいて」と言う必要はありません。裏返すと、<mark>言うつもりのなかったことも、その場で残ります</mark>。</p>
+
+      <p class="lead">残ったものは、設定の Topics に短いファイルの一覧として出ます。1つずつ読めて、直せて、消せます。会社の旧名を1か所直せば、以降の会話すべてに効く、という説明です。</p>
+
+      <details class="note-d">
+        <summary>センシティブな話題の扱い（既定はオフ。オンにしても保存しないものがある）</summary>
+        <p class="lead">健康・人種・民族・信条・政治・性自認などは、<b>既定では記憶に入りません</b>。設定でオンにすると入るようになり、保存のたびに通知が出ます。オンにする前の分は遡って保存されません。いつでも切れます。</p>
+        <p class="lead">オンにしても保存しないものが別にあります。公式の記述では、社会保障番号などの識別番号、犯罪歴、在留資格、および利用規約（AUP）に反するものです。保存できなかったときはClaudeがその旨を伝えます。</p>
+      </details>
+
+      <p class="lead">既定がどうなっているかは、契約しているプランで変わります。</p>
+
+      <div class="code wrap"><div class="code-head">同ブログ（プランごとの既定）</div><pre>Memory is on by default on Free, Pro and Max plans across web, desktop, and mobile. Note that saving sensitive topics in memory is off by default. On iOS and Android, update to the latest version of the mobile app to get the most recent updates. For Team and Enterprise, admins control availability for their organization, and memory is off for individual users until they turn it on.</pre></div>
+
+      <p class="lead">個人で使っている人（Free / Pro / Max）は、<b>何もしなくても既にオンです</b>。会社のTeam / Enterprise契約なら、管理者が組織として可否を決め、そのうえで各自が入れるまではオフです。</p>
+
+      <ul class="points">
+        <li><b>個人で使っているなら。</b>設定の <code>Settings &gt; Memory</code> を開き、<code>Topics</code> に何が入っているかを一度見る。</li>
+        <li><b>会社で使っているなら。</b>管理者に、組織として有効にするかを確認する。個人側は自分で入れるまでオフ。</li>
+        <li><b>iOS / Android を使うなら。</b>アプリを最新版に更新する（公式が明記している条件）。</li>
+        <li><b>今やること。</b>Topicsを見て、業務で残ってほしくないものが無いか確かめる。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude Code 2.1.243 — スクリプト・サンドボックス・権限で挙動が変わる3件</h3>
+      <div class="tags">
+        <span class="tag">8/25 公開</span>
+        <span class="tag">Claude Codeを使っている人</span>
+        <span class="tag">仕様変更</span>
+        <span class="tag">Claude Code</span>
+      </div>
+
+      <p class="lead">Claude Code 2.1.243 が8月25日8:10（JST）に出ました。CHANGELOGの行を種類ごとに数えると、こうなります。</p>
+
+      <div class="code term"><div class="code-head">2.1.243 の変更行を数える</div><pre>$ awk '/^## 2\.1\.243$/{f=1;next} \
+    /^## /{f=0} f' CHANGELOG.md \
+  | grep -oE '^- (\[VSCode\] )?(Added\
+|Changed|Fixed|Improved|Updated)' \
+  | sed 's/\[VSCode\] //' \
+  | sort | uniq -c
+     10 - Added
+      4 - Changed
+     33 - Fixed
+     12 - Improved
+      1 - Updated</pre></div>
+
+      <p class="lead">合計60行のうち33行が不具合修正です（うち2行はVSCode拡張向け）。当媒体はそこを項目にしません。ここで扱うのは、<b>今までと挙動が変わる</b>3行だけです。</p>
+
+      <p class="lead">1つ目。別セッションへメッセージを送る仕組み（cross-session messaging）の<b>受信口が、30秒で切られる</b>ようになりました。</p>
+
+      <div class="code wrap"><div class="code-head">CHANGELOG 2.1.243</div><pre>Changed the cross-session messaging inbox socket to close connections that send no complete line within 30 seconds; scripts posting to it should connect once their data is ready</pre></div>
+
+      <p class="lead">「先に繋いでおいて、あとから書く」書き方をしていたスクリプトは切られます。<mark>データが揃ってから繋ぐ形に直す必要があります</mark>。</p>
+
+      <p class="lead">2つ目。サンドボックス（外部通信を制限した状態）でBashを使うとき、許可されたホスト（接続先のサーバー名）の一覧をClaudeに見せなくなりました。一覧に無いホストを「どうせ塞がっている」と決めつけず、実際に試して、その場で承認を求める形になります。</p>
+
+      <p class="lead">これは<b>こちらで直すものはありません</b>。Claudeの試し方が変わるだけで、承認を求められる回数が増えます。</p>
+
+      <p class="lead">3つ目はmacOSだけの話です。computer use（画面を操作させる機能）でデスクトップ・Dock・Finderのウィンドウを触るには、Finderへの許可が要るようになりました。他のアプリと同じ扱いです。許可を出していない環境では、そこで止まります。</p>
+
+      <details class="note-d">
+        <summary>新しく足された設定（対応は要らないが、知っておくと効くもの）</summary>
+        <p class="lead"><code>modelPicker</code>：<code>/model</code> に出るモデルの並びを、自分で決めた順と名前に差し替えられます。</p>
+        <p class="lead"><code>promptCacheTtl</code> と <code>subagentPromptCacheTtl</code>：APIキーやクラウド事業者経由で使っている場合に、本体の会話だけプロンプトキャッシュを1時間に保ち、サブエージェントは5分のままにできます。</p>
+        <p class="lead"><code>modelPricing</code>（管理者向け）：契約単価と割引率を入れると、<code>/cost</code> やステータス行の金額が定価ではなく契約額で出ます。</p>
+        <p class="lead">あわせて <code>/login</code> に「Anthropic Console のアカウントでサインインする」経路が増えました。APIキーを配れない会社でもサインインできます。</p>
+        <p class="lead">4つ目の <code>Changed</code> はクラウド事業者経由（Bedrock / Vertex / Foundry）と、利用状況の送信を切っている場合の話です。<code>/model</code> <code>/fast</code> <code>/effort</code> が、ターンの終わりを待たずその場で効くようになりました。</p>
+      </details>
+
+      <ul class="points">
+        <li><b>別セッションへ投げるスクリプトがあるなら。</b>接続してから書き出すまでが30秒以内か確認し、揃えてから繋ぐ形にする。</li>
+        <li><b>macOSで画面操作をさせているなら。</b>Finderへのアクセス許可を先に出しておく。</li>
+        <li><b>今やること。</b>心当たりが無ければ対応は不要。更新するなら最新の 2.1.245 で、この号の変更も入っています。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ Web開発・インフラ ============ -->
+  <section class="section section-c" id="dev">
+    <h2>🧑‍💻 Web開発・インフラ<span class="n">2件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=laravel.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Laravel</div>
+      <h3>Laravel 13.27.0 — <code>in_array</code> と <code>doesnt_contain</code> の判定が厳密比較に変わった</h3>
+      <div class="tags">
+        <span class="tag">8/25 公開</span>
+        <span class="tag">Laravelを使っている人</span>
+        <span class="tag">挙動が変わる</span>
+        <span class="tag">Laravel</span>
+      </div>
+
+      <p class="lead">Laravel 本体の v13.27.0 が、8月25日23:16（JST）に Packagist（Composerが取りに行くパッケージの置き場）へ出ました。版番号の真ん中が上がった更新ですが、<b>入力チェック（バリデーション）の判定基準が2つ変わっています</b>。</p>
+
+      <p class="lead">いつ自分の環境に来るかというと、<code>composer.json</code> の指定が <code>^13.0</code> のような形なら、<b>次に <code>composer update</code> を実行したとき</b>です。放っておいて勝手に上がることはありません。</p>
+
+      <p class="lead">変わったのは、引数が1つ増えただけです。実際に2つの版からファイルを取って並べると、こうなります（<code>-</code> が v13.26.1、<code>+</code> が v13.27.0）。</p>
+
+      <div class="code term"><div class="code-head">2つの版でソースを比べる</div><pre>$ bash laravel_strict.sh
+-- validateInArray
+- in_array($value, $otherValues)
+<span class="ok-line">+ in_array($value, $otherValues, true)</span>
+-- validateDoesntContain
+- in_array($parameter, $value))
+<span class="ok-line">+ in_array($parameter, $value, true))</span>
+-- validateContains
+- in_array($parameter, $value))
+<span class="ng-line">+ in_array($parameter, $value))</span></pre></div>
+
+      <p class="lead">第3引数の <code>true</code> が付きました。PHPの <code>in_array</code> は、これが無いと型を揃えてから比べます。付けると型も一致しないと通りません。</p>
+
+      <p class="lead">どのくらい違うのかを、この環境のPHP 8.4.19で実際に流しました。<code>[1, 0, 'abc']</code> の中を探した結果です。<code>loose</code> が今までの判定、<code>strict</code> がこれからの判定です。</p>
+
+      <div class="code term"><div class="code-head">PHP 8.4.19 で実行</div><pre>$ php strict.php
+value  loose  strict
+<span class="ng-line">'1'    match  -</span>
+<span class="ng-line">0.0    match  -</span>
+'ABC'  -      -
+<span class="ng-line">true   match  -</span>
+<span class="ng-line">NULL   match  -</span></pre></div>
+
+      <p class="lead">つまり、<mark>フォームから来た文字列の <code>"1"</code> は、比較先が数値の <code>1</code> だともう通りません</mark>。JSONのボディやクエリ文字列で型がばらつくAPIほど当たります。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/strict-compare-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/strict-compare.png" alt="比較先が数値の1のとき、13.26.1までは文字列の1が通ったが、13.27.0からは落ちる。厳密化されたのはin_arrayとdoesnt_containで、containsは変わらないことを示した図" loading="lazy">
+        </picture>
+        <figcaption>厳密化されたのは2つ。containsは差し戻されて元のまま。</figcaption>
+      </figure>
+
+      <p class="lead"><code>contains</code> だけ元のままなのは、同じ版の中で<b>いったん厳密化してから取り消された</b>ためです（#61320 を #61330 で差し戻し）。3つまとめて変わったと思い込むと、テストの想定を間違えます。</p>
+
+      <ul class="points">
+        <li><b>使っているか調べるなら。</b>プロジェクトの一番上で <code>grep -rn "in_array:\|doesnt_contain:" app/ routes/</code>。</li>
+        <li><b>当たったら。</b>比較先の配列と入力の型を揃えるか、<code>integer</code> などの型ルールを前段に置く。</li>
+        <li><b>今やること。</b>上のgrepで0件なら対応は不要。1件でも出たら、上げる前にテストを流す。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=aws.amazon.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">AWS</div>
+      <h3>ECSが自分でタスクを退避するようになった — Fargateでも勝手に置き換わる</h3>
+      <div class="tags">
+        <span class="tag">8/25 公開</span>
+        <span class="tag">ECS on Fargate を使っている人</span>
+        <span class="tag">挙動が変わる</span>
+        <span class="tag">AWS</span>
+      </div>
+
+      <p class="lead">先に用語です。ECS は、コンテナ（アプリ一式を箱詰めして動かす仕組み）をまとめて運転するAWSのサービスです。動かし方が2通りあり、<b>土台のサーバーをAWSに任せるのが Fargate、自分で用意するのが EC2</b> です。ECSで動くコンテナのひとまとまりをタスクと呼びます。</p>
+
+      <p class="lead">AWSが8月25日、この ECS に <code>AGENT_CONNECTIVITY</code> という状態変更イベントを追加したと告知しました。</p>
+
+      <p class="lead">ECSのホストにはエージェントという常駐プログラムがいて、ECSの制御側とやり取りしています。ディスク（EBSボリューム）の劣化やネットワーク障害でこの線が切れると、実際には動いていないのに「動いていることになっている」状態が起きます。それを検知する話です。</p>
+
+      <div class="code wrap"><div class="code-head">AWS の告知（自動復旧の範囲）</div><pre>For ECS Managed Instances and AWS Fargate, ECS automatically performs recovery - automatically draining running tasks and launching replacement capacity while deregistering impaired instances.</pre></div>
+
+      <p class="lead">読むべきは <b>Fargate が対象に入っている</b>ことです。<mark>こちらが指示していなくても、動いているタスクが落とされて別のタスクに置き換わります</mark>。EC2で動かしている場合は自動復旧はされず、イベントを受けて自前で入れ替える形です。</p>
+
+      <p class="lead">追加費用は無く、商用リージョンとGovCloud（US）の全リージョンで使えるとされています。</p>
+
+      <p class="lead">タスクは止められる前に <code>SIGTERM</code>（終了しなさいという合図）を受けます。合図から強制終了までの猶予は、タスク定義（コンテナの起動設定を書いたJSON）の <code>stopTimeout</code> で決まります。</p>
+
+      <ul class="points">
+        <li><b>確認すること。</b>タスクが <code>SIGTERM</code> を受けてから終わるまでの処理と、タスク定義の <code>stopTimeout</code>。</li>
+        <li><b>あわせて。</b>ALB（アクセスを複数のタスクへ振り分ける装置）の登録解除の待ち時間が短すぎないか。</li>
+        <li><b>今やること。</b><b>本番ではなく検証環境で</b>タスクを1つ止め、接続が切れずに復帰するか見る。復帰するなら対応は不要。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ クライアント技術 ============ -->
+  <section class="section section-a" id="client">
+    <h2>📱 クライアント技術<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=chromereleases.googleblog.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Google / Chrome</div>
+      <h3>Chrome 152 と Android System WebView 152 が同じ日に出た — 修正327件のうちCriticalが10件</h3>
+      <div class="tags">
+        <span class="tag">8/26 公開</span>
+        <span class="tag">WebViewを積んでいる人</span>
+        <span class="tag">セキュリティ</span>
+        <span class="tag">Chrome</span>
+      </div>
+
+      <p class="lead">Chrome 152 の安定版が、日本時間の8月26日未明に出ました。デスクトップだけでなく、<b>Android System WebView も同じ 152.0.7977.64 に切り替わっています</b>（Chromiumの公開ダッシュボードで確認）。</p>
+
+      <p class="lead">WebViewは、アプリの中でWebページを表示する部品です。アプリを更新しなくても、端末側のWebViewが更新されれば中身の挙動は変わります。だから自社アプリのリリース予定とは無関係に効きます。</p>
+
+      <p class="lead">この版で直ったセキュリティ問題を、公式の告知本文から数えました。</p>
+
+      <div class="code term"><div class="code-head">Chrome 152 の修正を重大度と部品で数える</div><pre>$ python3 count_cves.py
+total     327
+<span class="ng-line">Critical    10</span>
+High        61
+Medium     184
+Low         72
+-- 部品ごと
+<span class="ng-line">ANGLE       27</span>
+<span class="ng-line">CustomTabs  10</span>
+WebGL        3
+WebView      2</pre></div>
+
+      <p class="lead">部品名で見ると、この読者に効く順に並びます。ANGLE はWebGLの描画をOSのグラフィックスAPIへ橋渡しする層で、<b>Unity Web のビルドが必ず通る場所</b>です。Custom Tabs は、アプリからブラウザを開く仕組みです。</p>
+
+      <p class="lead">Criticalの10件には、ANGLEの use-after-free（解放済みのメモリを使ってしまう不具合。攻撃に使われやすい）が1件あります（CVE-2026-79282）。<mark>WebViewやCustom Tabsを積んでいるアプリは、端末のWebViewが152に上がるまで穴が残ります</mark>。アプリ側でできることは無く、端末の更新待ちです。</p>
+
+      <p class="lead">なお、告知には「バグの詳細は、多くの利用者が更新を終えるまで公開を制限する」という但し書きがあります。個別の再現手順は今の時点では読めません。</p>
+
+      <p class="lead">検証端末でこれだけ見れば足ります。<span class="cl-count">0 / 3</span></p>
+
+      <ul class="checklist" data-key="chrome152-2026-08-26">
+        <li><label><input type="checkbox"><span>検証端末の WebView を152へ上げ（Playストアで Android System WebView を更新）、自社アプリの画面を一通り開いた</span></label></li>
+        <li><label><input type="checkbox"><span>Unity Web を配っているので、152のブラウザで起動と描画を確認した</span></label></li>
+        <li><label><input type="checkbox"><span>Custom Tabs で外部サイトへ飛ばす導線の、戻りと認証の流れを見た</span></label></li>
+      </ul>
+
+      <details class="note-d">
+        <summary>152では XSLT の削除も段階的に始まる</summary>
+        <p class="lead">Chromeの機能一覧（chromestatus）で 152 を引くと、Deprecate and remove XSLT が「段階的な適用（stepped rollout）」と「延命用のオリジントライアル」の両方に載っています。ブラウザ側でXSLTを使ってXMLを整形しているページは、152以降で順次動かなくなります。</p>
+        <p class="lead">ただし何%から切るかの数値は、この一覧からは取れません。数字は書きません。自社に <code>&lt;?xml-stylesheet</code> や <code>XSLTProcessor</code> を使っているページがあるかだけ、先に確かめておくと安全です。</p>
+      </details>
+
+      <ul class="points">
+        <li><b>WebViewを積んでいるなら。</b>上のチェックリストを検証端末で一周する。アプリの再ビルドは要らない。</li>
+        <li><b>今やること。</b>端末のWebViewが152に上がるのを待つだけ。アプリ側の対応は不要。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 技術・研究 ============ -->
+  <section class="section section-c" id="research">
+    <h2>🔬 技術・研究<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">arXiv</div>
+      <h3>1回の会話で、エージェントの記憶に仕込む攻撃 — 記憶を持たせる側の論文</h3>
+      <div class="tags">
+        <span class="tag">8/25 公開</span>
+        <span class="tag">記憶を持つ仕組みを作る人</span>
+        <span class="tag">論文（査読前）</span>
+        <span class="tag">セキュリティ</span>
+      </div>
+
+      <p class="lead">今日の1件目で、Claudeの記憶が既定でオンになった話を書きました。記憶を持つエージェントそのものを狙う攻撃の論文が、その前夜に出ています（日本時間8月25日1:37投稿）。</p>
+
+      <p class="lead">この節だけ、対象期間を48時間に広げています。24時間の枠には該当が1件もありませんでした。</p>
+
+      <p class="lead">ここでいうエージェントは、記憶や道具を持って自分で動くAIのことです（前のECSの節に出た常駐プログラムとは別物です）。</p>
+
+      <p class="lead">論文の主張はこうです。<b>記憶の中身を書き換える権限が無くても、普通に1回話しかけるだけで、後の別の質問の答えを操れる</b>。</p>
+
+      <div class="code wrap"><div class="code-head">論文Abstract（攻撃の前提）</div><pre>Thus we propose InjecMEM, a novel memory injection attack paradigm that requires only a single interaction (no read/edit access to memory store) to steer later responses of related queries toward a pre-specified output.</pre></div>
+
+      <p class="lead">仕掛けは2つの部品でできています。1つはその話題で必ず引き当てられるための目印、もう1つは引き当てられた後に出力をねじ曲げる短い命令です。命令のほうは、前後にどんな文が来ても効くように最適化してあります。</p>
+
+      <p class="lead">評価は MemoryOS と MemGPT という記憶の仕組みに対して行われ、MemoryOSで<b>検索成功率 35.4%・攻撃成功率 76.6%</b>（いずれも最大値）と報告されています。関係ない質問への影響は小さいままだった、ともあります。</p>
+
+      <p class="lead">大事な但し書きです。<mark>試されたのは公開されている記憶の仕組みであって、ClaudeやChatGPTの記憶ではありません</mark>。今日オンになった記憶が危ない、という話ではありません。自分たちで記憶を持つエージェントを組むときの設計材料として読むものです。</p>
+
+      <ul class="points">
+        <li><b>作る側なら。</b>記憶へ書き込む文を、書き込む前に検査する段を置く。<b>これは当方の目安</b>で、論文の提案ではない。</li>
+        <li><b>読むときの注意。</b>査読（専門家による事前審査）をまだ受けていない公開版です。数字は著者の環境での値。</li>
+        <li><b>今やること。</b>記憶を自作していないなら対応は不要。作っているなら、書き込み経路を1つに絞れているか見る。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ モデル・業界 ============ -->
+  <section class="section section-a" id="industry">
+    <h2>🏢 モデル・業界<span class="n">0件</span></h2>
+    <article class="item">
+      <p class="none">特筆すべき動きなし</p>
+      <p class="lead">対象期間内に動きはありましたが、<b>本文を取得できなかったので書いていません。</b>事情は次の節に書きます。</p>
+    </article>
+  </section>
+
+  <!-- ============ 何を見て「無い」と判断したか ============ -->
+  <section class="section section-b" id="quiet">
+    <h2>何を見て「無い」と判断したか</h2>
+
+    <article class="item">
+      <p class="lead">件数の少ない号では、「探さなかった」のか「探したが無かった」のかが読者に分かりません。ここに置きます。対象期間の24時間は、世界標準時では8月24日20:00 〜 8月25日20:00です。</p>
+
+      <p class="lead">まず書けなかったものから。OpenAIが8月25日に2件出しています（自社推論チップ「Jalapeño」の初期結果と、ChatGPT Work / Codex 向けの Admin プラグイン）。どちらもこの環境からは openai.com が403で、本文を1文字も読めていません。</p>
+
+      <div class="code term"><div class="code-head">読めなかったURLのHTTPステータス</div><pre>403  .../introducing-admin-plugin
+403  .../jalapeno-first-results
+429  syndication.twitter.com/...</pre></div>
+
+      <p class="lead">当媒体は読んでいない資料を要約しません。見出しと1行の紹介文だけで項目にはしないので、モデル・業界は0件のままにしています。403は「到達できなかった」であって「無い」ではありません。次号でも追います。</p>
+
+      <p class="lead">X(旧Twitter)は3日連続で取得できていません（429）。料金や利用上限の変更がXだけで告知される例は実際にあるので、「Xにも何も無かった」とは書けません。</p>
+
+      <details class="note-d">
+        <summary>確かめた先と、それぞれの最終更新を見る</summary>
+        <div class="table">
+          <table>
+            <thead>
+              <tr><th>確かめた先</th><th>最後に更新された時点</th><th>期間内</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Laravel 本体</td><td data-label="最終更新">v13.27.0 / 8/25 23:16 JST</td><td data-label="期間内">採用1件</td></tr>
+              <tr><td>PHP 全ブランチ</td><td data-label="最終更新">8.5.9 / 7/30</td><td data-label="期間内">0件</td></tr>
+              <tr><td>TiDB Cloud</td><td data-label="最終更新">8/18</td><td data-label="期間内">0件</td></tr>
+              <tr><td>Terraform 本体</td><td data-label="最終更新">1.15.9 / 8/19</td><td data-label="期間内">0件</td></tr>
+              <tr><td>AWS プロバイダ</td><td data-label="最終更新">6.61.0 / 8/19</td><td data-label="期間内">0件</td></tr>
+              <tr><td>AWS What's New</td><td data-label="最終更新">6件あり（下記）</td><td data-label="期間内">採用1件</td></tr>
+              <tr><td>Docker Desktop</td><td data-label="最終更新">4.88.1 / 8/25</td><td data-label="期間内">1件（不採用）</td></tr>
+              <tr><td>Chrome Releases</td><td data-label="最終更新">152 安定版 / 8/26 未明</td><td data-label="期間内">採用1件</td></tr>
+              <tr><td>Unity エディタ</td><td data-label="最終更新">6000.0.82f1 / 8/19</td><td data-label="期間内">0件</td></tr>
+              <tr><td>VRChat Worlds SDK</td><td data-label="最終更新">3.10.4 / 6/17</td><td data-label="期間内">0件</td></tr>
+              <tr><td>VRChat クライアント</td><td data-label="最終更新">2026.3.2 公開ベータ / 8/18</td><td data-label="期間内">0件</td></tr>
+              <tr><td>Claude Code</td><td data-label="最終更新">2.1.246 / 8/26 4:17 JST</td><td data-label="期間内">採用1件</td></tr>
+              <tr><td>GitHub Changelog</td><td data-label="最終更新">8/26 5:05 JST</td><td data-label="期間内">2件（不採用）</td></tr>
+              <tr><td>Cursor Changelog</td><td data-label="最終更新">8/19</td><td data-label="期間内">0件</td></tr>
+              <tr><td>Anthropic / OpenAI 稼働状況</td><td data-label="最終更新">8/25 5:26 JST 復旧</td><td data-label="期間内">1件（不採用）</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <p class="lead">動きはあったが落としたものを、理由と一緒に置きます。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>対象</th><th>期間内</th><th>落とした理由</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>AWS</td>
+              <td data-label="期間内">6件中5件</td>
+              <td data-label="落とした理由">Amazon Connect、RDS for PostgreSQL / Oracle の小版対応、Secrets Manager の他社製品連携、Lambda のリソースベースポリシー全面対応。読者のスタックで今日動くものが無い</td>
+            </tr>
+            <tr>
+              <td>Docker Desktop</td>
+              <td data-label="期間内">4.88.0 / 4.88.1</td>
+              <td data-label="落とした理由">全行を並べたが、提供終了・料金・セキュリティの行が0件。Mac版でVMMのメモリ上限28GiBが外れた行はあるが、判断することがない</td>
+            </tr>
+            <tr>
+              <td>Claude Code</td>
+              <td data-label="期間内">3版中2版</td>
+              <td data-label="落とした理由">2.1.245 は「Linuxのglibc 2.44で起動時に落ちる」の修正1行のみ。2.1.246 は <code>next</code> タグ側でCHANGELOGにまだ項目が無い</td>
+            </tr>
+            <tr>
+              <td>Anthropic 稼働状況</td>
+              <td data-label="期間内">1件</td>
+              <td data-label="落とした理由">8月25日5:11〜5:26（JST）のログイン不具合。15分で復旧しており、判断することがない</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="points">
+        <li><b>自分で巡回する人へ。</b>chromiumdash の <code>fetch_releases</code> は、Chrome本体とWebViewを同じ形で引ける。WebViewだけ遅れていないかがすぐ分かる。</li>
+        <li><b>今やること。</b>対応は不要。</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark>掲載した全URLは取得時にHTTPステータスを確認しています。再現用の一式は <code>_labs/2026-08-26_001/</code> に置いてあります。</p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Claude's memory works everywhere, and you decide what's in it」<i>Claude Blog</i>, 2026年8月25日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 冒頭「Starting today, the memory you use in chat is the same as in Claude Cowork.」、「Memory updates as you chat」節の「Claude now adds topics to memory as you chat, instead of summarizing conversations after they end.」、「See and edit your saved memories」節の「Everything Claude remembers is in a list of files under Topics in Memory settings, where you can read, edit, or delete each one.」、センシティブ話題の節（既定オフ、オンにすると保存のたびに通知、遡っては保存しない、SSN・政府発行ID・犯罪歴・在留資格・AUP違反は保存しない）、「Getting started」節の「Memory is on by default on Free, Pro and Max plans across web, desktop, and mobile.」以下。Cowork の説明に使った「When Cowork runs a task in the cloud」も同ページ。<b>記事に貼った原文は改行位置だけを幅に合わせて折り、語句は一字も変えていない。</b>ページの Date 欄が「August 25, 2026」。</span></details>
+          <a href="https://claude.com/blog/claudes-memory-works-everywhere-and-you-decide-whats-in-it">https://claude.com/blog/claudes-memory-works-everywhere-and-you-decide-whats-in-it</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Claude Code CHANGELOG」<i>anthropics/claude-code リポジトリ・main ブランチ</i>, 2.1.243 の節.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: <code>## 2.1.243</code> のブロック全60行。記事に引用した原文は「Changed the cross-session messaging inbox socket to close connections that send no complete line within 30 seconds; scripts posting to it should connect once their data is ready」。サンドボックスの行は「Changed the sandboxed Bash tool prompt to no longer list allowed network hosts, so Claude attempts requests (and you can approve new hosts) instead of assuming unlisted hosts are blocked」。macOSの行は「Changed computer use on macOS so clicking the desktop, Dock, or a Finder window requires granting Finder via the access dialog, like any other app」。<code>details</code> に書いた設定4件も同ブロックの <code>- Added</code> 行から。<b>github.com はこの環境から403のため raw.githubusercontent.com 経由で取得した。</b>同じ内容は code.claude.com/docs/en/changelog でも確認している。</span></details>
+          <a href="https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md">https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Claude Code の各版の公開時刻と、2.1.243 の変更行の内訳。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月26日、npmレジストリの <code>time</code> フィールドを取得した。2.1.242 は <code>2026-08-24T19:16:14.767Z</code>（JST 8/25 4:16、対象期間の44分前）、2.1.243 は <code>2026-08-24T23:10:45.498Z</code>（JST 8/25 8:10）、2.1.245 は <code>2026-08-25T04:45:52.102Z</code>（JST 8/25 13:45）、2.1.246 は <code>2026-08-25T19:17:34.421Z</code>（JST 8/26 4:17）。<code>dist-tags</code> は <code>latest</code> が 2.1.245、<code>next</code> が 2.1.246。<b>記事に貼ったターミナル出力は実際に流したコマンドと結果で、幅380pxに収めるため行継続（<code>\</code>）を入れただけ。</b>なお最初に流した正規表現は <code>^- (Added|…)</code> で、<b><code>- [VSCode] Fixed …</code> のように接頭辞の付く4行を数え漏らしていた</b>（合計が56行にしかならず、箇条書きの実数60行と合わなかった）。接頭辞を見込む形に直して流し直し、Added 10 / Changed 4 / Fixed 33 / Improved 12 / Updated 1 = 60 で一致することを確認している。2.1.242 には CHANGELOG のブロックが今も存在しない（前号からの申し送りを確認した結果、追記されていない）。再現は <code>verify_sources.sh</code> の手順1〜2。</span></details>
+          <a href="https://registry.npmjs.org/@anthropic-ai/claude-code">https://registry.npmjs.org/@anthropic-ai/claude-code</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Laravel「Release Notes for 13.x」<i>laravel/framework リポジトリ・13.x ブランチ</i>, v13.27.0 の節（2026-08-25）.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: <code>## [v13.27.0] - 2026-08-25</code> のブロック。厳密化の3件は「Prevent loose comparison bypass in <code>in_array</code> validation rule」(#61319)、「Prevent loose comparisons in <code>doesnt_contain</code> validation rule」(#61318)、「Prevent loose comparison bypass in contains validation rule」(#61320)。差し戻しは同ブロックの「Revert "[13.x] Prevent loose comparison bypass in contains validation rule"」(#61330)。<b>個々のPull Requestのページは github.com が403で開けていないため、番号以外の内容は書いていない。</b>実際に何が変わったかはソースを直接比べて確かめた（次の項目）。</span></details>
+          <a href="https://raw.githubusercontent.com/laravel/framework/13.x/CHANGELOG.md">https://raw.githubusercontent.com/laravel/framework/13.x/CHANGELOG.md</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          <code>in_array</code> / <code>doesnt_contain</code> / <code>contains</code> の実際の差分と、PHPでの挙動の違い。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月26日、<code>ValidatesAttributes.php</code> を v13.26.1 と v13.27.0 の2つのタグから取得し、3つのメソッドの <code>in_array(...)</code> 呼び出しだけを抜いて並べた。<code>validateInArray</code> と <code>validateDoesntContain</code> には第3引数 <code>true</code> が付き、<code>validateContains</code> は<b>両タグで完全に同一</b>だった（<code>diff -q</code> で確認）。あわせて、この環境の PHP 8.4.19 で <code>in_array</code> の第3引数の有無による違いを実際に流した（<code>strict.php</code>）。<b>記事に貼った2つのターミナル出力は、どちらも加工せずそのまま貼っている。</b>幅を40字以内に収めるため、出力形式のほうをスクリプト側で先に短くしてから流した。再現は <code>laravel_strict.sh</code> と <code>strict.php</code>。Packagist の公開時刻は <code>2026-08-25T14:16:00+00:00</code>。</span></details>
+          <a href="https://raw.githubusercontent.com/laravel/framework/v13.27.0/src/Illuminate/Validation/Concerns/ValidatesAttributes.php">https://raw.githubusercontent.com/laravel/framework/v13.27.0/src/Illuminate/Validation/Concerns/ValidatesAttributes.php</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          AWS「Amazon ECS now automatically detects and repairs container instances with impaired agent connectivity」<i>AWS What's New</i>, 2026年8月25日（item の pubDate は 2026-08-24 22:42 GMT）.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 本文の「Amazon ECS now surfaces a new type of container instance health change event (AGENT_CONNECTIVITY) for all compute options: AWS Fargate, Amazon ECS Managed Instances, and Amazon ECS on EC2.」、記事に引用した「For ECS Managed Instances and AWS Fargate, ECS automatically performs recovery - automatically draining running tasks and launching replacement capacity while deregistering impaired instances.」、EC2側の「Customers running workloads on Amazon ECS on EC2, can use this health change event to drive instance replacement workflows.」、費用とリージョンの「This capability is available at no additional cost in all AWS Commercial and AWS GovCloud (US) Regions.」。切れる原因として挙げられているのは「EBS volume degradation, host thermal events, or network connectivity failures」。<b>告知からリンクされている docs.aws.amazon.com の解説ページは、この環境ではJavaScriptで組み立てられるため本文を取得できず、読んでいない。</b>そのため記事の記述は告知本文の範囲に限っている。</span></details>
+          <a href="https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-ecs-agent-connectivity-health">https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-ecs-agent-connectivity-health</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          ECSの項目の「今やること」（<code>SIGTERM</code>・<code>stopTimeout</code>・登録解除の待ち時間を見る）。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">AWSの告知には、利用者側で何を確認すべきかは書かれていない。<b>「自動でタスクが落とされて置き換わる」という挙動から、当方が運用上の目安として書いたもの</b>で、規格でもAWSの推奨でもない。<b>この環境からAWSは実行できないため、実機での確認は行っていない。</b></span></details>
+          <a href="https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-ecs-agent-connectivity-health">https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-ecs-agent-connectivity-health</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Chrome Release Team「Stable Channel Update for Desktop」<i>Chrome Releases</i>, 2026年8月25日 11:38 PDT（JST 8月26日 3:38）.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「The Chrome team is delighted to announce the promotion of Chrome 152 to the stable channel for Windows, Mac and Linux.」、版数「152.0.7977.64 (Linux) 152.0.7977.64/.65 Windows/Mac」、「This update includes 327 security fixes.」と、それに続くCVEの一覧全327行。詳細の公開制限についての但し書きは「Note: Access to bug details and links may be kept restricted until a majority of users are updated with a fix.」。記事で名前を出した CVE-2026-79282 は「Critical CVE-2026-79282: Use after free in ANGLE.」。</span></details>
+          <a href="https://chromereleases.googleblog.com/2026/08/stable-channel-update-for-desktop_0256176589.html">https://chromereleases.googleblog.com/2026/08/stable-channel-update-for-desktop_0256176589.html</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          327件の重大度・部品ごとの内訳と、WebViewが152に上がっていること。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月26日、上記の告知本文から <code>(Critical|High|Medium|Low) CVE-...: 説明.</code> の形を機械的に抜き出して数えた。総数327は告知本文の「327 security fixes」と一致する。内訳は Critical 10 / High 61 / Medium 184 / Low 72。部品は説明末尾の「in ○○」で数え、ANGLE 27 / CustomTabs 10 / WebGL 3 / WebView 2。<b>ターミナル出力は加工せずそのまま貼っている。</b>版数は Chromium の公開ダッシュボード <code>fetch_releases</code> を <code>platform=win / android / webview</code> の3つで引き、いずれも Stable の先頭が <code>152.0.7977.64</code> 系であることを確認した（Windowsのみ .65 も併記）。<b>ダッシュボードが返す時刻はダッシュボード側の更新時刻なので、公開時刻としては使わず、Chrome Releases の投稿時刻を使っている。</b>再現は <code>count_cves.py</code> と <code>verify_sources.sh</code> の手順5〜6。</span></details>
+          <a href="https://chromiumdash.appspot.com/fetch_releases?channel=Stable&amp;platform=webview&amp;num=3">https://chromiumdash.appspot.com/fetch_releases?channel=Stable&amp;platform=webview&amp;num=3</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Chrome「Deprecate and remove XSLT」<i>Chrome Platform Status</i>, マイルストーン152の一覧.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: <code>api/v0/features?milestone=152</code> が返す <code>features_by_type</code>。<code>Stepped rollout</code> と <code>Origin trial</code> の両方に「Deprecate and remove XSLT」が入っている（<code>Deprecated</code> には Private Aggregation API のみ、<code>Removed</code> は0件）。この一覧の <code>summary</code> に「Chromium uses the libxslt library to process these transformations, and libxslt was unmaintained for ~6 months of 2025.」がある（原文はMarkdown記法つき）。<b>「Security risks for all users outweigh the very small usage of this feature on the open web.」は一覧側には無く、個別の機能API <code>api/v0/features/4709671889534976</code> の <code>motivation</code> にある</b>（そちらも取得して読んだ）。<b>段階適用の割合や、完全に外れるマイルストーンの数値はどちらのAPIからも取得できないため、記事でも数値を書いていない。</b></span></details>
+          <a href="https://chromestatus.com/api/v0/features?milestone=152">https://chromestatus.com/api/v0/features?milestone=152</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Hanling Tian ほか計8名「InjecMEM: Memory Injection Attack on LLM Agent Memory Systems」<i>arXiv:2608.23471v1 [cs.CR]</i>, 2026年8月24日 16:37 UTC（JST 8月25日 1:37）.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: Abstract と本文冒頭（HTML版）。引用した原文は Abstract の「Thus we propose InjecMEM, a novel memory injection attack paradigm that requires only a single interaction (no read/edit access to memory store) to steer later responses of related queries toward a pre-specified output.」。数値は本文の「We evaluate InjecMEM primarily on a recent memory system (MemoryOS) and additionally a widely used agent framework (MemGPT), across multiple domains (e.g., health, finance) and backbone models. On MemoryOS, InjecMEM substantially outperforms baseline attacks, achieving up to 35.4% retrieval success rate (RSR) and 76.6% attack success rate (ASR).」。関係ない質問への影響は「The attack persists under benign memory drift, while non-target queries remain largely unaffected.」。<b>読んだのは Abstract と本文の導入部（HTML版）で、実験の詳細な章とAppendixは読んでいない。</b>そのため手法の内訳や転移の条件には踏み込んでいない。<b>査読前のプレプリントであり、商用サービスの記憶に対する評価は含まれていない。</b>倫理欄に「Most experiments were conducted in controlled research environments using synthetic data」とある。論文が防御について述べているのは結論の「Our results underscore the need to harden memory systems」までで、<b>「書き込む前に検査する」という具体策は論文の提案ではない</b>（次の項目に分けた）。</span></details>
+          <a href="https://arxiv.org/abs/2608.23471">https://arxiv.org/abs/2608.23471</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          論文の項目の「記憶へ書き込む文を、書き込む前に検査する段を置く」。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">論文は結論で「Our results underscore the need to harden memory systems」と述べているだけで、<b>どこに検査を置くべきかは書いていない</b>。「書き込む前」は当方の運用上の目安であり、論文の提案ではない。<b>Appendixの防御の章は読んでいない</b>ので、著者が評価した対策と一致するかは確認していない。</span></details>
+          <a href="https://arxiv.org/abs/2608.23471">https://arxiv.org/abs/2608.23471</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          落とした項目と、その理由（AWS 5件 / Docker Desktop 2件 / Claude Code 2版 / GitHub 2件 / 稼働状況1件）。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月26日、AWS What's New のRSSの <code>&lt;item&gt;</code> 100件を対象期間（8月24日20:00〜8月25日20:00 UTC）で絞ると6件だった。ECS以外の5件は Amazon Connect Customer の顧客プロフィール更新、RDS for PostgreSQL の小版対応、RDS for Oracle の2026年7月更新、Secrets Manager の Cisco / Netskope 対応、Lambda のIAMリソースベースポリシー全面対応。Docker Desktop は 4.88.0（8/24）と 4.88.1（8/25）の全行を並べたうえで落とした。提供終了・料金・セキュリティに当たる行は0件。<b>Mac版の「Extended Docker VMM memory capacity beyond the previous 28GiB limitation」だけは機能拡張に当たる</b>が、読者が判断することがないため採らなかった。GitHub Changelog の期間内2件は「Push rules in rulesets now support path exceptions」と「Block users directly from security advisories」で、どちらも今日動く必要が無いため落とした（8/26 5:05 JST の Copilot の項目は期間外）。Anthropic の稼働状況は status.anthropic.com のAPIで、8月24日20:11〜20:26 UTC のログイン不具合1件のみ。<b>フィード先頭の <code>&lt;pubDate&gt;</code> はチャンネル自身の生成時刻なので、必ず item 内だけを見ている。</b>再現は <code>verify_sources.sh</code> の手順7。</span></details>
+          <a href="https://aws.amazon.com/about-aws/whats-new/recent/feed/">https://aws.amazon.com/about-aws/whats-new/recent/feed/</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          OpenAI が8月25日に出した2件（Jalapeño の初期結果 / Admin プラグイン）。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">公式RSS（openai.com/news/rss.xml）で、<code>Jalapeño's first results show industry-leading speed and efficiency in AI inference</code>（pubDate 2026-08-25 07:00 GMT）と <code>Introducing the Admin plugin for ChatGPT Work and Codex</code>（同 00:00 GMT）の2件が対象期間内にあることは確認した。<b>しかし記事本文は openai.com が403で取得できず、読めたのはRSSの見出しと1行の紹介文だけ。</b>ブラウザ相当のUAとヘッダを付けても403。help.openai.com も403。<b>本文を読んでいないので内容は書いていない。「無い」の根拠にもしていない。</b></span></details>
+          <a href="https://openai.com/news/rss.xml">https://openai.com/news/rss.xml</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          X(旧Twitter)の公式アカウントの直近24時間の投稿。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">CLAUDE.md 第18節の巡回先について、<code>syndication.twitter.com</code> のプロフィール取得が429（回数制限）で本文0バイト。<b>8月24日・25日に続き3日連続で取得できていない。</b>検索経由（<code>site:x.com/&lt;ハンドル&gt;</code>）でも、対象期間の投稿を列挙できなかった。料金・利用上限・提供終了がXだけで告知される例は実際にあるため、<b>「Xには何も無かった」とは書いていない。</b>経路の作り直しが要る、という状態が続いている。</span></details>
+          <a href="https://x.com/ClaudeDevs">https://x.com/ClaudeDevs</a>（2026年8月26日参照）
+        </li>
+      </ol>
+    </article>
+  </section>
+
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

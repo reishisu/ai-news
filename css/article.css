@@ -293,7 +293,10 @@ p code, li code, dd code, td code, h2 code, h3 code, h4 code, figcaption code {
 .checklist input { width: 19px; height: 19px; margin-top: 3px; accent-color: var(--accent); flex: none; cursor: pointer; }
 .checklist li.checked label { opacity: .62; border-color: var(--ok); background: var(--ok-bg); }
 .checklist li.checked span { text-decoration: line-through; }
-.cl-count { font-variant-numeric: tabular-nums; font-weight: 800; color: var(--accent); }
+/* 小書き仮名・長音符の行頭を禁じる。幅380pxで実測11箇所あった(2026/8/26) */
+body { line-break: strict; }
+
+.cl-count { font-variant-numeric: tabular-nums; font-weight: 800; color: var(--accent); white-space: nowrap; }
 .cl-done {
   margin-top: 14px; padding: 14px 18px; border-radius: 11px;
   background: var(--ok-bg); color: var(--ok); font-weight: 800; text-align: center;

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 348" font-family="sans-serif">
+  <text x="230" y="26" text-anchor="middle" font-size="23" font-weight="bold" fill="var(--fg)">記憶の置き場所が1つになった</text>
+
+  <!-- before -->
+  <text x="16" y="58" font-size="19" font-weight="bold" fill="var(--sub)">8月24日まで</text>
+  <rect x="16" y="68" width="196" height="44" rx="9" fill="var(--track)" stroke="var(--sub)" stroke-width="2"/>
+  <text x="114" y="96" text-anchor="middle" font-size="19" fill="var(--fg)">チャットに記憶あり</text>
+  <rect x="248" y="68" width="196" height="44" rx="9" fill="var(--track)" stroke="var(--sub)" stroke-width="2"/>
+  <text x="346" y="96" text-anchor="middle" font-size="19" fill="var(--c)">Coworkは記憶なし</text>
+  <line x1="212" y1="90" x2="248" y2="90" stroke="var(--c)" stroke-width="3" stroke-dasharray="6 5"/>
+  <rect x="248" y="68" width="196" height="44" rx="9" fill="none" stroke="var(--c)" stroke-width="3"/>
+  <text x="230" y="128" text-anchor="middle" font-size="20" fill="var(--c)">Coworkには毎回説明し直し</text>
+
+  <line x1="16" y1="146" x2="444" y2="146" stroke="var(--sub)" stroke-width="1" stroke-dasharray="4 4"/>
+
+  <!-- after -->
+  <text x="16" y="176" font-size="19" font-weight="bold" fill="var(--new)">8月25日から</text>
+  <rect x="16" y="186" width="140" height="44" rx="9" fill="var(--track)" stroke="var(--new)" stroke-width="3"/>
+  <text x="86" y="214" text-anchor="middle" font-size="19" fill="var(--fg)">チャット</text>
+  <rect x="304" y="186" width="140" height="44" rx="9" fill="var(--track)" stroke="var(--new)" stroke-width="3"/>
+  <text x="374" y="214" text-anchor="middle" font-size="19" fill="var(--fg)">Cowork</text>
+  <rect x="166" y="180" width="128" height="56" rx="9" fill="var(--track)" stroke="var(--new)" stroke-width="3"/>
+  <text x="230" y="204" text-anchor="middle" font-size="19" font-weight="bold" fill="var(--fg)">1つの記憶</text>
+  <text x="230" y="226" text-anchor="middle" font-size="20" fill="var(--sub)">Topics</text>
+  <line x1="156" y1="208" x2="166" y2="208" stroke="var(--new)" stroke-width="3"/>
+  <line x1="294" y1="208" x2="304" y2="208" stroke="var(--new)" stroke-width="3"/>
+
+  <rect x="16" y="252" width="428" height="84" rx="9" fill="var(--track)" stroke="var(--sub)" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="230" y="278" text-anchor="middle" font-size="19" fill="var(--fg)">書き込むのは会話の途中。終わるのを待たない</text>
+  <text x="230" y="304" text-anchor="middle" font-size="19" font-weight="bold" fill="var(--new)">Free / Pro / Max は既定でオン</text>
+  <text x="230" y="328" text-anchor="middle" font-size="20" fill="var(--sub)">Team / Enterprise は管理者が可否を決める</text>
+</svg>

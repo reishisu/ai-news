@@ -1,0 +1,10 @@
+total     327
+Critical    10
+High        61
+Medium     184
+Low         72
+-- 部品ごと
+ANGLE       27
+CustomTabs  10
+WebGL        3
+WebView      2

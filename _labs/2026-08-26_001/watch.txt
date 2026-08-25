@@ -1,0 +1,341 @@
+[
+ {
+  "key": "https://claude.com/blog/bain-company-joins-the-claude-partner-network-as-a-global-premier-partner",
+  "title": "Bain & Company joins the Claude Partner Network as a Global Premier partner",
+  "url": "https://claude.com/blog/bain-company-joins-the-claude-partner-network-as-a-global-premier-partner",
+  "date": "",
+  "source": "Anthropic ブログ"
+ },
+ {
+  "key": "https://claude.com/blog/claudes-memory-works-everywhere-and-you-decide-whats-in-it",
+  "title": "Claude's memory works everywhere, and you decide what's in it",
+  "url": "https://claude.com/blog/claudes-memory-works-everywhere-and-you-decide-whats-in-it",
+  "date": "",
+  "source": "Anthropic ブログ"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/admin-setup@2026-08-24",
+  "title": "admin-setup",
+  "url": "https://code.claude.com/docs/en/admin-setup",
+  "date": "2026-08-24",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/agent-sdk/cost-tracking@2026-08-25",
+  "title": "cost-tracking",
+  "url": "https://code.claude.com/docs/en/agent-sdk/cost-tracking",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/agent-sdk/python@2026-08-24",
+  "title": "python",
+  "url": "https://code.claude.com/docs/en/agent-sdk/python",
+  "date": "2026-08-24",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/agent-sdk/tool-search@2026-08-24",
+  "title": "tool-search",
+  "url": "https://code.claude.com/docs/en/agent-sdk/tool-search",
+  "date": "2026-08-24",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/agent-teams@2026-08-25",
+  "title": "agent-teams",
+  "url": "https://code.claude.com/docs/en/agent-teams",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/amazon-bedrock@2026-08-25",
+  "title": "amazon-bedrock",
+  "url": "https://code.claude.com/docs/en/amazon-bedrock",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/auto-mode-config@2026-08-25",
+  "title": "auto-mode-config",
+  "url": "https://code.claude.com/docs/en/auto-mode-config",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/changelog@2026-08-25",
+  "title": "changelog",
+  "url": "https://code.claude.com/docs/en/changelog",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/claude-platform-on-aws@2026-08-25",
+  "title": "claude-platform-on-aws",
+  "url": "https://code.claude.com/docs/en/claude-platform-on-aws",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/commands@2026-08-25",
+  "title": "commands",
+  "url": "https://code.claude.com/docs/en/commands",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/costs@2026-08-25",
+  "title": "costs",
+  "url": "https://code.claude.com/docs/en/costs",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/desktop@2026-08-25",
+  "title": "desktop",
+  "url": "https://code.claude.com/docs/en/desktop",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/discover-plugins@2026-08-24",
+  "title": "discover-plugins",
+  "url": "https://code.claude.com/docs/en/discover-plugins",
+  "date": "2026-08-24",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/env-vars@2026-08-25",
+  "title": "env-vars",
+  "url": "https://code.claude.com/docs/en/env-vars",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/fast-mode@2026-08-25",
+  "title": "fast-mode",
+  "url": "https://code.claude.com/docs/en/fast-mode",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/github-enterprise-server@2026-08-24",
+  "title": "github-enterprise-server",
+  "url": "https://code.claude.com/docs/en/github-enterprise-server",
+  "date": "2026-08-24",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/google-vertex-ai@2026-08-25",
+  "title": "google-vertex-ai",
+  "url": "https://code.claude.com/docs/en/google-vertex-ai",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/hooks-guide@2026-08-24",
+  "title": "hooks-guide",
+  "url": "https://code.claude.com/docs/en/hooks-guide",
+  "date": "2026-08-24",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/interactive-mode@2026-08-24",
+  "title": "interactive-mode",
+  "url": "https://code.claude.com/docs/en/interactive-mode",
+  "date": "2026-08-24",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/keybindings@2026-08-25",
+  "title": "keybindings",
+  "url": "https://code.claude.com/docs/en/keybindings",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/llm-gateway-connect@2026-08-24",
+  "title": "llm-gateway-connect",
+  "url": "https://code.claude.com/docs/en/llm-gateway-connect",
+  "date": "2026-08-24",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/llm-gateway-protocol@2026-08-24",
+  "title": "llm-gateway-protocol",
+  "url": "https://code.claude.com/docs/en/llm-gateway-protocol",
+  "date": "2026-08-24",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/managed-settings@2026-08-25",
+  "title": "managed-settings",
+  "url": "https://code.claude.com/docs/en/managed-settings",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/microsoft-foundry@2026-08-25",
+  "title": "microsoft-foundry",
+  "url": "https://code.claude.com/docs/en/microsoft-foundry",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/model-config@2026-08-25",
+  "title": "model-config",
+  "url": "https://code.claude.com/docs/en/model-config",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/network-config@2026-08-24",
+  "title": "network-config",
+  "url": "https://code.claude.com/docs/en/network-config",
+  "date": "2026-08-24",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/permissions@2026-08-25",
+  "title": "permissions",
+  "url": "https://code.claude.com/docs/en/permissions",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/plugin-dependencies@2026-08-24",
+  "title": "plugin-dependencies",
+  "url": "https://code.claude.com/docs/en/plugin-dependencies",
+  "date": "2026-08-24",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/plugin-marketplaces@2026-08-25",
+  "title": "plugin-marketplaces",
+  "url": "https://code.claude.com/docs/en/plugin-marketplaces",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/plugins@2026-08-25",
+  "title": "plugins",
+  "url": "https://code.claude.com/docs/en/plugins",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/plugins-reference@2026-08-25",
+  "title": "plugins-reference",
+  "url": "https://code.claude.com/docs/en/plugins-reference",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/prompt-caching@2026-08-25",
+  "title": "prompt-caching",
+  "url": "https://code.claude.com/docs/en/prompt-caching",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/sandboxing@2026-08-24",
+  "title": "sandboxing",
+  "url": "https://code.claude.com/docs/en/sandboxing",
+  "date": "2026-08-24",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/sessions@2026-08-24",
+  "title": "sessions",
+  "url": "https://code.claude.com/docs/en/sessions",
+  "date": "2026-08-24",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/settings@2026-08-24",
+  "title": "settings",
+  "url": "https://code.claude.com/docs/en/settings",
+  "date": "2026-08-24",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/settings-reference@2026-08-25",
+  "title": "settings-reference",
+  "url": "https://code.claude.com/docs/en/settings-reference",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/terminal-config@2026-08-25",
+  "title": "terminal-config",
+  "url": "https://code.claude.com/docs/en/terminal-config",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/tools-reference@2026-08-24",
+  "title": "tools-reference",
+  "url": "https://code.claude.com/docs/en/tools-reference",
+  "date": "2026-08-24",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/voice-dictation@2026-08-25",
+  "title": "voice-dictation",
+  "url": "https://code.claude.com/docs/en/voice-dictation",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/workflows@2026-08-25",
+  "title": "workflows",
+  "url": "https://code.claude.com/docs/en/workflows",
+  "date": "2026-08-25",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "https://code.claude.com/docs/en/worktrees@2026-08-24",
+  "title": "worktrees",
+  "url": "https://code.claude.com/docs/en/worktrees",
+  "date": "2026-08-24",
+  "source": "Claude Code ドキュメント"
+ },
+ {
+  "key": "hash:ce06f4bd81bb1d9f",
+  "title": "(ページ本文が変わりました)",
+  "url": "https://cookbook.openai.com/",
+  "date": "",
+  "source": "OpenAI Cookbook"
+ },
+ {
+  "key": "https://laravel-news.com/laravel-auditor?utm_medium=feed&amp;utm_source=feedpress.me&amp;utm_campaign=Feed%3A+laravelnews",
+  "title": "Laravel Auditor Audits Your App With Your Own AI Agent",
+  "url": "https://laravel-news.com/laravel-auditor?utm_medium=feed&amp;utm_source=feedpress.me&amp;utm_campaign=Feed%3A+laravelnews",
+  "date": "2026-08-24",
+  "source": "Laravel News"
+ },
+ {
+  "key": "@anthropic-ai/claude-code@2.1.243",
+  "title": "@anthropic-ai/claude-code 2.1.243  ライセンス SEE LICENSE IN README.md",
+  "url": "https://www.npmjs.com/package/@anthropic-ai/claude-code/v/2.1.243",
+  "date": "2026-08-24",
+  "license": "SEE LICENSE IN README.md",
+  "source": "npm claude-code"
+ },
+ {
+  "key": "@anthropic-ai/claude-code@2.1.245",
+  "title": "@anthropic-ai/claude-code 2.1.245  ライセンス SEE LICENSE IN README.md",
+  "url": "https://www.npmjs.com/package/@anthropic-ai/claude-code/v/2.1.245",
+  "date": "2026-08-25",
+  "license": "SEE LICENSE IN README.md",
+  "source": "npm claude-code"
+ },
+ {
+  "key": "@anthropic-ai/claude-code@2.1.246",
+  "title": "@anthropic-ai/claude-code 2.1.246  ライセンス SEE LICENSE IN README.md",
+  "url": "https://www.npmjs.com/package/@anthropic-ai/claude-code/v/2.1.246",
+  "date": "2026-08-25",
+  "license": "SEE LICENSE IN README.md",
+  "source": "npm claude-code"
+ }
+]

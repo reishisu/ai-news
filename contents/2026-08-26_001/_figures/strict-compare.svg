@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 344" font-family="sans-serif">
+  <text x="230" y="26" text-anchor="middle" font-size="23" font-weight="bold" fill="var(--fg)">in_array ルールの判定が変わる</text>
+  <text x="230" y="52" text-anchor="middle" font-size="20" fill="var(--sub)">比較先が数値の 1 のとき、"1" は？</text>
+
+  <rect x="16" y="70" width="204" height="118" rx="9" fill="var(--track)" stroke="var(--sub)" stroke-width="2"/>
+  <text x="118" y="98" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--sub)">13.26.1 まで</text>
+  <text x="118" y="126" text-anchor="middle" font-size="20" fill="var(--fg)">型を揃えて比べる</text>
+  <text x="118" y="156" text-anchor="middle" font-size="22" font-weight="bold" fill="var(--fg)">"1" は通る</text>
+  <text x="118" y="180" text-anchor="middle" font-size="20" fill="var(--sub)">true も 0.0 も通る</text>
+
+  <rect x="240" y="70" width="204" height="118" rx="9" fill="var(--track)" stroke="var(--c)" stroke-width="3"/>
+  <text x="342" y="98" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--c)">13.27.0 から</text>
+  <text x="342" y="126" text-anchor="middle" font-size="20" fill="var(--fg)">型も一致が必要</text>
+  <text x="342" y="156" text-anchor="middle" font-size="22" font-weight="bold" fill="var(--c)">"1" は落ちる</text>
+  <text x="342" y="180" text-anchor="middle" font-size="20" fill="var(--sub)">true も 0.0 も落ちる</text>
+
+  <text x="230" y="222" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">この版で厳密化されたルール</text>
+
+  <rect x="16" y="240" width="204" height="44" rx="9" fill="var(--track)" stroke="var(--c)" stroke-width="3"/>
+  <text x="118" y="269" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">in_array</text>
+  <rect x="240" y="240" width="204" height="44" rx="9" fill="var(--track)" stroke="var(--c)" stroke-width="3"/>
+  <text x="342" y="269" text-anchor="middle" font-size="20" font-weight="bold" fill="var(--fg)">doesnt_contain</text>
+
+  <rect x="16" y="294" width="428" height="42" rx="9" fill="var(--track)" stroke="var(--sub)" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="230" y="322" text-anchor="middle" font-size="20" fill="var(--fg)">contains は変わらない（差し戻し）</text>
+</svg>

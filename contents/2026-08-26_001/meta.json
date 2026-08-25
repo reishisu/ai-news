@@ -1,0 +1,19 @@
+{
+  "category": "デイリーダイジェスト",
+  "tags": [
+    "Anthropic",
+    "Claude Code",
+    "Laravel",
+    "AWS",
+    "WebView",
+    "セキュリティ"
+  ],
+  "featured": true,
+  "title": "AI-news：2026/08/26 — Claudeの記憶がCoworkと共通になり、会話中に書き込まれる",
+  "summary": "Claudeの記憶がチャットとCoworkで1つになり、会話が終わるのを待たずに書き込まれるようになりました。Free/Pro/Maxは既定でオンです。Laravel 13.27.0はin_arrayとdoesnt_containのバリデーションを厳密比較に変更。Chrome 152とAndroid System WebView 152が同じ日に出て、セキュリティ修正は327件でした。",
+  "thumbnail": "images/thumb.png",
+  "thumb": {
+    "main": "記憶が1つになった",
+    "sub": "Coworkでも同じ記憶を使う。既定でオン"
+  }
+}

@@ -1,0 +1,9 @@
+-- validateInArray
+- in_array($value, $otherValues)
++ in_array($value, $otherValues, true)
+-- validateDoesntContain
+- in_array($parameter, $value))
++ in_array($parameter, $value, true))
+-- validateContains
+- in_array($parameter, $value))
++ in_array($parameter, $value))

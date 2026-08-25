@@ -1,0 +1,48 @@
+== 1. Claude Code の版と公開時刻（npm レジストリ）
+2.1.240   JST 08/22 22:03
+2.1.241   JST 08/23 08:58
+2.1.242   JST 08/25 04:16
+2.1.243   JST 08/25 08:10
+2.1.245   JST 08/25 13:45
+2.1.246   JST 08/26 04:17
+== 2. 2.1.243 の変更行を種類ごとに数える
+     10 - Added
+      4 - Changed
+     31 - Fixed
+     10 - Improved
+      1 - Updated
+== 3. Laravel v13.27.0 の公開時刻（Packagist）
+v13.27.0 2026-08-25T14:16:00+00:00
+v13.26.1 2026-08-18T20:31:28+00:00
+v13.26.0 2026-08-18T12:30:10+00:00
+== 4. in_array / doesnt_contain の差分（ソースを2つのタグで取って比べる）
+<         return in_array($value, $otherValues);
+>         return in_array($value, $otherValues, true);
+<         return array_all($parameters, fn ($parameter) => ! in_array($parameter, $value));
+>         return array_all($parameters, fn ($parameter) => ! in_array($parameter, $value, true));
+-- contains は差分なしのはず
+contains: 同一
+== 5. Chrome / WebView の安定版（chromiumdash）
+win 152.0.7977.65      JST 08/26 03:32
+win 152.0.7977.64      JST 08/26 03:32
+android 152.0.7977.64      JST 08/26 03:18
+android 151.0.7922.174     JST 08/26 03:18
+webview 152.0.7977.64      JST 08/26 03:34
+webview 151.0.7922.200     JST 08/26 03:34
+== 6. Chrome 152 のセキュリティ修正を重大度と部品で数える
+total 327 Counter({'Medium': 184, 'Low': 72, 'High': 61, 'Critical': 10})
+components [('ANGLE', 27), ('Network', 18), ('CustomTabs', 10), ('GPU', 9), ('Extensions', 9), ('V8', 9)]
+WebView 2
+CustomTabs 10
+== 7. AWS What's New の対象期間内の item
+  08/25 16:00Z Amazon Connect Customer now lets you update the customer profile on a 
+  08/25 16:00Z Amazon RDS for PostgreSQL supports minor versions 18.6, 17.11, 16.15, 
+  08/25 07:24Z Amazon RDS for Oracle now supports July 2026 Release Update
+  08/25 07:00Z AWS Secrets Manager adds managed external secrets support for Cisco Se
+  08/25 02:00Z AWS Lambda functions now support full IAM resource-based policies
+  08/24 22:42Z Amazon ECS now automatically detects and repairs container instances w
+期間内 6 件
+== 8. 読めなかったもの（到達できないことは「無い」の根拠にしない）
+403  https://openai.com/index/introducing-admin-plugin
+403  https://openai.com/index/jalapeno-first-results
+429  https://syndication.twitter.com/srv/timeline-profile/screen-name/ClaudeDevs
