@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Codeのスキルの作り方 — 自動で呼ばれる条件を60回測った</title>
+<meta name="description" content="スキルはフォルダ1つとSKILL.md 1枚で作れます。ただし置いただけでは自動で呼ばれません。同じ質問を60回投げて数えたところ、説明を雑にしても毎回呼ばれる場合と、落ちる場合がありました。差はフォルダ名にありました。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claude Codeのスキルの作り方 — 自動で呼ばれる条件を60回測った">
+<meta property="og:description" content="同じ質問を60回。descriptionを雑にしても呼ばれる場合と落ちる場合の差は、フォルダ名にありました。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-26_skills-trigger/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-26_skills-trigger/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=081fefa4">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">AIで作る技術 ｜ 2026年8月26日(水)</div>
+    <h1>Claude Codeのスキルの作り方 — 自動で呼ばれる条件を60回測った</h1>
+    <div class="range">連載「AIにコードを任せるまでの4段階」の続き。同じ手順を毎回貼り付けるのをやめる話です。ログは全部この環境の実測で、無加工です。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 作るのは約1分</span>
+      <span class="tag">前提知識ゼロ</span>
+      <span class="tag">全部コピペOK</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li><b>スキルはフォルダ1つとファイル1枚。</b><span>設定画面もインストールもありません。書いた内容はその場で反映されます。</span></li>
+      <li><b>置いただけでは自動で呼ばれません。</b><span>同じ質問を60回投げて数えました。呼ばれる条件は<mark>フォルダ名とdescriptionの言葉</mark>でした。</span></li>
+      <li><b>逆に、勝手に呼ばれるのは1行で止まります。</b><span>デプロイのように事故る手順は止めておきます。</span></li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">スキルはフォルダ1つとSKILL.md 1枚</a></li>
+      <li><a href="#s2">実験1: 説明を雑にしても呼ばれた（予想が外れた）</a></li>
+      <li><a href="#s3">実験2: フォルダ名を無意味にしたら落ちた</a></li>
+      <li><a href="#s4">実験3: 勝手に呼ばれるのを止める1行</a></li>
+      <li><a href="#s5">作るときの確認項目</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>スキルはフォルダ1つとSKILL.md 1枚</h2>
+
+    <article class="item">
+      <h3>毎回同じ指示を貼っているなら、それがスキルにする対象</h3>
+      <p class="lead">「リリース前にこれとこれを確認して」を毎回打ち込んでいるとします。それをファイルに1回書いておくと、次から名前を呼ぶだけで済みます。</p>
+      <p class="lead">作り方は、決まった場所にフォルダを作って、その中に <code>SKILL.md</code> を1枚置くだけです。編集はその場で反映されます。</p>
+      <p class="lead">ただし<mark><code>.claude/skills/</code> 自体を新しく作ったときだけは、いったん終了して開き直してください。</mark>公式ドキュメントにそう書かれています。「置いたのに出てこない」の多くはこれです。</p>
+
+      <div class="code"><div class="code-head">置き場所（プロジェクト用）</div><pre>your-project/
+└── .claude/
+    └── skills/
+        └── release-check/
+            └── SKILL.md</pre></div>
+
+      <div class="code"><div class="code-head">.claude/skills/release-check/SKILL.md</div><pre>---
+description: リリース前の確認手順を返す。ユーザーがリリース前に何を確認するか、デプロイしてよいか、公開前のチェックについて尋ねたときに使う。
+---
+
+リリース前に、次の3つをこの順で確認する。
+
+1. `git status` が空であること
+2. テストが全部通ること
+3. バージョン番号を上げたこと
+
+確認した内容を箇条書きで答える。</pre></div>
+
+      <p class="lead"><mark>descriptionは改行せず1行で書きます。</mark>長くなるので、上の枠は横に少しスクロールします。</p>
+
+      <ul class="points">
+        <li><b>上の <code>---</code> で囲まれた部分。</b>フロントマターと呼びます。<mark>いつ使うか</mark>を書く場所です。</li>
+        <li><b>その下。</b>本文です。実際にやってほしいことを、普通の日本語で書きます。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <h3>置き場所は2つ。自分だけか、チーム全員か</h3>
+      <p class="lead">同じ書式のまま、置く場所を変えるだけで効く範囲が変わります。プロジェクト用に置いてコミットすれば、チーム全員に配れます。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>種類</th><th>置き場所</th><th>効く範囲</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>個人用</b><br><span class="cap">自分の全プロジェクト</span></td>
+              <td data-label="置き場所"><code>~/.claude/skills/名前/SKILL.md</code></td>
+              <td data-label="効く範囲">自分だけ。どのプロジェクトでも使える</td>
+            </tr>
+            <tr>
+              <td><b>プロジェクト用</b><br><span class="cap">リポジトリに入れる</span></td>
+              <td data-label="置き場所"><code>.claude/skills/名前/SKILL.md</code></td>
+              <td data-label="効く範囲">このリポジトリだけ。コミットすれば全員に配れる</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">手で呼ぶときは <code>/release-check</code> と打ちます。この名前は<mark>フォルダ名から決まります</mark>。<code>name:</code> をフロントマターに書いても、そちらは一覧に出る表示名になるだけです。</p>
+
+      <div class="code wrap"><div class="code-head">公式ドキュメント「How a skill gets its command name」の原文</div><pre>In a personal or project skill, `name` sets only the display label shown in skill listings, and the command still comes from the directory name.</pre></div>
+    </article>
+
+    <article class="item">
+      <h3>CLAUDE.mdに書くのと何が違うのか — 本文は使うまでタダ</h3>
+      <p class="lead">同じ手順を <code>CLAUDE.md</code> に書いても動きます。違うのは<mark>お金と場所の使い方</mark>です。</p>
+      <p class="lead"><code>CLAUDE.md</code> は毎回まるごと読み込まれます。スキルは、名前と説明だけが常に読まれ、本文は呼ばれたときにだけ読み込まれます。</p>
+
+      <div class="code wrap"><div class="code-head">公式ドキュメント冒頭の原文</div><pre>Unlike CLAUDE.md content, a skill's body loads only when it's used, so long reference material costs almost nothing until you need it.</pre></div>
+
+      <p class="lead">つまり、長い手順書を置いても普段の負担はゼロです。そのかわり<mark>呼ばれなければ何も起きません</mark>。ここからが本題です。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/context-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/context.png" alt="SKILL.mdのうちフロントマターだけが常に文脈に載り、本文は呼ばれたときに読み込まれることを示した図" loading="lazy">
+        </picture>
+        <figcaption>常に読まれているのは名前と説明の2行だけ。呼ぶかどうかもこの2行で決まる。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>実験1: 説明を雑にしても呼ばれた（予想が外れた）</h2>
+
+    <article class="item">
+      <h3>「説明が雑だと呼ばれない」と予想して測ったら、外れました</h3>
+      <p class="lead">公式ドキュメントには、descriptionが呼び出しの判断材料だと書かれています。ならば雑な説明のスキルは呼ばれないはずです。確かめました。</p>
+      <p class="lead">用意したのは<mark>1行しか違わない2つのプロジェクト</mark>です。本文もフォルダ名も完全に同じにしました。</p>
+
+      <div class="code"><div class="code-head">A: よくある書き方（何をするかだけ）</div><pre>---
+description: リリースのメモ
+---</pre></div>
+
+      <div class="code"><div class="code-head">B: いつ使うかまで書いた版</div><pre>---
+description: リリース前の確認手順を返す。ユーザーがリリース前に何を確認するか、デプロイしてよいか、公開前のチェックについて尋ねたときに使う。
+---</pre></div>
+
+      <p class="lead">どちらのフォルダ名も <code>release-check</code> にしました。ここが後で効いてきます。</p>
+    </article>
+
+    <article class="item">
+      <h3>測り方 — 「Skill という道具が呼ばれたか」を数える</h3>
+      <p class="lead">同じ質問を10回ずつ投げます。人の感想ではなく、機械が読める記録で数えます。</p>
+      <p class="lead">Claude Codeは <code>-p</code> を付けると対話画面なしで動きます。<code>--output-format stream-json</code> を足すと、<mark>途中で使った道具が1行ずつJSONで出てきます</mark>。</p>
+
+      <div class="code"><div class="code-head">1回分の実行（実際に叩いたコマンド）</div><pre>claude -p "リリース前に何を確認すればいい？" \
+  --output-format stream-json --verbose</pre></div>
+
+      <div class="code"><div class="code-head">出てくるJSONの一部（実際の出力）</div><pre>{"type":"assistant","message":{"content":[
+  {"type":"tool_use","name":"Skill",
+   "input":{"skill":"release-check"}}]}}</pre></div>
+
+      <ul class="points">
+        <li><b>この <code>"name":"Skill"</code> が出たかどうかで判定します。</b>出ていれば自動で呼ばれた、出ていなければ呼ばれなかった、です。</li>
+        <li><b>毎回まっさらな会話にします。</b><code>--session-id</code> に毎回新しいIDを渡し、前の回を引きずらないようにしました。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <h3>結果 — 差がまったく出なかった</h3>
+      <div class="code term"><div class="code-head">実験1の結果（--&gt; の行が集計。中略あり）</div><pre>$ ./run_all.sh
+A 曖昧 1回目: 呼ばれた
+A 曖昧 2回目: 呼ばれた
+(中略)
+<span class="ok-line">--&gt; A 曖昧 oooooooooo 10/10</span>
+
+<span class="ok-line">--&gt; B 具体 oooooooooo 10/10</span></pre></div>
+
+      <p class="lead">雑な説明のほうも<mark>全部呼ばれました</mark>。予想は外れです。</p>
+
+      <div class="quiz">
+        <p class="q">Q. なぜ雑な説明でも呼ばれたのでしょう?</p>
+        <button class="opt" type="button" data-correct="false">10回では回数が少なすぎたから</button>
+        <button class="opt" type="button" data-correct="true">フォルダ名 release-check が説明になっていたから</button>
+        <button class="opt" type="button" data-correct="false">description は実際には読まれていないから</button>
+        <p class="ans" hidden>フォルダ名です。判断材料になるのは説明だけではなく、<b>名前と説明の両方</b>です。公式ドキュメントには、一覧に必ず全部のスキル名が入ると書かれています。<code>release-check</code>（リリース確認）という名前自体が、すでに「いつ使うか」を語っていました。</p>
+      </div>
+
+      <div class="code wrap"><div class="code-head">公式ドキュメント「Skill descriptions are cut short」の原文</div><pre>The listing always contains every skill name, but if you have many skills, Claude Code shortens descriptions to fit the listing's character budget, which can strip the keywords Claude needs to match your request.</pre></div>
+
+      <p class="lead">説明は削られることがあるが、名前は必ず残る。つまり<mark>名前のほうが確実に効く手がかり</mark>です。実験をやり直します。</p>
+    </article>
+  </section>
+
+  <section class="section section-a" id="s3">
+    <h2><span class="step">3</span>実験2: フォルダ名を無意味にしたら落ちた</h2>
+
+    <article class="item">
+      <h3>変えたのはフォルダ名だけ。description も本文もそのまま</h3>
+      <p class="lead"><code>release-check</code> を、意味を持たない <code>memo-1</code> に変えました。これで名前からは何も読み取れません。</p>
+
+      <div class="code"><div class="code-head">変えたのはここだけ</div><pre>.claude/skills/release-check/SKILL.md
+                ↓
+.claude/skills/memo-1/SKILL.md</pre></div>
+
+      <div class="code term"><div class="code-head">実験2の結果（--&gt; の行が集計。中略あり）</div><pre>(中略)
+<span class="ng-line">--&gt; A 曖昧 .o........ 1/10</span>
+
+<span class="ok-line">--&gt; B 具体 oooooooooo 10/10</span></pre></div>
+
+      <p class="lead">今度は差が出ました。雑な説明のほう（A）は<mark>10回中10回から、10回中1回まで落ちました</mark>。変えたのはフォルダ名だけです。良い説明のほう（B）は10回とも呼ばれたままでした。</p>
+
+      <ul class="points">
+        <li><b>名前と説明は、2つで1つの説明文です。</b>どちらかが「いつ使うか」を語っていれば呼ばれ、両方が黙っていると落ちます。</li>
+        <li><b>だから名前をケチらないでください。</b><code>memo-1</code> や <code>utils</code> のような名前は、説明を半分捨てているのと同じです。</li>
+      </ul>
+
+      <div class="code wrap"><div class="code-head">公式ドキュメント「Skill not triggering」の原文</div><pre>Check the description includes keywords users would naturally say</pre></div>
+
+      <p class="lead">「使う人が普段口にする言葉」を入れておけ、ということです。<code>memo-1</code> は誰も口にしません。</p>
+
+      <details>
+        <summary>10回で結論を出していいのか（正直な話）</summary>
+        <div class="body">
+          <dl>
+            <dt>回数は少ないです</dt>
+            <dd>1条件あたり10回です。統計としてきちんと差を主張できる回数ではありません。ここで言えるのは「同じ条件でも呼ばれたり呼ばれなかったりする」「その揺れがフォルダ名を変えると出てくる」までです。</dd>
+            <dt>毎回同じ数字にはなりません</dt>
+            <dd>呼ぶかどうかはモデルの判断なので、同じ入力でも結果は揺れます。手元で同じ手順を走らせても数字は一致しないはずです。検証一式を <code>_labs/</code> に置いてあるので、回数を増やして測り直せます。</dd>
+          </dl>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s4">
+    <h2><span class="step">4</span>実験3: 勝手に呼ばれるのを止める1行</h2>
+
+    <article class="item">
+      <h3>逆の困りごと — デプロイのスキルを勝手に呼ばれたら事故</h3>
+      <p class="lead">ここまでは「呼ばれない」話でした。逆もあります。<mark>本番に反映する手順を、AIの判断で始められたら困ります。</mark></p>
+      <p class="lead">これはフロントマターに1行足すだけで止まります。</p>
+
+      <div class="code"><div class="code-head">Bに1行足しただけ（+ の行）</div><pre> ---
+ description: リリース前の確認手順を返す。…
++disable-model-invocation: true
+ ---</pre></div>
+
+      <p class="lead">説明はさっきの「良い版」のまま、この1行だけを足して同じ質問を10回投げました。</p>
+
+      <div class="code term"><div class="code-head">実験3の結果（--&gt; の行が集計。中略あり）</div><pre>(中略)
+<span class="ok-line">--&gt; A 自動ON oooooooooo 10/10</span>
+
+<span class="ng-line">--&gt; B 自動OFF .......... 0/10</span></pre></div>
+
+      <p class="lead"><mark>1回も呼ばれませんでした。</mark>説明は「良い版」のままで、足したのは1行だけです。<br>「たまに止まる」ではなく、確実に止まります。</p>
+
+      <div class="code wrap"><div class="code-head">公式ドキュメント「Control who invokes a skill」の原文</div><pre>disable-model-invocation: true: Only you can invoke the skill. Use this for workflows with side effects or that you want to control timing, like /commit, /deploy, or /send-slack-message. You don't want Claude deciding to deploy because your code looks ready.</pre></div>
+
+      <ul class="points">
+        <li><b>手で呼ぶ分には今までどおりです。</b><code>/memo-1</code> と打てば動きます。止まるのは<mark>AIが自分で判断して呼ぶ経路だけ</mark>です。</li>
+        <li><b>おまけに軽くなります。</b>この1行を足すと説明文が常駐しなくなるので、そのぶん毎回の読み込みが減ります。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <h3>止め方は2種類ある。逆向きの指定もできる</h3>
+      <p class="lead">「自分だけが呼べる」の反対に、「AIだけが呼べる」もあります。用語の説明として、たとえば古い仕組みの背景知識のように、<mark>人がコマンドとして打つ意味がないもの</mark>に使います。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>書き方</th><th>人が呼べる</th><th>AIが呼べる</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>何も書かない</b><br><span class="cap">既定</span></td>
+              <td data-label="人が呼べる">呼べる</td>
+              <td data-label="AIが呼べる">呼べる</td>
+            </tr>
+            <tr>
+              <td><b>disable-model-invocation: true</b><br><span class="cap">デプロイなど事故る手順</span></td>
+              <td data-label="人が呼べる">呼べる</td>
+              <td data-label="AIが呼べる">呼べない</td>
+            </tr>
+            <tr>
+              <td><b>user-invocable: false</b><br><span class="cap">背景知識</span></td>
+              <td data-label="人が呼べる">呼べない</td>
+              <td data-label="AIが呼べる">呼べる</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s5">
+    <h2><span class="step">5</span>作るときの確認項目</h2>
+
+    <article class="item">
+      <h3>3つの実験を並べると、効いている場所が見える</h3>
+
+      <figure>
+        <picture>
+          <source srcset="images/result-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/result.png" alt="3つの実験それぞれで、スキルが自動で呼ばれた回数を比べた棒グラフ" loading="lazy">
+        </picture>
+        <figcaption>フォルダ名が説明になっていれば説明が雑でも呼ばれる。両方が黙ると落ちる。1行足せば止まる。</figcaption>
+      </figure>
+
+      <p class="lead">タップでチェックできます。 <span class="cl-count">0 / 5</span></p>
+      <ul class="checklist" data-key="skills-trigger-2026-08-26">
+        <li><label><input type="checkbox"><span>フォルダ名を、自分が普段口にする言葉にした（<code>memo-1</code> にしていない）</span></label></li>
+        <li><label><input type="checkbox"><span>description に「何をするか」だけでなく<b>「いつ使うか」</b>を書いた</span></label></li>
+        <li><label><input type="checkbox"><span>本番に触る手順なら <code>disable-model-invocation: true</code> を足した</span></label></li>
+        <li><label><input type="checkbox"><span>本文は手順だけにした（長い背景説明を入れていない）</span></label></li>
+        <li><label><input type="checkbox"><span>チームに配るなら <code>.claude/skills/</code> に置いてコミットした</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 全部できた！</div>
+    </article>
+
+    <article class="item">
+      <h3>次に読むもの</h3>
+      <p class="lead">スキルは「毎回同じ指示を書く手間」をなくす道具です。<mark>やってはいけないことを止める</mark>のは別の仕組みで、そちらはフックが担当します。</p>
+
+      <a class="next-up" href="../2026-08-14_hooks-guardrails/">
+        <div class="label">NEXT →</div>
+        <div class="t">Claude Codeのフックと権限設計 — AIを仕組みで止める</div>
+        <div class="d">スキルは「やってほしいこと」を渡す道具。フックは「やらせないこと」を設定で決める道具です。8通りの実測で確かめた記事です。</div>
+      </a>
+    </article>
+  </section>
+
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Extend Claude with skills」<i>Claude Code Docs</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: 「How a skill gets its command name」からコマンド名がフォルダ名で決まること、「Control who invokes a skill」から <code>disable-model-invocation</code> と <code>user-invocable</code> の効き方と対比表、「Troubleshooting &gt; Skill not triggering」から呼ばれないときの確認順、「Skill descriptions are cut short」から一覧に必ず全スキル名が入り説明のほうは削られうること、「Live change detection」から編集はセッション中に反映されるが最上位のスキル用ディレクトリを新設したときだけ再起動が要ること（原文: If you create a top-level skills directory that didn't exist when the session started, restart Claude Code so it can watch the new directory.）、冒頭から本文が使用時にだけ読み込まれること。記事に引用した英文は本文から一字も変えずに転記した。</span>
+          </details>
+          <a href="https://code.claude.com/docs/en/skills">https://code.claude.com/docs/en/skills</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          同ドキュメント「Inject dynamic context」の <code>!`コマンド`</code> 記法。
+          <details class="note-d"><summary>なぜ未確認か</summary>
+            <span class="note">本文に <code>!`git log --oneline -1`</code> を書いたスキルを <code>claude -p</code> で呼んだところ、出力が埋め込まれず、モデルが自分でコマンドを実行しようとした。対話画面では試していないため、この機能が動かないとは判断していない。記事本文でもこの記法は使っていない。</span>
+          </details>
+          <a href="https://code.claude.com/docs/en/skills">https://code.claude.com/docs/en/skills</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          実験1〜3（各条件10回、合計60回）。
+          <details class="note-d"><summary>環境と測り方</summary>
+            <span class="note">実行日: 2026年8月26日 JST。環境: Linux x86-64 のコンテナ、Claude Code 2.1.245、Python 3.11.15。測り方: <code>claude -p "リリース前に何を確認すればいい？" --session-id &lt;毎回新規UUID&gt; --output-format stream-json --verbose</code> を各条件10回実行し、<code>tool_use</code> の <code>name</code> が <code>Skill</code> かつ対象スキル名であるものを1回と数えた。記事に貼った出力は、中略を明示した以外は無加工。モデルの判断が絡むため、同じ手順でも数字は毎回揺れる。検証一式は <code>_labs/2026-08-26_skills-trigger/</code>。</span>
+          </details>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「フォルダ名は自分が普段口にする言葉にする」「本番に触る手順は自動起動を切る」は、標準や規格ではなく、上の実測をふまえた筆者の運用上の目安です。
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月26日時点の情報です</div>
+    <div>公開: 2026年8月26日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+
+</main>
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
