@@ -1,6 +1,7 @@
 """_review/ の一部だけを切り抜いて cast/ に入れる（範囲を指定できる版）。
 
-cutout_all.py は 26枚目で OOM kill された（rc=137 / RSS 13.9GB）。
+cutout_all.py は 26枚目で OOM kill された（rc=137。dmesg の記録:
+oom-kill … anon-rss:13922360kB ＝ 約13.3GiB）。
 repair_holes が isnet-anime も読むので、birefnet と合わせて2モデルが常駐し、
 さらに onnxruntime のアリーナが推論ごとに伸びる。
 

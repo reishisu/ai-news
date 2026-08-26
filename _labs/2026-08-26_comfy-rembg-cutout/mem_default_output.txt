@@ -1,0 +1,6 @@
+  起動時                                  RSS     226 MiB
+  birefnet セッション作成後                    RSS     643 MiB
+  birefnet 推論1回目 (24秒)                 RSS    7576 MiB
+  birefnet 推論2回目 (16秒)                 RSS   12198 MiB
+  isnet セッション作成後                       RSS   12484 MiB
+  isnet 推論1回目                          RSS   13077 MiB

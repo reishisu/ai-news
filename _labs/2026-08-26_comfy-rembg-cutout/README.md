@@ -27,21 +27,26 @@
 | `_src_comfy_server.py` | ComfyUI server.py（一次資料）。`POST /interrupt` が `prompt_id` を受け、実行中のものと一致した時だけ中断(L1160〜) |
 | `_src_comfy_cli_args.py` | ComfyUI cli_args.py（一次資料）。`--lowvram` の原文(L170) |
 
-※ 詰まりの再現一式(偽ComfyUIサーバー・repro)は `_labs/2026-08-25_comfy-stall/` にある。
+※ 詰まりの再現一式もこのラボに置いた: `fake_comfy_queue.py`(偽ComfyUIサーバー) /
+`repro.py`(新旧の待ち方の比較。gen_stats_output.txt 後半の表の生成元) / `real_backend.py`。
 
 ### 切り抜き（各事故の実測）
 
 | ファイル | 中身 |
 |---|---|
-| `stage3.py` | 段階別の「明るい(>55)画素の欠け」。rembg → 補助 → drop_islands の各段が何pxを消すか |
-| `dist2.py` | drop_islands が消す塊の**大きさと本体からの距離**。切れた体の一部は1〜20px、装飾は50〜110px |
+| `stage_and_model.py` | **記事の段階別の欠け(65/0/20,753 等)の測定元**。修正前の drop_islands で実行した記録で、現行コードでは事故が直っているため再現しない |
+| `stage3.py` | 後日、dark_assist 調査時に4枚で回した段階別測定の変種 |
+| `islands.py` | **記事の距離測定(13,738px 距離2.0 等)の測定元**。代表12枚。修正前の実装での記録で、現行コードでは再現しない |
+| `dist2.py` | 後日、7枚で測り直した距離測定の変種 |
 | `model_diff.py` / `isnet_diff_output.txt` | birefnet と isnet-anime の画素単位の差分。isnet が残す背景 **合計565,472px・73枚に400px以上の塊**(最大 hinata/celebrate 62,682px) |
 | `union3.py` / `union3_output.txt` | 2モデル合成のしきい値スイープ(55〜150)。**100で「暗い画素の巻き込み」が0になる** |
 | `union2.py` / `union2_output.txt` | **失敗した案**: 背景から自動でしきい値を決める → birefnetが消した髪(明るさ254)が背景見本に混ざり、しきい値266まで上がる循環 |
-| `fix_check.py` | alpha だけ戻すと髪が真っ黒になる事故の修正確認。不透明画素の平均RGB差 25.75 → **1.81** |
+| `alpha_only_rgb.py` / `alpha_only_rgb_output.txt` | **黒髪事故の数値の決定的な再計算**。戻した38,826pxの平均RGB差536 / 全体25.93 → RGBも戻すと**1.81**（git履歴のa649572とisnetのalphaキャッシュから再現） |
+| `fix_check.py` | 修正後の cut_out() を1枚で回した確認(平均RGB差1.81) |
 | `grow.py` | dark_assist の広がり上限スイープ(2/4/8/16/32/無制限)。**無制限だけが消す画素を2〜4倍にする** |
 | `arm_gap_check.py` / `arm_gap_output.txt` | **使えなかった指標の記録**。「囲まれた透明」は修復すると増える方向にも動く(ファイル冒頭の注記を読むこと) |
-| `mem2.py` / `mem_arena_off_output.txt` | onnxruntime の CPU アリーナを切った時のRSS。**両モデルで1,014MiB・出力のalpha差は0**。既定(アリーナ有り)は birefnet 2推論で12,186MiB → isnet追加で13,611MiB(mem_arena_off_output.txt 冒頭コメントと記事本文参照) |
+| `mem_default.py` / `mem_default_output.txt` | **既定(アリーナ有効)の段階別RSS**: 643 → 7,576 → 12,198 → isnet推論で13,077MiB |
+| `mem2.py` / `mem_arena_off_output.txt` | アリーナを切った時のRSS。**両モデルで1,014MiB・出力のalpha差は0** |
 | `cutout_chunk.py` | 80枚一括の切り抜きドライバ(範囲指定可)。モデルのセッションを使い回す |
 | `recut_final_log.txt` | 最終パイプラインでの80枚切り直しログ。1枚18〜28秒(中央20秒)、isnet補完が動いたのは**7枚** |
 | `measure_cast.py` / `measure_cast_output.txt` | 最終 cast/ の監査。**本当の穴1枚(hinata/money 4,516px)・RGB差 最大2.12/中央値1.47** |
@@ -63,8 +68,9 @@
 
 - `measure_cast.py` `arm_gap_check.py` `make_evidence.py` は数分で終わる
 - `stage3.py` `dist2.py` `grow.py` は birefnet の推論を含むので**1本あたり数分〜十数分**
-- `union3.py` `model_diff.py` は isnet の推論結果(.npy キャッシュ)を前提にしていた。
-  キャッシュ無しで回すと isnet 80枚ぶんの推論が先に走る
+- `union2.py` `union3.py` `model_diff.py` は isnet の推論結果を `isnet_alpha/<キャラ>_<ポーズ>.npy`
+  にキャッシュして使う(`locate()` は同梱の `oversweep.py`)。キャッシュの作り直しは、
+  各画像を isnet-anime で推論 → cut_out と同じ後段(dark_assist/drop_islands) → alpha を np.save
 - 一括で回すときはアリーナを切ること。**既定のままだと13.6GiBまで伸びてOOMで死ぬ**
   （このリポジトリの `_prepare_character.py` は `rembg_session()` で対処済み）
 - 測るときは**明るい画素の欠けと暗い画素の欠けを両方**見ること。
