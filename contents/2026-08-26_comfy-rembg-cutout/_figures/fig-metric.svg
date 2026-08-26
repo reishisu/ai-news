@@ -1,0 +1,43 @@
+<svg viewBox="0 0 700 400" xmlns="http://www.w3.org/2000/svg" role="img">
+<g font-family="'Noto Sans JP','IPAGothic','DejaVu Sans',sans-serif">
+
+  <text x="36" y="28" font-size="17" font-weight="700" fill="var(--fg)">指標は「明るいのに消えた」しか数えていなかった</text>
+
+  <!-- 列見出し -->
+  <text x="291" y="70" font-size="14.5" font-weight="700" fill="var(--sub)" text-anchor="middle">消えた（透明になった）</text>
+  <text x="551" y="70" font-size="14.5" font-weight="700" fill="var(--sub)" text-anchor="middle">残った（不透明のまま）</text>
+
+  <!-- 行見出し -->
+  <text x="148" y="140" font-size="14.5" font-weight="700" fill="var(--sub)" text-anchor="end">元画像が明るい</text>
+  <text x="148" y="252" font-size="14.5" font-weight="700" fill="var(--sub)" text-anchor="end">元画像が暗い</text>
+
+  <!-- 明るい × 消えた -->
+  <rect x="166" y="84" width="250" height="100" rx="11" fill="var(--track)"/>
+  <text x="291" y="122" font-size="16" font-weight="700" fill="var(--fg)" text-anchor="middle">測っていた欠け</text>
+  <text x="291" y="146" font-size="13.5" fill="var(--sub)" text-anchor="middle">ツインテール・袖・手</text>
+  <text x="291" y="167" font-size="13.5" fill="var(--sub)" text-anchor="middle">指標が数えていたのはここだけ</text>
+
+  <!-- 明るい × 残った -->
+  <rect x="426" y="84" width="250" height="100" rx="11" fill="var(--track)" opacity="0.55"/>
+  <text x="551" y="122" font-size="16" font-weight="700" fill="var(--fg)" text-anchor="middle">正常</text>
+  <text x="551" y="146" font-size="13.5" fill="var(--sub)" text-anchor="middle">本体が残っている</text>
+
+  <!-- 暗い × 消えた -->
+  <rect x="166" y="196" width="250" height="100" rx="11" fill="var(--c)" opacity="0.18"/>
+  <rect x="166" y="196" width="250" height="100" rx="11" fill="none" stroke="var(--c)" stroke-width="2.5"/>
+  <text x="291" y="234" font-size="16.5" font-weight="700" fill="var(--c)" text-anchor="middle">見えていなかった</text>
+  <text x="291" y="258" font-size="13.5" fill="var(--fg)" text-anchor="middle">影・黒いズボン・線画</text>
+  <text x="291" y="279" font-size="13.5" fill="var(--fg)" text-anchor="middle">消えても指標に1pxも出ない</text>
+
+  <!-- 暗い × 残った -->
+  <rect x="426" y="196" width="250" height="100" rx="11" fill="var(--track)" opacity="0.55"/>
+  <text x="551" y="234" font-size="16" font-weight="700" fill="var(--fg)" text-anchor="middle">取り残し</text>
+  <text x="551" y="258" font-size="13.5" fill="var(--sub)" text-anchor="middle">囲まれた背景が残る</text>
+
+  <!-- 結論 -->
+  <rect x="36" y="322" width="5" height="46" rx="2.5" fill="var(--c)"/>
+  <text x="54" y="342" font-size="16" font-weight="700" fill="var(--fg)">指標が見ていない損傷は、存在しないことになる</text>
+  <text x="54" y="364" font-size="13.5" fill="var(--sub)">「この段は無害（欠け0px）」という中間結論は、この指標の産物だった</text>
+
+</g>
+</svg>

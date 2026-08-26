@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ComfyUIとrembgでキャラ立ち絵を量産する — 背景除去が本体まで消える原因と対策</title>
+<meta name="description" content="ComfyUIで5人×16ポーズ=80枚の立ち絵を生成し、rembgで切り抜いてサイトのサムネイル素材にしました。切り抜きではツインテール・影・黒い服が消える事故が4つ起き、全部実測で原因を特定して直しました。設定1行でメモリが13.6GBから1.0GBになる話も。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ComfyUIとrembgでキャラ立ち絵を量産する — 背景除去が本体まで消える原因と対策">
+<meta property="og:description" content="80枚を切り抜いたら、ツインテール・影・黒い服が消えた。4つの事故を画素単位の実測で特定して直した記録です。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-26_comfy-rembg-cutout/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-26_comfy-rembg-cutout/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=081fefa4">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">AIで作る技術 ｜ 2026年8月26日(水)</div>
+    <h1>ComfyUIとrembgでキャラ立ち絵を量産する — 背景除去が本体まで消える原因と対策</h1>
+    <div class="range">サイトのサムネイルに使うキャラ立ち絵80枚を、ComfyUIで生成してrembgで切り抜いた記録です。数値は全部実測で、ログは無加工です。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 切り抜きは1枚18〜28秒</span>
+      <span class="tag">切り抜きはGPU不要</span>
+      <span class="tag">事故4件・全部原因特定済み</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li><b>生成時間のばらつきの正体は「諦めたジョブの残り時間」。</b><span>ComfyUIのワーカーは1本です。こちらが諦めてもサーバーは描き続け、次のジョブはその後ろに並びます。22回諦めて11.0時間捨てていました。</span></li>
+      <li><b>背景除去は1回では終わりません。</b><span>切り抜きは4段のパイプラインになり、<mark>その4段が1つずつ事故を起こしました</mark>。ツインテール・影・黒い服が消え、戻した髪は真っ黒でした。</span></li>
+      <li><b>onnxruntimeは既定でメモリを返しません。</b><span>80枚一括は13.6GBまで伸びて落ちました。設定1行で<mark>1.0GBになり、出力は1ビットも変わりません</mark>。</span></li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">80枚の立ち絵を作って、サムネイルに流し込む</a></li>
+      <li><a href="#s2">生成: 同じ設定なのに20秒と29分 — 犯人は諦めたジョブ</a></li>
+      <li><a href="#s3">切り抜きは4段 — そして4段全部が事故った</a></li>
+      <li><a href="#s4">事故1: 「離れた塊を消す」が距離を見ていなかった</a></li>
+      <li><a href="#s5">事故2: birefnetがツインテールごと消す</a></li>
+      <li><a href="#s6">事故3: 戻した髪が真っ黒</a></li>
+      <li><a href="#s7">事故4: 影と黒いズボンが消えた — 指標に映らなかった</a></li>
+      <li><a href="#s8">13.6GBが1.0GBになる — メモリアリーナ</a></li>
+      <li><a href="#s9">手元のPCで全部回す（ランブック）</a></li>
+      <li><a href="#s10">残っている課題</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>80枚の立ち絵を作って、サムネイルに流し込む</h2>
+
+    <article class="item">
+      <h3>作ったもの: 5人×16ポーズ=80枚。黒背景で生成して、透過PNGにする</h3>
+      <p class="lead">このサイトのサムネイルにはキャラの立ち絵が載っています。その画像はフォルダから読むだけなので、<mark>画像を置き換えれば全記事のサムネイルが替わります</mark>。</p>
+      <p class="lead">今回はその素材を一新しました。ComfyUIで5人×16ポーズ=80枚（832×1216・黒背景）を生成し、背景除去モデルrembgで透過PNGに切り抜きます。</p>
+      <p class="lead">生成はGPUのある手元のPC。切り抜きから公開までは、GPUなしの環境で全部回りました。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/fig-pipeline-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/fig-pipeline.png" alt="元画像からrembg・縁の掃除・浮遊物の除去・欠けの補完を経て透過PNGになる流れと、各段で起きた事故を示した図" loading="lazy">
+        </picture>
+        <figcaption>切り抜きは4段のパイプライン。各段の下に書いたのが、この記事で扱う事故。</figcaption>
+      </figure>
+
+      <p class="lead">この記事は「うまくいった手順」ではなく、<mark>途中で起きた事故と、その原因を画素単位で特定した記録</mark>です。同じ作業をする人が同じ穴に落ちないために書いています。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>生成: 同じ設定なのに20秒と29分 — 犯人は諦めたジョブ</h2>
+
+    <article class="item">
+      <h3>ログを数えたら、174枚のうち28枚だけ極端に遅かった</h3>
+      <p class="lead">生成は手元のPCのComfyUIにHTTPで1枚ずつ投げました。その実行ログ174枚分を後から数えると、時間が2つの山に割れていました。</p>
+
+      <div class="code term"><div class="code-head">gen_log_stats.py の集計（抜粋）</div><pre>枚数        174 / 180
+総経過      15.3 時間
+速い側だけ  1.4 時間
+諦めた回    22 回
+  捨てた時間 11.0 時間
+
+60秒以内    124 枚
+  最短/中央/最長  20 / 30 / 52
+60秒超      28 枚
+  中央/最長       184 / 1742</pre></div>
+
+      <p class="lead">同じモデル・同じ設定で、最短20秒、最長1742秒（約29分）。総経過15.3時間のうち、速い側のペースなら1.4時間で終わる量です。<mark>差の大半は、タイムアウトで諦めた22回が捨てた11.0時間</mark>でした。</p>
+
+      <details>
+        <summary>諦めた直後の1枚は、8回中8回が遅い（実測の一覧）</summary>
+        <div class="body">
+          <div class="code term"><div class="code-head">gen_log_stats.py の集計（続き）</div><pre>諦めた直後の1枚
+  [6]で諦め → [7] 1268 秒
+  [15]で諦め → [16] 400 秒
+  [19]で諦め → [20] 184 秒
+  [58]で諦め → [59] 76 秒
+  [66]で諦め → [67] 1184 秒
+  [74]で諦め → [75] 605 秒
+  [84]で諦め → [85] 252 秒
+  [99]で諦め → [100] 1134 秒
+  8回中 8回が60秒超</pre></div>
+          <p class="lead">「ランダムに遅い」なら、諦めた直後だけ8連続で遅くなる理由がありません。遅さには構造があります。</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="item">
+      <h3>ComfyUIのワーカーは1本。こちらが諦めても、サーバーは描き続ける</h3>
+      <p class="lead">原因はComfyUIの作りにあります。ジョブを実行するワーカーは、起動時に1本だけ立ち上がるスレッドです。ソースコードにそのまま書いてあります。</p>
+
+      <div class="code"><div class="code-head">ComfyUI main.py の原文（ワーカーの定義と起動。この1回だけ）</div><pre>def prompt_worker(q, server_instance):
+(中略)
+    threading.Thread(target=prompt_worker, daemon=True, args=(prompt_server.prompt_queue, prompt_server,)).start()</pre></div>
+
+      <p class="lead">起動オプションの一覧（cli_args.py 全315行）にも、ワーカーを増やす指定はありません。<mark>ジョブは1本の行列に並び、前が終わるまで次は始まりません</mark>。</p>
+      <p class="lead">そして、投げた側がタイムアウトで諦めても、サーバーには伝わりません。サーバーは重いジョブを描き続け、次に投げたジョブはその後ろに並びます。だから「諦めた直後の1枚」は必ず遅い。ばらつきに見えたものの正体は、前のジョブの残り時間でした。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/fig-queue-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/fig-queue.png" alt="ワーカーが1本のため、諦めたジョブをサーバーが描き続け、後続のジョブがその後ろで待たされることを示した時系列比較の図" loading="lazy">
+        </picture>
+        <figcaption>諦めるだけでは、重いジョブは行列に残る。後続の「遅さ」は前のジョブの残り時間。</figcaption>
+      </figure>
+    </article>
+
+    <article class="item">
+      <h3>対策: 諦めるときに、必ず降ろす</h3>
+      <p class="lead">直し方は単純で、諦めるときにサーバー側からもジョブを降ろします。APIは2つで、ジョブの状態によって使い分けます。</p>
+
+      <div class="code"><div class="code-head">諦めるときに叩くAPI</div><pre># 順番待ちのジョブを行列から外す
+POST /queue      {"delete": ["&lt;prompt_id&gt;"]}
+
+# 実行中のジョブを中断する
+POST /interrupt  {"prompt_id": "&lt;prompt_id&gt;"}</pre></div>
+
+      <p class="lead"><code>/interrupt</code> は、渡した <code>prompt_id</code> が実行中のものと一致した時だけ中断します。別のジョブを巻き添えにしない作りです。</p>
+
+      <div class="code"><div class="code-head">ComfyUI server.py の原文（/interrupt の照合部分）</div><pre>                should_interrupt = False
+                for item in currently_running:
+                    # item structure: (number, prompt_id, prompt, extra_data, outputs_to_execute)
+                    if item[1] == prompt_id:
+                        logging.info(f"Interrupting prompt {prompt_id}")
+                        should_interrupt = True
+                        break</pre></div>
+
+      <p class="lead">効果は、偽のComfyUIサーバー（挙動だけ模したローカルHTTPサーバー）で新旧を比べて確かめました。同じ12枚を投げ、3〜4枚目だけ40秒かかる設定です（他は1秒。実物のGPUではなく縮小した時間での比較です）。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>待ち方</th><th>全体</th><th>受け取った</th><th>諦めた</th><th>サーバーが描いた</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>旧: 諦めるだけ</b></td>
+              <td data-label="全体">83.4秒</td>
+              <td data-label="受け取った">2枚</td>
+              <td data-label="諦めた">10枚</td>
+              <td data-label="サーバーが描いた">5枚</td>
+            </tr>
+            <tr>
+              <td><b>新: 降ろしてやり直す</b></td>
+              <td data-label="全体">39.1秒</td>
+              <td data-label="受け取った">11枚</td>
+              <td data-label="諦めた">1枚</td>
+              <td data-label="サーバーが描いた">11枚</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">旧のいちばんの問題は時間ではありません。<mark>サーバーは5枚描いたのに、スクリプトは2枚しか受け取っていない</mark>。描き上がった3枚を、受け取らずに捨てていました。</p>
+    </article>
+  </section>
+
+  <section class="section section-a" id="s3">
+    <h2><span class="step">3</span>切り抜きは4段 — そして4段全部が事故った</h2>
+
+    <article class="item">
+      <h3>rembg 1回では終わらない。掃除・除去・補完を足して4段になった</h3>
+      <p class="lead">切り抜きの本体は rembg の birefnet-general-lite というモデルです。もう1つ、補完用に isnet-anime も使います。rembg の README にはこう書かれています。</p>
+
+      <div class="code wrap"><div class="code-head">rembg README「Models」の原文（リンク部分は中略）</div><pre>- birefnet-general-lite (中略): A light pre-trained model for general use cases.
+
+- isnet-anime (中略): A high-accuracy segmentation for anime character.</pre></div>
+
+      <p class="lead">モデルは初回実行時に <code>~/.rembg/models</code> へ自動でダウンロードされます（birefnet 224MB / isnet 176MB）。</p>
+      <p class="lead">ただしモデル1回では、黒背景の絵は綺麗になりません。実際のパイプラインは4段です。</p>
+
+      <ul class="points">
+        <li><b>1段目: rembg（birefnet-general-lite）。</b>背景除去の本体。床の影も、髪と肩の間のような「囲まれた背景」も抜ける。</li>
+        <li><b>2段目: 縁の掃除（dark_assist）。</b>rembgが取り残した輪郭の黒いフチを、透明になった画素の隣から広げて消す。</li>
+        <li><b>3段目: 浮遊物の除去（drop_islands）。</b>本体から離れて浮いた装飾（ハートやキラキラ）を消す。</li>
+        <li><b>4段目: 欠けの補完（repair_holes）。</b>rembgが消してしまったキャラの一部を、isnet-animeの結果で埋め戻す。</li>
+      </ul>
+
+      <p class="lead">結論を先に書きます。<mark>この4段は、1段ずつ全部事故を起こしました</mark>。以下、1つずつ原因と直し方です。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s4">
+    <h2><span class="step">4</span>事故1: 「離れた塊を消す」が距離を見ていなかった</h2>
+
+    <article class="item">
+      <h3>消えたのは装飾ではなく、切り離されたツインテールだった</h3>
+      <p class="lead">浮遊物の除去（drop_islands）は、キャラの周りに浮く装飾マークを消す係です。ところが旧実装は「離れた塊を消す」と言いながら、<mark>大きさしか見ていませんでした</mark>（最大の塊の5%未満を削除。距離は測っていない）。</p>
+      <p class="lead">rembgが髪の細いところを切ると、ツインテールの先・袖・手が本体から切り離されます。それが「小さい塊」として、装飾と一緒に消えていました。</p>
+      <p class="lead">そこで、消える塊の「大きさ」と「本体からの距離」を80枚のうち代表12枚で測りました（dist2.py）。</p>
+
+      <ul class="points">
+        <li><b>切れた体の一部は、距離1〜20px。</b>kurumi/sleepy 13,738px・距離2.0、hinata/ok 8,280px・距離2.8。ほぼ接している。</li>
+        <li><b>本物の装飾は、距離50〜110px。</b>hinata/celebrate 8,206px・距離107.6。大きさは同格でも、距離は1桁違う。</li>
+      </ul>
+
+      <p class="lead">大きさでは分けられませんが、距離でははっきり分かれます。修正は「30px以内の塊は、大きさに関わらず残す」。消すのは<mark>小さく、かつ離れているもの</mark>だけにしました。</p>
+      <p class="lead">段階別に「元は明るいのに透明にされた画素」を数えると、壊していたのがこの最終段だと分かります（stage3.py）。</p>
+
+      <ul class="points">
+        <li><b>kotoha/thumbsup。</b>rembg単体 65px → 縁の掃除後 0px → 浮遊物の除去（旧）で 20,753px。</li>
+        <li><b>kotoha/panic。</b>271px → 0px → 10,206px。</li>
+        <li><b>hinata/money。</b>4,732px → 0px → 40,974px。前の2段がほぼ直した欠けを、最終段が桁違いに広げていた。</li>
+      </ul>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s5">
+    <h2><span class="step">5</span>事故2: birefnetがツインテールごと消す — もう1つのモデルで埋める</h2>
+
+    <article class="item">
+      <h3>hinata/sleepy はツインテールが2束・合計39,594px消えていた</h3>
+      <p class="lead">距離を直しても、消える髪は残りました。今度は切り離されたのではなく、<mark>birefnetが最初からツインテールを背景と判定していた</mark>のです。hinata/sleepy では24,144pxと15,450pxの2つの束が丸ごと消えました。</p>
+
+      <figure>
+        <img src="images/ev_severed_hair.png" alt="hinata/sleepyの左のツインテールが、birefnet単体では丸ごと透明になり、isnet-animeでの補完後は復元されている比較画像" loading="lazy">
+        <figcaption>左: 元画像。中: birefnetのみ（髪が消えている）。右: isnet-animeで補完した最終結果。</figcaption>
+      </figure>
+
+      <p class="lead">isnet-anime は、この髪を残せます。ならモデルを替えればよいかというと、そうはいきません。isnet は逆に「囲まれた背景」を大量に残します。80枚の差分を取ると、<mark>残した背景は合計565,472px。73枚に400px以上の塊</mark>があり、最大は hinata/celebrate の62,682pxでした（model_diff.py）。</p>
+      <p class="lead">どちらか一方を選ぶ必要はありません。消えた本体（金髪）は明るく、残る背景（黒）は暗い。だから「isnetが不透明 かつ birefnetが透明 かつ 元画像が明るい」画素だけを戻せば、両方の良い所を取れます。</p>
+      <p class="lead">「明るい」のしきい値は、固定値を振って決めました（union3.py）。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>しきい値</th><th>残る穴</th><th>戻した画素のうち明るさ100未満</th></tr></thead>
+          <tbody>
+            <tr><td><b>55</b></td><td data-label="残る穴">2,996px</td><td data-label="明るさ100未満">7,798px</td></tr>
+            <tr><td><b>85</b></td><td data-label="残る穴">4,505px</td><td data-label="明るさ100未満">1,367px</td></tr>
+            <tr><td><b>100</b></td><td data-label="残る穴">4,516px</td><td data-label="明るさ100未満">0px</td></tr>
+            <tr><td><b>150</b></td><td data-label="残る穴">4,517px</td><td data-label="明るさ100未満">0px</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">55まで下げると、hinata/money の背景の焦げ茶（最大チャンネル67）まで戻ってしまい、髪の横に茶色の塊が出ました（目視で確認）。100なら暗い画素の巻き込みが0になり、戻る量もほとんど減りません。100を採用しました。</p>
+
+      <details>
+        <summary>失敗した案: 背景の色からしきい値を自動で決める（自分の誤りを見本に自分を直す循環）</summary>
+        <div class="body">
+          <p class="lead">最初は「絵ごとに背景の明るさを測って、しきい値を自動で決める」案を作りました（union2.py）。これは失敗です。</p>
+          <p class="lead">birefnetが消した髪も「外周から繋がる透明領域」＝背景の見本に入ってしまいます。hinata/sleepy では金髪（明るさ254）が見本に混ざり、しきい値が266まで上がりました。明るさは最大255なので、<b>何も戻らないしきい値</b>です。</p>
+          <p class="lead">モデルの誤りを、モデルの誤りを含んだデータで直そうとする循環でした。固定値に戻して解決です。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <section class="section section-a" id="s6">
+    <h2><span class="step">6</span>事故3: 戻した髪が真っ黒 — rembgは消した画素のRGBも潰す</h2>
+
+    <article class="item">
+      <h3>alphaだけコピーしたら、髪の形をした真っ黒な塊が出た</h3>
+      <p class="lead">補完の実装で、isnet側から透明度（alpha）だけをコピーしました。すると戻ったツインテールが真っ黒になりました。<mark>rembgのremove()は、透明にした画素のRGBを黒に潰します</mark>。alphaだけ戻すと「不透明な黒」になるのです。</p>
+
+      <figure>
+        <img src="images/ev_black_hair.png" alt="isnetからalphaだけ戻すと復元されたツインテールが真っ黒な塊になり、RGBも元画像から戻すと金髪に戻る比較画像" loading="lazy">
+        <figcaption>左: alphaのみ戻した版（髪が真っ黒）。右: RGBも元画像から戻した版。</figcaption>
+      </figure>
+
+      <p class="lead">数字でも確かめました。hinata/sleepy で戻したのは38,826画素。</p>
+
+      <div class="code term"><div class="code-head">recut_final_log.txt（抜粋）</div><pre>(中略)
+  [27/80] hinata/sleepy  23秒  モデルが消してしまったキャラを38826個の画素だけ戻しました(isnet-anime で補完)
+(中略)</pre></div>
+
+      <p class="lead">alphaだけの版では、この38,826画素の平均RGB差（元画像との3チャンネル合計の差）が536。ほぼ真っ黒です。RGBも元画像からコピーする修正で、不透明画素全体の平均RGB差は25.75から1.81になりました（fix_check.py。2前後は縁のアンチエイリアス処理ぶんで正常）。</p>
+      <p class="lead">本題は、なぜ見逃したかです。確認を「元画像の透明部分をマゼンタで塗った絵」でやっていました。それは元画像を見ているだけで、<mark>出来上がったPNGのRGBを一度も見ていません</mark>。確認は必ず、出来上がったPNGそのものを背景に載せて行うこと。この教訓は第9節のチェックリストに入れてあります。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s7">
+    <h2><span class="step">7</span>事故4: 影と黒いズボンが消えていた — そして指標には映らなかった</h2>
+
+    <article class="item">
+      <h3>「暗い限り無制限に広がる」掃除が、影とズボンと線画を食っていた</h3>
+      <p class="lead">最後の事故は縁の掃除（dark_assist）です。rembgが透明にした画素と外周の黒を種にして、暗い（max(RGB)&lt;46）画素を辿って消す係ですが、旧実装は<mark>暗い限り無制限に</mark>広がっていました。</p>
+      <p class="lead">透明領域がキャラの暗い部分に接していると、黒が繋がっている先まで全部消えます。組んだ腕の下の影、黒いショートパンツ丸ごと、髪の輪郭線が食われていました。</p>
+
+      <figure>
+        <img src="images/ev_shadow.png" alt="hinata/stopの組んだ腕の下で、修正前は影が抜けてギザギザになり、修正後は影が残っている前後比較画像" loading="lazy">
+        <figcaption>組んだ腕の下。修正前（上）は影が抜けてギザギザ。修正後（下）は影が残る。</figcaption>
+      </figure>
+
+      <figure>
+        <img src="images/ev_darkeat.png" alt="無制限の縁の掃除が消していた画素を緑で塗った可視化。ツインテールの影・ズボン・輪郭線が緑になっている" loading="lazy">
+        <figcaption>無制限の掃除が消していた画素（緑）。ズボンと影と髪の輪郭が丸ごと入っている。</figcaption>
+      </figure>
+
+      <p class="lead">広がりに上限（段数）を付けて、消える画素数を測りました（grow.py）。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>対象</th><th>2段</th><th>4段</th><th>8段</th><th>無制限</th></tr></thead>
+          <tbody>
+            <tr><td><b>hinata/stop</b></td><td data-label="2段">18,884</td><td data-label="4段">19,842</td><td data-label="8段">20,643</td><td data-label="無制限">41,184</td></tr>
+            <tr><td><b>hinata/smug</b></td><td data-label="2段">13,365</td><td data-label="4段">13,940</td><td data-label="8段">14,436</td><td data-label="無制限">38,209</td></tr>
+            <tr><td><b>kotoha/angry</b></td><td data-label="2段">7,347</td><td data-label="4段">7,811</td><td data-label="8段">8,251</td><td data-label="無制限">30,786</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">2〜8段の差は小さく、<mark>無制限だけが2〜4倍に跳ねます</mark>。目視でも2〜8段なら影とズボンは残り、髪と肩の隙間の掃除はrembgの段で既に済んでいて差がありません。取り残しのフチは1〜3pxなので、上限4段にしました。</p>
+
+      <div class="quiz">
+        <p class="q">Q. 黒いショートパンツを丸ごと消していたのは、どの段でしょう?</p>
+        <button class="opt" type="button" data-correct="false">浮遊物の除去（drop_islands）</button>
+        <button class="opt" type="button" data-correct="true">縁の掃除（dark_assist）</button>
+        <button class="opt" type="button" data-correct="false">rembg本体（birefnet）</button>
+        <p class="ans" hidden>縁の掃除です。筆者は最初、浮遊物の除去を疑って外しました。事故1の犯人だったからです。しかし実測すると、あちらが触っていたのは脚の先（y≈1000より下）だけで、ズボン本体を食っていたのは「暗い限り無制限に広がる」縁の掃除でした。前科があるからといって今回も犯人とは限りません。</p>
+      </div>
+    </article>
+
+    <article class="item">
+      <h3>なぜ全部の検査をすり抜けたか — 指標が「明るい欠け」しか数えていなかった</h3>
+      <p class="lead">この事故のいちばん怖い所は、事故1〜2で作った検査を全部すり抜けたことです。それまでの指標は「元画像が明るい（&gt;55）のに透明」だけを数えていました。影・線画・黒い服は暗いので、<mark>消えても指標に1pxも映りません</mark>。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/fig-metric-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/fig-metric.png" alt="元画像の明るい・暗いと、結果の消えた・残ったを掛け合わせた2×2の表で、暗い画素の欠けだけが指標の外にあることを示した図" loading="lazy">
+        </picture>
+        <figcaption>指標が見ていない損傷は、存在しないことになる。「暗い×消えた」がその死角だった。</figcaption>
+      </figure>
+
+      <p class="lead">実際、途中の測定では「縁の掃除の欠けは全枚で0px」という中間結論を出していました。それはこの指標の産物です。欠けを数えるときは、明るい側と暗い側の両方を見ること。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s8">
+    <h2><span class="step">8</span>13.6GBが1.0GBになる — onnxruntimeのメモリアリーナ</h2>
+
+    <article class="item">
+      <h3>80枚一括は26枚目で死んだ。原因はモデルではなく、返さないメモリ</h3>
+      <p class="lead">80枚を一括で切り抜くスクリプトは、26枚目でOOM killされました（rc=137、RSSは13.9GB。RAM16GBの環境です）。段階を追ってRSS（プロセスが実際に使っているメモリ）を測ると、犯人はモデルの大きさではありませんでした。</p>
+
+      <ul class="points">
+        <li><b>既定のまま。</b>birefnetのセッション作成で642MiB → 推論1回で7,565MiB → 2回で12,186MiB（ここで頭打ち）→ isnetを足すと13,611MiB。<mark>推論するたびに膨らむ</mark>。</li>
+        <li><b>アリーナを切る。</b>両モデルを載せて推論しても1,014MiB。モデル2つ（224MB+176MB）に見合う量に収まる（mem2.py）。</li>
+      </ul>
+
+      <p class="lead">onnxruntimeは既定で、推論に使ったメモリを解放せずに持ち続けます（メモリアリーナ）。公式ドキュメントに1行で書いてあります。</p>
+
+      <div class="code wrap"><div class="code-head">ONNX Runtime Python API「enable_cpu_mem_arena」の原文</div><pre>Enables the memory arena on CPU. Arena may pre-allocate memory for future usage. Set this option to false if you don’t want it. Default is True.</pre></div>
+
+      <p class="lead">切り方は、SessionOptionsを1つ作ってrembgに渡すだけです。</p>
+
+      <div class="code"><div class="code-head">アリーナを切ってrembgのセッションを作る</div><pre>import onnxruntime as ort
+from rembg import new_session
+
+opts = ort.SessionOptions()
+opts.enable_cpu_mem_arena = False
+session = new_session("birefnet-general-lite", sess_opts=opts)</pre></div>
+
+      <p class="lead">気になるのは出力が変わらないかですが、同じ絵をアリーナ有り・無しで推論してalphaを比べると差は0でした。<mark>1ビットも変わりません</mark>。</p>
+
+      <div class="code term"><div class="code-head">mem2.py の出力（最終行）</div><pre>  アリーナ有無での alpha の差: 0</pre></div>
+
+      <p class="lead">代償は速度で、birefnetの推論1回が8〜20秒から27〜30秒になりました。一括処理では、遅くなっても落ちないほうを取ります。</p>
+    </article>
+  </section>
+
+  <section class="section section-a" id="s9">
+    <h2><span class="step">9</span>手元のPCで全部回す（ランブック）</h2>
+
+    <article class="item">
+      <h3>切り抜きから公開まではGPU不要。1枚18〜28秒</h3>
+      <p class="lead">生成だけはGPUのある手元のComfyUIが要りますが、切り抜きから先はGPUなしで完結します。必要なのはPythonのパッケージだけです。</p>
+
+      <div class="code"><div class="code-head">準備（初回だけ）</div><pre>pip install rembg onnxruntime pillow numpy scipy</pre></div>
+
+      <div class="code"><div class="code-head">1枚切り抜いてcastに入れる（このリポジトリの場合）</div><pre>python3 _prepare_character.py &lt;画像&gt; --cast hinata --as wave --rembg</pre></div>
+
+      <p class="lead">最終パイプラインで80枚を切り直したときの実測は、1枚18〜28秒・失敗0件でした（4コアXeon・GPUなし・メモリ約1.0GB）。isnet-animeでの補完は、穴が見つかった絵でだけ動きます。80枚中7枚でした。</p>
+
+      <div class="code term"><div class="code-head">recut_final_log.txt（末尾）</div><pre>  [78/80] shirase/think  18秒
+  [79/80] shirase/thumbsup  19秒
+  [80/80] shirase/wave  19秒
+範囲 1-80 終了 / 失敗 0件</pre></div>
+
+      <p class="lead">出来上がりの確認は、事故3の教訓どおり<mark>出来上がったPNG側</mark>を背景に載せて見ます。</p>
+
+      <div class="code"><div class="code-head">透過PNGをマゼンタ背景に合成して見る</div><pre>from PIL import Image
+im = Image.open("cast/hinata/wave.png")
+bg = Image.new("RGB", im.size, (255, 0, 255))
+bg.paste(im, (0, 0), im)
+bg.save("check.png")  # この絵を目で見る</pre></div>
+
+      <p class="lead">サイトへの反映は <code>python3 _build_index.py</code> のあと <code>python3 _render_thumbs.py --stale</code> です（描画にヘッドレスのChromium/Chromeが要ります。PATHから自動検出）。</p>
+
+      <p class="lead">タップでチェックできます。 <span class="cl-count">0 / 4</span></p>
+      <ul class="checklist" data-key="comfy-rembg-cutout-2026-08-26">
+        <li><label><input type="checkbox"><span>透過PNGを<b>出来上がり側</b>で確認した（マゼンタ背景に合成。元画像に塗るのは不可）</span></label></li>
+        <li><label><input type="checkbox"><span>明るい欠け（髪・服）と<b>暗い欠け（影・黒い服・線画）</b>の両方を目視した</span></label></li>
+        <li><label><input type="checkbox"><span>一括処理では <code>enable_cpu_mem_arena = False</code> にした</span></label></li>
+        <li><label><input type="checkbox"><span>生成ジョブを諦めるときは <code>/interrupt</code> か <code>/queue</code> の delete で降ろした</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 全部できた！</div>
+    </article>
+
+    <article class="item">
+      <h3>次に読むもの</h3>
+      <p class="lead">同じ連載の前号です。こちらは画像ではなく、Claude Codeに手順を渡す仕組みを実測しています。</p>
+
+      <a class="next-up" href="../2026-08-26_skills-trigger/">
+        <div class="label">NEXT →</div>
+        <div class="t">Claude Codeのスキルの作り方 — 自動で呼ばれる条件を60回測った</div>
+        <div class="d">スキルはフォルダ1つとSKILL.md 1枚。ただし置いただけでは呼ばれません。呼ばれる条件を60回の実測で確かめた記事です。</div>
+      </a>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s10">
+    <h2><span class="step">10</span>残っている課題</h2>
+
+    <article class="item">
+      <h3>直っていないものを、直っていないと書いておく</h3>
+
+      <ul class="points">
+        <li><b>hinata/money の前髪右上に4,516pxの欠けが残っている。</b>背景の焦げ茶と接する場所で、isnet-animeも同じ所を消すため、2モデルの合成では埋まらない（measure_cast.py。80枚中、本当の穴はこの1枚）。</li>
+        <li><b>欠けの指標は、まだ「明るい側」だけ。</b>暗い側の損傷を網羅的に数える指標は未確立で、今は目視に頼っている。</li>
+        <li><b>birefnet-general（非lite）がアリーナ無効で動くかは未確認。</b>移行前のコードコメントに「推論中に約14GB使う」と記録があるが、アリーナを切った設定では測り直していない。</li>
+      </ul>
+
+      <details>
+        <summary>暗い側の指標として「囲まれた透明」を数える案が没になった理由</summary>
+        <div class="body">
+          <p class="lead">「キャラの内側に囲まれた透明領域＝食われた跡」と数える案を測りました（arm_gap_check.py）。結果は使い物になりませんでした。</p>
+          <p class="lead">修正で良くなったはずの絵で数値が増えます（shirase/smug 4,026px → 13,551px）。影やズボンを復元すると、その周りの正しい透明領域が「囲まれた」判定に変わるためです。減る絵と増える絵が混ざり、方向が揃わないので指標として没にしました。測った記録ごと残してあります。</p>
+        </div>
+      </details>
+    </article>
+  </section>
+
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          danielgatis「rembg」<i>README（GitHub, mainブランチ）</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: 「Models」節。birefnet-general-lite と isnet-anime の説明文、およびモデルの配布元。記事に引用した英文は、リンク部分を（中略）と明示した以外は一字も変えずに転記した。github.com がこの環境から403のため、jsDelivrのCDN経由で本文を取得して読んだ。</span>
+          </details>
+          <a href="https://cdn.jsdelivr.net/gh/danielgatis/rembg@main/README.md">https://cdn.jsdelivr.net/gh/danielgatis/rembg@main/README.md</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          ONNX Runtime「Python API — API Summary」<i>公式ドキュメント</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: SessionOptions の <code>enable_cpu_mem_arena</code> プロパティの定義。既定が True であること、False にすると事前確保をやめること。記事に引用した英文は一字も変えずに転記した。</span>
+          </details>
+          <a href="https://onnxruntime.ai/docs/api/python/api_summary.html">https://onnxruntime.ai/docs/api/python/api_summary.html</a>（2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          comfyanonymous「ComfyUI」<i>ソースコード（GitHub, masterブランチ）</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: main.py の L350（<code>prompt_worker</code> の定義）と L559（threading.Thread で1本だけ起動されること）、server.py の L1146〜（<code>POST /queue</code> の delete によるジョブ削除）と L1160〜（<code>POST /interrupt</code> が prompt_id を実行中のものと照合し、一致した時だけ中断すること）、cli_args.py 全315行（ワーカー本数を増やす起動オプションが無いこと）。github.com がこの環境から403のため、jsDelivrのCDN経由で本文を取得して読んだ。取得したファイルは <code>_labs/2026-08-26_comfy-rembg-cutout/</code> に保存してある。</span>
+          </details>
+          <a href="https://cdn.jsdelivr.net/gh/comfyanonymous/ComfyUI@master/main.py">https://cdn.jsdelivr.net/gh/comfyanonymous/ComfyUI@master/main.py</a> /
+          <a href="https://cdn.jsdelivr.net/gh/comfyanonymous/ComfyUI@master/server.py">https://cdn.jsdelivr.net/gh/comfyanonymous/ComfyUI@master/server.py</a> /
+          <a href="https://cdn.jsdelivr.net/gh/comfyanonymous/ComfyUI@master/comfy/cli_args.py">https://cdn.jsdelivr.net/gh/comfyanonymous/ComfyUI@master/comfy/cli_args.py</a>（いずれも2026年8月26日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          「birefnet-general（非lite）は推論中に約14GB使う」という記述。
+          <details class="note-d"><summary>なぜ未確認か</summary>
+            <span class="note">birefnet-general-lite へ移行する前のコードコメントに残っている記録で、当時はアリーナ既定（有効）のまま測っていた。アリーナ無効の設定では測り直していないため、非liteが今の構成で動くかどうかは判断していない。</span>
+          </details>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          生成ログの集計、切り抜き4事故の画素測定、メモリのRSS測定、80枚の切り直しと最終監査。
+          <details class="note-d"><summary>環境と測り方</summary>
+            <span class="note">測定日: 2026年8月25〜26日。環境: Linux / Xeon 2.10GHz 4コア / RAM16GB / GPUなし / Python 3.11.15 / rembg 2.0.81 / onnxruntime 1.29.0。対象は832×1216・黒背景の生成画像80枚。生成そのものはGPUのある手元PCのComfyUI（JANKU v7.77）で行い、その実行ログを無加工で解析した。新旧の待ち方の比較は、挙動だけ模した偽のComfyUIサーバー相手の縮小実験で、本物のGPUサーバーでは行っていない。記事に貼ったログ・出力は、（中略）と明示した抜粋以外は加工せずそのまま貼った。検証コードと出力の全量は <code>_labs/2026-08-26_comfy-rembg-cutout/</code>。</span>
+          </details>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「一括処理ではアリーナを切る」「ジョブを諦めるときは必ず降ろす」「確認は出来上がったPNGを背景に載せて行う」「距離30px・明るさ100・上限4段という各しきい値」は、標準や規格ではなく、上の実測をふまえた筆者の運用上の目安です。
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+
+  <footer class="article-foot">
+    <div>この記事は2026年8月26日時点の情報です</div>
+    <div>公開: 2026年8月26日 JST</div>
+    <div><a href="../../">← ホームに戻る</a></div>
+  </footer>
+
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

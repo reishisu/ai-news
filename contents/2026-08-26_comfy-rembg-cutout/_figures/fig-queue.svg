@@ -1,0 +1,53 @@
+<svg viewBox="0 0 760 424" xmlns="http://www.w3.org/2000/svg" role="img">
+<g font-family="'Noto Sans JP','IPAGothic','DejaVu Sans',sans-serif">
+
+  <text x="36" y="28" font-size="17" font-weight="700" fill="var(--fg)">諦めてもサーバーは描き続ける。次の1枚はその後ろで待つ</text>
+  <text x="36" y="50" font-size="13.5" fill="var(--sub)">ComfyUI のワーカーは1本。投げた順に1つずつ描く（FIFO）</text>
+
+  <!-- 旧 -->
+  <rect x="36" y="62" width="688" height="146" rx="12" fill="var(--track)" opacity="0.6"/>
+  <text x="54" y="88" font-size="16" font-weight="700" fill="var(--fg)">旧：諦めるだけ。降ろさない</text>
+
+  <text x="246" y="116" font-size="14" font-weight="700" fill="var(--c)" text-anchor="middle">ここで諦める</text>
+  <line x1="246" y1="122" x2="246" y2="152" stroke="var(--c)" stroke-width="2" stroke-dasharray="5 4"/>
+
+  <text x="142" y="172" font-size="13.5" fill="var(--sub)" text-anchor="end">ワーカー1本</text>
+  <rect x="150" y="152" width="96" height="30" rx="6" fill="var(--old)"/>
+  <text x="198" y="172" font-size="13.5" font-weight="700" fill="var(--fg)" text-anchor="middle">A（重い）</text>
+  <rect x="246" y="152" width="254" height="30" rx="6" fill="var(--c)" opacity="0.3"/>
+  <text x="373" y="172" font-size="13.5" fill="var(--fg)" text-anchor="middle">A を描き続ける（誰も受け取らない）</text>
+  <rect x="504" y="152" width="96" height="30" rx="6" fill="var(--new)" opacity="0.42"/>
+  <text x="552" y="172" font-size="14" font-weight="700" fill="var(--fg)" text-anchor="middle">B</text>
+  <rect x="604" y="152" width="96" height="30" rx="6" fill="var(--new)" opacity="0.26"/>
+  <text x="652" y="172" font-size="14" font-weight="700" fill="var(--fg)" text-anchor="middle">C</text>
+
+  <text x="150" y="200" font-size="15" font-weight="700" fill="var(--c)">B も C も、A が終わるまで動けない</text>
+
+  <!-- 新 -->
+  <rect x="36" y="220" width="688" height="146" rx="12" fill="var(--track)" opacity="0.6"/>
+  <text x="54" y="246" font-size="16" font-weight="700" fill="var(--fg)">新：諦めるときに必ず降ろす</text>
+
+  <text x="246" y="274" font-size="14" font-weight="700" fill="var(--a)" text-anchor="middle">ここで降ろす</text>
+  <line x1="246" y1="280" x2="246" y2="310" stroke="var(--a)" stroke-width="2" stroke-dasharray="5 4"/>
+
+  <text x="142" y="330" font-size="13.5" fill="var(--sub)" text-anchor="end">ワーカー1本</text>
+  <rect x="150" y="310" width="96" height="30" rx="6" fill="var(--old)"/>
+  <text x="198" y="330" font-size="13.5" font-weight="700" fill="var(--fg)" text-anchor="middle">A（重い）</text>
+  <rect x="250" y="310" width="96" height="30" rx="6" fill="var(--new)" opacity="0.42"/>
+  <text x="298" y="330" font-size="14" font-weight="700" fill="var(--fg)" text-anchor="middle">B</text>
+  <rect x="350" y="310" width="96" height="30" rx="6" fill="var(--new)" opacity="0.26"/>
+  <text x="398" y="330" font-size="14" font-weight="700" fill="var(--fg)" text-anchor="middle">C</text>
+  <rect x="452" y="310" width="248" height="30" rx="6" fill="none" stroke="var(--a)" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="576" y="330" font-size="13.5" fill="var(--a)" text-anchor="middle">描かずに済んだ時間</text>
+
+  <text x="150" y="358" font-size="15" font-weight="700" fill="var(--a)">次の B がすぐ走る</text>
+
+  <!-- 時間軸 -->
+  <text x="142" y="388" font-size="13.5" fill="var(--sub)" text-anchor="end">時間</text>
+  <line x1="150" y1="384" x2="686" y2="384" stroke="var(--sub)" stroke-width="2" opacity="0.5"/>
+  <polygon points="696,384 685,378.6 685,389.4" fill="var(--sub)" opacity="0.6"/>
+
+  <text x="36" y="412" font-size="13.5" fill="var(--sub)">降ろし方：順番待ちなら <tspan font-family="ui-monospace, monospace" fill="var(--fg)">POST /queue {"delete":[id]}</tspan> ／ 実行中なら <tspan font-family="ui-monospace, monospace" fill="var(--fg)">POST /interrupt</tspan></text>
+
+</g>
+</svg>

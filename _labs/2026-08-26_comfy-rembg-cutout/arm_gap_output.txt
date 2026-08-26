@@ -1,0 +1,7 @@
+対象                     修正前       修正後         差
+hinata/stop          44854     50314     +5460
+hinata/smug          24506     30657     +6151
+kotoha/angry          2601      1074     -1527
+aoi/angry             2145      1648      -497
+shirase/smug          4026     13551     +9525
+kurumi/think          1287      1152      -135

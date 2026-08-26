@@ -1,0 +1,514 @@
+キャラ      ポーズ             消しすぎpx      最大の塊  位置(y1,x1,y2,x2)
+hinata   ok              385067    180273  (np.int64(0), np.int64(0), np.int64(1119), np.int64(375))  ← 欠けている
+shirase  explain         366083    158766  (np.int64(0), np.int64(0), np.int64(958), np.int64(328))  ← 欠けている
+hinata   angry           296388     93874  (np.int64(0), np.int64(0), np.int64(917), np.int64(349))  ← 欠けている
+kotoha   angry            29909     25447  (np.int64(975), np.int64(90), np.int64(1181), np.int64(283))  ← 欠けている
+hinata   sleepy           41484     24844  (np.int64(507), np.int64(0), np.int64(1011), np.int64(98))  ← 欠けている
+hinata   money            43646     20575  (np.int64(0), np.int64(504), np.int64(197), np.int64(758))  ← 欠けている
+kotoha   ok               33810     17991  (np.int64(989), np.int64(193), np.int64(1117), np.int64(439))  ← 欠けている
+hinata   think            36263     17780  (np.int64(991), np.int64(282), np.int64(1121), np.int64(496))  ← 欠けている
+kotoha   sleepy           32640     16983  (np.int64(1050), np.int64(365), np.int64(1180), np.int64(539))  ← 欠けている
+hinata   explain          19706     12329  (np.int64(989), np.int64(47), np.int64(1143), np.int64(219))  ← 欠けている
+kotoha   cry              23257     11714  (np.int64(991), np.int64(237), np.int64(1104), np.int64(428))  ← 欠けている
+hinata   smug             21717      9618  (np.int64(985), np.int64(496), np.int64(1107), np.int64(649))  ← 欠けている
+hinata   point            24358      9481  (np.int64(981), np.int64(171), np.int64(1104), np.int64(338))  ← 欠けている
+aoi      wave             25851      9171  (np.int64(0), np.int64(99), np.int64(311), np.int64(301))  ← 欠けている
+kotoha   panic            19693      8009  (np.int64(925), np.int64(406), np.int64(1049), np.int64(554))  ← 欠けている
+hinata   stop             18830      7544  (np.int64(949), np.int64(461), np.int64(1054), np.int64(614))  ← 欠けている
+hinata   panic            25249      7211  (np.int64(1063), np.int64(186), np.int64(1172), np.int64(378))  ← 欠けている
+kurumi   panic            12344      7110  (np.int64(344), np.int64(336), np.int64(713), np.int64(579))  ← 欠けている
+shirase  wave             14327      5822  (np.int64(0), np.int64(517), np.int64(172), np.int64(662))  ← 欠けている
+hinata   cry              22011      5768  (np.int64(943), np.int64(503), np.int64(1074), np.int64(636))  ← 欠けている
+aoi      cry               9939      5323  (np.int64(985), np.int64(303), np.int64(1053), np.int64(453))  ← 欠けている
+shirase  thumbsup         17891      5112  (np.int64(963), np.int64(215), np.int64(1085), np.int64(298))  ← 欠けている
+kotoha   money            13900      4920  (np.int64(1046), np.int64(568), np.int64(1138), np.int64(643))  ← 欠けている
+kurumi   think            14935      4920  (np.int64(356), np.int64(492), np.int64(591), np.int64(615))  ← 欠けている
+kotoha   explain          18262      4748  (np.int64(845), np.int64(266), np.int64(971), np.int64(358))  ← 欠けている
+kotoha   shock            17750      4674  (np.int64(1017), np.int64(389), np.int64(1094), np.int64(549))  ← 欠けている
+aoi      point            10488      4274  (np.int64(1050), np.int64(421), np.int64(1120), np.int64(522))  ← 欠けている
+shirase  angry            12077      4092  (np.int64(1098), np.int64(254), np.int64(1194), np.int64(338))  ← 欠けている
+aoi      angry             6600      3925  (np.int64(918), np.int64(121), np.int64(1003), np.int64(193))  ← 欠けている
+hinata   thumbsup         12138      3835  (np.int64(1020), np.int64(254), np.int64(1075), np.int64(514))  ← 欠けている
+kotoha   point            11300      3703  (np.int64(0), np.int64(371), np.int64(198), np.int64(521))  ← 欠けている
+shirase  celebrate        14869      3548  (np.int64(1085), np.int64(255), np.int64(1155), np.int64(381))  ← 欠けている
+aoi      money             5536      3461  (np.int64(0), np.int64(86), np.int64(220), np.int64(344))  ← 欠けている
+kurumi   celebrate         7457      3334  (np.int64(69), np.int64(322), np.int64(214), np.int64(525))  ← 欠けている
+aoi      shock             9548      3146  (np.int64(1047), np.int64(106), np.int64(1107), np.int64(229))  ← 欠けている
+hinata   wave              9067      2858  (np.int64(987), np.int64(444), np.int64(1048), np.int64(539))  ← 欠けている
+shirase  stop              7745      2821  (np.int64(1043), np.int64(399), np.int64(1117), np.int64(494))  ← 欠けている
+shirase  smug              6407      2714  (np.int64(1078), np.int64(532), np.int64(1132), np.int64(624))  ← 欠けている
+shirase  sleepy            6954      2626  (np.int64(1016), np.int64(395), np.int64(1079), np.int64(476))  ← 欠けている
+shirase  cry              17017      2599  (np.int64(1037), np.int64(279), np.int64(1112), np.int64(366))  ← 欠けている
+kotoha   smug              9040      2581  (np.int64(963), np.int64(426), np.int64(1026), np.int64(521))  ← 欠けている
+aoi      ok                4854      2437  (np.int64(946), np.int64(169), np.int64(1009), np.int64(228))  ← 欠けている
+kurumi   sleepy            7790      2402  (np.int64(202), np.int64(470), np.int64(382), np.int64(715))  ← 欠けている
+shirase  present           8380      2332  (np.int64(1012), np.int64(188), np.int64(1078), np.int64(259))  ← 欠けている
+kurumi   cry               5601      2299  (np.int64(0), np.int64(315), np.int64(140), np.int64(456))  ← 欠けている
+kotoha   present           7246      2237  (np.int64(994), np.int64(466), np.int64(1077), np.int64(533))  ← 欠けている
+kurumi   point            11613      2222  (np.int64(1036), np.int64(146), np.int64(1093), np.int64(223))  ← 欠けている
+aoi      present           5556      2214  (np.int64(1002), np.int64(157), np.int64(1055), np.int64(232))  ← 欠けている
+kurumi   money             6247      2211  (np.int64(960), np.int64(153), np.int64(1010), np.int64(232))  ← 欠けている
+aoi      thumbsup          3809      2165  (np.int64(1054), np.int64(161), np.int64(1092), np.int64(269))  ← 欠けている
+shirase  panic             9911      2127  (np.int64(0), np.int64(207), np.int64(148), np.int64(324))  ← 欠けている
+aoi      think             6786      2052  (np.int64(1033), np.int64(315), np.int64(1083), np.int64(401))  ← 欠けている
+aoi      stop              6470      1981  (np.int64(1056), np.int64(400), np.int64(1111), np.int64(475))  ← 欠けている
+kurumi   stop              4469      1933  (np.int64(1061), np.int64(339), np.int64(1105), np.int64(409))  ← 欠けている
+kurumi   ok                4797      1819  (np.int64(0), np.int64(387), np.int64(147), np.int64(528))  ← 欠けている
+kotoha   think             9882      1768  (np.int64(1047), np.int64(376), np.int64(1094), np.int64(438))  ← 欠けている
+shirase  money             5099      1462  (np.int64(1048), np.int64(382), np.int64(1123), np.int64(425))  ← 小さい欠け
+shirase  shock             5233      1439  (np.int64(1033), np.int64(311), np.int64(1089), np.int64(374))  ← 小さい欠け
+hinata   celebrate         9136      1426  (np.int64(109), np.int64(248), np.int64(160), np.int64(409))  ← 小さい欠け
+hinata   present           6603      1407  (np.int64(812), np.int64(374), np.int64(896), np.int64(410))  ← 小さい欠け
+kurumi   shock             4199      1380  (np.int64(1077), np.int64(117), np.int64(1108), np.int64(192))  ← 小さい欠け
+shirase  ok                8080      1376  (np.int64(939), np.int64(321), np.int64(975), np.int64(384))  ← 小さい欠け
+kotoha   wave              5395      1339  (np.int64(1017), np.int64(241), np.int64(1053), np.int64(304))  ← 小さい欠け
+hinata   shock             9513      1247  (np.int64(1017), np.int64(270), np.int64(1063), np.int64(349))  ← 小さい欠け
+kurumi   wave              4364      1182  (np.int64(0), np.int64(232), np.int64(69), np.int64(345))  ← 小さい欠け
+kurumi   smug              4638      1161  (np.int64(5), np.int64(93), np.int64(121), np.int64(228))  ← 小さい欠け
+kurumi   thumbsup          3691      1149  (np.int64(307), np.int64(361), np.int64(399), np.int64(407))  ← 小さい欠け
+kotoha   stop             10759      1137  (np.int64(905), np.int64(543), np.int64(962), np.int64(588))  ← 小さい欠け
+aoi      smug              2873      1032  (np.int64(1018), np.int64(470), np.int64(1089), np.int64(518))  ← 小さい欠け
+shirase  think             4047       739  (np.int64(1036), np.int64(420), np.int64(1077), np.int64(460))  ← 小さい欠け
+shirase  point             4464       714  (np.int64(1135), np.int64(412), np.int64(1183), np.int64(463))  ← 小さい欠け
+aoi      sleepy            2972       604  (np.int64(172), np.int64(49), np.int64(199), np.int64(75))  ← 小さい欠け
+aoi      celebrate         1505         0  -
+aoi      explain           1250         0  -
+aoi      panic             1854         0  -
+kotoha   celebrate         3747         0  -
+kotoha   thumbsup          3251         0  -
+kurumi   angry             1482         0  -
+kurumi   explain           1520         0  -
+kurumi   present           1192         0  -
+
+1500px以上の欠け: 56枚 / 80枚
+  hinata/ok  180273px  (np.int64(0), np.int64(0), np.int64(1119), np.int64(375))
+  shirase/explain  158766px  (np.int64(0), np.int64(0), np.int64(958), np.int64(328))
+  hinata/angry  93874px  (np.int64(0), np.int64(0), np.int64(917), np.int64(349))
+  kotoha/angry  25447px  (np.int64(975), np.int64(90), np.int64(1181), np.int64(283))
+  hinata/sleepy  24844px  (np.int64(507), np.int64(0), np.int64(1011), np.int64(98))
+  hinata/money  20575px  (np.int64(0), np.int64(504), np.int64(197), np.int64(758))
+  kotoha/ok  17991px  (np.int64(989), np.int64(193), np.int64(1117), np.int64(439))
+  hinata/think  17780px  (np.int64(991), np.int64(282), np.int64(1121), np.int64(496))
+  kotoha/sleepy  16983px  (np.int64(1050), np.int64(365), np.int64(1180), np.int64(539))
+  hinata/explain  12329px  (np.int64(989), np.int64(47), np.int64(1143), np.int64(219))
+  kotoha/cry  11714px  (np.int64(991), np.int64(237), np.int64(1104), np.int64(428))
+  hinata/smug  9618px  (np.int64(985), np.int64(496), np.int64(1107), np.int64(649))
+  hinata/point  9481px  (np.int64(981), np.int64(171), np.int64(1104), np.int64(338))
+  aoi/wave  9171px  (np.int64(0), np.int64(99), np.int64(311), np.int64(301))
+  kotoha/panic  8009px  (np.int64(925), np.int64(406), np.int64(1049), np.int64(554))
+  hinata/stop  7544px  (np.int64(949), np.int64(461), np.int64(1054), np.int64(614))
+  hinata/panic  7211px  (np.int64(1063), np.int64(186), np.int64(1172), np.int64(378))
+  kurumi/panic  7110px  (np.int64(344), np.int64(336), np.int64(713), np.int64(579))
+  shirase/wave  5822px  (np.int64(0), np.int64(517), np.int64(172), np.int64(662))
+  hinata/cry  5768px  (np.int64(943), np.int64(503), np.int64(1074), np.int64(636))
+  aoi/cry  5323px  (np.int64(985), np.int64(303), np.int64(1053), np.int64(453))
+  shirase/thumbsup  5112px  (np.int64(963), np.int64(215), np.int64(1085), np.int64(298))
+  kotoha/money  4920px  (np.int64(1046), np.int64(568), np.int64(1138), np.int64(643))
+  kurumi/think  4920px  (np.int64(356), np.int64(492), np.int64(591), np.int64(615))
+  kotoha/explain  4748px  (np.int64(845), np.int64(266), np.int64(971), np.int64(358))
+  kotoha/shock  4674px  (np.int64(1017), np.int64(389), np.int64(1094), np.int64(549))
+  aoi/point  4274px  (np.int64(1050), np.int64(421), np.int64(1120), np.int64(522))
+  shirase/angry  4092px  (np.int64(1098), np.int64(254), np.int64(1194), np.int64(338))
+  aoi/angry  3925px  (np.int64(918), np.int64(121), np.int64(1003), np.int64(193))
+  hinata/thumbsup  3835px  (np.int64(1020), np.int64(254), np.int64(1075), np.int64(514))
+  kotoha/point  3703px  (np.int64(0), np.int64(371), np.int64(198), np.int64(521))
+  shirase/celebrate  3548px  (np.int64(1085), np.int64(255), np.int64(1155), np.int64(381))
+  aoi/money  3461px  (np.int64(0), np.int64(86), np.int64(220), np.int64(344))
+  kurumi/celebrate  3334px  (np.int64(69), np.int64(322), np.int64(214), np.int64(525))
+  aoi/shock  3146px  (np.int64(1047), np.int64(106), np.int64(1107), np.int64(229))
+  hinata/wave  2858px  (np.int64(987), np.int64(444), np.int64(1048), np.int64(539))
+  shirase/stop  2821px  (np.int64(1043), np.int64(399), np.int64(1117), np.int64(494))
+  shirase/smug  2714px  (np.int64(1078), np.int64(532), np.int64(1132), np.int64(624))
+  shirase/sleepy  2626px  (np.int64(1016), np.int64(395), np.int64(1079), np.int64(476))
+  shirase/cry  2599px  (np.int64(1037), np.int64(279), np.int64(1112), np.int64(366))
+  kotoha/smug  2581px  (np.int64(963), np.int64(426), np.int64(1026), np.int64(521))
+  aoi/ok  2437px  (np.int64(946), np.int64(169), np.int64(1009), np.int64(228))
+  kurumi/sleepy  2402px  (np.int64(202), np.int64(470), np.int64(382), np.int64(715))
+  shirase/present  2332px  (np.int64(1012), np.int64(188), np.int64(1078), np.int64(259))
+  kurumi/cry  2299px  (np.int64(0), np.int64(315), np.int64(140), np.int64(456))
+  kotoha/present  2237px  (np.int64(994), np.int64(466), np.int64(1077), np.int64(533))
+  kurumi/point  2222px  (np.int64(1036), np.int64(146), np.int64(1093), np.int64(223))
+  aoi/present  2214px  (np.int64(1002), np.int64(157), np.int64(1055), np.int64(232))
+  kurumi/money  2211px  (np.int64(960), np.int64(153), np.int64(1010), np.int64(232))
+  aoi/thumbsup  2165px  (np.int64(1054), np.int64(161), np.int64(1092), np.int64(269))
+  shirase/panic  2127px  (np.int64(0), np.int64(207), np.int64(148), np.int64(324))
+  aoi/think  2052px  (np.int64(1033), np.int64(315), np.int64(1083), np.int64(401))
+  aoi/stop  1981px  (np.int64(1056), np.int64(400), np.int64(1111), np.int64(475))
+  kurumi/stop  1933px  (np.int64(1061), np.int64(339), np.int64(1105), np.int64(409))
+  kurumi/ok  1819px  (np.int64(0), np.int64(387), np.int64(147), np.int64(528))
+  kotoha/think  1768px  (np.int64(1047), np.int64(376), np.int64(1094), np.int64(438))
+BRIGHT=55 DARKBG=40 MIN_PX=400  (80枚を比較)
+
+isnet-anime を birefnet と比べたときの差分（画素）
+対象                           残した背景    塊           余分に消したキャラ      塊(可視域)
+hinata/celebrate             85518   15                   0           0
+hinata/sleepy                47917   18                   0           0
+hinata/angry                 27725   15                   0           0
+hinata/thumbsup              25537   15                   0           0
+hinata/money                 23636   13                   3           0
+shirase/cry                  23619   10                   2           0
+hinata/ok                    19010   11                   0           0
+hinata/point                 18724    8                   2           0
+hinata/smug                   5816    2               12217           1
+shirase/explain              17323   13                   0           0
+hinata/wave                  16216   11                   0           0
+kurumi/explain                1857    2               14169           0
+shirase/thumbsup             15487    9                   0           0
+kotoha/money                 14560    8                   0           0
+shirase/angry                12226    9                   0           0
+hinata/think                 10198    6                 792           1
+hinata/shock                 10768    6                   0           0
+hinata/present               10254   10                   0           0
+hinata/explain                8763    4                   0           0
+kotoha/smug                   8082    4                   0           0
+hinata/cry                    7366    5                   0           0
+kurumi/celebrate              6463    1                   0           0
+kotoha/ok                     5447    4                   0           0
+kotoha/cry                    4819    6                   0           0
+kotoha/sleepy                 4751    5                   0           0
+aoi/smug                      4677    3                   0           0
+aoi/present                   3836    2                 759           0
+kotoha/panic                  4425    5                   0           0
+shirase/sleepy                4299    5                   0           0
+shirase/point                 4034    4                   0           0
+kotoha/think                  3804    3                   3           0
+kotoha/present                3766    3                   0           0
+aoi/panic                     3753    2                   0           0
+aoi/think                     3711    4                   3           0
+hinata/stop                   3634    3                   0           0
+shirase/stop                  3598    4                   0           0
+aoi/angry                     3590    3                   0           0
+shirase/smug                  3461    3                   1           0
+aoi/ok                        3328    2                   0           0
+kotoha/stop                   3315    2                   3           0
+aoi/point                     3305    4                   1           0
+shirase/ok                    3164    2                   0           0
+shirase/think                 3137    4                   0           0
+aoi/explain                   3075    4                   0           0
+kotoha/wave                   2951    3                   0           0
+shirase/present               2897    1                   2           0
+kotoha/explain                2803    3                   0           0
+aoi/money                     2750    3                   0           0
+kotoha/angry                  2572    3                   0           0
+aoi/sleepy                    2506    3                   0           0
+shirase/panic                 2465    3                   3           0
+hinata/panic                  2446    1                   0           0
+aoi/wave                      2349    2                   6           0
+kotoha/shock                  2305    2                   0           0
+shirase/wave                  2242    2                   3           0
+aoi/stop                      2182    3                   0           0
+aoi/celebrate                 2115    2                   0           0
+aoi/cry                       2112    1                   2           0
+kotoha/point                  2062    3                   0           0
+aoi/shock                     1994    2                   0           0
+aoi/thumbsup                  1991    2                   0           0
+kotoha/thumbsup               1972    3                   0           0
+kurumi/present                1825    2                   0           0
+kurumi/ok                     1750    2                   0           0
+kurumi/angry                  1722    2                   1           0
+kurumi/panic                  1672    2                   4           0
+kurumi/shock                  1666    2                   0           0
+kurumi/money                  1609    2                   1           0
+shirase/money                 1484    1                   0           0
+kurumi/point                  1142    1                   0           0
+shirase/shock                 1139    1                   1           0
+kurumi/think                  1070    0                   0           0
+shirase/celebrate             1001    1                   0           0
+kotoha/celebrate               965    1                   0           0
+kurumi/sleepy                  849    0                   0           0
+kurumi/smug                    776    0                   0           0
+kurumi/wave                    733    0                   0           0
+kurumi/thumbsup                654    0                   0           0
+kurumi/cry                     487    0                   9           0
+
+合計: 残した背景 565472px / 余分に消したキャラ 27993px
+400px以上の塊を持つ枚数: 残し 73枚 / 消し過ぎ 2枚
+
+-- 塊の中身（400px以上のものだけ）--
+hinata/celebrate
+    残した背景     62682px  (y0,x87)
+    残した背景      5268px  (y131,x615)
+    残した背景      2136px  (y42,x758)
+    残した背景      1241px  (y463,x608)
+hinata/sleepy
+    残した背景     11653px  (y882,x0)
+    残した背景      4509px  (y951,x692)
+    残した背景      4450px  (y307,x631)
+    残した背景      3822px  (y457,x8)
+hinata/angry
+    残した背景      6011px  (y197,x521)
+    残した背景      4871px  (y326,x313)
+    残した背景      3574px  (y294,x646)
+    残した背景      2123px  (y338,x208)
+hinata/thumbsup
+    残した背景      5831px  (y323,x286)
+    残した背景      5283px  (y167,x504)
+    残した背景      1616px  (y455,x650)
+    残した背景      1595px  (y302,x470)
+hinata/money
+    残した背景      5612px  (y150,x268)
+    残した背景      4011px  (y310,x659)
+    残した背景      2849px  (y227,x534)
+    残した背景      1692px  (y417,x665)
+shirase/cry
+    残した背景      4429px  (y488,x84)
+    残した背景      3958px  (y357,x147)
+    残した背景      3854px  (y295,x174)
+    残した背景      2581px  (y479,x91)
+hinata/ok
+    残した背景      5607px  (y225,x257)
+    残した背景      4698px  (y373,x633)
+    残した背景      1702px  (y408,x319)
+    残した背景      1536px  (y499,x676)
+hinata/point
+    残した背景      4606px  (y326,x297)
+    残した背景      3638px  (y279,x602)
+    残した背景      2674px  (y302,x177)
+    残した背景      2591px  (y137,x237)
+hinata/smug
+    残した背景      4750px  (y323,x453)
+    残した背景       526px  (y270,x608)
+    消し過ぎ★       602px  (y130,x276)  ← サムネに出る範囲
+shirase/explain
+    残した背景      3049px  (y959,x711)
+    残した背景      2744px  (y909,x688)
+    残した背景      2585px  (y806,x754)
+    残した背景      1518px  (y223,x205)
+hinata/wave
+    残した背景      7660px  (y311,x253)
+    残した背景      1447px  (y547,x127)
+    残した背景       822px  (y508,x177)
+    残した背景       702px  (y307,x185)
+kurumi/explain
+    残した背景       730px  (y185,x370)
+    残した背景       493px  (y248,x375)
+shirase/thumbsup
+    残した背景      3887px  (y273,x137)
+    残した背景      3681px  (y648,x113)
+    残した背景      2095px  (y524,x147)
+    残した背景      1549px  (y207,x135)
+kotoha/money
+    残した背景      4010px  (y480,x141)
+    残した背景      2589px  (y214,x287)
+    残した背景      2565px  (y395,x218)
+    残した背景      2371px  (y853,x709)
+shirase/angry
+    残した背景      3394px  (y386,x102)
+    残した背景      1447px  (y169,x221)
+    残した背景      1338px  (y763,x81)
+    残した背景      1337px  (y898,x114)
+hinata/think
+    残した背景      3150px  (y186,x512)
+    残した背景      1954px  (y333,x464)
+    残した背景      1393px  (y440,x166)
+    残した背景      1111px  (y308,x194)
+    消し過ぎ★       791px  (y169,x233)  ← サムネに出る範囲
+hinata/shock
+    残した背景      2757px  (y453,x165)
+    残した背景      2192px  (y273,x240)
+    残した背景      2181px  (y360,x290)
+    残した背景       801px  (y392,x169)
+hinata/present
+    残した背景      2992px  (y342,x437)
+    残した背景      1617px  (y206,x509)
+    残した背景      1076px  (y368,x570)
+    残した背景      1027px  (y277,x584)
+hinata/explain
+    残した背景      5846px  (y302,x563)
+    残した背景       953px  (y349,x518)
+    残した背景       817px  (y347,x239)
+    残した背景       457px  (y356,x556)
+kotoha/smug
+    残した背景      3339px  (y329,x149)
+    残した背景      2273px  (y592,x114)
+    残した背景       771px  (y810,x116)
+    残した背景       672px  (y359,x420)
+hinata/cry
+    残した背景      2763px  (y324,x291)
+    残した背景       651px  (y199,x149)
+    残した背景       588px  (y334,x144)
+    残した背景       586px  (y265,x153)
+kurumi/celebrate
+    残した背景      6102px  (y338,x183)
+kotoha/ok
+    残した背景      1928px  (y589,x719)
+    残した背景      1350px  (y853,x660)
+    残した背景       528px  (y102,x331)
+    残した背景       499px  (y717,x737)
+kotoha/cry
+    残した背景      1542px  (y228,x547)
+    残した背景       957px  (y422,x216)
+    残した背景       689px  (y764,x174)
+    残した背景       552px  (y287,x234)
+kotoha/sleepy
+    残した背景      1336px  (y254,x570)
+    残した背景       733px  (y245,x247)
+    残した背景       656px  (y291,x247)
+    残した背景       536px  (y195,x254)
+aoi/smug
+    残した背景      2764px  (y299,x443)
+    残した背景       597px  (y37,x489)
+    残した背景       487px  (y221,x594)
+aoi/present
+    残した背景      2100px  (y324,x351)
+    残した背景       480px  (y239,x594)
+kotoha/panic
+    残した背景      1440px  (y390,x218)
+    残した背景       766px  (y801,x127)
+    残した背景       760px  (y738,x95)
+    残した背景       737px  (y230,x247)
+shirase/sleepy
+    残した背景      1054px  (y277,x257)
+    残した背景       727px  (y213,x255)
+    残した背景       697px  (y259,x558)
+    残した背景       521px  (y364,x254)
+shirase/point
+    残した背景      1083px  (y827,x626)
+    残した背景       752px  (y242,x573)
+    残した背景       588px  (y189,x577)
+    残した背景       578px  (y310,x238)
+kotoha/think
+    残した背景      1287px  (y327,x156)
+    残した背景      1039px  (y269,x154)
+    残した背景       664px  (y217,x506)
+kotoha/present
+    残した背景       937px  (y274,x236)
+    残した背景       685px  (y811,x637)
+    残した背景       519px  (y225,x242)
+aoi/panic
+    残した背景      2866px  (y301,x294)
+    残した背景       503px  (y219,x545)
+aoi/think
+    残した背景      1479px  (y346,x448)
+    残した背景       490px  (y221,x595)
+    残した背景       488px  (y151,x270)
+    残した背景       441px  (y247,x271)
+hinata/stop
+    残した背景       921px  (y189,x615)
+    残した背景       571px  (y137,x120)
+    残した背景       508px  (y339,x314)
+shirase/stop
+    残した背景       882px  (y217,x259)
+    残した背景       544px  (y384,x245)
+    残した背景       542px  (y320,x262)
+    残した背景       438px  (y293,x559)
+aoi/angry
+    残した背景       782px  (y319,x332)
+    残した背景       564px  (y163,x548)
+    残した背景       489px  (y899,x568)
+shirase/smug
+    残した背景       943px  (y154,x258)
+    残した背景       843px  (y300,x563)
+    残した背景       705px  (y271,x254)
+aoi/ok
+    残した背景      1835px  (y313,x318)
+    残した背景       799px  (y369,x265)
+kotoha/stop
+    残した背景      1103px  (y237,x142)
+    残した背景      1081px  (y476,x69)
+aoi/point
+    残した背景       564px  (y169,x640)
+    残した背景       515px  (y270,x339)
+    残した背景       486px  (y145,x316)
+    残した背景       471px  (y19,x435)
+shirase/ok
+    残した背景      1981px  (y779,x178)
+    残した背景       633px  (y228,x545)
+shirase/think
+    残した背景       730px  (y247,x257)
+    残した背景       647px  (y286,x560)
+    残した背景       490px  (y306,x258)
+    残した背景       464px  (y221,x560)
+aoi/explain
+    残した背景       779px  (y167,x542)
+    残した背景       753px  (y323,x294)
+    残した背景       506px  (y221,x240)
+    残した背景       467px  (y252,x536)
+kotoha/wave
+    残した背景       726px  (y205,x277)
+    残した背景       597px  (y337,x271)
+    残した背景       413px  (y266,x279)
+shirase/present
+    残した背景       759px  (y23,x317)
+kotoha/explain
+    残した背景      1143px  (y816,x667)
+    残した背景       868px  (y245,x333)
+    残した背景       548px  (y204,x333)
+aoi/money
+    残した背景       585px  (y319,x506)
+    残した背景       485px  (y252,x245)
+    残した背景       427px  (y225,x572)
+kotoha/angry
+    残した背景      1125px  (y247,x260)
+    残した背景       775px  (y309,x557)
+    残した背景       630px  (y224,x557)
+aoi/sleepy
+    残した背景       643px  (y332,x473)
+    残した背景       468px  (y222,x237)
+    残した背景       423px  (y237,x567)
+shirase/panic
+    残した背景      1071px  (y328,x555)
+    残した背景       538px  (y385,x254)
+    残した背景       403px  (y212,x548)
+hinata/panic
+    残した背景      2149px  (y415,x94)
+aoi/wave
+    残した背景       521px  (y229,x264)
+    残した背景       495px  (y281,x550)
+kotoha/shock
+    残した背景      1364px  (y268,x237)
+    残した背景       566px  (y818,x130)
+shirase/wave
+    残した背景      1332px  (y250,x297)
+    残した背景       404px  (y595,x75)
+aoi/stop
+    残した背景       817px  (y345,x312)
+    残した背景       602px  (y204,x562)
+    残した背景       501px  (y122,x240)
+aoi/celebrate
+    残した背景      1291px  (y150,x281)
+    残した背景       740px  (y196,x628)
+aoi/cry
+    残した背景       469px  (y193,x548)
+kotoha/point
+    残した背景       581px  (y236,x250)
+    残した背景       441px  (y677,x146)
+    残した背景       413px  (y220,x569)
+aoi/shock
+    残した背景      1053px  (y299,x536)
+    残した背景       443px  (y115,x251)
+aoi/thumbsup
+    残した背景       527px  (y210,x262)
+    残した背景       521px  (y325,x293)
+kotoha/thumbsup
+    残した背景       689px  (y240,x198)
+    残した背景       576px  (y187,x496)
+    残した背景       489px  (y374,x194)
+kurumi/present
+    残した背景       881px  (y405,x259)
+    残した背景       575px  (y252,x330)
+kurumi/ok
+    残した背景       481px  (y208,x561)
+    残した背景       407px  (y164,x266)
+kurumi/angry
+    残した背景       881px  (y219,x230)
+    残した背景       408px  (y161,x230)
+kurumi/panic
+    残した背景       491px  (y166,x508)
+    残した背景       409px  (y208,x514)
+kurumi/shock
+    残した背景       675px  (y168,x230)
+    残した背景       528px  (y232,x230)
+kurumi/money
+    残した背景       844px  (y179,x218)
+    残した背景       478px  (y263,x237)
+shirase/money
+    残した背景       620px  (y352,x430)
+kurumi/point
+    残した背景       771px  (y123,x214)
+shirase/shock
+    残した背景       452px  (y49,x419)
+shirase/celebrate
+    残した背景       686px  (y167,x442)
+kotoha/celebrate
+    残した背景       593px  (y869,x630)

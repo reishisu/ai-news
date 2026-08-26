@@ -1,0 +1,26 @@
+背景から決めたしきい値（80枚）
+
+服に穴のある枚数:  birefnetのみ 3枚 → 合成 2枚
+穴の総面積:        44954px → 44092px
+戻した画素の合計:  11180px
+
+しきい値が上がった絵（背景が真っ黒でないもの）
+対象                         背景99.5%      しきい値       戻した
+hinata/sleepy                  254       266         0
+hinata/panic                   201       213       845
+kotoha/money                   198       210         1
+kotoha/sleepy                  198       210       103
+kotoha/angry                   183       195         2
+hinata/celebrate               177       189       342
+hinata/think                   122       134         8
+hinata/money                    67        79       148
+hinata/explain                  60        72       214
+hinata/smug                     59        71        34
+hinata/stop                     58        70       152
+kotoha/shock                    47        59       753
+
+穴の増減
+対象                        birefnetのみ         合成後
+hinata/sleepy              39594px     39594px
+hinata/money                4517px      4498px
+kurumi/sleepy                843px         0px   ← 解消

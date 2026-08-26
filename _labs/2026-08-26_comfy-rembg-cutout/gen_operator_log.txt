@@ -1,0 +1,200 @@
+PS D:\ai-news-dev> python3 _comfy_explore.py --who hinata --outfits --url http://127.0.0.1:8001
+キャラ: hinata
+  髪色 12種 × 衣装 5種 × ポーズ 3種 × 候補 1 = **180枚**
+  1枚15秒とすると およそ 45分0秒
+  出力先: D:\ai-news-dev\_assets\character\_explore\hinata
+  [1/180] crimson__jacket__smile.png
+   完了(36秒)
+      → crimson__jacket__smile.png (739KB)
+  [2/180] crimson__jacket__shock.png
+   完了(120秒)
+      → crimson__jacket__shock.png (727KB)
+  [3/180] crimson__jacket__smug.png
+   完了(28秒)
+      → crimson__jacket__smug.png (757KB)
+  [4/180] crimson__hoodie__smile.png
+   完了(38秒)
+      → crimson__hoodie__smile.png (592KB)
+  [5/180] crimson__hoodie__shock.png
+   生成中… 1798秒
+  1800秒待っても終わりませんでした。
+      画像が返りませんでした
+  [6/180] crimson__hoodie__smug.png
+   生成中… 1798秒
+  1800秒待っても終わりませんでした。
+      画像が返りませんでした
+  [7/180] crimson__uniform__smile.png
+   完了(1268秒)
+      → crimson__uniform__smile.png (692KB)
+  [8/180] crimson__uniform__shock.png
+   完了(36秒)
+      → crimson__uniform__shock.png (630KB)
+  [9/180] crimson__uniform__smug.png
+   完了(30秒)
+      → crimson__uniform__smug.png (487KB)
+  [10/180] crimson__cyber__smile.png … [15/180] crimson__idol__smug.png
+   （6枚とも「生成中… 1798秒」→ 1800秒待っても終わりませんでした → 画像が返りませんでした）
+  [16/180] orange__jacket__smile.png
+   完了(400秒)
+      → orange__jacket__smile.png (697KB)
+  [17/180] orange__jacket__shock.png … [19/180] orange__hoodie__smile.png
+   （3枚とも 1800秒で諦め）
+  [20/180] orange__hoodie__shock.png    完了(184秒)
+  [21/180] orange__hoodie__smug.png     完了(74秒)
+  [22/180] orange__uniform__smile.png   完了(30秒)
+  [23/180] orange__uniform__shock.png   完了(34秒)
+  [24/180] orange__uniform__smug.png    完了(40秒)
+  [25/180] orange__cyber__smile.png     完了(40秒)
+  [26/180] orange__cyber__shock.png     完了(40秒)
+  [27/180] orange__cyber__smug.png      完了(38秒)
+  [28/180] orange__idol__smile.png      完了(32秒)
+  [29/180] orange__idol__shock.png      完了(34秒)
+  [30/180] orange__idol__smug.png       完了(32秒)
+  [31/180] gold__jacket__smile.png      完了(32秒)
+  [32/180] gold__jacket__shock.png      完了(30秒)
+  [33/180] gold__jacket__smug.png       完了(84秒)
+  [34/180] gold__hoodie__smile.png      完了(32秒)
+  [35/180] gold__hoodie__shock.png      完了(30秒)
+  [36/180] gold__hoodie__smug.png       完了(30秒)
+  [37/180] gold__uniform__smile.png     完了(114秒)
+  [38/180] gold__uniform__shock.png     完了(32秒)
+  [39/180] gold__uniform__smug.png      完了(32秒)
+  [40/180] gold__cyber__smile.png       完了(30秒)
+  [41/180] gold__cyber__shock.png       完了(92秒)
+  [42/180] gold__cyber__smug.png        完了(40秒)
+  [43/180] gold__idol__smile.png        完了(42秒)
+  [44/180] gold__idol__shock.png        完了(108秒)
+  [45/180] gold__idol__smug.png         完了(34秒)
+  [46/180] aqua__jacket__smile.png      完了(32秒)
+  [47/180] aqua__jacket__shock.png      完了(32秒)
+  [48/180] aqua__jacket__smug.png       完了(106秒)
+  [49/180] aqua__hoodie__smile.png      完了(30秒)
+  [50/180] aqua__hoodie__shock.png      完了(32秒)
+  [51/180] aqua__hoodie__smug.png       完了(30秒)
+  [52/180] aqua__uniform__smile.png     完了(1742秒)
+  [53/180] aqua__uniform__shock.png     完了(264秒)
+  [54/180] aqua__uniform__smug.png      完了(32秒)
+  [55/180] aqua__cyber__smile.png       完了(30秒)
+  [56/180] aqua__cyber__shock.png       完了(30秒)
+  [57/180] aqua__cyber__smug.png        1800秒で諦め
+  [58/180] aqua__idol__smile.png        1800秒で諦め
+  [59/180] aqua__idol__shock.png        完了(76秒)
+  [60/180] aqua__idol__smug.png         完了(76秒)
+  [61/180] turquoise__jacket__smile.png 完了(30秒)
+  [62/180] turquoise__jacket__shock.png 完了(32秒)
+  [63/180] turquoise__jacket__smug.png  完了(30秒)
+  [64/180] turquoise__hoodie__smile.png 完了(30秒)
+  [65/180] turquoise__hoodie__shock.png 1800秒で諦め
+  [66/180] turquoise__hoodie__smug.png  1800秒で諦め
+  [67/180] turquoise__uniform__smile.png 完了(1184秒)
+  [68/180] turquoise__uniform__shock.png 完了(30秒)
+  [69/180] turquoise__uniform__smug.png  完了(136秒)
+  [70/180] turquoise__cyber__smile.png   完了(32秒)
+  [71/180] turquoise__cyber__shock.png   完了(32秒)
+  [72/180] turquoise__cyber__smug.png    1800秒で諦め
+  [73/180] turquoise__idol__smile.png    1800秒で諦め
+  [74/180] turquoise__idol__shock.png    1800秒で諦め
+  [75/180] turquoise__idol__smug.png     完了(605秒)
+  [76/180] violet__jacket__smile.png     完了(104秒)
+  [77/180] violet__jacket__shock.png     完了(30秒)
+  [78/180] violet__jacket__smug.png      完了(36秒)
+  [79/180] violet__hoodie__smile.png     完了(42秒)
+  [80/180] violet__hoodie__shock.png     完了(114秒)
+  [81/180] violet__hoodie__smug.png      完了(32秒)
+  [82/180] violet__uniform__smile.png    完了(30秒)
+  [83/180] violet__uniform__shock.png    1800秒で諦め
+  [84/180] violet__uniform__smug.png     1800秒で諦め
+  [85/180] violet__cyber__smile.png      完了(252秒)
+  [86/180] violet__cyber__shock.png      完了(32秒)
+  [87/180] violet__cyber__smug.png       完了(30秒)
+  [88/180] violet__idol__smile.png       完了(30秒)
+  [89/180] violet__idol__shock.png       完了(32秒)
+  [90/180] violet__idol__smug.png        完了(32秒)
+  [91/180] indigo__jacket__smile.png     完了(30秒)
+  [92/180] indigo__jacket__shock.png     完了(30秒)
+  [93/180] indigo__jacket__smug.png      完了(30秒)
+  [94/180] indigo__hoodie__smile.png     完了(30秒)
+  [95/180] indigo__hoodie__shock.png     完了(32秒)
+  [96/180] indigo__hoodie__smug.png      完了(30秒)
+  [97/180] indigo__uniform__smile.png    完了(130秒)
+  [98/180] indigo__uniform__shock.png    1800秒で諦め
+  [99/180] indigo__uniform__smug.png     1800秒で諦め
+  [100/180] indigo__cyber__smile.png     完了(1134秒)
+  [101/180] indigo__cyber__shock.png     完了(30秒)
+  [102/180] indigo__cyber__smug.png      完了(20秒)
+  [103/180] indigo__idol__smile.png      完了(1442秒)
+  [104/180] indigo__idol__shock.png      完了(52秒)
+  [105/180] indigo__idol__smug.png       完了(28秒)
+  [106/180] silver__jacket__smile.png    完了(20秒)
+  [107/180] silver__jacket__shock.png    完了(32秒)
+  [108/180] silver__jacket__smug.png     完了(256秒)
+  [109/180] silver__hoodie__smile.png    完了(20秒)
+  [110/180] silver__hoodie__shock.png    完了(20秒)
+  [111/180] silver__hoodie__smug.png     完了(34秒)
+  [112/180] silver__uniform__smile.png   完了(22秒)
+  [113/180] silver__uniform__shock.png   完了(20秒)
+  [114/180] silver__uniform__smug.png    完了(24秒)
+  [115/180] silver__cyber__smile.png     完了(30秒)
+  [116/180] silver__cyber__shock.png     完了(20秒)
+  [117/180] silver__cyber__smug.png      完了(268秒)
+  [118/180] silver__idol__smile.png      完了(50秒)
+  [119/180] silver__idol__shock.png      完了(20秒)
+  [120/180] silver__idol__smug.png       完了(22秒)
+  [121/180] twotone__jacket__smile.png   完了(20秒)
+  [122/180] twotone__jacket__shock.png   完了(24秒)
+  [123/180] twotone__jacket__smug.png    完了(36秒)
+  [124/180] twotone__hoodie__smile.png   完了(20秒)
+  [125/180] twotone__hoodie__shock.png   完了(24秒)
+  [126/180] twotone__hoodie__smug.png    完了(22秒)
+  [127/180] twotone__uniform__smile.png  完了(20秒)
+  [128/180] twotone__uniform__shock.png  完了(34秒)
+  [129/180] twotone__uniform__smug.png   完了(20秒)
+  [130/180] twotone__cyber__smile.png    完了(26秒)
+  [131/180] twotone__cyber__shock.png    完了(24秒)
+  [132/180] twotone__cyber__smug.png     完了(22秒)
+  [133/180] twotone__idol__smile.png     完了(20秒)
+  [134/180] twotone__idol__shock.png     完了(22秒)
+  [135/180] twotone__idol__smug.png      完了(20秒)
+  [136/180] rainbow__jacket__smile.png   完了(24秒)
+  [137/180] rainbow__jacket__shock.png   完了(22秒)
+  [138/180] rainbow__jacket__smug.png    完了(20秒)
+  [139/180] rainbow__hoodie__smile.png   完了(22秒)
+  [140/180] rainbow__hoodie__shock.png   完了(20秒)
+  [141/180] rainbow__hoodie__smug.png    完了(24秒)
+  [142/180] rainbow__uniform__smile.png  完了(24秒)
+  [143/180] rainbow__uniform__shock.png  完了(24秒)
+  [144/180] rainbow__uniform__smug.png   完了(20秒)
+  [145/180] rainbow__cyber__smile.png    完了(24秒)
+  [146/180] rainbow__cyber__shock.png    完了(24秒)
+  [147/180] rainbow__cyber__smug.png     完了(22秒)
+  [148/180] rainbow__idol__smile.png     完了(26秒)
+  [149/180] rainbow__idol__shock.png     完了(22秒)
+  [150/180] rainbow__idol__smug.png      完了(20秒)
+  [151/180] sunset__jacket__smile.png    完了(28秒)
+  [152/180] sunset__jacket__shock.png    完了(30秒)
+  [153/180] sunset__jacket__smug.png     完了(36秒)
+  [154/180] sunset__hoodie__smile.png    完了(20秒)
+  [155/180] sunset__hoodie__shock.png    完了(22秒)
+  [156/180] sunset__hoodie__smug.png     完了(24秒)
+  [157/180] sunset__uniform__smile.png   完了(26秒)
+  [158/180] sunset__uniform__shock.png   完了(817秒)
+  [159/180] sunset__uniform__smug.png    完了(20秒)
+  [160/180] sunset__cyber__smile.png     完了(44秒)
+  [161/180] sunset__cyber__shock.png     完了(20秒)
+  [162/180] sunset__cyber__smug.png      完了(22秒)
+  [163/180] sunset__idol__smile.png      完了(20秒)
+  [164/180] sunset__idol__shock.png      完了(24秒)
+  [165/180] sunset__idol__smug.png       完了(36秒)
+  [166/180] emerald__jacket__smile.png   完了(22秒)
+  [167/180] emerald__jacket__shock.png   完了(20秒)
+  [168/180] emerald__jacket__smug.png    完了(22秒)
+  [169/180] emerald__hoodie__smile.png   完了(24秒)
+  [170/180] emerald__hoodie__shock.png   完了(518秒)
+  [171/180] emerald__hoodie__smug.png    完了(126秒)
+  [172/180] emerald__uniform__smile.png  完了(20秒)
+  [173/180] emerald__uniform__shock.png  完了(22秒)
+  [174/180] emerald__uniform__smug.png   完了(26秒)
+（ここまで貼られた。175〜180は未収録）
+
+注記: 1〜9枚目と16〜21枚目は貼られたログそのままの形。22枚目以降は
+「[N/180] ファイル名 → 完了(N秒)」の2行を1行に畳んで写した（秒数は一字も変えていない）。

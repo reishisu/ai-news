@@ -1,0 +1,20 @@
+BRIGHT=55 MIN_PX=400 CHARA_CROP=0.58  (80枚)
+
+検出された穴: 3枚
+うち装飾(正しく消したもの)を除いた**本当の穴**: 1枚
+
+  hinata/money          4516px  ★ 服・髪の穴  4516px(y0,x504)
+  aoi/sleepy          585px  装飾（除外）  585px(y172,x49)
+  hinata/celebrate       538px  装飾（除外）  538px(y289,x746)
+
+位置合わせ誤差の最大 0.7
+
+不透明画素のRGBが元画像とどれだけ違うか（大きいと色が壊れている）
+対象                          平均RGB差
+hinata/panic                  2.12
+hinata/stop                   1.99
+shirase/celebrate             1.97
+kotoha/explain                1.86
+hinata/sleepy                 1.81
+hinata/present                1.79
+全80枚の最大 2.12 / 中央値 1.47  ← 2前後なら正常（縁のアンチエイリアス処理ぶん）

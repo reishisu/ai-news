@@ -1,0 +1,10 @@
+  起動時                                      RSS     225 MiB
+  birefnet(アリーナ無し)作成後                      RSS     651 MiB
+  birefnet 推論1 (30秒)                       RSS     656 MiB
+  birefnet 推論2 (30秒)                       RSS     688 MiB
+  birefnet 推論3 (27秒)                       RSS     688 MiB
+  isnet(アリーナ無し)作成後                         RSS     989 MiB
+  isnet 推論1 (2秒)                           RSS    1014 MiB
+  isnet 推論2 (1秒)                           RSS    1014 MiB
+  isnet 推論3 (1秒)                           RSS    1014 MiB
+  アリーナ有無での alpha の差: 0
