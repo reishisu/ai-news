@@ -1,73 +1,35 @@
-<svg viewBox="0 0 760 420" xmlns="http://www.w3.org/2000/svg" role="img">
+<svg viewBox="0 0 460 560" xmlns="http://www.w3.org/2000/svg">
 <g font-family="'Noto Sans JP','IPAGothic','DejaVu Sans',sans-serif">
-
-  <text x="36" y="28" font-size="17" font-weight="700" fill="var(--fg)">切り抜きは4段。どの段も、消してはいけないものを消した</text>
-
-  <!-- 元画像 -->
-  <rect x="36" y="44" width="340" height="50" rx="12" fill="var(--track)"/>
-  <text x="56" y="68" font-size="15.5" font-weight="700" fill="var(--fg)">元画像（ComfyUIで生成）</text>
-  <text x="56" y="87" font-size="13.5" fill="var(--sub)">832×1216・黒背景 ／ 5人×16ポーズ＝80枚</text>
-  <line x1="206" y1="94" x2="206" y2="106" stroke="var(--sub)" stroke-width="2.5"/>
-  <polygon points="206,112 200.6,101 211.4,101" fill="var(--sub)"/>
-
-  <text x="404" y="106" font-size="14" font-weight="700" fill="var(--c)">この段で起きた事故</text>
-
-  <!-- 1 -->
-  <rect x="36" y="112" width="340" height="46" rx="11" fill="var(--track)"/>
-  <circle cx="60" cy="135" r="13" fill="var(--new)"/>
-  <text x="60" y="140" font-size="14" font-weight="700" fill="var(--bg)" text-anchor="middle">1</text>
-  <text x="82" y="132" font-size="15.5" font-weight="700" fill="var(--fg)">rembg で切り抜く</text>
-  <text x="82" y="150" font-size="13" fill="var(--sub)">birefnet-general-lite</text>
-  <line x1="376" y1="135" x2="396" y2="135" stroke="var(--c)" stroke-width="1.5" opacity="0.55"/>
-  <circle cx="404" cy="135" r="4" fill="var(--c)"/>
-  <text x="416" y="140" font-size="15" font-weight="700" fill="var(--c)">ツインテールごと消える</text>
-  <line x1="206" y1="158" x2="206" y2="168" stroke="var(--sub)" stroke-width="2.5"/>
-  <polygon points="206,174 200.6,163 211.4,163" fill="var(--sub)"/>
-
-  <!-- 2 -->
-  <rect x="36" y="174" width="340" height="46" rx="11" fill="var(--track)"/>
-  <circle cx="60" cy="197" r="13" fill="var(--new)"/>
-  <text x="60" y="202" font-size="14" font-weight="700" fill="var(--bg)" text-anchor="middle">2</text>
-  <text x="82" y="194" font-size="15.5" font-weight="700" fill="var(--fg)">縁の掃除</text>
-  <text x="82" y="212" font-size="13" fill="var(--sub)">暗い画素をたどって黒の残りを消す</text>
-  <line x1="376" y1="197" x2="396" y2="197" stroke="var(--c)" stroke-width="1.5" opacity="0.55"/>
-  <circle cx="404" cy="197" r="4" fill="var(--c)"/>
-  <text x="416" y="202" font-size="15" font-weight="700" fill="var(--c)">影と黒いズボンを食う</text>
-  <line x1="206" y1="220" x2="206" y2="230" stroke="var(--sub)" stroke-width="2.5"/>
-  <polygon points="206,236 200.6,225 211.4,225" fill="var(--sub)"/>
-
-  <!-- 3 -->
-  <rect x="36" y="236" width="340" height="46" rx="11" fill="var(--track)"/>
-  <circle cx="60" cy="259" r="13" fill="var(--new)"/>
-  <text x="60" y="264" font-size="14" font-weight="700" fill="var(--bg)" text-anchor="middle">3</text>
-  <text x="82" y="256" font-size="15.5" font-weight="700" fill="var(--fg)">浮遊物の除去</text>
-  <text x="82" y="274" font-size="13" fill="var(--sub)">本体から離れた小さい塊を消す</text>
-  <line x1="376" y1="259" x2="396" y2="259" stroke="var(--c)" stroke-width="1.5" opacity="0.55"/>
-  <circle cx="404" cy="259" r="4" fill="var(--c)"/>
-  <text x="416" y="264" font-size="15" font-weight="700" fill="var(--c)">切れた髪を捨てる</text>
-  <line x1="206" y1="282" x2="206" y2="292" stroke="var(--sub)" stroke-width="2.5"/>
-  <polygon points="206,298 200.6,287 211.4,287" fill="var(--sub)"/>
-
-  <!-- 4 -->
-  <rect x="36" y="298" width="340" height="46" rx="11" fill="var(--track)"/>
-  <circle cx="60" cy="321" r="13" fill="var(--new)"/>
-  <text x="60" y="326" font-size="14" font-weight="700" fill="var(--bg)" text-anchor="middle">4</text>
-  <text x="82" y="318" font-size="15.5" font-weight="700" fill="var(--fg)">欠けの補完</text>
-  <text x="82" y="336" font-size="13" fill="var(--sub)">isnet-anime で消えた本体を戻す</text>
-  <line x1="376" y1="321" x2="396" y2="321" stroke="var(--c)" stroke-width="1.5" opacity="0.55"/>
-  <circle cx="404" cy="321" r="4" fill="var(--c)"/>
-  <text x="416" y="326" font-size="15" font-weight="700" fill="var(--c)">戻した髪が真っ黒になる</text>
-  <line x1="206" y1="344" x2="206" y2="354" stroke="var(--sub)" stroke-width="2.5"/>
-  <polygon points="206,360 200.6,349 211.4,349" fill="var(--sub)"/>
-
-  <!-- 出来上がり -->
-  <rect x="36" y="360" width="340" height="46" rx="11" fill="var(--a)" opacity="0.9"/>
-  <text x="56" y="380" font-size="15.5" font-weight="700" fill="var(--bg)">透過PNG</text>
-  <text x="56" y="398" font-size="13" fill="var(--bg)" opacity="0.9">80枚を切り直した（1枚18〜28秒）</text>
-  <line x1="376" y1="383" x2="398" y2="383" stroke="var(--sub)" stroke-width="2.5"/>
-  <polygon points="406,383 395,377.6 395,388.4" fill="var(--sub)"/>
-  <rect x="414" y="360" width="230" height="46" rx="23" fill="var(--track)"/>
-  <text x="529" y="389" font-size="15" font-weight="700" fill="var(--fg)" text-anchor="middle">サイトのサムネイルへ</text>
-
+  <text x="10" y="24" font-size="20" font-weight="bold" fill="var(--fg)">切り抜きは4段。4段全部が事故った</text>
+  <rect x="10" y="40" width="440" height="58" rx="10" fill="var(--track)"/>
+  <text x="26" y="64" font-size="19" font-weight="bold" fill="var(--fg)">元画像（ComfyUIで生成）</text>
+  <text x="26" y="88" font-size="17" fill="var(--sub)">832×1216・黒背景・5人×16ポーズ＝80枚</text>
+  <path d="M230 100 v14" stroke="var(--sub)" stroke-width="3"/><path d="M224 112 l6 8 6-8" fill="none" stroke="var(--sub)" stroke-width="3"/>
+  <rect x="10" y="124" width="440" height="76" rx="10" fill="var(--track)"/>
+  <circle cx="34" cy="148" r="13" fill="var(--b)"/><text x="34" y="154" font-size="17" font-weight="bold" fill="var(--bg)" text-anchor="middle">1</text>
+  <text x="56" y="154" font-size="19" font-weight="bold" fill="var(--fg)">rembgで切り抜く</text>
+  <text x="230" y="154" font-size="16" fill="var(--sub)">birefnet-general-lite</text>
+  <text x="56" y="188" font-size="18" fill="var(--c)">事故2: ツインテールごと消える</text>
+  <path d="M230 202 v14" stroke="var(--sub)" stroke-width="3"/><path d="M224 214 l6 8 6-8" fill="none" stroke="var(--sub)" stroke-width="3"/>
+  <rect x="10" y="226" width="440" height="76" rx="10" fill="var(--track)"/>
+  <circle cx="34" cy="250" r="13" fill="var(--b)"/><text x="34" y="256" font-size="17" font-weight="bold" fill="var(--bg)" text-anchor="middle">2</text>
+  <text x="56" y="256" font-size="19" font-weight="bold" fill="var(--fg)">縁の掃除</text>
+  <text x="230" y="256" font-size="16" fill="var(--sub)">黒の取り残しを消す</text>
+  <text x="56" y="290" font-size="18" fill="var(--c)">事故4: 影と黒いズボンを食う</text>
+  <path d="M230 304 v14" stroke="var(--sub)" stroke-width="3"/><path d="M224 316 l6 8 6-8" fill="none" stroke="var(--sub)" stroke-width="3"/>
+  <rect x="10" y="328" width="440" height="76" rx="10" fill="var(--track)"/>
+  <circle cx="34" cy="352" r="13" fill="var(--b)"/><text x="34" y="358" font-size="17" font-weight="bold" fill="var(--bg)" text-anchor="middle">3</text>
+  <text x="56" y="358" font-size="19" font-weight="bold" fill="var(--fg)">浮遊物の除去</text>
+  <text x="230" y="358" font-size="16" fill="var(--sub)">浮いた装飾を消す</text>
+  <text x="56" y="392" font-size="18" fill="var(--c)">事故1: 切れた髪を捨てる</text>
+  <path d="M230 406 v14" stroke="var(--sub)" stroke-width="3"/><path d="M224 418 l6 8 6-8" fill="none" stroke="var(--sub)" stroke-width="3"/>
+  <rect x="10" y="430" width="440" height="76" rx="10" fill="var(--track)"/>
+  <circle cx="34" cy="454" r="13" fill="var(--b)"/><text x="34" y="460" font-size="17" font-weight="bold" fill="var(--bg)" text-anchor="middle">4</text>
+  <text x="56" y="460" font-size="19" font-weight="bold" fill="var(--fg)">欠けの補完</text>
+  <text x="230" y="460" font-size="16" fill="var(--sub)">isnet-anime で戻す</text>
+  <text x="56" y="494" font-size="18" fill="var(--c)">事故3: 戻した髪が真っ黒</text>
+  <path d="M230 510 v10" stroke="var(--sub)" stroke-width="3"/><path d="M224 518 l6 8 6-8" fill="none" stroke="var(--sub)" stroke-width="3"/>
+  <rect x="10" y="530" width="440" height="26" rx="8" fill="var(--a)"/>
+  <text x="230" y="548" font-size="17" font-weight="bold" fill="var(--bg)" text-anchor="middle">透過PNG → サイトのサムネイルへ</text>
 </g>
 </svg>

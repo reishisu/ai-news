@@ -101,12 +101,12 @@
 60秒超      28 枚
   中央/最長       184 / 1742</pre></div>
 
-      <p class="lead">同じモデル・同じ設定で、最短20秒、最長1742秒（約29分）。総経過15.3時間のうち、速い側のペースなら1.4時間で終わる量です。<mark>差の大半は、タイムアウトで諦めた22回が捨てた11.0時間</mark>でした。</p>
+      <p class="lead">モデルも画質の設定も同じ（変えているのはプロンプトだけ）で、最短20秒、最長1742秒（約29分）。総経過15.3時間のうち、速い側のペースなら1.4時間で終わる量です。<mark>差の大半は、タイムアウトで諦めた22回が捨てた11.0時間</mark>でした。</p>
 
       <details>
         <summary>諦めた直後の1枚は、8回中8回が遅い（実測の一覧）</summary>
         <div class="body">
-          <div class="code term"><div class="code-head">gen_log_stats.py の集計（続き）</div><pre>諦めた直後の1枚
+          <div class="code term"><div class="code-head">gen_log_stats.py の集計（続き。間の数行は中略）</div><pre>諦めた直後の1枚
   [6]で諦め → [7] 1268 秒
   [15]で諦め → [16] 400 秒
   [19]で諦め → [20] 184 秒
@@ -153,13 +153,14 @@ POST /interrupt  {"prompt_id": "&lt;prompt_id&gt;"}</pre></div>
 
       <p class="lead"><code>/interrupt</code> は、渡した <code>prompt_id</code> が実行中のものと一致した時だけ中断します。別のジョブを巻き添えにしない作りです。</p>
 
-      <div class="code"><div class="code-head">ComfyUI server.py の原文（/interrupt の照合部分）</div><pre>                should_interrupt = False
-                for item in currently_running:
-                    # item structure: (number, prompt_id, prompt, extra_data, outputs_to_execute)
-                    if item[1] == prompt_id:
-                        logging.info(f"Interrupting prompt {prompt_id}")
-                        should_interrupt = True
-                        break</pre></div>
+      <div class="code"><div class="code-head">ComfyUI server.py の原文（/interrupt の照合部分。行頭の字下げは詰めた）</div><pre>should_interrupt = False
+for item in currently_running:
+    # item structure: (中略)
+    if item[1] == prompt_id:
+        logging.info(
+            f"Interrupting prompt {prompt_id}")
+        should_interrupt = True
+        break</pre></div>
 
       <p class="lead">効果は、偽のComfyUIサーバー（挙動だけ模したローカルHTTPサーバー）で新旧を比べて確かめました。同じ12枚を投げ、3〜4枚目だけ40秒かかる設定です（他は1秒。実物のGPUではなく縮小した時間での比較です）。</p>
 
@@ -341,7 +342,7 @@ POST /interrupt  {"prompt_id": "&lt;prompt_id&gt;"}</pre></div>
         <button class="opt" type="button" data-correct="false">浮遊物の除去（drop_islands）</button>
         <button class="opt" type="button" data-correct="true">縁の掃除（dark_assist）</button>
         <button class="opt" type="button" data-correct="false">rembg本体（birefnet）</button>
-        <p class="ans" hidden>縁の掃除です。筆者は最初、浮遊物の除去を疑って外しました。事故1の犯人だったからです。しかし実測すると、あちらが触っていたのは脚の先（y≈1000より下）だけで、ズボン本体を食っていたのは「暗い限り無制限に広がる」縁の掃除でした。前科があるからといって今回も犯人とは限りません。</p>
+        <p class="ans" hidden>縁の掃除です。筆者は最初、浮遊物の除去を疑って外しました。事故1の犯人だったからです。しかし消える画素を可視化すると、あちらが触っていたのは脚の先だけで、ズボン本体を食っていたのは「暗い限り無制限に広がる」縁の掃除でした。前科があるからといって今回も犯人とは限りません。</p>
       </div>
     </article>
 
