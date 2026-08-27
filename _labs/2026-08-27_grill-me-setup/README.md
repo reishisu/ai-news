@@ -1,6 +1,6 @@
 # grill-me / grill-with-docs を入れて、動くところまで持っていく
 
-記事: **未執筆**（2026/8/27 のルーティンで書く予定。`_HANDOFF.md` 参照）
+記事: `contents/2026-08-27_grill-me-setup/`
 
 ## 何を確かめたか
 

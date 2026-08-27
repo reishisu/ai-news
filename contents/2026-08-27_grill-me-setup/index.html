@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>grill-me と grill-with-docs の導入手順 — Claude Codeで動くまで</title>
+<meta name="description" content="AIに設計を問い詰めさせるスキル grill-me / grill-with-docs を、入れて動くところまで実測しました。公式READMEどおりに叩くと失敗します。必要な1行と、部分導入で静かに壊れる条件、動作確認のしかたまで書いています。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="grill-me と grill-with-docs の導入手順 — Claude Codeで動くまで">
+<meta property="og:description" content="公式READMEどおりに叩くと失敗します。必要な1行と、部分導入で静かに壊れる条件、動作確認のしかたまでを実測しました。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-27_grill-me-setup/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-27_grill-me-setup/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=081fefa4">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">AIで作る技術 ｜ 2026年8月27日(木)</div>
+    <h1>grill-me と grill-with-docs の導入手順 — Claude Codeで動くまで</h1>
+    <div class="range">前回の「スキルの作り方」の続き。今度は<b>他人が作ったスキルを入れて動かす</b>側です。公式READMEどおりに叩いたら失敗したので、詰まった場所を全部書きました。ログはこの環境の実測で、無加工です。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 入れるのは11秒</span>
+      <span class="tag">前提知識ゼロ</span>
+      <span class="tag">全部コピペOK</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li><b>AIに設計を問い詰めさせるスキルです。</b><span>作り始める前に、決めていないことを全部質問させます。<code>grill-with-docs</code> は決まったことを用語集とADRに書き残します。</span></li>
+      <li><b>READMEどおりに叩くと失敗します。</b><span>入れる前に<mark>マーケットプレイスを登録する1行</mark>が要ります。理由は公式ドキュメントに書いてありました。</span></li>
+      <li><b>部分的に入れると静かに壊れます。</b><span><code>grill-me</code> だけ入れると <code>Unknown skill: grilling</code> で止まります。中身が別のスキルにあるためです。</span></li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">何をするスキルなのか — 本体は7行しかない</a></li>
+      <li><a href="#s2">入れ方は2通り。どちらか片方だけにする</a></li>
+      <li><a href="#s3">経路A: プラグインで入れる（ここで詰まる）</a></li>
+      <li><a href="#s4">経路B: skills CLIで入れる（ここで壊れる）</a></li>
+      <li><a href="#s5">セットアップ完了の確かめ方</a></li>
+      <li><a href="#s6">通しでやる — 用語集とADRができるまで</a></li>
+      <li><a href="#s7">導入の確認項目</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>何をするスキルなのか — 本体は7行しかない</h2>
+
+    <article class="item">
+      <h3>「作って」の前に、決めていないことを全部聞かせる道具</h3>
+      <p class="lead">AIに指示を出すと、こちらが決めていないところを勝手に決めて作り始めます。あとで見て「そうじゃない」となる原因はここです。</p>
+      <p class="lead"><code>grill-me</code> は、その前に<mark>AIのほうから質問させる</mark>スキルです。Matt Pocock 氏が公開している "Skills For Real Engineers" に入っています。</p>
+      <p class="lead">日本語の「グリル」は焼き網ですが、英語の動詞 grill は<b>「厳しく問い詰める」</b>という意味でも使います。取り調べのニュアンスです。</p>
+
+      <ul class="points">
+        <li><b><code>grill-me</code></b> — 質問させるだけ。ファイルは何も書かれません。リポジトリの外でも使えます。</li>
+        <li><b><code>grill-with-docs</code></b> — 同じ質問に加えて、決まった用語を <code>CONTEXT.md</code>、決まった設計を <code>docs/adr/</code> に書き残します。</li>
+      </ul>
+    </article>
+
+    <article class="item">
+      <h3>中身を開くと拍子抜けします。本文は1行</h3>
+      <p class="lead">この2つの <code>SKILL.md</code> は、フロントマターを除くと<mark>本文が1行しかありません</mark>。実物がこれです。</p>
+
+      <div class="code"><div class="code-head">skills/productivity/grill-me/SKILL.md（全文）</div><pre>---
+name: grill-me
+description: A relentless interview to sharpen a plan or design.
+disable-model-invocation: true
+---
+
+Call the Skill tool with "grilling".</pre></div>
+
+      <div class="code"><div class="code-head">skills/engineering/grill-with-docs/SKILL.md（全文）</div><pre>---
+name: grill-with-docs
+description: A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go.
+disable-model-invocation: true
+---
+
+Call the Skill tool twice, for "grilling" and "domain-modeling".</pre></div>
+
+      <p class="lead">つまりこの2つは<b>入口</b>だけで、実体は <code>grilling</code> と <code>domain-modeling</code> という別のスキルにあります。<mark>この構造が、あとで出てくる「静かに壊れる」の原因</mark>です。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/deps-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/deps.png" alt="grill-meはgrillingを呼び、grill-with-docsはgrillingとdomain-modelingの2つを呼ぶ。呼ばれる側が入っていないと切れることを示した図" loading="lazy">
+        </picture>
+        <figcaption>入口の2つは、実体を呼ぶだけ。呼ばれる側が無いとそこで切れる。</figcaption>
+      </figure>
+
+      <details>
+        <summary>なぜこんな分け方をしているのか</summary>
+        <p class="lead">呼ぶ側と中身を分けておくと、中身のほうを他のスキルからも使い回せます。実際 <code>grilling</code> は、この作者の別のスキル（<code>triage</code>・<code>wayfinder</code> など）からも呼ばれています。</p>
+        <p class="lead">また <code>grill-me</code> 側には <code>disable-model-invocation: true</code> が付いています。<b>人が打ったときだけ動く</b>という指定で、AIが勝手に取り調べを始めないようにしてあります。実体側の <code>grilling</code> には付いていないので、AIから呼べます。</p>
+      </details>
+    </article>
+
+    <article class="item">
+      <h3>動くとこういうものが返ってきます</h3>
+      <p class="lead">実体の <code>grilling</code> には、返し方の型まで書かれています。番号を振って、<b>それぞれに推奨案を添えろ</b>という指定です。</p>
+
+      <div class="code wrap"><div class="code-head">grilling/SKILL.md に書かれている出力の型（原文）</div><pre>Ask the whole frontier in one round: number each question and give your recommended answer. Then wait for the user's answers before the next round.</pre></div>
+
+      <p class="lead">この環境で実際に「社内の問い合わせ管理を作りたい」と投げたら、こう返ってきました。</p>
+
+      <div class="code wrap"><div class="code-head">実際の返答（5問中の1問目。無加工）</div><pre>❓ **Q1** - **対象範囲**: 「社内問い合わせ」とは何を
+指しますか？IT/総務/人事など特定部門向けの問い合わせ
+窓口ですか、それとも部門を問わない全社共通の何でも
+受け付ける窓口ですか？
+
+➡️ まずは「全社共通・カテゴリ分けあり（IT/総務/人事
+など）」で、各カテゴリに担当者/担当チームを割り当てる
+形を推奨します（後から部門追加しやすい設計にする）。</pre></div>
+
+      <p class="lead">この <code>❓ **Q1**</code> と <code>➡️</code> の形が出れば、セットアップは成功しています。<b>後半の確認手順はこれを使います。</b></p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>入れ方は2通り。どちらか片方だけにする</h2>
+
+    <article class="item">
+      <h3>両方やると同じスキルが二重に入ります</h3>
+      <p class="lead">公式READMEには入れ方が2通り書かれています。そして<mark>片方だけにしろ</mark>と明記されています。</p>
+
+      <div class="code wrap"><div class="code-head">README「Installation」の原文</div><pre>Pick one: installing both leaves you with every skill twice.</pre></div>
+
+      <p class="lead">性格がまったく違うので、先に選んでください。この環境で両方を実測した数字が下の表です。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>選ぶ基準</th><th>A: プラグイン</th><th>B: skills CLI</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>入るもの</b></td>
+              <td data-label="A: プラグイン">25スキル全部</td>
+              <td data-label="B: skills CLI">選んだものだけ</td>
+            </tr>
+            <tr>
+              <td><b>置かれる場所</b></td>
+              <td data-label="A: プラグイン">自分の環境（共通）</td>
+              <td data-label="B: skills CLI">プロジェクトの中</td>
+            </tr>
+            <tr>
+              <td><b>中身を書き換えられるか</b></td>
+              <td data-label="A: プラグイン">できない（読み取り専用）</td>
+              <td data-label="B: skills CLI">できる（ただのファイル）</td>
+            </tr>
+            <tr>
+              <td><b>更新</b></td>
+              <td data-label="A: プラグイン">作者が出すと自動で届く</td>
+              <td data-label="B: skills CLI">自分で <code>skills update</code></td>
+            </tr>
+            <tr>
+              <td><b>かかった時間</b></td>
+              <td data-label="A: プラグイン">11秒</td>
+              <td data-label="B: skills CLI">2秒</td>
+            </tr>
+            <tr>
+              <td><b>ディスク</b></td>
+              <td data-label="A: プラグイン">39MB</td>
+              <td data-label="B: skills CLI">40KB（2スキル）</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="points">
+        <li><b>とりあえず試すならA。</b>25個まとめて入り、飽きたら1コマンドで消せます。</li>
+        <li><b>チームのリポジトリに入れるならB。</b>ファイルがリポジトリに入るので、コミットすれば全員に配れます。日本語に書き換えることもできます。</li>
+      </ul>
+    </article>
+  </section>
+
+  <section class="section section-a" id="s3">
+    <h2><span class="step">3</span>経路A: プラグインで入れる（ここで詰まる）</h2>
+
+    <article class="item">
+      <h3>READMEどおりに叩くと失敗しました</h3>
+      <p class="lead">READMEには、そのまま入れられると書かれています。</p>
+
+      <div class="code wrap"><div class="code-head">README「Claude Code」の原文</div><pre>It's in Claude Code's official marketplace, so there's nothing to add first, and updates arrive automatically.</pre></div>
+
+      <p class="lead">この記述は<b>間違っていません</b>。公式マーケットプレイスの中身を数えたら、289個のプラグインがあり、<code>mattpocock-skills</code> は確かに入っていました。</p>
+      <p class="lead">それでも、この環境では失敗しました。</p>
+
+      <div class="code term"><div class="code-head">実際の出力（長い行は fold で折り返し）</div><pre>$ claude plugin install mattpocock-skills
+<span class="ng-line">Installing plugin
+"mattpocock-skills"...× Failed to
+install plugin "mattpocock-skills":
+Plugin "mattpocock-skills" not found in
+any configured marketplace</span></pre></div>
+
+      <p class="lead">「どのマーケットプレイスにも見つからない」。<mark>お店が1軒も登録されていない状態</mark>でした。</p>
+    </article>
+
+    <article class="item">
+      <h3>原因は公式ドキュメントに書いてありました</h3>
+      <p class="lead">公式マーケットプレイスが登録されるのは、<b>対話画面で1回起動したとき</b>です。</p>
+
+      <div class="code wrap"><div class="code-head">公式ドキュメント「Create plugins」の原文</div><pre>Claude Code registers it automatically the first time you start Claude Code interactively. If you run Claude Code non-interactively before that first interactive launch, or a marketplace policy blocked an earlier attempt, register it yourself with `claude plugin marketplace add anthropics/claude-plugins-official`.</pre></div>
+
+      <p class="lead">つまり、<code>claude</code> をコマンドとしてしか使っていない環境（CI、コンテナ、この検証環境）では登録されません。会社のルールで止められている場合も同じです。</p>
+      <p class="lead">対処は1行です。<mark>登録してから入れ直せば通ります。</mark></p>
+
+      <div class="code"><div class="code-head">この2行で入る</div><pre>claude plugin marketplace add \
+  anthropics/claude-plugins-official
+claude plugin install mattpocock-skills</pre></div>
+
+      <div class="code term"><div class="code-head">実際の出力（長い行は fold で折り返し）</div><pre><span class="ok-line">√ Successfully added marketplace:
+claude-plugins-official (declared in
+user settings)</span>
+$ claude plugin install mattpocock-skills
+<span class="ok-line">Installing plugin
+"mattpocock-skills"...√ Successfully
+installed plugin:
+mattpocock-skills@claude-plugins-officia
+l (scope: user)</span></pre></div>
+
+      <p class="lead">すでに対話画面で使っている人は、1行目は<b>要りません</b>。打っても害はなく、登録済みならそう言われるだけです。</p>
+    </article>
+
+    <article class="item">
+      <h3>入ったかを見る。ついでに常駐コストも分かります</h3>
+      <p class="lead"><code>claude plugin list</code> で一覧、<code>claude plugin details</code> で中身が出ます。</p>
+
+      <div class="code term"><div class="code-head">実際の出力（折り返しなし）</div><pre>$ claude plugin list
+Installed plugins:
+
+  &gt; mattpocock-skills@claude-plugins-official
+    Version: 1.2.3
+    Scope: user
+    Status: √ enabled</pre></div>
+
+      <p class="lead"><code>details</code> のほうは、<mark>毎回の会話に常駐するトークン数</mark>まで出してくれます。25スキルで約1,609トークンでした。</p>
+
+      <div class="code term"><div class="code-head">claude plugin details の一部（中略あり）</div><pre>Projected token cost
+  Always-on:   ~1,609 tok
+
+  component        always-on  on-invoke
+  ask-matt               ~40      ~3.8k
+(中略)
+  grill-me               ~30       &lt; 20
+  grilling               ~60       ~610</pre></div>
+
+      <ul class="points">
+        <li><b>左が常駐、右が呼んだときだけの分です。</b>25個入れても、普段の負担は説明文のぶんだけです。</li>
+        <li><b>要らなくなったら <code>claude plugin uninstall mattpocock-skills</code>。</b>1行で消えます。</li>
+      </ul>
+    </article>
+  </section>
+
+  <section class="section section-d" id="s4">
+    <h2><span class="step">4</span>経路B: skills CLIで入れる（ここで壊れる）</h2>
+
+    <article class="item">
+      <h3>コマンドは1行。ただし選ぶ画面が出ます</h3>
+      <p class="lead">こちらは <code>npx</code> で動く別のツールです。プロジェクトのフォルダに移動してから叩きます。</p>
+
+      <div class="code"><div class="code-head">対話で選ぶ場合</div><pre>npx skills@latest add mattpocock/skills</pre></div>
+
+      <p class="lead">37個のスキルが一覧で出るので、矢印キーで選びます。<b>選ばなかったものは入りません。</b>ここが落とし穴です。</p>
+      <p class="lead">選ぶものが決まっているなら、引数で渡せば画面は出ません。</p>
+
+      <div class="code"><div class="code-head">grill-me を使う場合（これが正解）</div><pre>npx skills@latest add mattpocock/skills \
+  --skill grill-me grilling \
+  --agent claude-code -y</pre></div>
+
+      <div class="code"><div class="code-head">grill-with-docs を使う場合</div><pre>npx skills@latest add mattpocock/skills \
+  --skill grill-with-docs grilling domain-modeling \
+  --agent claude-code -y</pre></div>
+    </article>
+
+    <article class="item">
+      <h3><code>grill-me</code> だけ選ぶと壊れます</h3>
+      <p class="lead">1節で見たとおり、<code>grill-me</code> の本文は「<code>grilling</code> を呼べ」の1行です。<mark>呼ばれる側を入れ忘れると、そこで切れます。</mark></p>
+      <p class="lead">実際に <code>grill-me</code> だけ入れて叩いた結果がこれです。</p>
+
+      <div class="code term"><div class="code-head">grill-me だけ入れた状態（実際のエラー）</div><pre>$ claude -p "/grill-me 社内の問い合わせ管理を作りたい"
+<span class="ng-line">&lt;tool_use_error&gt;Unknown skill:
+grilling&lt;/tool_use_error&gt;</span></pre></div>
+
+      <p class="lead">このあとAIは自分でファイルを読みにいき、こう報告してきました。</p>
+
+      <div class="code wrap"><div class="code-head">そのときの返答（抜粋・無加工）</div><pre>その `SKILL.md` の中身は「'grilling' という名前の
+スキルを呼び出せ」と書かれているのですが、そのような
+スキルは登録されていません。つまりこのプロジェクトの
+`/grill-me` コマンドは壊れている状態です。</pre></div>
+
+      <p class="lead"><b>エラーで止まらず、それらしく会話が続いてしまう</b>のが厄介なところです。気づかないまま「なんか普通の返事だな」で終わります。</p>
+
+      <div class="quiz">
+        <p class="q">Q. <code>grill-with-docs</code> を skills CLI で使うとき、一緒に入れるべきものは?</p>
+        <button class="opt" type="button" data-correct="false"><code>grilling</code> だけ</button>
+        <button class="opt" type="button" data-correct="true"><code>grilling</code> と <code>domain-modeling</code> の2つ</button>
+        <button class="opt" type="button" data-correct="false">何も要らない</button>
+        <p class="ans" hidden>2つです。<code>grill-with-docs</code> の本文は <b>Call the Skill tool twice, for "grilling" and "domain-modeling".</b> なので、片方でも欠けるとそこで切れます。用語集とADRを書くのは <code>domain-modeling</code> のほうなので、これを落とすと「質問はされるが何も残らない」状態になります。</p>
+      </div>
+
+      <p class="lead">プラグイン（経路A）にはこの問題がありません。<b>25個まとめて入るので、呼ばれる側も必ず入っています。</b>迷うならAです。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s5">
+    <h2><span class="step">5</span>セットアップ完了の確かめ方</h2>
+
+    <article class="item">
+      <h3>3つの状態で、返ってくるものが違います</h3>
+      <p class="lead">画面を開かずに確かめられます。<code>-p</code> を付けると対話画面なしで1往復だけ実行できるので、これで判定します。</p>
+
+      <div class="code"><div class="code-head">確認用のコマンド（プロジェクトの中で叩く）</div><pre>claude -p "/grill-me 動作確認"</pre></div>
+
+      <p class="lead">返ってくるものが、状態によってはっきり違います。同じ入力を4つの状態で1回ずつ叩いた実測です。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>状態</th><th>返ってくるもの</th><th>判定</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>何も入れていない</b></td>
+              <td data-label="返ってくるもの"><code>Unknown command: /grill-me</code></td>
+              <td data-label="判定">未導入</td>
+            </tr>
+            <tr>
+              <td><b><code>grill-me</code> だけ</b></td>
+              <td data-label="返ってくるもの"><code>Unknown skill: grilling</code> のあと、普通の会話</td>
+              <td data-label="判定">壊れている</td>
+            </tr>
+            <tr>
+              <td><b>実体も入れた</b></td>
+              <td data-label="返ってくるもの"><code>❓ **Q1**</code> と <code>➡️</code> が並ぶ</td>
+              <td data-label="判定">完了</td>
+            </tr>
+            <tr>
+              <td><b>プラグイン</b></td>
+              <td data-label="返ってくるもの">同上（呼ばれる名前に <code>mattpocock-skills:</code> が付く）</td>
+              <td data-label="判定">完了</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <figure>
+        <picture>
+          <source srcset="images/states-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/states.png" alt="未導入・部分導入・導入完了の3つの状態で、返ってくるメッセージが異なることを並べた図" loading="lazy">
+        </picture>
+        <figcaption>「壊れている」だけがエラーで止まらない。ここを見分けるのが要点。</figcaption>
+      </figure>
+    </article>
+
+    <article class="item">
+      <h3>どのスキルが動いたかを機械で数える</h3>
+      <p class="lead">返答の見た目だけだと、<b>本当にスキルが動いたのか、AIが空気を読んだだけなのか</b>が分かりません。記録で確かめられます。</p>
+      <p class="lead"><code>--output-format stream-json</code> を足すと、途中で使った道具が1行ずつJSONで出ます。</p>
+
+      <div class="code"><div class="code-head">呼ばれたスキルだけ抜き出す</div><pre>claude -p "/grill-me 動作確認" \
+  --output-format stream-json --verbose \
+  &gt; v.json
+grep -o '"skill":"[^"]*"' v.json | sort -u</pre></div>
+
+      <div class="code term"><div class="code-head">プラグインで入れた場合の実出力</div><pre><span class="ok-line">"skill":"mattpocock-skills:grilling"</span></pre></div>
+
+      <ul class="points">
+        <li><b>プラグイン経由だと名前に接頭辞が付きます。</b><code>プラグイン名:スキル名</code> の形で、他のスキルと名前がぶつからないようにするためです。</li>
+        <li><b>何も出なければ動いていません。</b>返答が自然でも、それはスキルの中身を使っていない普通の返事です。</li>
+      </ul>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s6">
+    <h2><span class="step">6</span>通しでやる — 用語集とADRができるまで</h2>
+
+    <article class="item">
+      <h3>お題: 社内ヘルプデスクに「クローズ」を足す</h3>
+      <p class="lead"><code>grill-with-docs</code> が本当にファイルを書くのかを、最後まで通して確かめました。用意したのは<mark>15行のリポジトリ</mark>です。</p>
+
+      <div class="code"><div class="code-head">app/Ticket.php（用意したもの）</div><pre>&lt;?php
+class Ticket {
+    public string $status;   // open / closed
+    public int $userId;      // 問い合わせた人
+    public ?int $ownerId;    // 担当者
+    public function close(): void {
+        $this-&gt;status = 'closed';
+    }
+}</pre></div>
+
+      <p class="lead">ここで <code>/grill-with-docs 問い合わせを「クローズ」できるようにしたい</code> と投げます。</p>
+    </article>
+
+    <article class="item">
+      <h3>3往復かかりました。書き始めるのは最後です</h3>
+      <p class="lead">実際に流した3ラウンドの記録です。<b>質問が尽きるまでファイルは1つも書かれません。</b></p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>ラウンド</th><th>動いたスキル</th><th>書かれたファイル</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>1</b><br><span class="cap">お題を渡す</span></td>
+              <td data-label="動いたスキル"><code>grilling</code></td>
+              <td data-label="書かれたファイル">なし（Q1〜Q3）</td>
+            </tr>
+            <tr>
+              <td><b>2</b><br><span class="cap">3問に回答</span></td>
+              <td data-label="動いたスキル">（続き）</td>
+              <td data-label="書かれたファイル">なし（Q4〜Q8）</td>
+            </tr>
+            <tr>
+              <td><b>3</b><br><span class="cap">残りに回答</span></td>
+              <td data-label="動いたスキル"><code>domain-modeling</code></td>
+              <td data-label="書かれたファイル"><code>CONTEXT.md</code><br><code>docs/adr/0001-….md</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">2ラウンド目までで止めていたら、<mark>ドキュメントは1文字も残りません</mark>でした。途中で満足して離脱しないでください。</p>
+      <p class="lead">3ラウンド目に「これで認識は揃いました」と伝えたところで <code>domain-modeling</code> が動きました。</p>
+    </article>
+
+    <article class="item">
+      <h3>できたもの — 用語集</h3>
+      <p class="lead">こちらが「userId は紛らわしいので依頼者と呼びたい」と言ったことが、そのまま用語として残りました。</p>
+
+      <div class="code wrap"><div class="code-head">CONTEXT.md（実際にできたものから抜粋）</div><pre>## クローズ (Close)
+
+Ticket を open から closed にする操作。
+
+- 実行できるのは、その Ticket の担当者のみ。
+  依頼者や他のスタッフは実行できない。
+- 担当者が未アサインの Ticket はクローズできない。
+- 既に closed の Ticket を再度クローズしようとする
+  操作は無効であり、エラーとして扱われる。</pre></div>
+
+      <p class="lead">これは<b>仕様書ではなく用語集</b>です。実装の話を書かないよう、スキル側で釘が刺されています。</p>
+
+      <div class="code wrap"><div class="code-head">domain-modeling/SKILL.md の指定（原文）</div><pre>`CONTEXT.md` should be totally devoid of implementation details. Do not treat `CONTEXT.md` as a spec, a scratch pad, or a repository for implementation decisions. It is a glossary and nothing else.</pre></div>
+    </article>
+
+    <article class="item">
+      <h3>できたもの — ADR（なぜそうしたかの記録）</h3>
+      <p class="lead">ADRは Architecture Decision Record の略で、<b>「なぜこの作りにしたか」を1件1ファイルで残す</b>書き方です。半年後の自分が読む用のメモだと思ってください。</p>
+
+      <div class="code wrap"><div class="code-head">docs/adr/0001-… （実際にできたものから抜粋）</div><pre>## Decision
+
+`Ticket` の `close` / `reopen` は実行者のIDを引数として
+受け取り、`Ticket` 自身が担当者と一致するかを判定する。
+認可チェックは呼び出し側が済ませてある前提を置かない。
+
+## Consequences
+
+- `close` / `reopen` を呼び出す経路がどこであっても、
+  認可チェックを迂回できない。
+- 将来、認可ルールが変わる場合、`Ticket` のメソッド
+  シグネチャや内部ロジックの変更が必要になる。</pre></div>
+
+      <p class="lead">何でもADRにされると邪魔なので、条件が3つ指定されています。<mark>3つ全部そろったときだけ書きます。</mark></p>
+
+      <ul class="points">
+        <li><b>取り返しがつかない。</b>あとで変える費用が大きいもの。</li>
+        <li><b>説明なしだと不思議に見える。</b>将来の読み手が「なぜ?」と思うもの。</li>
+        <li><b>本当に迷った。</b>他の案があって、理由があって選んだもの。</li>
+      </ul>
+
+      <details>
+        <summary>この結果をどう受け止めたか（正直な話）</summary>
+        <p class="lead">1回通しただけです。「毎回3ラウンドで終わる」とは言えません。お題が小さかったので短く済んだ可能性が高いです。</p>
+        <p class="lead">また、ファイルを書く段階では書き込みの許可が要ります。この検証では <code>--permission-mode acceptEdits</code> を付けて自動で許可しました。対話画面なら都度聞かれます。</p>
+        <p class="lead">実際に生成された <code>CONTEXT.md</code> とADRの全文は <code>_labs/2026-08-27_grill-me-setup/artifacts/</code> にそのまま置いてあります。</p>
+      </details>
+    </article>
+  </section>
+
+  <section class="section section-a" id="s7">
+    <h2><span class="step">7</span>導入の確認項目</h2>
+
+    <article class="item">
+      <h3>ここまでを1枚に</h3>
+      <p class="lead">タップでチェックできます。<span class="cl-count">0 / 5</span></p>
+
+      <ul class="checklist" data-key="grill-me-setup-2026-08-27">
+        <li><label><input type="checkbox"><span>入れ方をAかBの<b>どちらか片方</b>に決めた（両方やると二重に入る）</span></label></li>
+        <li><label><input type="checkbox"><span>Aなら <code>claude plugin marketplace add anthropics/claude-plugins-official</code> を先に打った</span></label></li>
+        <li><label><input type="checkbox"><span>Bなら <code>grilling</code>（と、docs版なら <code>domain-modeling</code>）も一緒に選んだ</span></label></li>
+        <li><label><input type="checkbox"><span><code>claude -p "/grill-me 動作確認"</code> で <code>❓ **Q1**</code> が返ることを確かめた</span></label></li>
+        <li><label><input type="checkbox"><span>質問が尽きるまで答えきった（途中で止めるとドキュメントは残らない）</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 全部できた！</div>
+    </article>
+
+    <article class="item">
+      <h3>次に読むもの</h3>
+      <p class="lead">他人のスキルを入れる話でした。<mark>自分で作る側</mark>は前回の記事に書いています。フォルダ1つとファイル1枚で作れます。</p>
+
+      <a class="next-up" href="../2026-08-26_skills-trigger/">
+        <div class="label">NEXT →</div>
+        <div class="t">Claude Codeのスキルの作り方 — 自動で呼ばれる条件を60回測った</div>
+        <div class="d">スキルはフォルダ1つとSKILL.md 1枚。ただし置いただけでは自動で呼ばれません。60回投げて条件を数えた記事です。同名がぶつかったときどちらが動くかも測っています。</div>
+      </a>
+    </article>
+  </section>
+
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Matt Pocock「Skills For Real Engineers」<i>mattpocock/skills</i>, プラグイン版 v1.2.3.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: <code>README.md</code> から入れ方が2通りあること・片方だけにすべきこと（原文: Pick one: installing both leaves you with every skill twice.）・公式マーケットプレイスに入っているという記述（原文: It's in Claude Code's official marketplace, so there's nothing to add first, and updates arrive automatically.）。<code>skills/productivity/grill-me/SKILL.md</code> と <code>skills/engineering/grill-with-docs/SKILL.md</code> は全文を記事に転記した。<code>skills/productivity/grilling/SKILL.md</code> から返答の型（原文: Ask the whole frontier in one round: number each question and give your recommended answer. Then wait for the user's answers before the next round.）。<code>skills/engineering/domain-modeling/SKILL.md</code> から CONTEXT.md の位置づけ（原文: `CONTEXT.md` should be totally devoid of implementation details. Do not treat `CONTEXT.md` as a spec, a scratch pad, or a repository for implementation decisions. It is a glossary and nothing else.）とADRを書く3条件。この環境から github.com へのHTTP取得は403のため、本文は <code>cdn.jsdelivr.net/gh/mattpocock/skills@main/</code> 経由で取得して読んだ。英文は一字も変えずに転記した。</span>
+          </details>
+          <a href="https://github.com/mattpocock/skills">https://github.com/mattpocock/skills</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Create plugins」<i>Claude Code Docs</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: 「Submit your plugin to the community marketplace」から公式マーケットプレイスの登録タイミング（原文: Claude Code registers it automatically the first time you start Claude Code interactively. If you run Claude Code non-interactively before that first interactive launch, or a marketplace policy blocked an earlier attempt, register it yourself with `claude plugin marketplace add anthropics/claude-plugins-official`.）。「When to use plugins vs standalone configuration」および Quickstart の Note から、プラグインのスキルが <code>/plugin-name:skill-name</code> の形で名前空間を持つこと。</span>
+          </details>
+          <a href="https://code.claude.com/docs/en/plugins">https://code.claude.com/docs/en/plugins</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          <code>skills</code> CLI（vercel-labs/skills）v1.5.23 が導入時に表示するセキュリティ評価。
+          <details class="note-d"><summary>なぜ未確認か</summary>
+            <span class="note">導入時に Socket と Snyk の評価が「0 alerts / Low Risk」と表示されたが、その判定の中身は確認していない。この環境からは github.com へのHTTP取得が403で、CLIのソースを読めていない。記事本文ではこの表示に触れていない。</span>
+          </details>
+          <a href="https://www.npmjs.com/package/skills">https://www.npmjs.com/package/skills</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          導入2経路と、4つの状態での動作確認、grill-with-docs の3ラウンド通し。
+          <details class="note-d"><summary>環境と測り方</summary>
+            <span class="note">実行日: 2026年8月27日 JST（UTCでは8月26日18時台）。環境: Linux x86-64 のコンテナ、Claude Code 2.1.246、Node.js 22.22.2、npm 10.9.7。プラグインは <code>mattpocock-skills</code> v1.2.3（25スキル）、CLIは <code>skills</code> v1.5.23。導入は <code>CLAUDE_CONFIG_DIR</code> を分けた使い捨ての設定ディレクトリで行い、既存環境を汚さずに測った。時間（11秒 / 2秒）とディスク（39MB / 40KB）は1回ずつの計測で、回線状況で変わる。動作確認の4状態も各1回ずつで、繰り返していない。ターミナル出力は長い行だけ <code>fold -s -w 40</code> で折り返し、文言は一字も変えていない。中略した箇所は「(中略)」と明示した。検証一式は <code>_labs/2026-08-27_grill-me-setup/</code>。</span>
+          </details>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「迷うならプラグイン（経路A）」「チームのリポジトリに入れるなら skills CLI（経路B）」は、標準や作者の指定ではなく、上の実測をふまえた筆者の運用上の目安です。作者自身はどちらが良いとは書いていません。
+        </li>
+      </ol>
+    </article>
+  </section>
+
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>この記事は2026年8月27日時点の情報です</p>
+  <p>公開: 2026年8月27日 JST</p>
+  <p><a href="../../">← ホームに戻る</a></p>
+</footer>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

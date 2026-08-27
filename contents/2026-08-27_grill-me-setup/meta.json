@@ -1,0 +1,19 @@
+{
+  "category": "AIで作る技術",
+  "tags": [
+    "Claude Code",
+    "スキル",
+    "入門",
+    "実測",
+    "公式ドキュメント",
+    "設計"
+  ],
+  "featured": true,
+  "title": "grill-me と grill-with-docs の導入手順 — Claude Codeで動くまで",
+  "summary": "AIに設計を問い詰めさせるスキルを、入れて動くところまで実測しました。公式READMEどおりに叩くと失敗し、マーケットプレイスを登録する1行が要ります。grill-me だけ入れると Unknown skill: grilling で静かに壊れます。動作確認のしかたと、用語集・ADRができるまでを載せました。",
+  "thumbnail": "images/thumb.png",
+  "thumb": {
+    "main": "grill-me の入れ方",
+    "sub": "動くところまでを実測した"
+  }
+}

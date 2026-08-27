@@ -30,16 +30,16 @@
 <main class="container">
 
   <section class="hero">
-    <a class="hero-card" href="contents/2026-08-27_001/">
-      <img class="hero-thumb" src="contents/2026-08-27_001/images/thumb.png" alt="" width="1280" height="720" fetchpriority="high">
+    <a class="hero-card" href="contents/2026-08-27_grill-me-setup/">
+      <img class="hero-thumb" src="contents/2026-08-27_grill-me-setup/images/thumb.png" alt="" width="1280" height="720" fetchpriority="high">
       <div class="hero-body">
         <div class="hero-meta">
           <span class="hero-badge">最新号</span>
-          <span class="hero-cat">デイリーダイジェスト</span>
+          <span class="hero-cat">AIで作る技術</span>
           <span class="hero-date">2026年8月27日(木)</span>
         </div>
-        <h1 class="hero-title">AI-news：2026/08/27 — Claude in Chrome が全有料プランで一般提供</h1>
-        <p class="hero-sum">Claude in Chrome が全ての有料プランで一般提供になり、操作の自動承認が既定になりました。設定で切れます。Terraform 1.16.0 の destroy = false は「破棄を止める」ではなく「実体を残したまま管理から外す」で、実際に動かして確かめました。Unity 6000.6 では WebGPU が experimental を外れています。</p>
+        <h1 class="hero-title">grill-me と grill-with-docs の導入手順 — Claude Codeで動くまで</h1>
+        <p class="hero-sum">AIに設計を問い詰めさせるスキルを、入れて動くところまで実測しました。公式READMEどおりに叩くと失敗し、マーケットプレイスを登録する1行が要ります。grill-me だけ入れると Unknown skill: grilling で静かに壊れます。動作確認のしかたと、用語集・ADRができるまでを載せました。</p>
         <span class="hero-go">この号を読む</span>
       </div>
     </a>
@@ -73,7 +73,7 @@
   <section class="posts">
     <div class="posts-head">
       <h2>記事一覧</h2>
-      <span class="posts-count"><b id="hitCount">40</b>件</span>
+      <span class="posts-count"><b id="hitCount">41</b>件</span>
     </div>
 
     <div class="finder">
@@ -84,13 +84,13 @@
       </div>
       <div class="tag-bar" id="tagBar">
       <button class="tag-chip is-on" type="button" data-tag="">すべて</button>
-      <button class="tag-chip" type="button" data-tag="実測">#実測<i>24</i></button>
-      <button class="tag-chip" type="button" data-tag="公式ドキュメント">#公式ドキュメント<i>19</i></button>
-      <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>14</i></button>
+      <button class="tag-chip" type="button" data-tag="実測">#実測<i>25</i></button>
+      <button class="tag-chip" type="button" data-tag="公式ドキュメント">#公式ドキュメント<i>20</i></button>
+      <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>15</i></button>
       <button class="tag-chip" type="button" data-tag="AWS">#AWS<i>12</i></button>
       <button class="tag-chip" type="button" data-tag="WebView">#WebView<i>11</i></button>
       <button class="tag-chip" type="button" data-tag="セキュリティ">#セキュリティ<i>10</i></button>
-      <button class="tag-chip" type="button" data-tag="入門">#入門<i>9</i></button>
+      <button class="tag-chip" type="button" data-tag="入門">#入門<i>10</i></button>
       <button class="tag-chip" type="button" data-tag="Laravel">#Laravel<i>8</i></button>
       <button class="tag-chip" type="button" data-tag="Anthropic">#Anthropic<i>6</i></button>
       <button class="tag-chip" type="button" data-tag="Android">#Android<i>5</i></button>
@@ -104,20 +104,32 @@
       <button class="tag-chip" type="button" data-tag="Terraform">#Terraform<i>3</i></button>
       <button class="tag-chip" type="button" data-tag="Unity Web">#Unity Web<i>3</i></button>
       <button class="tag-chip" type="button" data-tag="オープンウェイト">#オープンウェイト<i>3</i></button>
+      <button class="tag-chip" type="button" data-tag="スキル">#スキル<i>3</i></button>
+      <button class="tag-chip" type="button" data-tag="設計">#設計<i>3</i></button>
       <button class="tag-chip" type="button" data-tag="CORS">#CORS<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="Chrome">#Chrome<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="Copilot">#Copilot<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="Gemini">#Gemini<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="IAM">#IAM<i>2</i></button>
-      <button class="tag-chip" type="button" data-tag="スキル">#スキル<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="デプロイ">#デプロイ<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="フック">#フック<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="料金改定">#料金改定<i>2</i></button>
-      <button class="tag-chip" type="button" data-tag="設計">#設計<i>2</i></button>
       </div>
     </div>
 
     <div class="post-list" id="postList">
+      <a class="post-card" href="contents/2026-08-27_grill-me-setup/"
+         data-tags="Claude Code|スキル|入門|実測|公式ドキュメント|設計" data-category="AIで作る技術"
+         data-date="2026-08-27" data-search="grill-me と grill-with-docs の導入手順 — claude codeで動くまで aiに設計を問い詰めさせるスキルを、入れて動くところまで実測しました。公式readmeどおりに叩くと失敗し、マーケットプレイスを登録する1行が要ります。grill-me だけ入れると unknown skill: grilling で静かに壊れます。動作確認のしかたと、用語集・adrができるまでを載せました。 aiで作る技術 claude code スキル 入門 実測 公式ドキュメント 設計 grill-me と grill-with-docs の導入手順 — claude codeで動くまで aiニュース デイリーダイジェスト aiで作る技術 ｜ 2026年8月27日(木) grill-me と grill-with-docs の導入手順 — claude codeで動くまで 前回の「スキルの作り方」の続き。今度は 他人が作ったスキルを入れて動かす 側です。公式readmeどおりに叩いたら失敗したので、詰まった場所を全部書きました。ログはこの環境の実測で、無加工です。 ⏱ 入れるのは11秒 前提知識ゼロ 全部コピペok ⭐ 3行で言うと aiに設計を問い詰めさせるスキルです。 作り始める前に、決めていないことを全部質問させます。 grill-with-docs は決まったことを用語集とadrに書き残します。 readmeどおりに叩くと失敗します。 入れる前に マーケットプレイスを登録する1行 が要ります。理由は公式ドキュメントに書いてありました。 部分的に入れると静かに壊れます。 grill-me だけ入れると unknown skill: grilling で止まります。中身が別のスキルにあるためです。 目次 何をするスキルなのか — 本体は7行しかない 入れ方は2通り。どちらか片方だけにする 経路a: プラグインで入れる（ここで詰まる） 経路b: skills cliで入れる（ここで壊れる） セットアップ完了の確かめ方 通しでやる — 用語集とadrができるまで 導入の確認項目 参考文献 1 何をするスキルなのか — 本体は7行しかない 「作って」の前に、決めていないことを全部聞かせる道具 aiに指示を出すと、こちらが決めていないところを勝手に決めて作り始めます。あとで見て「そうじゃない」となる原因はここです。 grill-me は、その前に aiのほうから質問させる スキルです。matt pocock 氏が公開している &quot;skills for real engineers&quot; に入っています。 日本語の「グリル」は焼き網ですが、英語の動詞 grill は 「厳しく問い詰める」 という意味でも使います。取り調べのニュアンスです。 grill-me — 質問させるだけ。ファイルは何も書かれません。リポジトリの外でも使えます。 grill-with-docs — 同じ質問に加えて、決まった用語を context.md 、決まった設計を docs/adr/ に書き残します。 中身を開くと拍子抜けします。本文は1行 この2つの skill.md は、フロントマターを除くと 本文が1行しかありません 。実物がこれです。 skills/productivity/grill-me/skill.md（全文） --- name: grill-me description: a relentless interview to sharpen a plan or design. disable-model-invocation: true --- call the skill tool with &quot;grilling&quot;. skills/engineering/grill-with-docs/skill.md（全文） --- name: grill-with-docs description: a relentless interview to sharpen a plan or design, which also creates docs (adr's and glossary) as we go. disable-model-invocation: true --- call the skill tool twice, for &quot;grilling&quot; and &quot;domain-modeling&quot;. つまりこの2つは 入口 だけで、実体は grilling と domain-modeling という別のスキルにあります。 この構造が、あとで出てくる「静かに壊れる」の原因 です。 入口の2つは、実体を呼ぶだけ。呼ばれる側が無いとそこで切れる。 なぜこんな分け方をしているのか 呼ぶ側と中身を分けておくと、中身のほうを他のスキルからも使い回せます。実際 grilling は、この作者の別のスキル（ triage ・ wayfinder など）からも呼ばれています。 また grill-me 側には disable-model-invocation: true が付いています。 人が打ったときだけ動く という指定で、aiが勝手に取り調べを始めないようにしてあります。実体側の grilling には付いていないので、aiから呼べます。 動くとこういうものが返ってきます 実体の grilling には、返し方の型まで書かれています。番号を振って、 それぞれに推奨案を添えろ という指定です。 grilling/skill.md に書かれている出力の型（原文） ask the whole frontier in one round: number each question and give your recommended answer. then wait for the user's answers before the next round. この環境で実際に「社内の問い合わせ管理を作りたい」と投げたら、こう返ってきました。 実際の返答（5問中の1問目。無加工） ❓ **q1** - **対象範囲**: 「社内問い合わせ」とは何を 指しますか？it/総務/人事など特定部門向けの問い合わせ 窓口ですか、それとも部門を問わない全社共通の何でも 受け付ける窓口ですか？ ➡️ まずは「全社共通・カテゴリ分けあり（it/総務/人事 など）」で、各カテゴリに担当者/担当チームを割り当てる 形を推奨します（後から部門追加しやすい設計にする）。 この ❓ **q1** と ➡️ の形が出れば、セットアップは成功しています。 後半の確認手順はこれを使います。 2 入れ方は2通り。どちらか片方だけにする 両方やると同じスキルが二重に入ります 公式readmeには入れ方が2通り書かれています。そして 片方だけにしろ と明記されています。 readme「installation」の原文 pick one: installing both leaves you with every skill twice. 性格がまったく違うので、先に選んでください。この環境で両方を実測した数字が下の表です。 選ぶ基準 a: プラグイン b: skills cli 入るもの 25スキル全部 選んだものだけ 置かれる場所 自分の環境（共通） プロジェクトの中 中身を書き換えられるか できない（読み取り専用） できる（ただのファイル） 更新 作者が出すと自動で届く 自分で skills update かかった時間 11秒 2秒 ディスク 39mb 40kb（2スキル） とりあえず試すならa。 25個まとめて入り、飽きたら1コマンドで消せます。 チームのリポジトリに入れるならb。 ファイルがリポジトリに入るので、コミットすれば全員に配れます。日本語に書き換えることもできます。 3 経路a: プラグインで入れる（ここで詰まる） readmeどおりに叩くと失敗しました readmeには、そのまま入れられると書かれています。 readme「claude code」の原文 it's in claude code's official marketplace, so there's nothing to add first, and updates arrive automatically. この記述は 間違っていません 。公式マーケットプレイスの中身を数えたら、289個のプラグインがあり、 mattpocock-skills は確かに入っていました。 それでも、この環境では失敗しました。 実際の出力（長い行は fold で折り返し） $ claude plugin install mattpocock-skills installing plugin &quot;mattpocock-skills&quot;...× failed to install plugin &quot;mattpocock-skills&quot;: plugin &quot;mattpocock-skills&quot; not found in any configured marketplace 「どのマーケットプレイスにも見つからない」。 お店が1軒も登録されていない状態 でした。 原因は公式ドキュメントに書いてありました 公式マーケットプレイスが登録されるのは、 対話画面で1回起動したとき です。 公式ドキュメント「create plugins」の原文 claude code registers it automatically the first time you start claude code interactively. if you run claude code non-interactively before that first interactive launch, or a marketplace policy blocked an earlier attempt, register it yourself with `claude plugin marketplace a">
+        <img class="post-thumb" src="contents/2026-08-27_grill-me-setup/images/thumb.png" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;post-thumb-ph&quot;>📰</div>'">
+        <div class="post-body">
+          <div class="post-date"><span class="post-cat">AIで作る技術</span>2026年8月27日(木)</div>
+          <h3 class="post-title">grill-me と grill-with-docs の導入手順 — Claude Codeで動くまで</h3>
+          <p class="post-summary">AIに設計を問い詰めさせるスキルを、入れて動くところまで実測しました。公式READMEどおりに叩くと失敗し、マーケットプレイスを登録する1行が要ります。grill-me だけ入れると Unknown skill: grilling で静かに壊れます。動作確認のしかたと、用語集・ADRができるまでを載せました。</p>
+          <div class="post-tags"><span class="post-tag">#Claude Code</span><span class="post-tag">#スキル</span><span class="post-tag">#入門</span><span class="post-tag">#実測</span></div>
+          <span class="post-more">続きを読む →</span>
+        </div>
+      </a>
       <a class="post-card" href="contents/2026-08-27_001/"
          data-tags="Anthropic|Claude Code|Terraform|AWS|Unity Web|実測" data-category="デイリーダイジェスト"
          data-date="2026-08-27" data-search="ai-news：2026/08/27 — claude in chrome が全有料プランで一般提供 claude in chrome が全ての有料プランで一般提供になり、操作の自動承認が既定になりました。設定で切れます。terraform 1.16.0 の destroy = false は「破棄を止める」ではなく「実体を残したまま管理から外す」で、実際に動かして確かめました。unity 6000.6 では webgpu が experimental を外れています。 デイリーダイジェスト anthropic claude code terraform aws unity web 実測 ai-news：2026/08/27 — claude in chrome が全有料プランで一般提供 aiニュース デイリーダイジェスト 2026年8月27日(木) ai-news：2026/08/27 — claude in chrome が全有料プランで一般提供 対象期間: 8月26日(水) 5:00 〜 8月27日(木) 5:00 jst ⭐ 今日の3行まとめ claude in chrome が、全ての有料プランで使えるようになった 試験提供が終わり、正式版になりました。大きいのは値段ではなく 操作の承認のしかた です。これまで1つずつ承認していたブラウザ操作を、claudeが自分で進めるようになりました。設定で元に戻せます。 terraform 1.16.0 の destroy = false は「破棄を止める」ではない changelogの書きぶりだと prevent_destroy の別名に見えますが、実際は 実体を残したまま state から外す 機能でした。取り違えると、消したつもりのawsリソースが残って課金され続けます。実際に動かして確かめました。 unity 6000.6 で webgpu が experimental を外れた 公式マニュアルから「(experimental)」の表記が消えています。ただし 既定では有効になりません 。自分で graphics apis に足す必要があり、webgl2 をフォールバックに残すかどうかも自分で決めます。 目次 実務者向けのai開発ツール(2件) web開発・インフラ(2件) クライアント技術(1件) 技術・研究(1件) モデル・業界(1件) 何を見て「無い」と判断したか 参考文献 🧰 実務者向けのai開発ツール 2件 anthropic claude in chrome が一般提供になった — 承認を求めずに操作が進むようになる 8/26 公開 有料プランの人 既定の変更 claude anthropicが8月26日に、chrome拡張「claude in chrome」を一般提供にしたと発表しました。これまでは申し込んだ人だけが使える試験提供でした。 何をするものかというと、claudeがブラウザの中で実際に手を動かすものです。ページを開き、フォームに文字を入れ、リンクを押します。 ログイン済みの状態をそのまま使う ので、自分がログインしているサービスの中で作業させられます。 公式ブログ（冒頭） claude in chrome is now generally available on every paid claude plan. claude can now also take actions autonomously in the browser, instead of needing approval for every one. 読者にとって大きいのは前半（使えるようになった）より 後半 です。「every one（1つずつ全部）」の承認が要らなくなりました。つまり 既定の挙動が変わっています 。 間に入るのが「人の承認」から「分類器の照合」に変わった。合わなければ人に聞きにくる。 何でも勝手に進むわけではありません。実行前に分類器（内容を判定する仕組み）が1つずつ見ています。 同ブログ（自動承認の仕組み） a classifier reviews actions claude is about to take, such as navigating to a new website or entering text into a page, and checks them against what you originally asked for. 判断の基準は「 あなたが最初に頼んだこと 」です。頼んでいない操作をしようとしたら止まります。同じ仕組みは claude code の auto mode でも使われている、と書かれています。 元に戻す方法も同じ段落に書いてあります。 設定で自動承認を切れば、これまでどおり1つずつ承認する形 に戻ります（原文: 「you can switch this off in your settings if you'd prefer to continue to approve claude's actions manually.」）。 使えない環境がある（他のchromium系ブラウザ・スマホは対象外） 公式ブログに「claude in chrome doesn't run on other chromium browsers or on mobile yet」とあります。edge や brave のような chromium 系でも動かず、スマホも対象外です。 chrome本体だけ です。 会社で使う場合は、管理者側に制御があります。「admins can manage it in organization settings and limit it to approved domains」とあり、enterprise では許可したドメインだけに絞れます。 ブラウザを操作するaiには、ページ側に仕込まれた文章で乗っ取られる「プロンプトインジェクション」という弱点があります。anthropicはこれを一般提供の前提として扱っていて、対策を入れたうえで踏み切った、という書き方をしています。 この記事では対策の評価結果までは検証していません （数値の読み方は一次資料に当たってください）。 今やること。 有料プランを使っていて、この拡張を入れているなら 設定を一度開く 。自動承認は既定でオンなので、業務用のブラウザで使うなら、そのままでよいか判断してから使う。入れていないなら対応は不要。 anthropic claude code 2.1.247 — sonnet 5 の自動圧縮が1mの端まで使うようになった 8/27 公開 claude codeを使う人 既定の変更 claude code 2.1.247 が日本時間8月27日3時2分に出ました。この版の箇条書きは全部で33行あります（内訳は added 4 / changed 7 / fixed 19 / improved 2 / updated 1）。 そのうち読者の判断が要るのは3行 で、残り30行は不具合修正と内部改善なのでここには書きません。 1件目は、既定の変わるものです。 changelog 2.1.247 の原文 changed sonnet 5's default auto-compact window to its full 1m context, so sessions on the 1m window now auto-compact at about 967k tokens instead of about 934k 用語です。 auto-compact（自動圧縮） は、会話が長くなって文脈の上限に近づいたとき、claude codeが過去のやり取りを自分で要約して席を空ける動きです。これが起きると、それまでの細かい経緯は要約に置き換わります。 これまで sonnet 5 は、1m（100万トークン）の枠を使っていても 約93万4千 で圧縮を始めていました。今回、枠の端に近い 約96万7千 まで引っ張るようになりました。 要約が始まるのが約3万3千トークンぶん後ろにずれます 。長い作業を1セッションで通しているなら、途中の記憶が保つ時間が少し延びます。 2件目は、プラグインまわりの安全化です。こちらは不具合修正ではなく、悪意ある入力を前提にした作りの変更なので載せます。 同 changelog（プラグインとリンク） improved plugin marketplace hardening: names containing control or invisible characters are rejected, and marketplace-supplied text in /plugin and claude plugin output is escape-safe プラグインの配布元（マーケットプレイス）が名前に 目に見えない文字 を混ぜてくると、画面上は別の名前に見せられます。それを弾くようになりました。同じ版で、markdown中のリンクについても、制御文字を含むものやネットワークパスを指すものは ただの文字として表示する （クリックできるリンクにしない）よう変わっています。 今やること。 対応は不要。更新すれば入る。sonnet 5 で長いセッションを回している人だけ、要約の始まる位置が後ろにずれたことを頭に入れておく。 🧑‍💻 web開発・インフラ 2件 hashicorp terraform 1.16.0 の destroy = false は、消さずに管理から外す機能だった 8/27 公開 terraformを使う人 新機能 terraform terraform 1.16.0 が日本時間8月27日2時47分に出ました。新機能の中に、 lifecycle ブロックの新しい書き方があります。 まず用語です。 lifecycle ブロック は、リソースの作り直し・消し方についての注文をterraformに伝える場所です。 state は「terraformが今いくつ何を管理しているか」を記録したファイルで、実体（aws上の本物のリソース">

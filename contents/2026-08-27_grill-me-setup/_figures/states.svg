@@ -1,0 +1,21 @@
+<svg viewBox="0 0 460 356" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="22" font-weight="700" fill="var(--fg)">返事を見れば状態が分かる</text>
+
+  <rect x="14" y="46" width="434" height="86" rx="10" fill="var(--track)"/>
+  <rect x="14" y="46" width="8" height="86" rx="4" fill="var(--sub)"/>
+  <text x="36" y="72" font-size="17" font-weight="700" fill="var(--sub)">何も入れていない</text>
+  <text x="36" y="100" font-size="18" font-family="ui-monospace, monospace" fill="var(--fg)">Unknown command:</text>
+  <text x="36" y="122" font-size="18" font-family="ui-monospace, monospace" fill="var(--fg)">/grill-me</text>
+
+  <rect x="14" y="144" width="434" height="110" rx="10" fill="var(--c)" opacity="0.18"/>
+  <rect x="14" y="144" width="8" height="110" rx="4" fill="var(--c)"/>
+  <text x="36" y="170" font-size="17" font-weight="700" fill="var(--c)">入口だけ入れた</text>
+  <text x="36" y="198" font-size="18" font-family="ui-monospace, monospace" fill="var(--fg)">Unknown skill:</text>
+  <text x="36" y="220" font-size="18" font-family="ui-monospace, monospace" fill="var(--fg)">grilling</text>
+  <text x="36" y="243" font-size="17" fill="var(--sub)">…のあと会話が続く</text>
+
+  <rect x="14" y="266" width="434" height="76" rx="10" fill="var(--new)" opacity="0.42"/>
+  <rect x="14" y="266" width="8" height="76" rx="4" fill="var(--a)"/>
+  <text x="36" y="292" font-size="17" font-weight="700" fill="var(--fg)">実体も入れた</text>
+  <text x="36" y="326" font-size="24" font-weight="700" font-family="ui-monospace, monospace" fill="var(--fg)">Q1 … 推奨</text>
+</svg>

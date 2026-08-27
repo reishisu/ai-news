@@ -1,0 +1,32 @@
+<svg viewBox="0 0 460 336" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="22" font-weight="700" fill="var(--fg)">入口は、実体を呼ぶだけ</text>
+
+  <text x="14" y="58" font-size="17" font-weight="700" fill="var(--sub)">人が打つ側</text>
+  <text x="252" y="58" font-size="17" font-weight="700" fill="var(--sub)">中身がある側</text>
+
+  <rect x="14" y="70" width="196" height="58" rx="10" fill="var(--track)"/>
+  <text x="28" y="106" font-size="19" font-weight="700" font-family="ui-monospace, monospace" fill="var(--sub)">/grill-me</text>
+
+  <rect x="14" y="146" width="196" height="76" rx="10" fill="var(--track)"/>
+  <text x="28" y="180" font-size="19" font-weight="700" font-family="ui-monospace, monospace" fill="var(--sub)">/grill-with-</text>
+  <text x="28" y="204" font-size="19" font-weight="700" font-family="ui-monospace, monospace" fill="var(--sub)">docs</text>
+
+  <rect x="252" y="70" width="196" height="58" rx="10" fill="var(--new)" opacity="0.42"/>
+  <text x="266" y="107" font-size="24" font-weight="700" font-family="ui-monospace, monospace" fill="var(--fg)">grilling</text>
+
+  <rect x="252" y="164" width="196" height="58" rx="10" fill="var(--new)" opacity="0.42"/>
+  <text x="266" y="199" font-size="19" font-weight="700" font-family="ui-monospace, monospace" fill="var(--fg)">domain-modeling</text>
+
+  <line x1="212" y1="99" x2="240" y2="99" stroke="var(--sub)" stroke-width="3"/>
+  <polygon points="250,99 237,92.5 237,105.5" fill="var(--sub)"/>
+
+  <path d="M212 176 L228 176 L228 110 L240 110" fill="none" stroke="var(--sub)" stroke-width="3"/>
+  <polygon points="250,110 237,103.5 237,116.5" fill="var(--sub)"/>
+
+  <line x1="212" y1="193" x2="240" y2="193" stroke="var(--sub)" stroke-width="3"/>
+  <polygon points="250,193 237,186.5 237,199.5" fill="var(--sub)"/>
+
+  <rect x="14" y="248" width="434" height="74" rx="10" fill="var(--c)" opacity="0.18"/>
+  <text x="30" y="278" font-size="19" font-weight="700" fill="var(--fg)">右を入れ忘れると切れる</text>
+  <text x="30" y="305" font-size="18" font-family="ui-monospace, monospace" fill="var(--c)">Unknown skill: grilling</text>
+</svg>
