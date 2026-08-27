@@ -1,0 +1,34 @@
+<svg viewBox="0 0 460 300" xmlns="http://www.w3.org/2000/svg">
+<g font-family="'Noto Sans JP','IPAGothic','DejaVu Sans',sans-serif">
+  <text x="10" y="26" font-size="20" font-weight="bold" fill="var(--fg)">ブラウザ操作を実行するまで</text>
+
+  <text x="10" y="60" font-size="15" fill="var(--sub)">これまで（試験提供）</text>
+
+  <rect x="10" y="72" width="120" height="60" rx="10" fill="var(--track)"/>
+  <text x="70" y="100" font-size="15" fill="var(--fg)" text-anchor="middle">Claudeが</text>
+  <text x="70" y="120" font-size="15" fill="var(--fg)" text-anchor="middle">操作しようとする</text>
+
+  <rect x="160" y="72" width="140" height="60" rx="10" fill="var(--track)"/>
+  <text x="230" y="100" font-size="16" font-weight="bold" fill="var(--sub)" text-anchor="middle">人が1つずつ</text>
+  <text x="230" y="121" font-size="16" font-weight="bold" fill="var(--sub)" text-anchor="middle">承認する</text>
+
+  <rect x="330" y="72" width="120" height="60" rx="10" fill="var(--track)"/>
+  <text x="390" y="108" font-size="16" fill="var(--sub)" text-anchor="middle">実行</text>
+
+  <text x="10" y="176" font-size="15" fill="var(--sub)">8月26日から（既定）</text>
+
+  <rect x="10" y="188" width="120" height="60" rx="10" fill="var(--track)"/>
+  <text x="70" y="216" font-size="15" fill="var(--fg)" text-anchor="middle">Claudeが</text>
+  <text x="70" y="236" font-size="15" fill="var(--fg)" text-anchor="middle">操作しようとする</text>
+
+  <rect x="160" y="188" width="140" height="60" rx="10" fill="var(--c)" stroke="var(--c)" stroke-width="3"/>
+  <text x="230" y="213" font-size="22" font-weight="bold" fill="var(--bg)" text-anchor="middle">分類器が</text>
+  <text x="230" y="239" font-size="22" font-weight="bold" fill="var(--bg)" text-anchor="middle">依頼と照合</text>
+
+  <rect x="330" y="188" width="120" height="60" rx="10" fill="var(--track)"/>
+  <text x="390" y="224" font-size="16" fill="var(--sub)" text-anchor="middle">実行</text>
+
+  <rect x="10" y="268" width="6" height="26" fill="var(--c)"/>
+  <text x="28" y="288" font-size="18" font-weight="bold" fill="var(--fg)">依頼と合わなければ人に聞く</text>
+</g>
+</svg>

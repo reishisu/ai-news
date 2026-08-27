@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-news：2026/08/27 — Claude in Chrome が全有料プランで一般提供</title>
+<meta name="description" content="Claude in Chrome が全ての有料プランで一般提供になり、操作の自動承認が既定になりました。設定で切れます。Terraform 1.16.0 の lifecycle destroy = false は「破棄を止める」ではなく「実体を残したまま管理から外す」で、実際に動かして確かめました。Unity 6000.6 では WebGPU が experimental を外れています。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI-news：2026/08/27 — Claude in Chrome が全有料プランで一般提供">
+<meta property="og:description" content="Claude in Chrome が全有料プランで一般提供に。操作の自動承認が既定です。Terraform 1.16.0 の destroy = false は「消さずに管理から外す」。実測つき。Unity 6000.6 で WebGPU が正式サポートに。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-27_001/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-27_001/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=081fefa4">
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">2026年8月27日(木)</div>
+    <h1>AI-news：2026/08/27 — Claude in Chrome が全有料プランで一般提供</h1>
+    <div class="range">対象期間: 8月26日(水) 5:00 〜 8月27日(木) 5:00 JST</div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 今日の3行まとめ</h2>
+    <ol>
+      <li>
+        <b>Claude in Chrome が、全ての有料プランで使えるようになった</b>
+        <span>試験提供が終わり、正式版になりました。大きいのは値段ではなく<mark>操作の承認のしかた</mark>です。これまで1つずつ承認していたブラウザ操作を、Claudeが自分で進めるようになりました。設定で元に戻せます。</span>
+      </li>
+      <li>
+        <b>Terraform 1.16.0 の <code>destroy = false</code> は「破棄を止める」ではない</b>
+        <span>CHANGELOGの書きぶりだと <code>prevent_destroy</code> の別名に見えますが、実際は<mark>実体を残したまま state から外す</mark>機能でした。取り違えると、消したつもりのAWSリソースが残って課金され続けます。実際に動かして確かめました。</span>
+      </li>
+      <li>
+        <b>Unity 6000.6 で WebGPU が experimental を外れた</b>
+        <span>公式マニュアルから「(Experimental)」の表記が消えています。ただし<b>既定では有効になりません</b>。自分で Graphics APIs に足す必要があり、WebGL2 をフォールバックに残すかどうかも自分で決めます。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#work">実務者向けのAI開発ツール(2件)</a></li>
+      <li><a href="#dev">Web開発・インフラ(2件)</a></li>
+      <li><a href="#client">クライアント技術(1件)</a></li>
+      <li><a href="#research">技術・研究(1件)</a></li>
+      <li><a href="#industry">モデル・業界(1件)</a></li>
+      <li><a href="#quiet">何を見て「無い」と判断したか</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 実務者向け ============ -->
+  <section class="section section-b" id="work">
+    <h2>🧰 実務者向けのAI開発ツール<span class="n">2件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude in Chrome が一般提供になった — 承認を求めずに操作が進むようになる</h3>
+      <div class="tags">
+        <span class="tag">8/26 公開</span>
+        <span class="tag">有料プランの人</span>
+        <span class="tag">既定の変更</span>
+        <span class="tag">Claude</span>
+      </div>
+
+      <p class="lead">Anthropicが8月26日に、Chrome拡張「Claude in Chrome」を一般提供にしたと発表しました。これまでは申し込んだ人だけが使える試験提供でした。</p>
+
+      <p class="lead">何をするものかというと、Claudeがブラウザの中で実際に手を動かすものです。ページを開き、フォームに文字を入れ、リンクを押します。<b>ログイン済みの状態をそのまま使う</b>ので、自分がログインしているサービスの中で作業させられます。</p>
+
+      <div class="code wrap"><div class="code-head">公式ブログ（冒頭）</div><pre>Claude in Chrome is now generally available on every paid Claude plan. Claude can now also take actions autonomously in the browser, instead of needing approval for every one.</pre></div>
+
+      <p class="lead">読者にとって大きいのは前半（使えるようになった）より<b>後半</b>です。「every one（1つずつ全部）」の承認が要らなくなりました。つまり<mark>既定の挙動が変わっています</mark>。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/chrome-approve-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/chrome-approve.png" alt="これまでは人が1つずつ承認してから実行していたが、8月26日からは分類器が依頼内容と照合して自動で承認するようになったことを示した図" loading="lazy">
+        </picture>
+        <figcaption>間に入るのが「人の承認」から「分類器の照合」に変わった。合わなければ人に聞きにくる。</figcaption>
+      </figure>
+
+      <p class="lead">何でも勝手に進むわけではありません。実行前に分類器（内容を判定する仕組み）が1つずつ見ています。</p>
+
+      <div class="code wrap"><div class="code-head">同ブログ（自動承認の仕組み）</div><pre>A classifier reviews actions Claude is about to take, such as navigating to a new website or entering text into a page, and checks them against what you originally asked for.</pre></div>
+
+      <p class="lead">判断の基準は「<b>あなたが最初に頼んだこと</b>」です。頼んでいない操作をしようとしたら止まります。同じ仕組みは Claude Code の auto mode でも使われている、と書かれています。</p>
+
+      <p class="lead">元に戻す方法も同じ段落に書いてあります。<mark>設定で自動承認を切れば、これまでどおり1つずつ承認する形</mark>に戻ります（原文: 「You can switch this off in your settings if you'd prefer to continue to approve Claude's actions manually.」）。</p>
+
+      <details class="note-d">
+        <summary>使えない環境がある（他のChromium系ブラウザ・スマホは対象外）</summary>
+        <p class="lead">公式ブログに「Claude in Chrome doesn't run on other Chromium browsers or on mobile yet」とあります。Edge や Brave のような Chromium 系でも動かず、スマホも対象外です。<b>Chrome本体だけ</b>です。</p>
+        <p class="lead">会社で使う場合は、管理者側に制御があります。「admins can manage it in Organization Settings and limit it to approved domains」とあり、Enterprise では許可したドメインだけに絞れます。</p>
+      </details>
+
+      <p class="lead">ブラウザを操作するAIには、ページ側に仕込まれた文章で乗っ取られる「プロンプトインジェクション」という弱点があります。Anthropicはこれを一般提供の前提として扱っていて、対策を入れたうえで踏み切った、という書き方をしています。<b>この記事では対策の評価結果までは検証していません</b>（数値の読み方は一次資料に当たってください）。</p>
+
+      <p class="lead"><b>今やること。</b>有料プランを使っていて、この拡張を入れているなら<b>設定を一度開く</b>。自動承認は既定でオンなので、業務用のブラウザで使うなら、そのままでよいか判断してから使う。入れていないなら対応は不要。</p>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude Code 2.1.247 — Sonnet 5 の自動圧縮が1Mの端まで使うようになった</h3>
+      <div class="tags">
+        <span class="tag">8/27 公開</span>
+        <span class="tag">Claude Codeを使う人</span>
+        <span class="tag">既定の変更</span>
+        <span class="tag">Claude Code</span>
+      </div>
+
+      <p class="lead">2.1.247 が日本時間8月27日3時2分に出ました。この版の箇条書きは全部で33行あります（内訳は Added 4 / Changed 7 / Fixed 19 / Improved 2 / Updated 1）。<b>そのうち読者の判断が要るのは3行</b>で、残り30行は不具合修正と内部改善なのでここには書きません。</p>
+
+      <p class="lead">1件目は、既定の変わるものです。</p>
+
+      <div class="code wrap"><div class="code-head">CHANGELOG 2.1.247 の原文</div><pre>Changed Sonnet 5's default auto-compact window to its full 1M context, so sessions on the 1M window now auto-compact at about 967K tokens instead of about 934K</pre></div>
+
+      <p class="lead">用語です。<b>auto-compact（自動圧縮）</b>は、会話が長くなって文脈の上限に近づいたとき、Claude Codeが過去のやり取りを自分で要約して席を空ける動きです。これが起きると、それまでの細かい経緯は要約に置き換わります。</p>
+
+      <p class="lead">これまで Sonnet 5 は、1M（100万トークン）の枠を使っていても<b>約93万4千</b>で圧縮を始めていました。今回、枠の端に近い<b>約96万7千</b>まで引っ張るようになりました。<mark>要約が始まるのが約3万3千トークンぶん後ろにずれます</mark>。長い作業を1セッションで通しているなら、途中の記憶が保つ時間が少し延びます。</p>
+
+      <p class="lead">2件目は、プラグインまわりの安全化です。こちらは不具合修正ではなく、悪意ある入力を前提にした作りの変更なので載せます。</p>
+
+      <div class="code wrap"><div class="code-head">同 CHANGELOG（プラグインとリンク）</div><pre>Improved plugin marketplace hardening: names containing control or invisible characters are rejected, and marketplace-supplied text in /plugin and claude plugin output is escape-safe</pre></div>
+
+      <p class="lead">プラグインの配布元（マーケットプレイス）が名前に<b>目に見えない文字</b>を混ぜてくると、画面上は別の名前に見せられます。それを弾くようになりました。同じ版で、Markdown中のリンクについても、制御文字を含むものやネットワークパスを指すものは<b>ただの文字として表示する</b>（クリックできるリンクにしない）よう変わっています。</p>
+
+      <p class="lead"><b>今やること。</b>対応は不要。更新すれば入る。Sonnet 5 で長いセッションを回している人だけ、要約の始まる位置が後ろにずれたことを頭に入れておく。</p>
+    </article>
+  </section>
+
+  <!-- ============ Web開発・インフラ ============ -->
+  <section class="section section-c" id="dev">
+    <h2>🧑‍💻 Web開発・インフラ<span class="n">2件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=hashicorp.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">HashiCorp</div>
+      <h3>Terraform 1.16.0 の <code>destroy = false</code> は、消さずに管理から外す機能だった</h3>
+      <div class="tags">
+        <span class="tag">8/27 公開</span>
+        <span class="tag">Terraformを使う人</span>
+        <span class="tag">新機能</span>
+        <span class="tag">Terraform</span>
+      </div>
+
+      <p class="lead">Terraform 1.16.0 が日本時間8月27日2時47分に出ました。新機能の中に、<code>lifecycle</code> ブロックの新しい書き方があります。</p>
+
+      <p class="lead">まず用語です。<b><code>lifecycle</code> ブロック</b>は、リソースの作り直し・消し方についての注文をTerraformに伝える場所です。<b>state</b> は「Terraformが今いくつ何を管理しているか」を記録したファイルで、実体（AWS上の本物のリソース）とは別物です。</p>
+
+      <p class="lead">CHANGELOGにはこう書いてあります。</p>
+
+      <div class="code wrap"><div class="code-head">CHANGELOG 1.16.0 の原文</div><pre>Resource lifecycle blocks now support destroy = false to prevent a resource from being destroyed.</pre></div>
+
+      <p class="lead">「破棄されるのを防ぐ」と読めます。それなら以前からある <code>prevent_destroy</code> と同じに見えます。ところが<b>公式ドキュメントの説明は違いました</b>。</p>
+
+      <div class="code wrap"><div class="code-head">公式ドキュメント（lifecycle の destroy）</div><pre>Set to false to remove a resource from state without destroying the actual infrastructure resource.</pre></div>
+
+      <p class="lead">「実体を破棄せずに、state から取り除く」。<mark>まるで別の機能です</mark>。どちらが本当か、実際に動かして確かめました。</p>
+
+      <p class="lead">検証は、AWSではなく <code>local_file</code>（ローカルにファイルを1つ作るだけのリソース）で行いました。実体がただのファイルなので、<b>消えたか残ったかを <code>ls</code> で直接見られる</b>からです。認証情報も要りません。</p>
+
+      <div class="code"><div class="code-head">main.tf（抜粋）</div><pre>resource "local_file" "memo" {
+  filename = "${path.module}/hello.txt"
+  content  = "consider me infrastructure\n"
+
+  lifecycle {
+    destroy = false
+  }
+}</pre></div>
+
+      <p class="lead"><code>apply</code> でファイルを作り、state に載っていることを確認してから <code>destroy</code> を打ちました。</p>
+
+      <div class="code term"><div class="code-head">terraform destroy の出力（実行したもの）</div><pre>Plan: 0 to add, 0 to change,
+      0 to destroy.
+
+Warning: Some objects will no
+longer be managed by Terraform
+
+Terraform will discard its
+tracking information for the
+following objects, but it will
+not delete them:
+ - local_file.memo
+
+<span class="ok-line">Destroy complete!
+Resources: 0 destroyed.</span></pre></div>
+
+      <p class="lead">「0 destroyed」。エラーにはならず、destroy は成功しています。そのうえで実体を見ると、</p>
+
+      <div class="code term"><div class="code-head">destroy の後に確認した結果</div><pre>$ ls -l hello.txt
+-rwxr-xr-x 1 root root 27 hello.txt
+
+$ head -1 hello.txt
+consider me infrastructure
+
+$ terraform state list
+<span class="ng-line">(出力なし = stateは空)</span></pre></div>
+
+      <p class="lead"><b>ファイルは残り、state だけが空になりました。</b>ドキュメントのほうが正しく、CHANGELOGの書きぶりが誤解を招く形だったことになります。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/destroy-false-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/destroy-false.png" alt="terraform destroyを打った後、何も書かない場合は実体もstateも消えるが、destroy = falseを書くと実体だけが残りstateは消えることを示した図" loading="lazy">
+        </picture>
+        <figcaption>destroy = false で残るのは実体のほう。state からは消えるので、Terraformからは見えなくなる。</figcaption>
+      </figure>
+
+      <p class="lead">名前の似た2つは、こう違います。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>書き方</th><th>destroy を打つと</th><th>実体は</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>destroy = false</code></td>
+              <td data-label="destroy を打つと">成功する（0 destroyed）</td>
+              <td data-label="実体は">残る</td>
+            </tr>
+            <tr>
+              <td><code>prevent_destroy = true</code></td>
+              <td data-label="destroy を打つと">エラーで止まる</td>
+              <td data-label="実体は">残る</td>
+            </tr>
+            <tr>
+              <td>何も書かない</td>
+              <td data-label="destroy を打つと">成功する</td>
+              <td data-label="実体は">消える</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">怖いのは、<b>これをAWSでやったとき</b>です。destroy が成功して「消えた」と思っても、ALBもFargateのタスクも生きています。Terraformからは見えなくなるので、<mark>誰も気づかないまま課金だけが続きます</mark>。戻すには <code>import</code> し直すしかありません（出力の警告文にもそう書かれています）。</p>
+
+      <details class="note-d">
+        <summary>1.16.0 の UPGRADE NOTES（上げる前に見る1件）</summary>
+        <p class="lead">この版の UPGRADE NOTES は1件だけです。原文は「<code>bastion_host_key</code> is now correctly applied by provisioners. Review your provisioner configurations to verify the configured key is correct before upgrading.」</p>
+        <p class="lead">踏み台サーバー経由の <code>provisioner</code> を使っている場合、これまで<b>効いていなかった鍵の指定が効くようになります</b>。間違った鍵が書いてあると、上げた後で初めて繋がらなくなります。上げる前に設定を見ておくこと、と書かれています。</p>
+      </details>
+
+      <p class="lead"><b>今やること。</b>1.16.0 に上げる予定があるなら、<code>provisioner</code> の <code>bastion_host_key</code> を先に確認する。<code>destroy = false</code> は「消さない」ではなく<b>「Terraformの管理から外す」</b>と覚える。破棄を止めたいなら <code>prevent_destroy = true</code> のほう。</p>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=hashicorp.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">HashiCorp</div>
+      <h3>Terraform AWSプロバイダ 6.62.0 — CloudFront Functions の書き間違いが plan で分かる</h3>
+      <div class="tags">
+        <span class="tag">8/27 公開</span>
+        <span class="tag">AWSをTerraformで書く人</span>
+        <span class="tag">挙動の変更</span>
+        <span class="tag">AWS</span>
+      </div>
+
+      <p class="lead">AWSプロバイダ 6.62.0 が日本時間8月27日4時48分に出ました。読者のスタックに当たるものが2件あります。</p>
+
+      <p class="lead">1件目は CloudFront です。</p>
+
+      <div class="code wrap"><div class="code-head">CHANGELOG 6.62.0 の原文</div><pre>resource/aws_cloudfront_function: Validate name, code, and comment against CloudFront's documented constraints during plan instead of failing at apply time</pre></div>
+
+      <p class="lead">CloudFront Functions は、CDNの手前で動かす小さな関数です。これまで名前や中身の書式が規則に反していると、<b><code>apply</code> を流してAWSに投げた時点で初めて失敗</b>していました。6.62.0からは <code>plan</code> の段階で弾かれます。CIで plan だけ回している場合、<mark>気づく場所が1段早くなります</mark>。</p>
+
+      <p class="lead">2件目は Secrets Manager です。<code>aws_secretsmanager_secret_rotation</code> の <code>rotation_enabled</code> が、読み取り専用から<b>設定できる項目に変わりました</b>。<code>false</code> を入れると自動ローテーションを止められます。</p>
+
+      <p class="lead">これが効くのは、RDSで <code>manage_master_user_password</code> を使っている場合です。AWS側が勝手に作って回しているマスターパスワードのシークレットに対して、ローテーションを止める指定が書けるようになりました。あわせて <code>rotation_rules</code> が任意になり、<b><code>rotation_enabled</code> が <code>false</code> のときは書いてはいけません</b>。</p>
+
+      <p class="lead"><b>今やること。</b>対応は不要。プロバイダを上げたときに、<code>rotation_rules</code> と <code>rotation_enabled = false</code> を両方書いている箇所があれば外す。CloudFront Functions を書いているなら、plan が今までより厳しくなることだけ知っておく。</p>
+    </article>
+  </section>
+
+  <!-- ============ クライアント技術 ============ -->
+  <section class="section section-a" id="client">
+    <h2>📱 クライアント技術<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=unity.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Unity</div>
+      <h3>Unity 6000.6 で WebGPU が experimental を外れた — ただし既定では有効にならない</h3>
+      <div class="tags">
+        <span class="tag">8/24 告知</span>
+        <span class="tag">Unity Webを作る人</span>
+        <span class="tag">新機能</span>
+        <span class="tag">Unity Web</span>
+      </div>
+
+      <p class="lead">このセクションだけは更新が少ないため直近1週間まで見ています。<b>8月24日</b>の話です。</p>
+
+      <p class="lead">Unity 6000.6（6.6）で、WebGPU が実験的機能ではなくなりました。公式マニュアルを新旧で比べると、表記が変わっています。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>バージョン</th><th>マニュアルの見出し</th><th>本文</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>6000.3</td>
+              <td data-label="マニュアルの見出し">WebGPU (Experimental)</td>
+              <td data-label="本文">WebGPU is experimental… と明記</td>
+            </tr>
+            <tr>
+              <td>6000.6</td>
+              <td data-label="マニュアルの見出し">WebGPU</td>
+              <td data-label="本文">experimental の語が消えた</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">用語です。<b>WebGPU</b> は、ブラウザからGPUを使うための新しい仕組みです。いま Unity Web が使っている <b>WebGL2</b> より新しく、できることが多い代わりに、対応していないブラウザがまだあります。</p>
+
+      <p class="lead">大事なのは、<mark>正式サポートになっても勝手には切り替わらない</mark>ことです。公式マニュアルの手順では、Player Settings の Graphics APIs の一覧に<b>自分で WebGPU を足す</b>必要があります。</p>
+
+      <p class="lead">足したあと、WebGL2 を一覧に残すかどうかを決めます。Unity は<b>一覧の先頭のAPIを優先</b>し、ブラウザが対応していなければ次のものに落とす、という順で試します。だから WebGL2 を下に残しておけば、WebGPU 非対応のブラウザから来た人にも動きます。逆に WebGL2 を消すと WebGPU のみになります。</p>
+
+      <details class="note-d">
+        <summary>両方を残すと、開発とテストの手間は増える</summary>
+        <p class="lead">公式マニュアルは、両方を残す利点（対応していないブラウザの人にも届く）と欠点を並べて書いています。欠点のほうは「2つのグラフィックスAPIをサポートすることになるので、開発とテストがより複雑になる」という趣旨です。</p>
+        <p class="lead">つまり<b>どちらが正解と決めてはいません</b>。誰に届けたいかで決める、という書き方です。社内向けで対象ブラウザを絞れるなら WebGPU のみ、一般公開なら WebGL2 を残す、が素直な分け方になります。</p>
+      </details>
+
+      <p class="lead"><b>今やること。</b>いま 6000.6 に上げる予定が無いなら対応は不要。上げるなら、Graphics APIs の一覧を開いて<b>WebGL2 を残すかどうかだけ決める</b>。何もしなければ、これまでどおり WebGL2 のまま動きます。</p>
+    </article>
+  </section>
+
+  <!-- ============ 技術・研究 ============ -->
+  <section class="section section-c" id="research">
+    <h2>🔬 技術・研究<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=anthropic.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude の使われ方の集計データが公開された — 約25万会話ぶん</h3>
+      <div class="tags">
+        <span class="tag">8/26 公開</span>
+        <span class="tag">AIの使われ方を知りたい人</span>
+        <span class="tag">データ公開</span>
+        <span class="tag">Anthropic</span>
+      </div>
+
+      <p class="lead">Anthropicが8月26日に、外部の研究者に自社データで研究してもらう試験プログラムの結果と、<b>そこで得られた集計データ</b>を公開しました。データは Hugging Face に置かれています。</p>
+
+      <p class="lead">対象は、2026年4月〜5月の <b>Claude.ai と Claude Code の会話 約25万件</b>です。参加したのはスタンフォード大、オックスフォード大、およびAI評価の非営利団体 METR の3組です。</p>
+
+      <p class="lead">読者にとっての意味は、<b>「AIが実際に何に使われているか」の数字が、ベンダー自身の集計として読める</b>ことです。ふだん見かける「AIの使われ方」の記事は出どころが曖昧なものが多いのですが、これは元データの取り方まで公開されています。</p>
+
+      <p class="lead">プライバシーの扱いは明記されています。</p>
+
+      <div class="code wrap"><div class="code-head">公式ページ（研究者が見たもの）</div><pre>Anthropic Insights is designed for this—researchers never accessed raw conversations, only aggregated outputs after the same legal and privacy review as our internal work.</pre></div>
+
+      <p class="lead">研究者が生の会話を見ることはなく、<b>集計した結果だけ</b>を受け取る形です。集計は、Claude自身が1つ1つの会話に質問へ答える形で分類し、その割合だけが外に出ます。</p>
+
+      <p class="lead">ただし限界も自分で書いています。分類しているのがClaudeなので、<mark>質問の立て方によって結果が変わる</mark>という趣旨の注意があります。数字を引くときは、どう質問して得た分類なのかまで見る必要があります。</p>
+
+      <p class="lead"><b>今やること。</b>対応は不要。AIの使われ方の数字を社内資料に引く機会があるなら、出どころの候補として控えておく。<b>この記事では公開ページを読んだだけで、データセット本体は開いていません。</b></p>
+    </article>
+  </section>
+
+  <!-- ============ モデル・業界 ============ -->
+  <section class="section section-a" id="industry">
+    <h2>🏢 モデル・業界<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=openrouter.ai&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">OpenRouter</div>
+      <h3>文脈100万超の軽量モデルが2つ増えた — Qwen3.8 Flash と GLM 5.3 Flash</h3>
+      <div class="tags">
+        <span class="tag">8/26〜27 登録</span>
+        <span class="tag">モデルを選ぶ人</span>
+        <span class="tag">新モデル</span>
+        <span class="tag">オープンウェイト</span>
+      </div>
+
+      <p class="lead">対象期間の中で、OpenRouter に新しいモデルが2つ登録されました。どちらも「Flash」と付く軽量・高速の系統です。</p>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr><th>モデル</th><th>文脈長</th><th>登録（JST）</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Qwen3.8 Flash</td>
+              <td data-label="文脈長">1,000,000</td>
+              <td data-label="登録（JST）">8/27 4:37</td>
+            </tr>
+            <tr>
+              <td>GLM 5.3 Flash</td>
+              <td data-label="文脈長">1,310,720</td>
+              <td data-label="登録（JST）">8/26 22:59</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">数字はOpenRouterのモデル一覧APIから取りました。目を引くのは文脈長です。<b>どちらも100万トークンを超えています</b>。GLM 5.3 Flash の 1,310,720 は 128K の10倍にあたります。</p>
+
+      <p class="lead">読者は原則APIを直接叩かないので単価は主題にしませんが、いずれも入力・出力とも<b>1ドルを大きく下回る帯</b>（100万トークンあたり）に置かれています。長い文書をまとめて読ませる用途を狙った価格の付け方です。</p>
+
+      <p class="lead"><b>今やること。</b>対応は不要。<b>この記事では、2つのモデルを実際に動かしていません。</b>登録された事実と、一覧APIが返す文脈長・価格を確認しただけです。性能の比較は、ベンチマークの一次資料が出てから扱います。</p>
+    </article>
+  </section>
+
+  <!-- ============ 何を見て無いと判断したか ============ -->
+  <section class="section section-b" id="quiet">
+    <h2>何を見て「無い」と判断したか</h2>
+
+    <article class="item">
+      <p class="lead">件数の少ない号では、「探さなかった」のか「探したが無かった」のかが読者に分かりません。ここに置きます。対象期間の24時間は、世界標準時では8月25日20:00 〜 8月26日20:00です。</p>
+
+      <p class="lead">まず<b>昨日の号と重なるので外したもの</b>が2件あります。Laravel 13.27.0 のバリデーション厳密化と、Chrome 152 / Android System WebView 152 の修正327件です。どちらも8月26日号で扱っています。今日はその続報が無いため、繰り返しません。</p>
+
+      <p class="lead">Laravel は対象期間の中でも動いていますが、<b>書けるものがありませんでした</b>。13.28.0 と 13.29.0 が8月26日5時55分ごろに続けて出ていますが、公式のCHANGELOGで<mark>この2版の項目は空</mark>です（13.29.0 の比較リンクが v13.27.0…v13.29.0 になっており、間の版に記載がありません）。中身が分からないものを推測で書かないため、見送りました。</p>
+
+      <div class="code term"><div class="code-head">Packagistで見た公開時刻（UTC）</div><pre>v13.29.0 | 2026-08-25T20:57:16
+v13.28.0 | 2026-08-25T20:54:30
+v13.27.0 | 2026-08-25T14:16:00</pre></div>
+
+      <p class="lead">AWS は、What's New の全100件を対象期間で絞って見ました。期間内に入るのは5件で、Cognito・Connect・Mountpoint for S3・Backup（DocumentDB向け）です。<b>読者のスタック（ECS / Fargate / ALB / CloudFront / IAM / S3 / VPC / CloudWatch / Secrets Manager / ECR / Route 53）に当たるものはありませんでした。</b>障害・値上げ・提供終了の告知もありません。</p>
+
+      <p class="lead">TiDB は安定版が 8.5.4（2025年11月）のままで、対象期間に動きがありません。Docker は8月25日にブログが1本出ていますが、自社の有償イメージへの移行手順で、読者の判断が要る内容ではないため外しました。</p>
+
+      <details class="note-d">
+        <summary>VRChat を今日書かなかった理由（1週間さかのぼって確認した）</summary>
+        <p class="lead">クライアント技術は1週間まで見てよい決まりなので、8月20日以降を確認しました。Creator Companion の公式ブログは<b>最新が 2.5.0-beta.2（6月25日）</b>で、8月20日〜27日の投稿はありません。クライアント本体の 2026.3.1 は8月12日で、これも期間外です。</p>
+        <p class="lead">ただし <code>creators.vrchat.com/releases/</code> は<b>この環境から403で開けていません</b>。SDK単体のリリースがこの1週間にあった可能性は否定できません。403は「到達できなかった」であって「無い」ではないので、<b>「VRChatに動きが無かった」とは書きません</b>。確認できた範囲では見つからなかった、というだけです。</p>
+      </details>
+
+      <p class="lead">Claude Code については、2.1.247 の箇条書き33行を全部書き出したうえで判断しました。<b>載せた3行、落とした30行</b>です（33行の内訳は Added 4 / Changed 7 / Fixed 19 / Improved 2 / Updated 1。載せたのは Changed 2行と Improved 1行）。</p>
+
+      <p class="lead">落とした30行の内訳は、不具合修正が19行（矢印キーの取りこぼし、サブエージェントが初回404で落ちる件、<code>/terminal-setup</code> が Zed の設定を上書きする件など）、残り11行が新機能・内部改善・企業向けのサインイン制御です。<b>新機能4行を落とした理由</b>は、<code>/claude-api</code> 関連2行がAPIを直接使う人向けであること、残り2行（フィードバック下書きと、権限プロンプトに出る案内）が読者側の判断を必要としないためです。</p>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark>掲載した全URLは取得時にHTTPステータスを確認しています。再現用の一式は <code>_labs/2026-08-27_001/</code> に置いてあります。</p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Claude in Chrome is generally available」<i>Claude Blog</i>, 2026年8月26日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 冒頭「Claude in Chrome is now generally available on every paid Claude plan. Claude can now also take actions autonomously in the browser, instead of needing approval for every one.」、自動承認の節「A classifier reviews actions Claude is about to take, such as navigating to a new website or entering text into a page, and checks them against what you originally asked for.」および「using the same mechanism as auto mode in Claude Code.」、切り方「You can switch this off in your settings if you'd prefer to continue to approve Claude's actions manually.」、対象外の環境「Claude in Chrome doesn't run on other Chromium browsers or on mobile yet」、企業向け「admins can manage it in Organization Settings and limit it to approved domains」。ページの Date 欄が「August 26, 2026」。<b>記事に貼った原文は改行位置だけを幅に合わせて折り、語句は一字も変えていない。</b>プロンプトインジェクション対策の評価数値は本文に転記していない（グラフの読み取りを要するため）。</span></details>
+          <a href="https://claude.com/blog/claude-in-chrome-generally-available">https://claude.com/blog/claude-in-chrome-generally-available</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Claude Code CHANGELOG」<i>anthropics/claude-code リポジトリ・main ブランチ</i>, 2.1.247 の節.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: <code>## 2.1.247</code> のブロック全33行。引用した2行は「Changed Sonnet 5's default auto-compact window to its full 1M context, so sessions on the 1M window now auto-compact at about 967K tokens instead of about 934K」と「Improved plugin marketplace hardening: names containing control or invisible characters are rejected, and marketplace-supplied text in <code>/plugin</code> and <code>claude plugin</code> output is escape-safe」。リンクの扱いに触れた部分は同ブロックの「Changed terminal hyperlinks in rendered markdown: link targets that point at a network or automounter path, contain a control character, or lead with an invisible character now render as plain text」。<b>github.com はこの環境から403のため raw.githubusercontent.com 経由で取得した。</b>同じ内容は code.claude.com/docs/en/changelog でも到達を確認している。</span></details>
+          <a href="https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md">https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Claude Code 2.1.247 の公開時刻と、変更行33件の内訳。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月27日、npmレジストリの <code>time</code> フィールドを取得した。2.1.247 は <code>2026-08-26T18:02:01.046Z</code>（JST 8/27 3:02）で対象期間内。直前の 2.1.246 は <code>2026-08-25T19:17:34.421Z</code>（JST 8/26 4:17）で対象期間の43分前にあたり、これは8月26日号で既に扱っている。<code>## 2.1.247</code> ブロックの箇条書きを機械的に数えた結果は Added 4 / Changed 7 / Fixed 19 / Improved 2 / Updated 1 = 33行で、記事で扱った2件と落とした31件の合計と一致する。</span></details>
+          <a href="https://registry.npmjs.org/@anthropic-ai/claude-code">https://registry.npmjs.org/@anthropic-ai/claude-code</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「Terraform CHANGELOG」<i>hashicorp/terraform リポジトリ・v1.16.0 タグ</i>, 1.16.0 の節.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: NEW FEATURES / ENHANCEMENTS / BUG FIXES / NOTES / UPGRADE NOTES の5見出し。引用した行は ENHANCEMENTS の「Resource <code>lifecycle</code> blocks now support <code>destroy = false</code> to prevent a resource from being destroyed.」(#38784)。UPGRADE NOTES はこの版で1件のみで、原文は「<code>bastion_host_key</code> is now correctly applied by provisioners. Review your provisioner configurations to verify the configured key is correct before upgrading.」(#38318)。<b>個々のPull Requestのページは github.com が403で開けていないため、番号以外の内容は書いていない。</b>公開時刻は releases.hashicorp.com のAPIで <code>2026-08-26T17:47:28.346Z</code>（JST 8/27 2:47）。</span></details>
+          <a href="https://raw.githubusercontent.com/hashicorp/terraform/v1.16.0/CHANGELOG.md">https://raw.githubusercontent.com/hashicorp/terraform/v1.16.0/CHANGELOG.md</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「Resource lifecycle」<i>Terraform 公式ドキュメント・言語リファレンス</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: <code>destroy</code> の説明「Set to <code>false</code> to remove a resource from state without destroying the actual infrastructure resource.」と、<code>prevent_destroy</code> の説明「When <code>prevent_destroy</code> is set to <code>true</code>, Terraform rejects plans that would destroy the infrastructure object associated with the resource and returns an error.」。記事中の対比表はこの2つの記述と、次項の実測に基づく。</span></details>
+          <a href="https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle">https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          <code>lifecycle { destroy = false }</code> を実際に動かして確かめた結果。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月27日 01:29 UTC（JST 10:29）、releases.hashicorp.com の公式zipから Terraform v1.16.0 (linux_amd64) を展開し、<code>hashicorp/local</code> プロバイダで実行した。<code>apply</code> で <code>hello.txt</code> が作られ <code>terraform state list</code> に <code>local_file.memo</code> が出ることを確認したうえで、<code>lifecycle { destroy = false }</code> を有効にしたまま <code>destroy</code> を実行。結果は「Plan: 0 to add, 0 to change, 0 to destroy.」「Destroy complete! Resources: 0 destroyed.」で、<b>ファイルは残り、<code>terraform state list</code> は空になった</b>。<b>記事に貼った2つのターミナル出力は加工していない</b>（<code>COLUMNS=40</code> と <code>-no-color</code> で取得し、幅に収まらない行だけ折り返した。<code>ls -l</code> の行は日付列を省いた）。<b>AWS上では実行していない</b>。AWSリソースが残って課金され続けるという記述は、この実測とドキュメントからの推論であって、AWSで再現したものではない。再現手順は <code>_labs/2026-08-27_001/README.md</code>、構成は <code>main.tf</code>、出力は <code>output.txt</code>。</span></details>
+          <a href="https://releases.hashicorp.com/terraform/1.16.0/">https://releases.hashicorp.com/terraform/1.16.0/</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          HashiCorp「Terraform AWS Provider CHANGELOG」<i>hashicorp/terraform-provider-aws リポジトリ・v6.62.0 タグ</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: ENHANCEMENTS の「resource/aws_cloudfront_function: Validate <code>name</code>, <code>code</code>, and <code>comment</code> against CloudFront's documented constraints during plan instead of failing at apply time」(#49395)、「resource/aws_secretsmanager_secret_rotation: <code>rotation_enabled</code> is now configurable (previously read-only) and can be set to <code>false</code> to disable rotation for a secret. This is particularly useful for secrets whose rotation is otherwise managed by AWS, such as an RDS master user password secret created with <code>manage_master_user_password</code>」(#49659)、「resource/aws_secretsmanager_secret_rotation: <code>rotation_rules</code> is now optional, and must be omitted when <code>rotation_enabled</code> is <code>false</code>」(#49659)。公開時刻は Terraform Registry のAPIで <code>2026-08-26T19:48:13Z</code>（JST 8/27 4:48）。</span></details>
+          <a href="https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/v6.62.0/CHANGELOG.md">https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/v6.62.0/CHANGELOG.md</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Unity「WebGPU」および「Enable the WebGPU graphics API」<i>Unity マニュアル 6000.6</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 6000.6 の WebGPU ページはページ見出しが「WebGPU」で、本文に experimental の語が1つも無いことを取得した本文から確認した。比較対象として 6000.3 の同ページを取得すると、見出しが「WebGPU (Experimental)」で本文に「WebGPU is experimental and not supported by all browsers and devices.」がある。有効化の手順は 6000.6 の「Enable the WebGPU graphics API」から、Graphics API の一覧に自分で追加すること、「Unity prioritizes the first API on the Graphics API list as the default web graphics API for your project.」、フォールバックの利点と「which makes it more complex to develop and test」という欠点の記述。<b>Unity Discussions の告知投稿（8月24日、Unity の Web Graphics チームによるもの）は curl が403で本文を取得できていない</b>ため、日付以外の内容はマニュアルの記述だけで書いている。</span></details>
+          <a href="https://docs.unity3d.com/6000.6/Documentation/Manual/WebGPU.html">https://docs.unity3d.com/6000.6/Documentation/Manual/WebGPU.html</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Unity Discussions「WebGPU out of experimental in Unity 6.6」, 2026年8月24日投稿.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">記事で「8月24日の告知」と書いた根拠のスレッド。<b>この環境から curl で取得すると403が返り、本文を自分で読めていない。</b>そのため投稿の文言は引用していない。正式サポートになったという事実そのものは、上のUnity公式マニュアル（6000.3 と 6000.6 の差分）で裏を取っている。日付は書誌情報としてのみ扱う。</span></details>
+          <a href="https://discussions.unity.com/t/webgpu-out-of-experimental-in-unity-6-6/1734694">https://discussions.unity.com/t/webgpu-out-of-experimental-in-unity-6-6/1734694</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Enabling independent research on how people use Claude」<i>Anthropic Research（Societal Impacts）</i>, 2026年8月26日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「used Anthropic Insights to conduct privacy-preserving analysis of roughly 250,000 Claude.ai or Claude Code conversations from April-May 2026」、プライバシーの節「Anthropic Insights is designed for this—researchers never accessed raw conversations, only aggregated outputs after the same legal and privacy review as our internal work.」、分類のしくみ「Claude answers it for every conversation in the study. The answers are then aggregated into categories; researchers only see final categories and the percentage of conversations that fall under each one.」、限界「Because we are relying on Claude's judgments, the tool is sensitive to a question…」。参加3組（Stanford / Oxford / METR）も同ページ。<b>Hugging Face 上のデータセット本体は開いていない</b>ため、収録項目やライセンスには触れていない。</span></details>
+          <a href="https://www.anthropic.com/research/enabling-independent-research">https://www.anthropic.com/research/enabling-independent-research</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          OpenRouter に登録された2モデルの文脈長・価格・登録時刻。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月27日、OpenRouter のモデル一覧API（<code>/api/v1/models</code>）を取得し、<code>qwen/qwen3.8-flash</code> と <code>z-ai/glm-5.3-flash</code> の2件を抜き出した。<code>context_length</code> はそれぞれ 1,000,000 と 1,310,720。<code>created</code> は 1 件目が <code>2026-08-26T19:37:40</code> UTC（JST 8/27 4:37）、2件目が <code>2026-08-26T13:59:01</code> UTC（JST 8/26 22:59）で、いずれも対象期間内。価格は100万トークンあたり、Qwen3.8 Flash が入力 $0.16 / 出力 $0.47、GLM 5.3 Flash が入力 $0.075 / 出力 $0.25（APIの <code>pricing</code> は1トークンあたりの値で返るため100万倍した）。<b>2つのモデルは実際に呼び出していない。</b>ベンチマークや性能に関する記述を書いていないのはこのため。</span></details>
+          <a href="https://openrouter.ai/api/v1/models">https://openrouter.ai/api/v1/models</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          「動きが無い」と判断するために確認した先と、その結果。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月27日に実施。<b>AWS</b>: What's New のRSS（<code>aws.amazon.com/about-aws/whats-new/recent/feed/</code>）100件を取得し、<code>pubDate</code>（GMT）で 8/25 20:00〜8/26 20:00 に入るものを抽出した結果は5件（Cognito の TOTP リセット、Connect 2件、Mountpoint for Amazon S3 のメモリ制御、AWS Backup の DocumentDB 向けクロスリージョン）。読者のスタックに該当なし。<b>Laravel</b>: Packagist の <code>p2/laravel/framework.json</code> で v13.28.0 が <code>2026-08-25T20:54:30+00:00</code>、v13.29.0 が <code>2026-08-25T20:57:16+00:00</code>。13.x ブランチの CHANGELOG では v13.29.0 の見出しの比較リンクが <code>v13.27.0...v13.29.0</code> で、13.28.0 の節が存在せず、13.29.0 の節にも箇条書きが無い。<b>TiDB</b>: docs.pingcap.com のリリースノート一覧を取得し、安定版に 8.5.4（2025年11月）より新しい記載が無いことを確認。<b>VRChat</b>: <code>vcc.docs.vrchat.com/news/</code> は200で取得でき、最新が Release 2.5.0-beta.2（2026年6月25日）。<code>creators.vrchat.com/releases/</code> は403で取得できていない。<b>Chrome</b>: 公式リリースブログのAtomフィードを取得し、期間内の投稿（Early Stable 153、Chrome for Android 152 ほか）を確認した。Chrome 152 の内容は8月26日号で扱ったため今日は繰り返していない。</span></details>
+          <a href="https://aws.amazon.com/about-aws/whats-new/recent/feed/">https://aws.amazon.com/about-aws/whats-new/recent/feed/</a>（2026年8月27日参照）
+        </li>
+      </ol>
+    </article>
+  </section>
+
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+# Terraform 1.16.0 の lifecycle { destroy = false } を実測した記録
+# 実行日時: 2026-08-27 01:29 UTC (10:29 JST) / linux_amd64
+# Terraform v1.16.0 (releases.hashicorp.com の公式zipを展開したもの)
+# providers: hashicorp/local
+# 出力は COLUMNS=40 -no-color で取得し、加工せずそのまま貼った(末尾のみ抜粋)
+
+$ terraform apply -auto-approve
+Plan: 1 to add, 0 to change, 0 to destroy.
+local_file.memo: Creating...
+local_file.memo: Creation complete after 0s
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+
+$ ls -l hello.txt
+-rwxr-xr-x 1 root root 27 Aug 27 01:29 hello.txt
+
+$ terraform state list
+local_file.memo
+
+# --- ここで main.tf に lifecycle { destroy = false } を足した ---
+
+$ terraform destroy -auto-approve
+Plan: 0 to add, 0 to change, 0 to destroy.
+
+Warning: Some objects will no longer be managed by Terraform
+
+If you apply this plan, Terraform will discard its tracking information for
+the following objects, but it will not delete them:
+ - local_file.memo
+
+After applying this plan, Terraform will no longer manage these objects. You
+will need to import them into Terraform to manage them again.
+
+Destroy complete! Resources: 0 destroyed.
+
+$ ls -l hello.txt
+-rwxr-xr-x 1 root root 27 Aug 27 01:29 hello.txt
+
+$ head -1 hello.txt
+consider me infrastructure
+
+$ terraform state list
+(出力なし = stateは空)

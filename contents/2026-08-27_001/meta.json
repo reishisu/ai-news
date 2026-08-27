@@ -1,0 +1,19 @@
+{
+  "category": "デイリーダイジェスト",
+  "tags": [
+    "Anthropic",
+    "Claude Code",
+    "Terraform",
+    "AWS",
+    "Unity Web",
+    "実測"
+  ],
+  "featured": true,
+  "title": "AI-news：2026/08/27 — Claude in Chrome が全有料プランで一般提供",
+  "summary": "Claude in Chrome が全ての有料プランで一般提供になり、操作の自動承認が既定になりました。設定で切れます。Terraform 1.16.0 の destroy = false は「破棄を止める」ではなく「実体を残したまま管理から外す」で、実際に動かして確かめました。Unity 6000.6 では WebGPU が experimental を外れています。",
+  "thumbnail": "images/thumb.png",
+  "thumb": {
+    "main": "Chromeで自動承認が既定に",
+    "sub": "Claude in Chrome が全有料プランへ"
+  }
+}
