@@ -1,0 +1,35 @@
+# /context の Skills 行を測る / 2026-08-27 JST
+# Claude Code 2.1.247 / Linux x86-64 のコンテナ。ai-news-video リポジトリ上で実行
+# claude -p "/context" は対話画面でなくても通る(この記事の測定で確認)
+
+4:**Tokens:** 61.4k / 1m (6%)
+15:| Skills | 3.7k | 0.4% |
+
+### Skills
+
+| Skill | Source | Tokens |
+|-------|--------|--------|
+| startup-hook-skill | User | ~90 |
+| design | Built-in | ~340 |
+| dataviz | Built-in | ~380 |
+| artifact-design | Built-in | ~70 |
+| artifact-diagramming | Built-in | ~70 |
+| artifact-capabilities | Built-in | ~210 |
+| update-config | Built-in | ~240 |
+| keybindings-help | Built-in | ~80 |
+| code-review | Built-in | ~150 |
+| simplify | Built-in | ~60 |
+| fewer-permission-prompts | Built-in | ~60 |
+| loop | Built-in | ~120 |
+| claude-api | Built-in | ~360 |
+| run | Built-in | ~120 |
+| init | Built-in | ~20 |
+| security-review | Built-in | ~30 |
+| docx | claude.ai sync | ~280 |
+| import-memory | claude.ai sync | ~50 |
+| morning | claude.ai sync | ~120 |
+| pdf | claude.ai sync | ~150 |
+| pptx | claude.ai sync | ~250 |
+| skill-creator | claude.ai sync | ~110 |
+| xlsx | claude.ai sync | ~320 |
+

@@ -1,0 +1,16 @@
+<svg viewBox="0 0 460 250" xmlns="http://www.w3.org/2000/svg">
+<g font-family="'Noto Sans JP','IPAGothic','DejaVu Sans',sans-serif">
+  <text x="10" y="24" font-size="20" font-weight="bold" fill="var(--fg)">呼ぶまでは50、呼ぶと3,700</text>
+
+  <text x="10" y="64" font-size="18" fill="var(--sub)">常駐（名前と説明）</text>
+  <rect x="10" y="74" width="6" height="34" rx="3" fill="var(--sub)"/>
+  <text x="28" y="100" font-size="21" font-weight="bold" fill="var(--fg)">~50 トークン</text>
+
+  <text x="10" y="146" font-size="18" fill="var(--sub)">呼び出し（本文）</text>
+  <rect x="10" y="156" width="440" height="48" rx="10" fill="var(--c)"/>
+  <text x="230" y="190" font-size="30" font-weight="bold" fill="var(--bg)" text-anchor="middle">~3,700 トークン</text>
+
+  <rect x="10" y="216" width="6" height="28" fill="var(--c)"/>
+  <text x="28" y="238" font-size="19" font-weight="bold" fill="var(--fg)">同じ1個で74倍</text>
+</g>
+</svg>

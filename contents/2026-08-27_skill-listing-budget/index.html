@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Codeのスキルは増やすほど呼ばれなくなる — 常駐1,609トークンと、説明が削られる仕組み</title>
+<meta name="description" content="スキルが常駐で食うのは名前と説明だけで、25個入りのプラグインで約1,609トークンでした。ただし説明の一覧には文字数の予算があり、超えると使っていないスキルから削られます。残るのはフォルダ名だけです。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claude Codeのスキルは増やすほど呼ばれなくなる — 常駐1,609トークンと、説明が削られる仕組み">
+<meta property="og:description" content="常駐は名前と説明だけで約1,609トークン。ただし説明の一覧には文字数の予算があり、超えると使っていないスキルから削られます。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-27_skill-listing-budget/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-27_skill-listing-budget/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=081fefa4">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">AIで作る技術 ｜ 2026年8月27日(木)</div>
+    <h1>Claude Codeのスキルは増やすほど呼ばれなくなる — 常駐1,609トークンと、説明が削られる仕組み</h1>
+    <div class="range"><a href="../2026-08-26_skills-trigger/">前回「スキルの作り方」</a>の続きです。前回は1個作って測りましたが、今回は<b>増やしたときに何が起きるか</b>を測ります。前回を読んでいなくても分かるように書きました。ログは全部この環境の実測で、<b>省いた箇所はそのつど明示しています</b>。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 自分の設定を見るのは約3分</span>
+      <span class="tag">前回の続き</span>
+      <span class="tag">全部コピペOK</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li><b>常駐しているのは名前と説明だけ。</b><span>25個入りのプラグインで測ったら<mark>約1,609トークン</mark>でした。本文は呼ぶまで読まれません。</span></li>
+      <li><b>ただし説明の一覧には文字数の上限があります。</b><span>コンテキスト窓の1%。超えると<mark>使っていないスキルから順に説明が消えます</mark>。残る手がかりはフォルダ名だけになります。</span></li>
+      <li><b>同じ名前が2つあっても壊れません。</b><span>素の <code>/名前</code> は自分側が取り、プラグイン側は <code>/プラグイン名:名前</code> で指せます。<mark>ただしエージェントだと、プラグイン側は消えます。</mark></span></li>
+    </ol>
+
+    <div class="table">
+      <table>
+        <thead><tr><th>先に5語だけ</th><th>意味</th></tr></thead>
+        <tbody>
+          <tr><td>スキル</td><td data-label="意味">決まった手順を書いた <code>SKILL.md</code> を1枚置いておく仕組み。名前を呼ぶと読み込まれる</td></tr>
+          <tr><td>常駐</td><td data-label="意味">毎回のセッションに最初から積まれること</td></tr>
+          <tr><td>トークン</td><td data-label="意味">AIが文章の量を数える単位。文字数に近いが一致はしない</td></tr>
+          <tr><td>コンテキスト窓</td><td data-label="意味">AIが一度に覚えていられる量の上限</td></tr>
+          <tr><td>プラグイン</td><td data-label="意味">他人が作ったスキルを、まとめて入れる仕組み</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">常駐しているのは名前と説明だけだった</a></li>
+      <li><a href="#s2">その説明には予算があり、超えると削られる</a></li>
+      <li><a href="#s3">増やす前の確認項目</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>常駐しているのは名前と説明だけだった</h2>
+
+    <article class="item">
+      <h3>「スキルを増やすとコンテキストを食う」は、半分だけ当たっている</h3>
+      <p class="lead">スキルを1つ作ると、次に必ずこう思います。「便利だから10個20個入れたい。でも全部読み込まれたら重いのでは」。</p>
+      <p class="lead">測れます。<code>claude plugin details</code> が、常駐ぶんと呼び出しぶんを分けて出してくれます。ここでは <code>mattpocock-skills</code> という公開プラグイン（設計を質問攻めにして詰めるスキル集。25個入り）で叩きました。</p>
+
+      <div class="code term"><div class="code-head">claude plugin details（25件中7件を抜粋）</div><pre>$ claude plugin details mattpocock-skills
+Projected token cost
+  Always-on:   ~1,609 tok   added to every session
+
+Per-component (rounded)
+  component                      always-on  on-invoke
+  ask-matt                             ~40      ~3.8k
+  diagnosing-bugs                      ~70      ~2.8k
+  grill-with-docs                      ~50        ~20
+（中略）
+  grill-me                             ~30       &lt; 20
+  grilling                             ~60       ~610
+  wait-what                            ~30        ~90
+  writing-for-agents                   ~50      ~3.7k</pre></div>
+
+      <p class="lead"><b>この記事の端末ログは横に長いので、スマホでは枠の中を右へスクロールしてください。</b>列の幅は <code>claude</code> 側が決めていて、こちらで詰めると数字を書き換えることになるため、そのまま貼っています。</p>
+
+      <p class="lead">左の <code>always-on</code> が常駐、右の <code>on-invoke</code> が呼んだときに増えるぶんです。<mark>25個ぜんぶ入れても常駐は約1,609トークン</mark>でした。上に抜き出した7件はどれも30〜70トークンです（残る18件は表に出していないので、全部がこの範囲とは言えません。1,609から抜粋7件の330を引いて18で割ると、<b>残り18件の平均は約71</b>になります）。</p>
+      <p class="lead">一方 <code>writing-for-agents</code> は呼ぶと約3,700トークン増えます。<mark>常駐約50トークンの、およそ74倍</mark>です。この差が「本文は呼ぶまで読まれない」ということです。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/cost-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/cost.png" alt="常駐は名前と説明で約50トークン。呼び出して初めて本文の約3,700トークンが加わる" loading="lazy">
+        </picture>
+        <figcaption>writing-for-agents 1個の内訳。常駐と呼び出しでおよそ74倍違う（どちらも丸めた値）。</figcaption>
+      </figure>
+
+      <p class="lead">公式ドキュメントにも同じことが書いてあります。</p>
+
+      <div class="code wrap"><div class="code-head">Claude Code Docs「Skills」より（原文）</div><pre>In a regular session, skill descriptions are loaded into context so Claude knows what's available, but full skill content only loads when invoked.</pre></div>
+
+      <p class="lead">（このNoteはこのあと「サブエージェントに前もって積む場合は別で、起動時に本文まで入る」と続きます。上は<b>ふつうのセッションの場合</b>です。）</p>
+
+      <p class="lead">つまり<b>数を増やすこと自体のコストは小さい</b>。「入れるだけで重くなる」を心配して絞る必要はありません。ここまでは安心していい話です。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>その説明には予算があり、超えると削られる</h2>
+
+    <article class="item">
+      <h3>前回の結論には、上限があった</h3>
+      <p class="lead">前回、同じ質問を60回投げて分かったのは「<b>フォルダ名と description は、2つで1つの説明文</b>」でした。<mark>どちらかが「いつ使うか」を語っていれば呼ばれ、両方が黙っていると落ちます。</mark></p>
+      <p class="lead">実際、説明を雑にしても<b>フォルダ名が <code>release-check</code> なら10回中10回</b>呼ばれました。名前を <code>memo-1</code> に変えた瞬間、同じ説明で<b>10回中1回</b>まで落ちました。</p>
+      <p class="lead">その説明が、増えると<b>勝手に短くされる</b>と公式ドキュメントに書いてあります。</p>
+
+      <div class="code wrap"><div class="code-head">Claude Code Docs「Skills」より（原文）</div><pre>…The listing always contains every skill name, but if you have many skills, Claude Code shortens descriptions to fit the listing's character budget, which can strip the keywords Claude needs to match your request. The budget scales at 1% of the model's context window. When the listing overflows, Claude Code drops descriptions starting with the skills you invoke least, so the skills you use most keep their full text.</pre></div>
+
+      <p class="lead">読み替えるとこうなります。<b>予算は文字数で数えます</b>（さっきの1,609はトークン数なので、この2つは直接くらべられません。だから次に出てくる <code>/doctor</code> が要ります）。</p>
+
+      <ul class="points">
+        <li><b>名前は必ず残る。</b>一覧から消えるわけではないので、<code>/名前</code> と打てばいつでも動きます。</li>
+        <li><b>削られるのは説明のほう。</b>2つで1つだった説明文の、<b>片方だけが残ります</b>。</li>
+        <li><b>削られる順番は使用頻度。</b>よく使うものは残り、<b>めったに使わないものから説明を失います</b>。</li>
+      </ul>
+
+      <p class="lead">つまり<b>「たまにしか使わないが、そのときは自動で呼んでほしい」スキルが一番弱い</b>ということです。四半期に1回のリリース手順のようなものが該当します。使わないから説明を削られ、削られたから呼ばれず、呼ばれないからますます削られます。</p>
+      <p class="lead">そして削られたあと、呼ばれるかどうかは<b>フォルダ名だけ</b>にかかります。<mark>前回の「名前をケチるな」は、予算対策でもあった</mark>わけです。<code>memo-1</code> や <code>utils</code> のような名前は、削られた瞬間に何も語らなくなります。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/budget-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/budget.png" alt="予算を超えると、使用頻度の低いスキルから説明だけが落ちる。名前は残る" loading="lazy">
+        </picture>
+        <figcaption>あふれたとき落ちるのは説明だけ。名前は残るので手で呼べば動く。</figcaption>
+      </figure>
+
+      <div class="quiz">
+        <p class="q">Q. スキルを40個入れたら、めったに使わない <code>release-check</code> が自動で呼ばれなくなりました。<code>/release-check</code> と打つとどうなるでしょう?</p>
+        <button type="button" class="opt" data-correct="true">ふつうに動く</button>
+        <button type="button" class="opt">Unknown command になる</button>
+        <button type="button" class="opt">説明を書き直すまで動かない</button>
+        <p class="ans" hidden>正解は「ふつうに動く」。落ちたのは説明だけで、名前は一覧に残っています。「手で呼べば動くのに自動では呼ばれない」という状態は、予算あふれのサインのひとつです。</p>
+      </div>
+
+    </article>
+
+    <article class="item">
+      <h3>あふれているかどうかは <code>/doctor</code> で見られる</h3>
+      <p class="lead">近いところまでは <code>/context</code> で見えます。<b>いま何にどれだけトークンを使っているかを出すコマンド</b>で、その中に Skills という行があります。対話画面向けですが<b>この記事を書いている環境でも動いた</b>ので、実際に測りました。</p>
+
+      <div class="code term"><div class="code-head">claude -p "/context"（出力から抜粋。Skills の表は23行）</div><pre>**Tokens:** 61.4k / 1m (6%)
+| Skills | 3.7k | 0.4% |
+（中略）
+### Skills
+
+| Skill | Source | Tokens |
+|-------|--------|--------|
+| startup-hook-skill | User | ~90 |
+| design | Built-in | ~340 |
+| dataviz | Built-in | ~380 |
+（中略）
+| init | Built-in | ~20 |
+（以下略）</pre></div>
+
+      <p class="lead">23個で <b>3.7k トークン、コンテキスト窓の0.4%</b>でした。1個あたりは <code>init</code> の約20から <code>dataviz</code> の約380まで<b>19倍の開き</b>があります。説明が長いスキルほど重い、というだけの話です。</p>
+      <p class="lead">ただし<b>この0.4%と、予算の1%は直接くらべられません</b>。予算は文字数で、この表はトークン数です。しかもドキュメントによれば、この Skills 行は<b>予算を適用したあとの</b>値なので、あふれたかどうかはこの数字からは分かりません。あふれの判定は <b><code>/doctor</code> のほう</b>です。</p>
+
+      <p class="lead">広げ方・空け方も書いてあります。<b>こちらは自分では試していません</b>ので、書いてあることとして読んでください。</p>
+
+      <ul class="points">
+        <li><b>あふれの判定。</b><code>/doctor</code> が一覧の費用と、内訳の上位を出します。</li>
+        <li><b>広げる。</b>設定ファイル（<code>~/.claude/settings.json</code> など）に <code>skillListingBudgetFraction</code> を <code>0.02</code>（2%）のように書きます。</li>
+        <li><b>空ける。</b>使わないものを <code>skillOverrides</code> で <code>"name-only"</code> にすると、説明なしで並びます。<mark>ただしプラグインのスキルには効きません</mark>（そちらは <code>/plugin</code> 側で管理、とドキュメントにあります）。</li>
+        <li><b>手で書かなくてよい。</b><code>/skills</code> の一覧で選んで Space、Enter で保存できます。</li>
+      </ul>
+
+      <p class="lead">もうひとつ。前回の記事で「勝手に呼ばれるのを止める1行」として紹介した <code>disable-model-invocation: true</code> は、公式ドキュメントの表で <b>Description not in context</b>（説明は常駐しない）とされています。<b>一覧に説明が載らない以上、予算も空くはずです</b> — ここは書いてある事実からの推論で、ドキュメントが「予算が空く」と明言しているのは <code>skillOverrides</code> の <code>"name-only"</code> についてだけです。</p>
+      <p class="lead">前回は「事故る手順を止める」目的で紹介しましたが、<mark>手で呼ぶと決めているスキルは、止めておくほうが他のスキルのためになる</mark>ということになります。書く場所は <code>SKILL.md</code> の先頭、<code>---</code> で囲まれた部分です。</p>
+      <p class="lead">残したいスキルの側でできることも、同じ段落に書いてあります。</p>
+
+      <div class="code wrap"><div class="code-head">Claude Code Docs「Skills」/ 同じ段落の続き（原文）</div><pre>You can also trim the `description` and `when_to_use` text at the source: put the key use case first, since each entry's combined text is capped at 1,536 characters regardless of budget.</pre></div>
+
+      <p class="lead">つまり<b>説明は先頭から使われる</b>。長く書くより、<b>一番よくある使いどころを1文目に置く</b>ほうが、削られたときに生き残ります。</p>
+    </article>
+  </section>
+
+  <section class="section section-d" id="s3">
+    <h2><span class="step">3</span>増やす前の確認項目</h2>
+
+    <article class="item">
+      <h3>この4つだけ見ておけば、増やしても静かに壊れません</h3>
+
+      <p class="lead">タップでチェックできます。 <span class="cl-count">0 / 4</span></p>
+      <ul class="checklist" data-key="skill-listing-budget-2026-08-27">
+        <li><label><input type="checkbox"><span>対話画面で <code>/doctor</code> を打って、<b>いま一覧があふれていないか</b>を見た</span></label></li>
+        <li><label><input type="checkbox"><span>たまにしか使わないスキルは、<b>一番よくある使いどころを description の1文目</b>に置いた（先頭から使われるため）</span></label></li>
+        <li><label><input type="checkbox"><span>手で呼ぶと決めたスキルは、<code>SKILL.md</code> の <code>---</code> の中に <code>disable-model-invocation: true</code> を足して一覧から降ろした</span></label></li>
+        <li><label><input type="checkbox"><span>入れたスキルを1回呼んで、<b>意図した返りが来るところまで</b>確かめた</span></label></li>
+      </ul>
+      <div class="cl-done" hidden>🎉 全部できた！</div>
+
+      <p class="lead">前回の記事は「1個作る」話でした。今回は「増やす」話です。増やすこと自体は軽い（25個で約1,609トークン。1個あたりは説明の長さ次第）一方で、<b>増やすと説明が削られて、前回測った条件が崩れる</b>。ここだけ押さえておけば大丈夫です。</p>
+
+      <p class="lead">同じ名前のスキルがぶつかったときにどちらが動くか、動かないときのエラーの見分けかたは、次の2本にあります。</p>
+
+      <a class="next-up" href="../2026-08-26_skills-trigger/">
+        <span>前回の記事（名前の衝突もこちら）</span>
+        <b>Claude Codeのスキルの作り方 — 自動で呼ばれる条件を60回測った</b>
+      </a>
+      <a class="next-up" href="../2026-08-27_grill-me-setup/">
+        <span>入れ方でつまずいたら</span>
+        <b>grill-me / grill-with-docs の導入手順 — セットアップ完了まで</b>
+      </a>
+    </article>
+  </section>
+
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Skills」<i>Claude Code Documentation</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">「Skill content lifecycle」直前のNote（説明だけが常駐し本文は呼ぶまで読まれない／サブエージェントは別）、「Skill descriptions are cut short」（一覧の文字数予算はコンテキスト窓の1%、あふれると使用頻度の低いものから説明が落ちる、<code>/doctor</code>、<code>/context</code> の Skills 行は予算適用後の値、<code>skillListingBudgetFraction</code>、<code>skillOverrides</code> の <code>"name-only"</code>、説明は先頭から使われるので重要な用途を1文目に置く）。可視性の表から <code>disable-model-invocation: true</code> が Description not in context であること。フロントマターに書くことは「Control who invokes a skill」の項（可視性の表と同じ節）で確認しました。同節に <code>This removes the skill from Claude&#39;s context entirely.</code> ともあります。</span>
+          </details>
+          <a href="https://code.claude.com/docs/en/skills">https://code.claude.com/docs/en/skills</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Plugins」<i>Claude Code Documentation</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">「Convert existing configurations to plugins」末尾のNote（同名スキルは両方残り、エージェントはプロジェクト／ユーザ側が同名のプラグイン側を上書きする）。引用は段落の途中からなので先頭に … を付けましたが、引用した範囲は一字も変えていません。</span>
+          </details>
+          <a href="https://code.claude.com/docs/en/plugins">https://code.claude.com/docs/en/plugins</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Settings reference」<i>Claude Code Documentation</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note"><code>skillListingBudgetFraction</code> と <code>skillOverrides</code> の Scope が「Any file」＝ <code>~/.claude/settings.json</code>・<code>.claude/settings.json</code>・<code>.claude/settings.local.json</code>・組織配布のいずれにも書けること。本文で「設定ファイルに書く」と言えるのはこの記述が根拠です。</span>
+          </details>
+          <a href="https://code.claude.com/docs/en/settings-reference">https://code.claude.com/docs/en/settings-reference</a>（2026年8月27日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          <code>/context</code> の Skills 行（23スキルで 3.7k トークン・0.4%、1個あたり約20〜約380）。
+          <details class="note-d"><summary>環境と測り方</summary>
+            <span class="note">2026年8月27日 JST・Claude Code 2.1.247・Linux x86-64 のコンテナ。<code>claude -p "/context"</code> を実行しました。<b>対話画面でなくても通ります</b>（これ自体がこの記事で分かったことです）。出力は <code>_labs/2026-08-27_skill-listing-budget/context.txt</code> に置いてあります（Skills の表と、そこに関わる2行を抜き出したもの。行番号は抜いた位置を示すため）。記事に貼ったのは Skills の表の先頭3行と <code>init</code> の行、および別表の2行で、<b>原本の並び順のまま</b>、落とした箇所に「（中略）」「（以下略）」を入れています。数値と名前は変えていません。この環境のスキルであって、記事の他の測定で使ったプラグインとは別物です。</span>
+          </details>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          常駐トークンの内訳（実験5）。
+          <details class="note-d"><summary>環境と測り方</summary>
+            <span class="note">実験4と同環境（2.1.246）で <code>claude plugin details mattpocock-skills</code> を実行。25スキルで常駐 約1,609トークン。出力は <code>_labs/2026-08-26_skills-trigger/output5.txt</code>（実行スクリプトは残していません）。<b>25行のうち記事に貼ったのは7件だけ</b>で、中略を明示しています。数値は書き換えていません。<b>残る18件は根拠として示せていない</b>ので、本文でも「抜き出した7件は30〜70」と範囲を限っています。</span>
+          </details>
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          <code>/doctor</code> の表示、<code>skillListingBudgetFraction</code> と <code>skillOverrides</code> の効き方、<code>/skills</code> メニューでの保存。
+          <details class="note-d"><summary>なぜ未確認か</summary>
+            <span class="note">公式ドキュメントの記述をそのまま紹介しただけで、<b>自分では動かしていません</b>。本文でも「書いてあること」と明記しています。（<code>/context</code> は動かしたので「自分の実測」に分けました。）</span>
+          </details>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          「たまにしか使わないが自動で呼んでほしいスキルが一番弱い」という読みと、<code>disable-model-invocation</code> で予算が空くという推論。
+          <details class="note-d"><summary>どこからが推論か</summary>
+            <span class="note">ドキュメントは、削られる順番が使用頻度であること、および <code>disable-model-invocation</code> を付けると説明が常駐しないことまでしか書いていません。「だから予算も空く」「だからたまに使うスキルが一番弱い」はそこから導いた運用上の目安で、規格ではありません。</span>
+          </details>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
