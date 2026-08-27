@@ -1,0 +1,11 @@
+# 実験4: 同名スキルの衝突 / 2026-08-27 JST
+# Claude Code 2.1.246。プラグイン mattpocock-skills 1.2.3 導入済みの
+# 環境で、プロジェクト側に同名の grill-me を置いた。
+
+===== /grill-me テスト =====
+呼ばれたSkill: (なし)
+返り: LOCAL-WINS
+
+===== /mattpocock-skills:grill-me テスト =====
+呼ばれたSkill: "skill":"mattpocock-skills:grilling" 
+返り: ❓ **Q1** - **グリルする対象は何ですか？**: 「テスト」という入力だけでは、どんな計画・決定・アイデアを深掘りすればいいのか分かりません。以下のい

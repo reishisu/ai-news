@@ -1,0 +1,61 @@
+# 同じ入力 /grill-me 社内の問い合わせ管理を作りたい
+# を、4つの状態で1回ずつ。2026-08-27 JST
+# Claude Code 2.1.246 / -p --output-format stream-json
+
+===== A. 何も入れていない =====
+呼ばれたSkill: (なし)
+返ってきたもの(先頭6行):
+  | Unknown command: /grill-me
+
+===== B. grill-me だけ入れた =====
+呼ばれたSkill: grill-me, grilling
+  ! <tool_use_error>Skill grill-me cannot be
+  ! used with Skill tool due to disable-
+  ! model-invocation. Ask the user to run
+  ! /grill-me themselves — it cannot be
+  ! invoked via the Skill tool. Do not
+  ! replicate this
+  ! <tool_use_error>Unknown skill:
+  ! grilling</tool_use_error>
+返ってきたもの(先頭6行):
+  | `/grill-me`
+  | の設定に問題があるようです。呼び出そうとしたところ、`grill-me`
+  | スキル自体は `disable-model-invocation: true`
+  | のため直接呼べず、その `SKILL.md` の中身は「'grilling' と
+  | いう名前のスキルを呼び出せ」と書かれているのですが、そのようなスキルは登録されて
+  | いません（`grill-me/agents/openai.yaml`
+  | はただの表示名メタデータでした）。つまりこのプロジェクトの `/grill-
+  | me` コマンドは壊れている状態です。
+  | 
+  | どう進めますか?
+  | 1. スキル設定の修正はスキップして、私が直接「社内の問い合わせ管理を作りたい」
+  | という計画について厳しく問い詰める（grilling）形の壁打ちをします
+  | 2. まず `.claude/skills/grill-me/SKILL.md`
+  | を修正してから使えるようにします
+
+===== C. grill-me + grilling =====
+呼ばれたSkill: grilling
+返ってきたもの(先頭6行):
+  | リポジトリ調査が完了しました。現状、このリポジトリは完全に空（コミットなし、既存
+  | コード・スキーマ・README一切なし）で、技術スタックは白紙から選べる状態です
+  | 。
+  | 
+  | 先ほどのQ1〜Q5（対象範囲・利用規模・チケットのライフサイクル・通知手段・認証
+  | 方式）へのご回答をお待ちしています。回答をいただき次第、技術スタック（フレームワ
+  | ーク・DB・ホスティング環境など）に関する次のラウンドの質問に進みます。
+
+===== D. プラグイン(25スキル) =====
+呼ばれたSkill: mattpocock-skills:grilling
+返ってきたもの(先頭6行):
+  | 既存コードはなく、まっさらな状態からの新規構築のようです。まずは全体方針を決める
+  | 質問から始めます。
+  | 
+  | ❓ **Q1** - **対象範囲**: 「社内問い合わせ」とは何を指しますか？
+  | IT/総務/人事など特定部門向けの問い合わせ窓口ですか、それとも部門を問わない全
+  | 社共通の何でも受け付ける窓口ですか？また、対応する担当者は専任チームですか、それ
+  | とも各部門の担当者が個別に対応しますか？
+  | 
+  | ➡️ まずは「全社共通・カテゴリ分けあり（IT/総務/人事など）」で、各カテゴリ
+  | に担当者/担当チームを割り当てる形を推奨します（後から部門追加しやすい設計にする
+  | ）。
+  | 

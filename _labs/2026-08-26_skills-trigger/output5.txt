@@ -1,0 +1,18 @@
+# 実験5: 本文は呼ぶまでタダ、を数字で確かめる / 2026-08-27 JST
+# 25スキル入りのプラグインで claude plugin details を叩いた。
+# 25行の表は長いので、先頭3件と、記事で触れる4件だけ抜いた。
+
+$ claude plugin details mattpocock-skills
+Projected token cost
+  Always-on:   ~1,609 tok   added to every session
+
+Per-component (rounded)
+  component                      always-on  on-invoke
+  ask-matt                             ~40      ~3.8k
+  diagnosing-bugs                      ~70      ~2.8k
+  grill-with-docs                      ~50        ~20
+（中略）
+  grill-me                             ~30       < 20
+  grilling                             ~60       ~610
+  wait-what                            ~30        ~90
+  writing-for-agents                   ~50      ~3.7k

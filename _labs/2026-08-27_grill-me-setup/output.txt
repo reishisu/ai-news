@@ -1,0 +1,36 @@
+# 実行日: 2026-08-27 JST（UTC 2026-08-26 18時台） / Claude Code 2.1.246
+# 1行が長いものだけ fold -s -w 40 で折り返した。
+# 文言は一字も変えていない。
+
+=== 1. マーケットプレイス未登録のまま install ===
+   （fold で折り返し）
+$ claude plugin install mattpocock-skills
+Installing plugin 
+"mattpocock-skills"...× Failed to 
+install plugin "mattpocock-skills": 
+Plugin "mattpocock-skills" not found in 
+any configured marketplace
+
+
+=== 2. 公式マーケットプレイスを登録して再実行 ===
+$ claude plugin marketplace add \
+>   anthropics/claude-plugins-official
+√ Successfully added marketplace: 
+claude-plugins-official (declared in 
+user settings)
+$ claude plugin install mattpocock-skills
+Installing plugin 
+"mattpocock-skills"...√ Successfully 
+installed plugin: 
+mattpocock-skills@claude-plugins-officia
+l (scope: user)
+
+=== 3. 入ったかの確認（折り返しなし・最長44桁） ===
+$ claude plugin list
+Installed plugins:
+
+  > mattpocock-skills@claude-plugins-official
+    Version: 1.2.3
+    Scope: user
+    Status: √ enabled
+

@@ -113,3 +113,28 @@ python3 verify_output.py ../../contents/2026-08-26_skills-trigger/index.html out
 
 2026年8月26日の実行結果: 不一致0件。
 （実際、実験3の行を桁揃えのつもりで空白1つ足していたのをこれで見つけた）
+
+## 追加（2026-08-27 未明に測り足した）
+
+記事を深掘りするにあたって、名前まわりとコストを2つ足した。**まだ記事本文には反映していない**（`_HANDOFF.md` 参照）。
+
+### 実験4: 同じ名前のスキルが2つあったらどちらが動くか
+
+プラグイン `mattpocock-skills`（`grill-me` を含む）を入れた状態で、
+プロジェクト側の `.claude/skills/grill-me/SKILL.md` に同名のスキルを置いた。
+
+| 打ったもの | 動いたほう |
+|---|---|
+| `/grill-me` | **プロジェクト側**（本文どおり `LOCAL-WINS` と返った） |
+| `/mattpocock-skills:grill-me` | プラグイン側 |
+
+```bash
+./setup4.sh /tmp/collide /tmp/ccfg2
+./run4.sh   /tmp/collide /tmp/ccfg2   # 出力は output4.txt
+```
+
+### 実験5: 「本文は呼ぶまでタダ」を数字で見る
+
+`claude plugin details <名前>` が、常駐ぶんと呼び出しぶんを分けて出す。
+25スキルで常駐は約1,609トークン、本文はスキルごとに20〜3,800トークン。
+出力は `output5.txt`。
