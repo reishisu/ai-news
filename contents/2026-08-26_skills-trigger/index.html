@@ -56,7 +56,8 @@
       <li><a href="#s2">実験1: 説明を雑にしても呼ばれた（予想が外れた）</a></li>
       <li><a href="#s3">実験2: フォルダ名を無意味にしたら落ちた</a></li>
       <li><a href="#s4">実験3: 勝手に呼ばれるのを止める1行</a></li>
-      <li><a href="#s5">作るときの確認項目</a></li>
+      <li><a href="#s5">実験4: 名前がぶつかったらどちらが動くか</a></li>
+      <li><a href="#s6">作るときの確認項目</a></li>
       <li><a href="#refs">参考文献</a></li>
     </ol>
   </nav>
@@ -139,6 +140,28 @@ description: リリース前の確認手順を返す。ユーザーがリリー�
         </picture>
         <figcaption>常に読まれているのは名前と説明の2行だけ。呼ぶかどうかもこの2行で決まる。</figcaption>
       </figure>
+    </article>
+
+    <article class="item">
+      <h3>「本文はタダ」は数字で見られます</h3>
+      <p class="lead">本当にタダなのかは、コマンドで確かめられます。他人が作ったスキル一式（プラグイン）を入れると、<mark>常駐ぶんと呼び出しぶんを分けて表示</mark>してくれます。</p>
+      <p class="lead">スキルが25個入ったものを実際に入れて叩きました。</p>
+
+      <div class="code term"><div class="code-head">claude plugin details の出力（中略あり）</div><pre>Projected token cost
+  Always-on:   ~1,609 tok
+
+  component        always-on  on-invoke
+  ask-matt               ~40      ~3.8k
+(中略)
+  grill-me               ~30       &lt; 20
+  grilling               ~60       ~610</pre></div>
+
+      <ul class="points">
+        <li><b>左が常駐ぶん。25個入れて合計1,609トークンです。</b>1個あたり30〜160。説明文1行ぶんしかありません。</li>
+        <li><b>右が呼んだときだけのぶん。</b>本文が長い <code>ask-matt</code> は3,800ありますが、呼ばなければ0です。</li>
+      </ul>
+
+      <p class="lead">つまり<mark>本文をいくら長く書いても、普段の会話は重くなりません</mark>。この表示は概算だと注記されていますが、桁の話としては十分です。</p>
     </article>
   </section>
 
@@ -306,7 +329,73 @@ A 曖昧 2回目: 呼ばれた
   </section>
 
   <section class="section section-c" id="s5">
-    <h2><span class="step">5</span>作るときの確認項目</h2>
+    <h2><span class="step">5</span>実験4: 名前がぶつかったらどちらが動くか</h2>
+
+    <article class="item">
+      <h3>他人のスキルを入れると、名前がぶつかります</h3>
+      <p class="lead">ここまでは自分で作る話でした。実際には<mark>他人が作ったスキルを入れて使う</mark>ことがあります。25個まとめて入るようなものもあるので、その中に自分と同じ名前がある、は普通に起きます。</p>
+      <p class="lead">名前が2つあったらどちらが動くのか。ここまでの話が「名前が効く」だったので、確かめました。</p>
+      <p class="lead"><code>grill-me</code> という名前を含むスキル集を入れた状態で、<b>プロジェクト側に同じ名前を置きます。</b>本文は一言返すだけにして、どちらが動いたか一目で分かるようにします。</p>
+
+      <div class="code"><div class="code-head">.claude/skills/grill-me/SKILL.md（自分で置いたほう）</div><pre>---
+description: プロジェクト側の同名スキル。衝突の実験用。
+---
+
+一言だけ返す: LOCAL-WINS</pre></div>
+    </article>
+
+    <article class="item">
+      <h3>結果 — 素の名前は自分のほうが勝ちました</h3>
+
+      <div class="code term"><div class="code-head">実験4の結果（実際の出力）</div><pre>$ claude -p "/grill-me テスト"
+<span class="ok-line">LOCAL-WINS</span>
+
+$ claude -p "/mattpocock-skills:grill-me テスト"
+<span class="ok-line">❓ **Q1** - **グリルする対象は何ですか？**…</span></pre></div>
+
+      <p class="lead">素の <code>/grill-me</code> は自分が置いたほうが動きました。相手のほうは<mark>頭に集まりの名前を付ければ確実に指せます</mark>。</p>
+      <p class="lead">公式ドキュメントにも、消えるのではなく<b>両方残る</b>と書かれています。</p>
+
+      <div class="code wrap"><div class="code-head">公式ドキュメント「Convert existing configurations to plugins」の原文</div><pre>Plugin skills are namespaced as `/plugin-name:skill-name`, so the original `/skill-name` and the plugin copy both remain available rather than one overriding the other.</pre></div>
+
+      <p class="lead">名前は「呼ばれるかどうか」だけでなく、<b>どれが呼ばれるか</b>も決めていました。実験2で「名前をケチるな」と書きましたが、理由がもう1つ増えたことになります。</p>
+
+      <details>
+        <summary>エージェント（サブエージェント）は挙動が逆です</summary>
+        <p class="lead">同じ公式ドキュメントの同じ段落に、エージェントのほうは<b>上書きされる</b>と書かれています。原文は「Project and user <code>.claude/agents/</code> definitions override same-named plugin agents, so the plugin version only takes effect once the originals are removed.」です。</p>
+        <p class="lead">スキルは両方残り、エージェントは片方が消える。<b>同じ「同名」でも結果が逆</b>なので、混同しないでください。エージェント側はこの記事では測っていません。</p>
+      </details>
+    </article>
+
+    <article class="item">
+      <h3>動かないときのメッセージは2種類ある</h3>
+      <p class="lead">「呼ばれない」と言っても中身は2つです。<mark>出るメッセージが違うので、そこで切り分けられます。</mark></p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>出たメッセージ</th><th>意味</th><th>やること</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>Unknown command:<br>/名前</code></td>
+              <td data-label="意味">そのスキル自体が無い</td>
+              <td data-label="やること">フォルダの場所とつづりを確認。作った直後なら開き直す</td>
+            </tr>
+            <tr>
+              <td><code>Unknown skill:<br>名前</code></td>
+              <td data-label="意味">スキルは有るが、その中から呼ばれた先が無い</td>
+              <td data-label="やること">本文が呼んでいる相手のスキルも入れる</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">下のほうは、スキルの本文が<b>別のスキルを呼ぶ作り</b>になっているときに出ます。配布されているスキルにはこの形が多く、片方だけ入れると静かに壊れます。</p>
+      <p class="lead">そのつまずき方と直し方は、別の記事にまとめました（この節の下にリンクがあります）。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s6">
+    <h2><span class="step">6</span>作るときの確認項目</h2>
 
     <article class="item">
       <h3>3つの実験を並べると、効いている場所が見える</h3>
@@ -319,13 +408,14 @@ A 曖昧 2回目: 呼ばれた
         <figcaption>フォルダ名が説明になっていれば説明が雑でも呼ばれる。両方が黙ると落ちる。1行足せば止まる。</figcaption>
       </figure>
 
-      <p class="lead">タップでチェックできます。 <span class="cl-count">0 / 5</span></p>
+      <p class="lead">タップでチェックできます。 <span class="cl-count">0 / 6</span></p>
       <ul class="checklist" data-key="skills-trigger-2026-08-26">
         <li><label><input type="checkbox"><span>フォルダ名を、自分が普段口にする言葉にした（<code>memo-1</code> にしていない）</span></label></li>
         <li><label><input type="checkbox"><span>description に「何をするか」だけでなく<b>「いつ使うか」</b>を書いた</span></label></li>
         <li><label><input type="checkbox"><span>本番に触る手順なら <code>disable-model-invocation: true</code> を足した</span></label></li>
         <li><label><input type="checkbox"><span>本文は手順だけにした（長い背景説明を入れていない）</span></label></li>
         <li><label><input type="checkbox"><span>チームに配るなら <code>.claude/skills/</code> に置いてコミットした</span></label></li>
+        <li><label><input type="checkbox"><span>他人のスキル集を入れているなら、<b>名前がぶつかっていないか</b>確認した（ぶつかっても両方残る。相手は <code>/集まりの名前:スキル名</code> で指せる）</span></label></li>
       </ul>
       <div class="cl-done" hidden>🎉 全部できた！</div>
     </article>
@@ -338,6 +428,14 @@ A 曖昧 2回目: 呼ばれた
         <div class="label">NEXT →</div>
         <div class="t">Claude Codeのフックと権限設計 — AIを仕組みで止める</div>
         <div class="d">スキルは「やってほしいこと」を渡す道具。フックは「やらせないこと」を設定で決める道具です。8通りの実測で確かめた記事です。</div>
+      </a>
+
+      <p class="lead">自分で作らず、<mark>他人が作ったスキルを入れて使う</mark>側の話も書きました。実験4で触れた「静かに壊れる」の実例です。</p>
+
+      <a class="next-up" href="../2026-08-27_grill-me-setup/">
+        <div class="label">NEXT →</div>
+        <div class="t">grill-me と grill-with-docs の導入手順 — Claude Codeで動くまで</div>
+        <div class="d">AIに設計を問い詰めさせるスキルを入れます。公式READMEどおりに叩くと失敗する理由と、片方だけ入れて壊れたときの直し方まで実測しました。</div>
       </a>
     </article>
   </section>
@@ -356,6 +454,14 @@ A 曖昧 2回目: 呼ばれた
           <a href="https://code.claude.com/docs/en/skills">https://code.claude.com/docs/en/skills</a>（2026年8月26日参照）
         </li>
         <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Create plugins」<i>Claude Code Docs</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: 「Convert existing configurations to plugins」末尾のNoteから、同名スキルが上書きされず両方残ること（原文: Plugin skills are namespaced as `/plugin-name:skill-name`, so the original `/skill-name` and the plugin copy both remain available rather than one overriding the other.）と、エージェントは逆に上書きされること（原文: Project and user `.claude/agents/` definitions override same-named plugin agents, so the plugin version only takes effect once the originals are removed.）。「Quickstart」のNoteから、プラグインのスキルが常に名前空間つきになる理由。英文は一字も変えずに転記した。</span>
+          </details>
+          <a href="https://code.claude.com/docs/en/plugins">https://code.claude.com/docs/en/plugins</a>（2026年8月27日参照）
+        </li>
+        <li>
           <span class="flag unverified">未確認</span>
           同ドキュメント「Inject dynamic context」の <code>!`コマンド`</code> 記法。
           <details class="note-d"><summary>なぜ未確認か</summary>
@@ -365,9 +471,9 @@ A 曖昧 2回目: 呼ばれた
         </li>
         <li>
           <span class="flag self">自分の実測</span>
-          実験1〜3（各条件10回、合計60回）。
+          実験1〜3（各条件10回、合計60回）と、あとから足した実験4・5。
           <details class="note-d"><summary>環境と測り方</summary>
-            <span class="note">実行日: 2026年8月26日 JST。環境: Linux x86-64 のコンテナ、Claude Code 2.1.245、Python 3.11.15。測り方: <code>claude -p "リリース前に何を確認すればいい？" --session-id &lt;毎回新規UUID&gt; --output-format stream-json --verbose</code> を各条件10回実行し、<code>tool_use</code> の <code>name</code> が <code>Skill</code> かつ対象スキル名であるものを1回と数えた。記事に貼った出力は、中略を明示した以外は無加工。モデルの判断が絡むため、同じ手順でも数字は毎回揺れる。検証一式は <code>_labs/2026-08-26_skills-trigger/</code>。</span>
+            <span class="note">実験1〜3: 実行日 2026年8月26日 JST。環境は Linux x86-64 のコンテナ、Claude Code 2.1.245、Python 3.11.15。測り方は <code>claude -p "リリース前に何を確認すればいい？" --session-id &lt;毎回新規UUID&gt; --output-format stream-json --verbose</code> を各条件10回実行し、<code>tool_use</code> の <code>name</code> が <code>Skill</code> かつ対象スキル名であるものを1回と数えた。モデルの判断が絡むため、同じ手順でも数字は毎回揺れる。<br>実験4（名前の衝突）と実験5（常駐トークン）: 2026年8月27日 JST に追記。Claude Code 2.1.246 で、<code>mattpocock-skills</code> プラグイン v1.2.3（25スキル）を <code>CLAUDE_CONFIG_DIR</code> を分けた使い捨ての設定ディレクトリに入れて測った。実験4は各1回のみで、繰り返していない。実験5の数値は <code>claude plugin details</code> の表示をそのまま引いたもので、こちら側で数えたトークン数ではない。同コマンドは出力の末尾に「Token counts are estimates and may differ from actual usage.」と注記している。<br>記事に貼った出力は、中略を明示した以外は無加工。検証一式は <code>_labs/2026-08-26_skills-trigger/</code>。</span>
           </details>
         </li>
         <li>

@@ -1,29 +1,32 @@
-<svg viewBox="0 0 640 338" xmlns="http://www.w3.org/2000/svg" role="img">
-  <text x="10" y="24" font-size="15" font-weight="700" fill="var(--fg)">同じ質問を10回。スキルが自動で呼ばれた回数</text>
-  <text x="10" y="58" font-size="13" font-weight="700" fill="var(--fg)">実験1  フォルダ名 release-check</text>
-  <text x="10" y="86" font-size="12" fill="var(--sub)">A 曖昧</text>
-  <rect x="190" y="68" width="348" height="26" rx="6" fill="var(--track)"/>
-  <rect x="190" y="68" width="348.0" height="26" rx="6" fill="var(--old)"/>
-  <text x="546" y="86" font-size="12.5" font-weight="700" fill="var(--fg)">10 / 10</text>
-  <text x="10" y="120" font-size="12" fill="var(--sub)">B 具体</text>
-  <rect x="190" y="102" width="348" height="26" rx="6" fill="var(--track)"/>
-  <rect x="190" y="102" width="348.0" height="26" rx="6" fill="var(--new)"/>
-  <text x="546" y="120" font-size="12.5" font-weight="700" fill="var(--fg)">10 / 10</text>
-  <text x="10" y="156" font-size="13" font-weight="700" fill="var(--fg)">実験2  フォルダ名 memo-1</text>
-  <text x="10" y="184" font-size="12" fill="var(--sub)">A 曖昧</text>
-  <rect x="190" y="166" width="348" height="26" rx="6" fill="var(--track)"/>
-  <rect x="190" y="166" width="34.8" height="26" rx="6" fill="var(--old)"/>
-  <text x="546" y="184" font-size="12.5" font-weight="700" fill="var(--fg)">1 / 10</text>
-  <text x="10" y="218" font-size="12" fill="var(--sub)">B 具体</text>
-  <rect x="190" y="200" width="348" height="26" rx="6" fill="var(--track)"/>
-  <rect x="190" y="200" width="348.0" height="26" rx="6" fill="var(--new)"/>
-  <text x="546" y="218" font-size="12.5" font-weight="700" fill="var(--fg)">10 / 10</text>
-  <text x="10" y="254" font-size="13" font-weight="700" fill="var(--fg)">実験3  自動起動を切る</text>
-  <text x="10" y="282" font-size="12" fill="var(--sub)">A 自動ON</text>
-  <rect x="190" y="264" width="348" height="26" rx="6" fill="var(--track)"/>
-  <rect x="190" y="264" width="348.0" height="26" rx="6" fill="var(--old)"/>
-  <text x="546" y="282" font-size="12.5" font-weight="700" fill="var(--fg)">10 / 10</text>
-  <text x="10" y="316" font-size="12" fill="var(--sub)">B 自動OFF</text>
-  <rect x="190" y="298" width="348" height="26" rx="6" fill="var(--track)"/>
-  <text x="546" y="316" font-size="12.5" font-weight="700" fill="var(--fg)">0 / 10</text>
-  </svg>
+<svg viewBox="0 0 460 372" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="22" font-weight="700" fill="var(--fg)">10回中、何回呼ばれたか</text>
+
+  <text x="14" y="64" font-size="18" font-weight="700" fill="var(--fg)">実験1  名前 release-check</text>
+  <text x="14" y="98" font-size="17" fill="var(--sub)">A 曖昧</text>
+  <rect x="104" y="76" width="228" height="30" rx="7" fill="var(--track)"/>
+  <rect x="104" y="76" width="228" height="30" rx="7" fill="var(--old)"/>
+  <text x="344" y="100" font-size="26" font-weight="700" fill="var(--fg)">10/10</text>
+  <text x="14" y="136" font-size="17" fill="var(--sub)">B 具体</text>
+  <rect x="104" y="114" width="228" height="30" rx="7" fill="var(--track)"/>
+  <rect x="104" y="114" width="228" height="30" rx="7" fill="var(--new)"/>
+  <text x="344" y="138" font-size="26" font-weight="700" fill="var(--fg)">10/10</text>
+
+  <text x="14" y="176" font-size="18" font-weight="700" fill="var(--fg)">実験2  名前 memo-1</text>
+  <text x="14" y="210" font-size="17" fill="var(--sub)">A 曖昧</text>
+  <rect x="104" y="188" width="228" height="30" rx="7" fill="var(--track)"/>
+  <rect x="104" y="188" width="23" height="30" rx="7" fill="var(--old)"/>
+  <text x="344" y="212" font-size="26" font-weight="700" fill="var(--c)">1/10</text>
+  <text x="14" y="248" font-size="17" fill="var(--sub)">B 具体</text>
+  <rect x="104" y="226" width="228" height="30" rx="7" fill="var(--track)"/>
+  <rect x="104" y="226" width="228" height="30" rx="7" fill="var(--new)"/>
+  <text x="344" y="250" font-size="26" font-weight="700" fill="var(--fg)">10/10</text>
+
+  <text x="14" y="288" font-size="18" font-weight="700" fill="var(--fg)">実験3  自動起動を切る</text>
+  <text x="14" y="322" font-size="17" fill="var(--sub)">A 切らない</text>
+  <rect x="104" y="300" width="228" height="30" rx="7" fill="var(--track)"/>
+  <rect x="104" y="300" width="228" height="30" rx="7" fill="var(--old)"/>
+  <text x="344" y="324" font-size="26" font-weight="700" fill="var(--fg)">10/10</text>
+  <text x="14" y="360" font-size="17" fill="var(--sub)">B 切る</text>
+  <rect x="104" y="338" width="228" height="30" rx="7" fill="var(--track)"/>
+  <text x="344" y="362" font-size="26" font-weight="700" fill="var(--c)">0/10</text>
+</svg>
