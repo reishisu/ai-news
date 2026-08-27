@@ -13,7 +13,7 @@
   "summary": "AIに設計を問い詰めさせるスキルを、入れて動くところまで実測しました。公式READMEどおりに叩くと失敗し、マーケットプレイスを登録する1行が要ります。grill-me だけ入れると Unknown skill: grilling で静かに壊れます。動作確認のしかたと、用語集・ADRができるまでを載せました。",
   "thumbnail": "images/thumb.png",
   "thumb": {
-    "main": "grill-me の入れ方",
-    "sub": "動くところまでを実測した"
+    "main": "grill-me｜導入の手順",
+    "sub": "公式どおりに叩くと失敗する"
   }
 }
