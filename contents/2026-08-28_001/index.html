@@ -115,7 +115,7 @@
 
     <article class="item">
       <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
-      <h3><code>/ultrareview</code> が <code>*.tfvars</code> をクラウドへ上げていた — 追跡下に置いた人だけ効く</h3>
+      <h3><code>/ultrareview</code> が <code>*.tfvars</code> をクラウドへ上げていた — 経緯は公表されていない</h3>
       <div class="tags">
         <span class="tag">クラウドセッションを使う人</span>
         <span class="tag">セキュリティ</span>
@@ -316,9 +316,9 @@ Apps and games that do not meet these thresholds may see reduced app visibility 
 
       <p class="lead">「app visibility（ストアでの見つかりやすさ）と publishing capabilities（公開の機能）が制限されるかもしれない」。<mark>ストアに出せなくなる可能性がある、という書き方です</mark>。</p>
 
-      <p class="lead">なぜ WebView の話なのか。測るのは Anonymous RSS + Swap、つまりアプリが自分で確保したメモリです。WebView はページごとにレンダラのプロセスを持ち、画像はビットマップとして乗ります。Webの画面を抱えるアプリほど効いてきます。</p>
+      <p class="lead">なぜ WebView の話なのか。測るのは Anonymous RSS + Swap、つまりアプリが自分で確保したメモリです。WebView は Android 8 以降、<b>アプリにつき1つ</b>のレンダラプロセスを別に持ちます（ページごとではありません）。<mark>そのぶんがこの指標に乗るかは、Googleが明言していません</mark>。</p>
 
-      <p class="lead">しきい値は Play Console のヘルプ側にあります。判定は直近28日ぶんの90パーセンタイル値で、端末の搭載RAMごとに分かれます。<mark>4GB端末のアプリなら前面2GBが上限</mark>で、RAMが増えるほど緩みます。アプリとゲームでは別の表があり、ゲームのほうが緩いです。</p>
+      <p class="lead">しきい値は Play Console のヘルプ側にあります。判定は直近28日ぶんの90パーセンタイル値で、端末の搭載RAMごとに分かれます。<b>4GB端末のアプリなら前面2GBが上限</b>で、RAMが増えるほど緩みます。アプリとゲームでは別の表があり、ゲームのほうが緩いです。</p>
 
       <details class="note-d">
         <summary>端末のRAM別のしきい値（前面・90パーセンタイル）を見る</summary>
