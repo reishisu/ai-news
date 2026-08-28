@@ -30,16 +30,16 @@
 <main class="container">
 
   <section class="hero">
-    <a class="hero-card" href="contents/2026-08-27_skill-listing-budget/">
-      <img class="hero-thumb" src="contents/2026-08-27_skill-listing-budget/images/thumb.png" alt="" width="1280" height="720" fetchpriority="high">
+    <a class="hero-card" href="contents/2026-08-28_001/">
+      <img class="hero-thumb" src="contents/2026-08-28_001/images/thumb.png" alt="" width="1280" height="720" fetchpriority="high">
       <div class="hero-body">
         <div class="hero-meta">
           <span class="hero-badge">最新号</span>
-          <span class="hero-cat">AIで作る技術</span>
-          <span class="hero-date">2026年8月27日(木)</span>
+          <span class="hero-cat">デイリーダイジェスト</span>
+          <span class="hero-date">2026年8月28日(金)</span>
         </div>
-        <h1 class="hero-title">Claude Codeのスキルは増やすほど呼ばれなくなる — 常駐1,609トークンと、説明が削られる仕組み</h1>
-        <p class="hero-sum">スキルが常駐で食うのは名前と説明だけで、25個入りのプラグインで約1,609トークンでした。本文は呼ぶまで0です。ただし説明の一覧には文字数の予算（コンテキスト窓の1%）があり、超えると使っていないスキルから順に削られます。削られたあとに残るのはフォルダ名だけなので、名前が用途を語っていないスキルから黙って呼ばれなくなります。</p>
+        <h1 class="hero-title">AI-news：2026/08/28 — Composer 2.10.3 はセキュリティ修正が4件</h1>
+        <p class="hero-sum">Composer 2.10.3 はCHANGELOGの先頭4行が全部セキュリティ修正で、1件目は悪意あるパッケージを入れるだけで踏みうる経路です。GitHub Actions の実行履歴は10月1日から既定90日で消えるようになります。Claude Code 2.1.248 の --restricted を実際に叩いて、bypassPermissions が拒否されることを確かめました。</p>
         <span class="hero-go">この号を読む</span>
       </div>
     </a>
@@ -73,7 +73,7 @@
   <section class="posts">
     <div class="posts-head">
       <h2>記事一覧</h2>
-      <span class="posts-count"><b id="hitCount">42</b>件</span>
+      <span class="posts-count"><b id="hitCount">43</b>件</span>
     </div>
 
     <div class="finder">
@@ -84,20 +84,20 @@
       </div>
       <div class="tag-bar" id="tagBar">
       <button class="tag-chip is-on" type="button" data-tag="">すべて</button>
-      <button class="tag-chip" type="button" data-tag="実測">#実測<i>26</i></button>
+      <button class="tag-chip" type="button" data-tag="実測">#実測<i>27</i></button>
       <button class="tag-chip" type="button" data-tag="公式ドキュメント">#公式ドキュメント<i>21</i></button>
-      <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>16</i></button>
+      <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>17</i></button>
       <button class="tag-chip" type="button" data-tag="AWS">#AWS<i>12</i></button>
-      <button class="tag-chip" type="button" data-tag="WebView">#WebView<i>11</i></button>
-      <button class="tag-chip" type="button" data-tag="セキュリティ">#セキュリティ<i>10</i></button>
+      <button class="tag-chip" type="button" data-tag="WebView">#WebView<i>12</i></button>
+      <button class="tag-chip" type="button" data-tag="セキュリティ">#セキュリティ<i>11</i></button>
       <button class="tag-chip" type="button" data-tag="入門">#入門<i>10</i></button>
       <button class="tag-chip" type="button" data-tag="Laravel">#Laravel<i>8</i></button>
       <button class="tag-chip" type="button" data-tag="Anthropic">#Anthropic<i>6</i></button>
       <button class="tag-chip" type="button" data-tag="Android">#Android<i>5</i></button>
       <button class="tag-chip" type="button" data-tag="DeepSeek">#DeepSeek<i>5</i></button>
+      <button class="tag-chip" type="button" data-tag="VRChat">#VRChat<i>5</i></button>
       <button class="tag-chip" type="button" data-tag="プロジェクト管理">#プロジェクト管理<i>5</i></button>
       <button class="tag-chip" type="button" data-tag="リード">#リード<i>5</i></button>
-      <button class="tag-chip" type="button" data-tag="VRChat">#VRChat<i>4</i></button>
       <button class="tag-chip" type="button" data-tag="iOS">#iOS<i>4</i></button>
       <button class="tag-chip" type="button" data-tag="エージェント設計">#エージェント設計<i>4</i></button>
       <button class="tag-chip" type="button" data-tag="スキル">#スキル<i>4</i></button>
@@ -108,6 +108,7 @@
       <button class="tag-chip" type="button" data-tag="設計">#設計<i>3</i></button>
       <button class="tag-chip" type="button" data-tag="CORS">#CORS<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="Chrome">#Chrome<i>2</i></button>
+      <button class="tag-chip" type="button" data-tag="Composer">#Composer<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="Copilot">#Copilot<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="Gemini">#Gemini<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="IAM">#IAM<i>2</i></button>
@@ -118,6 +119,18 @@
     </div>
 
     <div class="post-list" id="postList">
+      <a class="post-card" href="contents/2026-08-28_001/"
+         data-tags="Composer|Claude Code|セキュリティ|WebView|VRChat|実測" data-category="デイリーダイジェスト"
+         data-date="2026-08-28" data-search="ai-news：2026/08/28 — composer 2.10.3 はセキュリティ修正が4件 composer 2.10.3 はchangelogの先頭4行が全部セキュリティ修正で、1件目は悪意あるパッケージを入れるだけで踏みうる経路です。github actions の実行履歴は10月1日から既定90日で消えるようになります。claude code 2.1.248 の --restricted を実際に叩いて、bypasspermissions が拒否されることを確かめました。 デイリーダイジェスト composer claude code セキュリティ webview vrchat 実測 ai-news：2026/08/28 — composer 2.10.3 はセキュリティ修正が4件 aiニュース デイリーダイジェスト 2026年8月28日(金) ai-news：2026/08/28 — composer 2.10.3 はセキュリティ修正が4件 対象期間: 8月27日(木) 5:00 〜 8月28日(金) 9:00 jst（この号の実行開始が8:41だったため、標準の窓を4時間延ばしています。内訳は末尾に） ⭐ 今日の3行まとめ composer 2.10.3 は、セキュリティ修正が4件 changelogの先頭4行が全部 security: です。1件目は 悪意あるパッケージを入れるだけで踏みうる 経路でした。影響バージョンの範囲はまだ公表されていないので、いま安全かどうかは判定できません。ciとdockerfileで版を固定している箇所も上げてください。 github actions の実行履歴が、10月1日から消えるようになる これまで設定に関係なく400日以上残っていたチェック・ワークフロー実行・ステータスが、 artifacts と同じ既定90日 に従うようになります。遡って復元はできません。90日より前の履歴を見る運用があるなら、10月1日までに手を打つ必要があります。 claude code 2.1.248 に、コマンドを実行しない起動モードが付いた --restricted を付けると、bashなどの実行系と webfetch が外れ、ファイル操作も作業ディレクトリの中に閉じます。個人・プロジェクトの設定も読みません。実際に叩いて、 bypasspermissions を渡すと起動せず終了コード1で止まる ことを確かめました。 目次 実務者向けのai開発ツール(3件) web開発・インフラ(3件) クライアント技術(2件) 技術・研究(2件) モデル・業界(1件) 何を見て「無い」と判断したか 参考文献 🧰 実務者向けのai開発ツール 3件 anthropic claude code 2.1.248 に --restricted が付いた — コマンドを実行させない起動モード 8/28 5:35 公開 claude code を使う人 新機能 セキュリティ claude code 2.1.248 に、起動オプション --restricted が増えました。付けて起動すると、 コマンドやコードを走らせる道具が全部外れます 。 外れるのは bash・powershell・repl などの実行系と、 webfetch （ネットからページを取ってくる道具）です。残るのはファイルの読み書きだけで、それも 作業ディレクトリの中に閉じ込められます 。 残るのはファイルの読み書きだけ。それも作業ディレクトリの中に限られる。 道具だけの話ではありません。 設定ファイルの読み方も変わります。 公式ドキュメント（cli reference の --restricted ） start in restricted mode. use it when an evaluation harness drives claude on a shared machine and claude code must not run commands or read that machine’s user and project settings. claude code removes the built-in tools that run commands or code, and webfetch, unless you name them individually in --tools, not through its default preset. it also confines the built-in file tools to the working directories, loads only managed settings and --settings, and refuses bypasspermissions. requires claude code v2.1.248 or later つまり ~/.claude/settings.json のような 個人の設定・プロジェクトの設定・ローカルの設定を読みません 。読むのは組織が配る managed settings と、コマンドラインで渡した --settings だけです。 「他人の機械の設定を当てにしないで動かしたい」ときのためのモードだと、公式ドキュメントは書いています。共有マシンで採点用のハーネスが claude を回す場面が例に挙がっています。 実際に動くのか確かめました。この環境に入っているのは 2.1.248 です。 bypasspermissions （権限の確認を全部飛ばす指定）を一緒に渡すと、 起動せずに終了します 。 実行した結果（幅40桁で取得） $ claude --restricted \ --permission-mode bypasspermissions \ -p &quot;say hi&quot; error: bypasspermissions not supported in restricted mode [exit 1] 終了コードは 1 でした。 警告して続行するのではなく、止まります。 ciやスクリプトから呼んでいるなら、この違いは効きます。 --safe-mode と何が違うのか 同じヘルプの並びに --safe-mode もありますが、狙いが逆です。 --safe-mode は claude.md・スキル・プラグイン・フック・mcpサーバー・カスタムコマンドといった カスタマイズを全部止めて、壊れた設定を切り分ける ためのものです。道具そのものは残ります。 --restricted は逆に、 道具のほうを削って、その機械に手を出させない ためのものです。片方は自分の設定を疑うとき、もう片方は他人の機械を守るときに使います。 今やること。 共有マシンや採点環境で claude code を無人で走らせているなら、 --restricted を付けられるか検討する。そうでなければ対応は不要。 anthropic /ultrareview が *.tfvars をクラウドへ上げていた — 追跡下に置いた人だけ効く 8/28 5:35 修正 クラウドセッションを使う人 セキュリティ 同じ 2.1.248 に、修正が1行あります。 不具合の修正ですが、これは載せます。 何が外へ出ていたかが分かると、更新するかどうかの判断が変わるからです。 changelog 2.1.248 の原文 fixed `/ultrareview` and locally seeded cloud sessions uploading uncommitted edits to `prod.env`-style and `*.tfvars` files, or to editor swap, temp, and backup copies of credential files (e.g. `key.pem.tmp`, `id_rsa.swo`); they now stay on your machine q. クラウドセッションに送られるのは、次のどれ？ 作業ディレクトリの中身すべて 追跡下にあるファイルの、未コミットの変更 コミット済みの履歴だけ 2つ目です。公式ドキュメントに「 untracked files are not included 」と明記されています。だから今回の id_rsa.swo のような一時ファイルが上がったのは、それが うっかり追跡下に入っていた場合 です。 .gitignore に書いてあるファイルは元から対象外でした。 クラウドセッションは、手元のリポジトリを丸ごと束ねて向こうへ送ります。そうしないと同じ状態を再現できないからです。 その束に何が入るかは、公式ドキュメントに書いてあります。 公式ドキュメント（send local repositories without github） the bundle includes your full repository history across all branches, plus any uncommitted changes to tracked files. untracked files are not included; run git add on files you want the cloud session to see ここが今回の勘所です。入るのは 追跡下にあるファイル の未コミットの変更だけで、 追跡していないファイルは元から入りません 。 つまり key.pem.tmp や id_rsa.swo が上がったのは、それが うっかり git add されていた場合 です。エディタが落ちた拍子にできた一時ファイルを、 git add -a でまとめて拾ってしまう事故は起きます。 読者のスタックで直接効くのは *.tfvars です。terraform に渡す変数を書くファイルで、awsのキーやdbのパスワードが入ります。 自分が該当するかは、リポジトリで1行叩けば分かります。 追跡下に危ないファイルがあるか数える $ git ls-files | grep -ce \ '\">
+        <img class="post-thumb" src="contents/2026-08-28_001/images/thumb.png" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;post-thumb-ph&quot;>📰</div>'">
+        <div class="post-body">
+          <div class="post-date"><span class="post-cat">デイリーダイジェスト</span>2026年8月28日(金)</div>
+          <h3 class="post-title">AI-news：2026/08/28 — Composer 2.10.3 はセキュリティ修正が4件</h3>
+          <p class="post-summary">Composer 2.10.3 はCHANGELOGの先頭4行が全部セキュリティ修正で、1件目は悪意あるパッケージを入れるだけで踏みうる経路です。GitHub Actions の実行履歴は10月1日から既定90日で消えるようになります。Claude Code 2.1.248 の --restricted を実際に叩いて、bypassPermissions が拒否されることを確かめました。</p>
+          <div class="post-tags"><span class="post-tag">#Composer</span><span class="post-tag">#Claude Code</span><span class="post-tag">#セキュリティ</span><span class="post-tag">#WebView</span></div>
+          <span class="post-more">続きを読む →</span>
+        </div>
+      </a>
       <a class="post-card" href="contents/2026-08-27_skill-listing-budget/"
          data-tags="Claude Code|スキル|実測|公式ドキュメント|コンテキスト" data-category="AIで作る技術"
          data-date="2026-08-27" data-search="claude codeのスキルは増やすほど呼ばれなくなる — 常駐1,609トークンと、説明が削られる仕組み スキルが常駐で食うのは名前と説明だけで、25個入りのプラグインで約1,609トークンでした。本文は呼ぶまで0です。ただし説明の一覧には文字数の予算（コンテキスト窓の1%）があり、超えると使っていないスキルから順に削られます。削られたあとに残るのはフォルダ名だけなので、名前が用途を語っていないスキルから黙って呼ばれなくなります。 aiで作る技術 claude code スキル 実測 公式ドキュメント コンテキスト claude codeのスキルは増やすほど呼ばれなくなる — 常駐1,609トークンと、説明が削られる仕組み aiニュース デイリーダイジェスト aiで作る技術 ｜ 2026年8月27日(木) claude codeのスキルは増やすほど呼ばれなくなる — 常駐1,609トークンと、説明が削られる仕組み 前回「スキルの作り方」 の続きです。前回は1個作って測りましたが、今回は 増やしたときに何が起きるか を測ります。前回を読んでいなくても分かるように書きました。ログは全部この環境の実測で、 省いた箇所はそのつど明示しています 。 ▶ この記事を動画で見る（9分） ずんだもん×四国めたんの掛け合い・実演つきの解説 ⏱ 自分の設定を見るのは約3分 前回の続き 全部コピペok ⭐ 3行で言うと 常駐しているのは名前と説明だけ。 25個入りのプラグインで測ったら 約1,609トークン でした。本文は呼ぶまで読まれません。 ただし説明の一覧には文字数の上限があります。 コンテキスト窓の1%。超えると 使っていないスキルから順に説明が消えます 。残る手がかりはフォルダ名だけになります。 同じ名前が2つあっても壊れません。 素の /名前 は自分側が取り、プラグイン側は /プラグイン名:名前 で指せます。 ただしエージェントだと、プラグイン側は消えます。 先に5語だけ 意味 スキル 決まった手順を書いた skill.md を1枚置いておく仕組み。名前を呼ぶと読み込まれる 常駐 毎回のセッションに最初から積まれること トークン aiが文章の量を数える単位。文字数に近いが一致はしない コンテキスト窓 aiが一度に覚えていられる量の上限 プラグイン 他人が作ったスキルを、まとめて入れる仕組み 目次 常駐しているのは名前と説明だけだった その説明には予算があり、超えると削られる 増やす前の確認項目 参考文献 1 常駐しているのは名前と説明だけだった 「スキルを増やすとコンテキストを食う」は、半分だけ当たっている スキルを1つ作ると、次に必ずこう思います。「便利だから10個20個入れたい。でも全部読み込まれたら重いのでは」。 測れます。 claude plugin details が、常駐ぶんと呼び出しぶんを分けて出してくれます。ここでは mattpocock-skills という公開プラグイン（設計を質問攻めにして詰めるスキル集。25個入り）で叩きました。 claude plugin details（25件中7件を抜粋） $ claude plugin details mattpocock-skills projected token cost always-on: ~1,609 tok added to every session per-component (rounded) component always-on on-invoke ask-matt ~40 ~3.8k diagnosing-bugs ~70 ~2.8k grill-with-docs ~50 ~20 （中略） grill-me ~30 &lt; 20 grilling ~60 ~610 wait-what ~30 ~90 writing-for-agents ~50 ~3.7k この記事の端末ログは横に長いので、スマホでは枠の中を右へスクロールしてください。 列の幅は claude 側が決めていて、こちらで詰めると数字を書き換えることになるため、そのまま貼っています。 左の always-on が常駐、右の on-invoke が呼んだときに増えるぶんです。 25個ぜんぶ入れても常駐は約1,609トークン でした。上に抜き出した7件はどれも30〜70トークンです（残る18件は表に出していないので、全部がこの範囲とは言えません。1,609から抜粋7件の330を引いて18で割ると、 残り18件の平均は約71 になります）。 一方 writing-for-agents は呼ぶと約3,700トークン増えます。 常駐約50トークンの、およそ74倍 です。この差が「本文は呼ぶまで読まれない」ということです。 writing-for-agents 1個の内訳。常駐と呼び出しでおよそ74倍違う（どちらも丸めた値）。 公式ドキュメントにも同じことが書いてあります。 claude code docs「skills」より（原文） in a regular session, skill descriptions are loaded into context so claude knows what's available, but full skill content only loads when invoked. （このnoteはこのあと「サブエージェントに前もって積む場合は別で、起動時に本文まで入る」と続きます。上は ふつうのセッションの場合 です。） つまり 数を増やすこと自体のコストは小さい 。「入れるだけで重くなる」を心配して絞る必要はありません。ここまでは安心していい話です。 2 その説明には予算があり、超えると削られる 前回の結論には、上限があった 前回、同じ質問を60回投げて分かったのは「 フォルダ名と description は、2つで1つの説明文 」でした。 どちらかが「いつ使うか」を語っていれば呼ばれ、両方が黙っていると落ちます。 実際、説明を雑にしても フォルダ名が release-check なら10回中10回 呼ばれました。名前を memo-1 に変えた瞬間、同じ説明で 10回中1回 まで落ちました。 その説明が、増えると 勝手に短くされる と公式ドキュメントに書いてあります。 claude code docs「skills」より（原文） …the listing always contains every skill name, but if you have many skills, claude code shortens descriptions to fit the listing's character budget, which can strip the keywords claude needs to match your request. the budget scales at 1% of the model's context window. when the listing overflows, claude code drops descriptions starting with the skills you invoke least, so the skills you use most keep their full text. 読み替えるとこうなります。 予算は文字数で数えます （さっきの1,609はトークン数なので、この2つは直接くらべられません。だから次に出てくる /doctor が要ります）。 名前は必ず残る。 一覧から消えるわけではないので、 /名前 と打てばいつでも動きます。 削られるのは説明のほう。 2つで1つだった説明文の、 片方だけが残ります 。 削られる順番は使用頻度。 よく使うものは残り、 めったに使わないものから説明を失います 。 つまり 「たまにしか使わないが、そのときは自動で呼んでほしい」スキルが一番弱い ということです。四半期に1回のリリース手順のようなものが該当します。使わないから説明を削られ、削られたから呼ばれず、呼ばれないからますます削られます。 そして削られたあと、呼ばれるかどうかは フォルダ名だけ にかかります。 前回の「名前をケチるな」は、予算対策でもあった わけです。 memo-1 や utils のような名前は、削られた瞬間に何も語らなくなります。 あふれたとき落ちるのは説明だけ。名前は残るので手で呼べば動く。 q. スキルを40個入れたら、めったに使わない release-check が自動で呼ばれなくなりました。 /release-check と打つとどうなるでしょう? ふつうに動く unknown command になる 説明を書き直すまで動かない 正解は「ふつうに動く」。落ちたのは説明だけで、名前は一覧に残っています。「手で呼べば動くのに自動では呼ばれない」という状態は、予算あふれのサインのひとつです。 あふれているかどうかは /doctor で見られる 近いところまでは /context で見えます。 いま何にどれだけトークンを使っているかを出すコマンド で、その中に skills という行があります。対話画面向けですが この記事を書いている環境でも動いた ので、実際に測りました。 claude -p &quot;/context&quot;（出力から抜粋。skills の表は23行） **tokens:** 61.4k / 1m (6%) | skills | 3.7k | 0.4% | （中略） ### skills | skill | source | tokens | |-------|--------|--------| | startup-hook-skill | user | ~90 | | design | built-in | ~340 | | dataviz | built-in | ~380 | （中略） | init | built-in | ~20 | （以下略） 23個で 3.7k トークン、コンテキ">

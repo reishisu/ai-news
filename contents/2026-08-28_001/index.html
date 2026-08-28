@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-news：2026/08/28 — Composer 2.10.3 はセキュリティ修正が4件</title>
+<meta name="description" content="Composer 2.10.3 はCHANGELOGの先頭4行が全部セキュリティ修正で、1件目は悪意あるパッケージを入れるだけで踏みうる経路です。GitHub Actions の実行履歴は10月1日から既定90日で消えるようになります。Claude Code 2.1.248 の --restricted を実際に叩いて、bypassPermissions が拒否されることを確かめました。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI-news：2026/08/28 — Composer 2.10.3 はセキュリティ修正が4件">
+<meta property="og:description" content="Composer 2.10.3 はセキュリティ修正が4件。CIとDockerfileの固定版も上げてください。GitHub Actions の実行履歴は10月1日から既定90日に。Claude Code 2.1.248 の --restricted を実測しました。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-28_001/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-28_001/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=081fefa4">
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">2026年8月28日(金)</div>
+    <h1>AI-news：2026/08/28 — Composer 2.10.3 はセキュリティ修正が4件</h1>
+    <div class="range">対象期間: 8月27日(木) 5:00 〜 8月28日(金) 9:00 JST（この号の実行開始が8:41だったため、標準の窓を4時間延ばしています。内訳は末尾に）</div>
+  </div>
+  <section class="summary">
+    <h2>⭐ 今日の3行まとめ</h2>
+    <ol>
+      <li>
+        <b>Composer 2.10.3 は、セキュリティ修正が4件</b>
+        <span>CHANGELOGの先頭4行が全部 <code>Security:</code> です。1件目は<mark>悪意あるパッケージを入れるだけで踏みうる</mark>経路でした。影響バージョンの範囲はまだ公表されていないので、いま安全かどうかは判定できません。CIとDockerfileで版を固定している箇所も上げてください。</span>
+      </li>
+      <li>
+        <b>GitHub Actions の実行履歴が、10月1日から消えるようになる</b>
+        <span>これまで設定に関係なく400日以上残っていたチェック・ワークフロー実行・ステータスが、<mark>artifacts と同じ既定90日</mark>に従うようになります。遡って復元はできません。90日より前の履歴を見る運用があるなら、10月1日までに手を打つ必要があります。</span>
+      </li>
+      <li>
+        <b>Claude Code 2.1.248 に、コマンドを実行しない起動モードが付いた</b>
+        <span><code>--restricted</code> を付けると、Bashなどの実行系と <code>WebFetch</code> が外れ、ファイル操作も作業ディレクトリの中に閉じます。個人・プロジェクトの設定も読みません。実際に叩いて、<b><code>bypassPermissions</code> を渡すと起動せず終了コード1で止まる</b>ことを確かめました。</span>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#work">実務者向けのAI開発ツール(3件)</a></li>
+      <li><a href="#dev">Web開発・インフラ(3件)</a></li>
+      <li><a href="#client">クライアント技術(2件)</a></li>
+      <li><a href="#research">技術・研究(2件)</a></li>
+      <li><a href="#industry">モデル・業界(1件)</a></li>
+      <li><a href="#quiet">何を見て「無い」と判断したか</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 実務者向け ============ -->
+  <section class="section section-b" id="work">
+    <h2>🧰 実務者向けのAI開発ツール<span class="n">3件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude Code 2.1.248 に <code>--restricted</code> が付いた — コマンドを実行させない起動モード</h3>
+      <div class="tags">
+        <span class="tag">8/28 5:35 公開</span>
+        <span class="tag">Claude Code を使う人</span>
+        <span class="tag">新機能</span>
+        <span class="tag">セキュリティ</span>
+      </div>
+
+      <p class="lead">Claude Code 2.1.248 に、起動オプション <code>--restricted</code> が増えました。付けて起動すると、<b>コマンドやコードを走らせる道具が全部外れます</b>。</p>
+
+      <p class="lead">外れるのは Bash・PowerShell・REPL などの実行系と、<code>WebFetch</code>（ネットからページを取ってくる道具）です。残るのはファイルの読み書きだけで、それも<mark>作業ディレクトリの中に閉じ込められます</mark>。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/restricted-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/restricted.png" alt="通常の起動ではコマンド実行・WebFetch・ファイル読み書き・個人の設定の4つが使えるが、--restricted を付けるとコマンド実行とWebFetchと個人の設定が外れ、ファイル読み書きだけが作業場所の中に限って残ることを示した図" loading="lazy">
+        </picture>
+        <figcaption>残るのはファイルの読み書きだけ。それも作業ディレクトリの中に限られる。</figcaption>
+      </figure>
+
+      <p class="lead">道具だけの話ではありません。<b>設定ファイルの読み方も変わります。</b></p>
+
+      <div class="code wrap"><div class="code-head">公式ドキュメント（CLI reference の <code>--restricted</code>）</div><pre>Start in restricted mode. Use it when an evaluation harness drives claude on a shared machine and Claude Code must not run commands or read that machine’s user and project settings. Claude Code removes the built-in tools that run commands or code, and WebFetch, unless you name them individually in --tools, not through its default preset. It also confines the built-in file tools to the working directories, loads only managed settings and --settings, and refuses bypassPermissions. Requires Claude Code v2.1.248 or later</pre></div>
+
+      <p class="lead">つまり <code>~/.claude/settings.json</code> のような<b>個人の設定・プロジェクトの設定・ローカルの設定を読みません</b>。読むのは組織が配る managed settings と、コマンドラインで渡した <code>--settings</code> だけです。</p>
+
+      <p class="lead">「他人の機械の設定を当てにしないで動かしたい」ときのためのモードだと、公式ドキュメントは書いています。共有マシンで採点用のハーネスが <code>claude</code> を回す場面が例に挙がっています。</p>
+
+      <p class="lead">実際に動くのか確かめました。この環境に入っているのは 2.1.248 です。<code>bypassPermissions</code>（権限の確認を全部飛ばす指定）を一緒に渡すと、<b>起動せずに終了します</b>。</p>
+
+      <div class="code term"><div class="code-head">実行した結果（幅40桁で取得）</div><pre>$ claude --restricted \
+    --permission-mode bypassPermissions \
+    -p "say hi"
+<span class="ng-line">Error: bypassPermissions not supported in restricted mode</span>
+[exit 1]</pre></div>
+
+      <p class="lead">終了コードは 1 でした。<b>警告して続行するのではなく、止まります。</b>CIやスクリプトから呼んでいるなら、この違いは効きます。</p>
+
+      <details class="note-d">
+        <summary><code>--safe-mode</code> と何が違うのか</summary>
+        <p class="lead">同じヘルプの並びに <code>--safe-mode</code> もありますが、狙いが逆です。<code>--safe-mode</code> は CLAUDE.md・スキル・プラグイン・フック・MCPサーバー・カスタムコマンドといった<b>カスタマイズを全部止めて、壊れた設定を切り分ける</b>ためのものです。道具そのものは残ります。</p>
+        <p class="lead"><code>--restricted</code> は逆に、<b>道具のほうを削って、その機械に手を出させない</b>ためのものです。片方は自分の設定を疑うとき、もう片方は他人の機械を守るときに使います。</p>
+      </details>
+
+      <p class="lead"><b>今やること。</b>共有マシンや採点環境で Claude Code を無人で走らせているなら、<code>--restricted</code> を付けられるか検討する。そうでなければ対応は不要。</p>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3><code>/ultrareview</code> が <code>*.tfvars</code> をクラウドへ上げていた — 追跡下に置いた人だけ効く</h3>
+      <div class="tags">
+        <span class="tag">8/28 5:35 修正</span>
+        <span class="tag">クラウドセッションを使う人</span>
+        <span class="tag">セキュリティ</span>
+      </div>
+
+      <p class="lead">同じ 2.1.248 に、修正が1行あります。<b>不具合の修正ですが、これは載せます。</b>何が外へ出ていたかが分かると、更新するかどうかの判断が変わるからです。</p>
+
+      <div class="code wrap"><div class="code-head">CHANGELOG 2.1.248 の原文</div><pre>Fixed `/ultrareview` and locally seeded cloud sessions uploading uncommitted edits to `prod.env`-style and `*.tfvars` files, or to editor swap, temp, and backup copies of credential files (e.g. `key.pem.tmp`, `id_rsa.swo`); they now stay on your machine</pre></div>
+
+      <div class="quiz">
+        <p class="q">Q. クラウドセッションに送られるのは、次のどれ？</p>
+        <button class="opt" type="button" data-correct="false">作業ディレクトリの中身すべて</button>
+        <button class="opt" type="button" data-correct="true">追跡下にあるファイルの、未コミットの変更</button>
+        <button class="opt" type="button" data-correct="false">コミット済みの履歴だけ</button>
+        <p class="ans" hidden>2つ目です。公式ドキュメントに「<b>Untracked files are not included</b>」と明記されています。だから今回の <code>id_rsa.swo</code> のような一時ファイルが上がったのは、それが<b>うっかり追跡下に入っていた場合</b>です。<code>.gitignore</code> に書いてあるファイルは元から対象外でした。</p>
+      </div>
+
+      <p class="lead">クラウドセッションは、手元のリポジトリを丸ごと束ねて向こうへ送ります。そうしないと同じ状態を再現できないからです。<b>その束に何が入るかは、公式ドキュメントに書いてあります。</b></p>
+
+      <div class="code wrap"><div class="code-head">公式ドキュメント（Send local repositories without GitHub）</div><pre>The bundle includes your full repository history across all branches, plus any uncommitted changes to tracked files.
+
+Untracked files are not included; run git add on files you want the cloud session to see</pre></div>
+
+      <p class="lead">ここが今回の勘所です。入るのは<b>追跡下にあるファイル</b>の未コミットの変更だけで、<mark>追跡していないファイルは元から入りません</mark>。</p>
+
+      <p class="lead">つまり <code>key.pem.tmp</code> や <code>id_rsa.swo</code> が上がったのは、それが<b>うっかり <code>git add</code> されていた場合</b>です。エディタが落ちた拍子にできた一時ファイルを、<code>git add -A</code> でまとめて拾ってしまう事故は起きます。</p>
+
+      <p class="lead">読者のスタックで直接効くのは <code>*.tfvars</code> です。Terraform に渡す変数を書くファイルで、AWSのキーやDBのパスワードが入ります。</p>
+
+      <p class="lead">自分が該当するかは、リポジトリで1行叩けば分かります。</p>
+
+      <div class="code term"><div class="code-head">追跡下に危ないファイルがあるか数える</div><pre>$ git ls-files | grep -cE \
+    '\.tfvars$|prod\.env|\.pem$|id_rsa'
+<span class="ok-line">0</span></pre></div>
+
+      <p class="lead"><code>0</code> なら、この不具合では何も出ていません。1以上なら、そのファイルが未コミットの変更を持ったまま <code>/ultrareview</code> かクラウドセッションを回した覚えがないか確かめてください。</p>
+
+      <p class="lead">Anthropicは「they now stay on your machine（今後は手元に留まる）」と書いていますが、<mark>いつから混ざっていたのか、上がった先で何が起きたのかは書かれていません</mark>。公表されていないので、推測しません。</p>
+
+      <p class="lead"><b>今やること。</b>上の1行を叩く。<code>0</code> なら対応は不要。1以上で <code>/ultrareview</code> かクラウドセッションを使ったことがあるなら、2.1.248 へ上げたうえで、その鍵や資格情報を作り直すか検討する。</p>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=claude.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>Claude Cowork に専用ブラウザが付いた — 届いた時点で既に有効になっている</h3>
+      <div class="tags">
+        <span class="tag">8/26 公開</span>
+        <span class="tag">Pro / Max / Team</span>
+        <span class="tag">既定の変更</span>
+        <span class="tag">Claude</span>
+      </div>
+
+      <p class="lead">デスクトップアプリの Claude Cowork に、<b>Claude専用のブラウザ</b>が組み込まれました。サイトを見る作業を頼むと、横のパネルにブラウザが開いて、Claudeがページを読み、押し、入力します。</p>
+
+      <p class="lead">これまで Cowork にWebを触らせるには、Chrome拡張「Claude in Chrome」を入れて<b>自分のブラウザを貸す</b>しかありませんでした。これからは、Claudeが自分のブラウザを持ちます。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/cowork-browser-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/cowork-browser.png" alt="Coworkでサイトを開かせたとき、Claude in Chrome 拡張を入れていればこれまでどおりChromeが使われ、入れていなければClaude専用のブラウザが開くという分岐を示した図" loading="lazy">
+        </picture>
+        <figcaption>拡張を入れている人は今までどおり。入れていない人には新しいブラウザが開く。</figcaption>
+      </figure>
+
+      <p class="lead">読者にとって大きいのは機能そのものより、<b>配られ方</b>です。</p>
+
+      <div class="code wrap"><div class="code-head">公式ブログ（Getting started の節）</div><pre>The built-in browser is rolling out over the coming week to Pro, Max, and Team plans in the Claude desktop app on macOS, Windows, and Linux (in beta). Once it reaches you, it's on by default: give Claude a task that involves a website and the browser opens on its own. On Enterprise plans, it's available now and admins can manage it in Organization settings → Cowork → Built-in browser.</pre></div>
+
+      <p class="lead">「Once it reaches you, it's on by default」— <mark>届いた時点で既にオンです</mark>。自分で有効にする操作はありません。Enterprise だけは管理者が握っていて、今日から使えます。</p>
+
+      <p class="lead">ログインが要るサイトのために、<b>自分のブラウザからログイン状態を1サイトずつ持ち込めます</b>。持ち込み元は macOS なら Chrome / Edge / Firefox、Windows と Linux では Firefox だけです。銀行・メール・シングルサインオンのサイトは、自分で選ばない限り対象外だと書かれています。</p>
+
+      <p class="lead">Anthropic自身が、プロンプトインジェクション（ページに仕込まれた指示でAIの行動を乗っ取る攻撃）のリスクは<b>減らせても消せない</b>と書いています。「we recommend starting on sites you trust（信頼できるサイトから始めることを勧めます）」。</p>
+
+      <p class="lead"><b>今やること。</b>Cowork をデスクトップアプリで使っているなら、今週中に勝手に有効になる。切るなら 設定 → Cowork → Preferred browser。使っていなければ対応は不要。</p>
+    </article>
+  </section>
+  <!-- ============ Web開発・インフラ ============ -->
+  <section class="section section-c" id="dev">
+    <h2>🧑‍💻 Web開発・インフラ<span class="n">3件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=getcomposer.org&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Composer</div>
+      <h3>Composer 2.10.3 はセキュリティ修正が4件 — CIで <code>composer install</code> を回しているなら上げる</h3>
+      <div class="tags">
+        <span class="tag">8/27 20:34 公開</span>
+        <span class="tag">PHPを使う人</span>
+        <span class="tag">セキュリティ</span>
+        <span class="tag">Composer</span>
+      </div>
+
+      <p class="lead">PHPのパッケージ管理ツール Composer に 2.10.3 が出ました。<b>CHANGELOGの先頭4行が、全部 <code>Security:</code> です。</b></p>
+
+      <div class="code wrap"><div class="code-head">Composer CHANGELOG（2.10.3 の先頭4行）</div><pre>* Security: Validate package bin paths against path traversal using symlinks (GHSA-96h3-5x6v-m776, CVE-2026-59944)
+* Security: Fixed command injection via malicious Perforce url (GHSA-rvx4-ffvw-m9q3)
+* Security: Sanitize URL-embedded usernames/token in a few more places (#13044)
+* Security: Fixed matching of gitlab URLs to avoid possible credential leak to the wrong domain (#12988)</pre></div>
+
+      <p class="lead">上から順に、日本語にするとこうなります。</p>
+
+      <ul class="points">
+        <li><b>1行目。</b>パッケージの実行ファイルの置き場所を、シンボリックリンクで<b>意図した外へ逃がせた</b>（CVE-2026-59944）</li>
+        <li><b>2行目。</b>細工した Perforce のURL経由で、<b>コマンドを実行させられた</b></li>
+        <li><b>3行目。</b>URLに埋め込まれたユーザー名やトークンが、出力に<b>そのまま出ていた箇所が残っていた</b></li>
+        <li><b>4行目。</b>GitLabのURLの判定が甘く、<b>別のドメインへ資格情報が漏れうる</b>状態だった</li>
+      </ul>
+
+      <p class="lead"><b>1行目がいちばん広く効きます。</b>パッケージの実行ファイルを置く処理は <code>composer install</code> の中で走るので、<mark>悪意あるパッケージを1つ入れるだけで踏みうる</mark>経路です。つまり <code>composer install</code> を回している場所すべてが対象になります。</p>
+
+      <p class="lead">2行目の Perforce は、Composer が Perforce のリポジトリを扱うときの処理です。<b>Perforce を使っていない構成で踏むかどうかは、CHANGELOGの1行からは判断できません。</b>公式が影響条件を書いていないので、ここは推測しません。</p>
+
+      <p class="lead">影響を受けるバージョンの範囲は、<b>まだ公表されていません。</b>Packagist のセキュリティアドバイザリDBを引くと、収録されているのは 2.10.2 のときの3件（2026年7月20日）までで、<mark>2.10.3 の4件はまだ入っていません</mark>。CVE-2026-59944 も NVD で <code>totalResults: 0</code> でした。</p>
+
+      <p class="lead">なので「自分の版は安全か」は、いま判定できません。<b>2.10.3 に上げるかどうかで考えるしかない段階です。</b></p>
+
+      <details class="note-d">
+        <summary>Composerを直接使っていなくても効く場所</summary>
+        <p class="lead">Composer は Laravel の開発でしか使わないように見えますが、実際にはこの3か所に居ます。</p>
+        <p class="lead">(1) 開発マシン。(2) CIのジョブ（<code>composer install --no-dev</code> を回す）。(3) コンテナイメージのビルド段（<code>FROM composer:2.10.x</code> や <code>COPY --from=composer</code>）。<b>(3) を忘れると、CIだけ直って本番のビルドは古いまま残ります。</b></p>
+      </details>
+
+      <p class="lead"><b>今やること。</b>手元は <code>composer self-update</code>。CIとDockerfileでComposerの版を固定している箇所を探して、2.10.3 以上にする。</p>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=github.blog&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">GitHub</div>
+      <h3>GitHub Actions の実行履歴が10月1日から消えるようになる — 既定90日、400日ではなくなる</h3>
+      <div class="tags">
+        <span class="tag">8/28 6:50 公開</span>
+        <span class="tag">GitHub Actionsを使う人</span>
+        <span class="tag">既定の変更</span>
+        <span class="tag">締切あり</span>
+      </div>
+
+      <p class="lead">これまで、ワークフローの実行履歴・チェック・ステータスは<b>設定に関係なく400日以上残っていました</b>。2026年10月1日から、artifacts と logs と同じ保持期間の設定に従うようになります。</p>
+
+      <div class="code wrap"><div class="code-head">GitHub Changelog（What's changing の直前）</div><pre>Starting October 1, 2026, checks, workflow runs, and statuses will be governed by the same Actions retention setting that already controls how long artifacts and logs are kept, with a default of 90 days. Until now, checks, workflow runs, and statuses were retained for 400+ days regardless of your retention configuration.</pre></div>
+
+      <p class="lead">設定を触っていないリポジトリは<b>既定の90日</b>になります。<mark>400日 → 90日は、4分の1以下です</mark>。</p>
+
+      <p class="lead">パブリックリポジトリは上限も90日です。組織やEnterpriseで上限を決めていれば、リポジトリ側はそれを超えて延ばせません。</p>
+
+      <p class="lead">2つ、注意点があります。</p>
+
+      <ul class="points">
+        <li><b>遡らない。</b>「The change is not retroactive」。設定を延ばしても、既に消えたものは戻りません</li>
+        <li><b>課金は下がる方向。</b>artifacts と logs は Actions のストレージ課金に乗るので、設定より長く残っていたぶんが消えると<b>請求は減ります</b></li>
+      </ul>
+
+      <p class="lead">効くのは「90日より前の実行を見る運用」をしている場合です。障害の事後調査や、監査で「いつ誰が何をデプロイしたか」を実行履歴で追っているなら、10月1日より前に手を打つ必要があります。</p>
+
+      <p class="lead"><b>今やること。</b>90日より前の実行履歴を見る運用があるか確かめる。無ければ対応は不要（むしろ請求が減る）。あるなら、10月1日までに保持期間を延ばすか、必要な履歴を外へ出す。</p>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=php.net&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">PHP</div>
+      <h3>PHP 8.4.25 — UTF-8 の正規表現で <code>\C</code> が使えなくなった</h3>
+      <div class="tags">
+        <span class="tag">8/27 公開</span>
+        <span class="tag">PHPを使う人</span>
+        <span class="tag">挙動の変更</span>
+      </div>
+
+      <p class="lead">8月27日に PHP 8.4.25 が出ました。<b>セキュリティ版ではありません。</b>中身はほぼ不具合修正なので、この号では原則扱いません。ただ1行だけ、挙動が変わっています。</p>
+
+      <div class="code wrap"><div class="code-head">PHP ChangeLog（Version 8.4.25 / 27 Aug 2026 の PCRE の項）</div><pre>PCRE:
+Fixed bug GH-21134 (Crash with \C + UTF-8). Using \C in UTF-8 patterns is now forbidden.</pre></div>
+
+      <p class="lead"><code>\C</code> は「1バイトにマッチする」という指定です。UTF-8 では1文字が複数バイトなので、途中でぶった切るとクラッシュしうる状態でした。<b>直し方が「禁止」だったので、使っていたコードは動かなくなります。</b></p>
+
+      <p class="lead">実務で <code>\C</code> を書くことはまずありません。<b>「直った」ではなく「使えなくなった」なので載せています。</b></p>
+
+      <p class="lead"><b>今やること。</b>対応は不要。心当たりがあるときだけ <code>grep -rn '\\C' </code> で正規表現を探す。</p>
+    </article>
+  </section>
+
+  <!-- ============ クライアント技術 ============ -->
+  <section class="section section-a" id="client">
+    <h2>📱 クライアント技術<span class="n">2件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=android-developers.googleblog.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Google</div>
+      <h3>Google Play に技術品質要件が増えた — メモリとDEXが2027年2月から審査対象になる</h3>
+      <div class="tags">
+        <span class="tag">8/27 2:00 公開</span>
+        <span class="tag">Androidアプリを出す人</span>
+        <span class="tag">提出要件の変更</span>
+        <span class="tag">締切あり</span>
+      </div>
+
+      <p class="lead">Google Play が「技術品質要件（technical quality requirements）」という新しい枠を作りました。<b>これまでクラッシュ率やANR率で見ていた「悪い挙動のしきい値」に、メモリとコード最適化が加わります。</b></p>
+
+      <p class="lead">超えると何が起きるかも書かれています。</p>
+
+      <div class="code wrap"><div class="code-head">Android Developers Blog（Enforcement timeline の節）</div><pre>Starting in February 2027, apps and games must meet their respective bad behavior thresholds for Memory usage (Anonymous RSS + Swap), Bitmap memory usage and DEX code optimization. (中略)
+
+Apps and games that do not meet these thresholds may see reduced app visibility and publishing capabilities on Google Play.</pre></div>
+
+      <p class="lead">「app visibility（ストアでの見つかりやすさ）と publishing capabilities（公開の機能）が制限されるかもしれない」。<mark>ストアに出せなくなる可能性がある、という書き方です</mark>。</p>
+
+      <p class="lead"><b>なぜ WebView の話なのか。</b>測るのは Anonymous RSS + Swap、つまりアプリが自分で確保したメモリです。WebView はページごとにレンダラのプロセスを持ち、画像はビットマップとして乗ります。<b>Webの画面を抱えるアプリほど、ここに効いてきます。</b></p>
+
+      <p class="lead">しきい値は Play Console のヘルプ側にあります。判定は<b>直近28日ぶんの90パーセンタイル値</b>で、端末の搭載RAMごとに分かれます。アプリとゲームでは別の表が用意されていて、ゲームのほうが緩いです。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>端末のRAM</th><th>アプリ 前面</th><th>ゲーム 前面</th></tr></thead>
+          <tbody>
+            <tr><td>0〜4 GB</td><td data-label="アプリ 前面">しきい値なし</td><td data-label="ゲーム 前面">しきい値なし</td></tr>
+            <tr><td>4 GB</td><td data-label="アプリ 前面">2 GB</td><td data-label="ゲーム 前面">2.25 GB</td></tr>
+            <tr><td>6 GB</td><td data-label="アプリ 前面">2.25 GB</td><td data-label="ゲーム 前面">2.75 GB</td></tr>
+            <tr><td>8 GB</td><td data-label="アプリ 前面">2.25 GB</td><td data-label="ゲーム 前面">3.5 GB</td></tr>
+            <tr><td>12 GB</td><td data-label="アプリ 前面">3.25 GB</td><td data-label="ゲーム 前面">4 GB</td></tr>
+            <tr><td>16 GB</td><td data-label="アプリ 前面">4.25 GB</td><td data-label="ゲーム 前面">5 GB</td></tr>
+            <tr><td>16 GB 超</td><td data-label="アプリ 前面">しきい値なし</td><td data-label="ゲーム 前面">しきい値なし</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">ビットマップは別枠です。<b>前面にはしきい値がありません。</b>背景と user-perceived services が 200 MB 超、cached が 400 MB 超で違反になります。「見えていない状態でビットマップを抱え続けるな」という設計です。</p>
+
+      <p class="lead">DEX（Androidのバイトコード）は、R8 などで<b>最適化・圧縮・難読化それぞれ25%以上</b>が要ります。対象はDEXがアプリで10 MB超、ゲームで50 MB超のものだけです。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/play-deadlines-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/play-deadlines.png" alt="Google Playの3つの締切を時間軸で示した図。2026年9月30日までにBlock Storeを入れれば2027年4月のゼロタップサインイン復元は免除され、2027年2月にメモリとDEXのしきい値、2027年4月にゼロタップのサインイン復元が来る" loading="lazy">
+        </picture>
+        <figcaption>いちばん早い締切は2027年ではなく、今年の9月30日。</figcaption>
+      </figure>
+
+      <p class="lead">もう1つ、<b>ログイン機能を持つアプリ</b>への要件が2027年4月から入ります。機種変更したとき、新しい端末で初回起動しただけでログイン済みになる（Zero-Tap Sign-In）ことが必須になります。<b>ゲームは現時点で対象外</b>です。</p>
+
+      <p class="lead">ここに<mark>今年の締切が1つ混ざっています</mark>。</p>
+
+      <div class="code wrap"><div class="code-head">Play Console ヘルプ（Exceptions and scope）</div><pre>Apps integrating with Block Store, on or before September 30, 2026, to restore a user's sign-in state are considered compliant with this requirement.</pre></div>
+
+      <p class="lead">2026年9月30日までに Block Store を入れていれば、2027年4月の要件を満たしたものとして扱われます。<b>残り1か月ちょっとです。</b></p>
+
+      <details class="note-d">
+        <summary>日付の粒度に注意（「2月1日」とは書かれていない）</summary>
+        <p class="lead">公式は「Starting in February 2027」「From February 2027」としか書いていません。<b>何日から、は公表されていません。</b>本文にも「Additional details will be provided later this year（詳細は年内に出す）」とあります。</p>
+        <p class="lead">Block Store の 2026年9月30日だけが日付まで確定しています。ここだけは動かせません。</p>
+      </details>
+
+      <p class="lead"><b>今やること。</b>Play Console → Android vitals の Memory を開いて、自分のアプリのP90が上の表を超えていないか見る。ログイン機能があるなら、9月30日までに Block Store を入れるかどうかを今月中に決める。</p>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=vrchat.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">VRChat</div>
+      <h3>VRChat の Spookality 2026 は9月3日から応募受付 — 入賞しなくても全部展示される</h3>
+      <div class="tags">
+        <span class="tag">8/28 4:36 公開</span>
+        <span class="tag">ワールドを作る人</span>
+        <span class="tag">締切あり</span>
+        <span class="tag">VRChat</span>
+      </div>
+
+      <p class="lead">VRChat の Developer Update が8月28日 4:36（JST）に出ました。ワールドを作る側に効くのは2つです。</p>
+
+      <p class="lead">1つ目。<b>毎年秋のワールドジャム「Spookality」の日程</b>が出ました。</p>
+
+      <div class="code wrap"><div class="code-head">Developer Update - 27 August 2026（原文）</div><pre>Submissions Open: Sept 3 - Oct 1
+Judging Period: Oct 2 - Oct 15
+Showcase Period: Oct 16 - Nov 2
+
+Also, in the spirit of the jam, we’ve decided to feature ALL eligible entries in the Home/Hub world for Spookality, even if they didn’t win a prize.</pre></div>
+
+      <p class="lead">今年変わったのは後半です。<mark>条件を満たした応募作は、入賞しなくても全部 Home/Hub ワールドに載ります</mark>。人に見てもらう手段として、勝ち負けと切り離されました。</p>
+
+      <p class="lead">テーマはまだ伏せられています。日程についても、原文は「here's a head's up on the timeline we're <b>expecting</b>」で、<b>確定ではなく見込みとして</b>書かれています。</p>
+
+      <p class="lead">2つ目。<b>Unity 6 対応のSDKとVCC（Creator Companion）はQA中</b>だと書かれました。オープンベータになれば、VCCからUnity 6を自動で入れて、数クリックで移行できるようになるとのことです。</p>
+
+      <p class="lead"><b>まだベータにも出ていません。</b>いつ出るかも書かれていないので、移行の日取りは決められません。「来る」ことだけが分かった段階です。</p>
+
+      <details class="note-d">
+        <summary>Material Contacts と、60回/秒の制限（どちらも予告）</summary>
+        <p class="lead">Contact Receiver から、最大4つの <code>MeshRenderer</code> のマテリアルプロパティへ、接触しているセンダーのワールド空間の変換行列を直接書き込める「Material Contacts」が予告されました。シェーダーで近接エフェクトを作れます。</p>
+        <p class="lead">あわせて「we're also planning to drop the update rate limit of 60 times per second currently applied to contacts」とあります。<b>この60回/秒という制限値は、creators.vrchat.com の Contacts のドキュメントには見つかりませんでした。</b>出どころはこの Developer Update だけです。</p>
+        <p class="lead">どちらも<b>未リリースの予告</b>です。今のSDK（3.10.4）では使えません。</p>
+      </details>
+
+      <p class="lead"><b>今やること。</b>Spookality に出すなら9月3日〜10月1日を空けておく。Unity 6 への移行はまだ何もできない。</p>
+    </article>
+  </section>
+  <!-- ============ 技術・研究 ============ -->
+  <section class="section section-c" id="research">
+    <h2>🔬 技術・研究<span class="n">2件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=deepmind.google&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Google DeepMind</div>
+      <h3>ベンチマークの点数を「カンニングしていない」と暗号で示す試みが始まった</h3>
+      <div class="tags">
+        <span class="tag">8/27 公開</span>
+        <span class="tag">ベンチマークを読む人</span>
+        <span class="tag">評価手法</span>
+      </div>
+
+      <p class="lead">モデルのベンチマークには、ずっと不信の種がありました。<b>そのモデルが、事前にテスト問題を見ていたかもしれない</b>という問題です（benchmark contamination、ベンチマーク汚染）。</p>
+
+      <p class="lead">これまでの外部評価には、原理的な二択がありました。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>やり方</th><th>渡すもの</th><th>困ること</th></tr></thead>
+          <tbody>
+            <tr><td>評価者が問題を渡す</td><td data-label="渡すもの">テストのプロンプト</td><td data-label="困ること">提供元に問題が見えてしまう</td></tr>
+            <tr><td>提供元がモデルを渡す</td><td data-label="渡すもの">モデルの重み</td><td data-label="困ること">知的財産が外に出る</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">DeepMind は、Google Cloud の Confidential Space（中身を外から覗けない計算環境）を使って、<mark>どちらも渡さずに評価する</mark>やり方を試したと発表しました。</p>
+
+      <div class="code wrap"><div class="code-head">Google DeepMind ブログ（How double-blind evaluations work）</div><pre>By using Confidential Space within Google Cloud’s Confidential Computing portfolio, we can cryptographically verify that both the external evaluation data and the proprietary model remain private to their respective owners. The evaluator cannot see the Gemini model weights, and Google cannot see the evaluator’s test prompts.</pre></div>
+
+      <p class="lead">対象は Gemini Flash Lite のモデル1つ。相手は Singapore AI Safety Institute、OpenMined、AVERI、MLCommons です。<b>まだパイロットで、全モデルに適用されたわけではありません。</b></p>
+
+      <p class="lead">読者にとっての意味は1つだけです。<b>これから「二重盲検で測った」と書かれた点数と、そうでない点数が混ざります。</b>数字を見るときに、どちらなのかを見る癖が要るようになります。</p>
+
+      <p class="lead"><b>今やること。</b>対応は不要。ベンチマークの数字を根拠に使うとき、測り方が書いてあるかだけ見る。</p>
+    </article>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=anthropic.com&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Anthropic</div>
+      <h3>MCPの隣に、機械を動かすための標準がもう1本立った — Model Hardware Standard</h3>
+      <div class="tags">
+        <span class="tag">8/27 公開</span>
+        <span class="tag">エージェントを作る人</span>
+        <span class="tag">リサーチプレビュー</span>
+      </div>
+
+      <p class="lead">Anthropic が Model Hardware Standard（MHS）のリサーチプレビューを始めました。<b>AIエージェントが物理的な機械を安全に動かすための共通仕様</b>です。顕微鏡・分注機・ロボットアームなどを並列に動かす想定です。</p>
+
+      <p class="lead">仕組みは拍子抜けするほど単純です。デバイスごとにバラバラなインターフェースを、<b>標準ドライバが <code>read</code> と <code>write</code> という最小の命令に翻訳します</b>（「温度を読む」「温度を設定する」）。</p>
+
+      <p class="lead">読者に関係があるのは、次の一文です。</p>
+
+      <div class="code wrap"><div class="code-head">Anthropic「Previewing the Model Hardware Standard」</div><pre>MHS works with any device that has a programmable interface. It is also model-agnostic, and any agent harness can access it using standard protocols, such as the Model Context Protocol.</pre></div>
+
+      <p class="lead"><b>モデル非依存で、MCP のような標準プロトコル越しに、どのエージェントからでも触れる</b>と書かれています。つまり Anthropic 専用の囲い込みではなく、<mark>MCPが「ソフトの外部接続」を担ったのと同じ位置に、ハードウェア側の標準を置こうとしています</mark>。</p>
+
+      <p class="lead">いまは申請制で、科学研究所と先端製造の第一陣だけです。将来オープンソースにする予定だと書かれていますが、<b>時期は書かれていません。</b></p>
+
+      <p class="lead"><b>今やること。</b>対応は不要。エージェント周りの標準の地図に、MCPの隣を1つ空けておく。</p>
+    </article>
+  </section>
+
+  <!-- ============ モデル・業界 ============ -->
+  <section class="section section-a" id="industry">
+    <h2>🏢 モデル・業界<span class="n">1件</span></h2>
+
+    <article class="item">
+      <div class="source"><img src="https://www.google.com/s2/favicons?domain=ai.google.dev&amp;sz=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">Google</div>
+      <h3>Gemini の動画生成モデルが正式版になり、プレビュー版は9月30日で終わる</h3>
+      <div class="tags">
+        <span class="tag">8/27 公開</span>
+        <span class="tag">Gemini APIを叩く人</span>
+        <span class="tag">提供終了</span>
+        <span class="tag">締切あり</span>
+      </div>
+
+      <p class="lead">動画を作る・編集する Gemini のモデルが正式版になりました。名前は <code>gemini-omni-1.1-flash</code> です。</p>
+
+      <p class="lead">読者に関係があるのは、新機能ではなく<b>最後の1行</b>です。</p>
+
+      <div class="code wrap"><div class="code-head">Gemini API changelog（August 27, 2026）</div><pre>The existing gemini-omni-flash-preview endpoint will be deprecated on September 30, 2026.</pre></div>
+
+      <p class="lead"><mark>プレビュー版のエンドポイントは、2026年9月30日で非推奨になります</mark>。移行先は同じ changelog に書かれている <code>gemini-omni-1.1-flash</code> です。<b>残り1か月です。</b></p>
+
+      <p class="lead">正式版で増えたのは、動画の延長・最初と最後のフレームを指定した補間・解像度の指定（<code>360p</code> / <code>720p</code>（既定） / <code>1080p</code> / <code>4k</code>）です。1080p と 4K はアップスケールで作られる、とも書かれています。</p>
+
+      <p class="lead"><b>料金は書きません。</b>公式ブログに料金表はありますが<b>画像の中にしかなく</b>、文字として読めませんでした。読んでいないものは書きません。</p>
+
+      <p class="lead"><b>今やること。</b><code>gemini-omni-flash-preview</code> を叩いているコードがあれば9月30日までに <code>gemini-omni-1.1-flash</code> へ移す。叩いていなければ対応は不要。</p>
+    </article>
+  </section>
+
+  <!-- ============ 何を見て「無い」と判断したか ============ -->
+  <section class="section section-b" id="quiet">
+    <h2>何を見て「無い」と判断したか</h2>
+
+    <article class="item">
+      <p class="lead">件数の少ないカテゴリでは、「探さなかった」のか「探したが無かった」のかが読者に分かりません。ここに置きます。</p>
+
+      <p class="lead"><b>まず、今日は対象期間を4時間はみ出しています。</b>この号を作る定期実行が8:41（JST）に始まったためです。5:00で締めると、その3時間40分のあいだに出たものを丸ごと落とすことになります。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>載せた項目</th><th>公開時刻(JST)</th><th>標準の窓</th></tr></thead>
+          <tbody>
+            <tr><td>Google Play の技術品質要件</td><td data-label="公開時刻(JST)">8/27 2:00</td><td data-label="標準の窓">前（クライアント技術の1週間枠を使用）</td></tr>
+            <tr><td>VRChat Developer Update</td><td data-label="公開時刻(JST)">8/28 4:36</td><td data-label="標準の窓">内</td></tr>
+            <tr><td>Composer 2.10.3</td><td data-label="公開時刻(JST)">8/27 20:34</td><td data-label="標準の窓">内</td></tr>
+            <tr><td>Claude Code 2.1.248</td><td data-label="公開時刻(JST)">8/28 5:35</td><td data-label="標準の窓"><b>後（35分超過）</b></td></tr>
+            <tr><td>GitHub Actions のリテンション</td><td data-label="公開時刻(JST)">8/28 6:50</td><td data-label="標準の窓"><b>後（1時間50分超過）</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">Cowork のブラウザだけは、公開時刻が公表されていません。ページの日付は8月26日ですが、<b>昨日の号（対象期間 8/27 5:00 まで）の7項目に入っていなかった</b>ので、取りこぼしの回収として今日載せています。</p>
+
+      <p class="lead"><b>Claude Code は 2.1.248 の変更行49行を全部書き出してから判断しました。</b>内訳は Fixed 30 / Added 7 / Improved 5 / Changed 5 / [VSCode] 1 / Windows 1 です。<mark>載せた2行、落とした47行</mark>です。</p>
+
+      <p class="lead">落とした Added 6行のうち、迷ったのは3つです。<code>experimental.cacheTtl</code>（エージェントごとのキャッシュ保持時間）、<code>/usage-credits</code>（AWS Marketplace 経由のEnterprise向け）、cross-session messaging の Bedrock / Vertex / Foundry 対応。<b>いずれも読者の構成では判断が生じない</b>ため外しました。</p>
+
+      <p class="lead"><b>2.1.250 も同じ日に出ていますが、扱っていません。</b>npmでは <code>next</code> タグで 8/28 7:27 に公開されていますが、<b>CHANGELOGにこの版の記載がまだありません</b>。中身が読めないものは書けません。</p>
+
+      <p class="lead"><b>AWS は、読者の判断が要るものが1件もありませんでした。</b>What's New を対象期間で機械的に絞ると12件で、Redshift・EC2のリージョン追加・Elastic Disaster Recovery・Bedrock AgentCore・Connect・FSx for NetApp ONTAP・Backup・EVS です。ECS / Fargate / ALB / CloudFront / IAM / S3 / VPC に当たるものはありません。</p>
+
+      <p class="lead">別経路も当たりました。<b>セキュリティ速報（最新は8/25）・News Blog（最新は8/25）・Service Status（障害なし）・カスタマーアグリーメントの変更履歴（最新は8/14）のいずれにも、期間内の該当がありません。</b>値上げ・提供終了の告知もありません。</p>
+
+      <p class="lead">唯一セキュリティに隣接するのが Amazon Cognito の <code>AdminDeleteSoftwareToken</code>（TOTPの再設定用の管理API）ですが、<b>既存の挙動は変わらない追加API</b>なので外しました。</p>
+
+      <details class="note-d">
+        <summary>TiDB・Laravel・Terraform・Docker に動きが無かったこと</summary>
+        <p class="lead"><b>TiDB。</b>公開されているリリースノートの最新は 8.5.5（2026年1月15日）のままです。TiDB Cloud 側の最新エントリは8月25日で、期間の外にあります。</p>
+        <p class="lead"><b>Laravel。</b>最新は v13.29.0 で、公開は8月26日5:57（JST）。期間の外で、かつ8月27日号で既に扱っています。skeleton・horizon・sanctum・octane・telescope も期間内の新版はありません。</p>
+        <p class="lead"><b>Terraform。</b>期間内にあるのは 1.17.0-alpha20260827 だけで、プレリリースです。安定版 1.16.0 と AWSプロバイダ 6.62.0 は8月27日の未明で、これも8月27日号で扱いました。6.63.0 はCHANGELOG上まだ <code>(Unreleased)</code> です。</p>
+        <p class="lead"><b>Docker。</b>Desktop の最新は 4.88.1（8月25日）、Engine は 28.5.2 で、どちらも期間外です。</p>
+      </details>
+
+      <details class="note-d">
+        <summary>脆弱性で拾わなかったもの（CISA KEV の3件）</summary>
+        <p class="lead">8月27日 17:00（UTC）に、実際に悪用が確認された脆弱性のカタログ（CISA KEV）へ3件が追加されました。JFrog Artifactory のパストラバーサル（CVE-2026-66384）、Linuxカーネルの IPv6 経由の権限昇格（CVE-2026-53362）、ownCloud の無認証ファイル操作（CVE-2023-49105）です。</p>
+        <p class="lead"><b>3件とも、読者の構成では手が出せません。</b>Artifactory と ownCloud は使っていません。カーネルは ECS on Fargate ではAWSが持つ層なので、読者側に適用作業がありません。EC2を直接持っている場合だけ、ディストリの更新に追随することになります。</p>
+        <p class="lead">「関係がある人には重要だが、この読者は何もしない」ので、項目にはせずここに書きました。</p>
+      </details>
+
+      <p class="lead"><b>技術・研究では、論文を1本も載せていません。</b>arXiv を対象期間で検索すると0件でした。索引されている最新の投稿が8月27日2:59（JST）で、<b>期間の開始より前</b>です。arXiv は投稿を締切後にまとめて公開する運用なので、<b>「無かった」のではなく「まだ出ていない」</b>状態です。明日の号で拾い直します。</p>
+
+
+      <details class="note-d">
+        <summary>モデル・業界で見たが落とした6件</summary>
+        <p class="lead"><b>Anthropicが科学者向けに1万席を開放。</b>標準シートは1年間無料、利用上限5倍のプレミアムが月15ドル。料金・上限の変更なので基準には当たりますが、<b>対象が「学術・非営利研究機関のPI（主任研究者）またはそれに相当する立場」</b>に限られます。この媒体の読者は該当しないため外しました。</p>
+        <p class="lead"><b>GitHub Copilot の Global model policy が一般提供に。</b>9月1日にかけて順次適用され、明示的に設定していなかったモデルが既定ポリシー（既定は有効）に従うようになります。Copilot Business / Enterprise の<b>管理者</b>向けの判断なので外しました。</p>
+        <p class="lead"><b>Claude Console に personal key と service account key。</b>従来の Workspace API key は「レガシーな選択肢」の位置づけに変わりました。ただし今も動きます。読者は原則APIを直接叩かないため外しました。</p>
+        <p class="lead"><b>Cursor の Cloud Agents が、GitHub接続なしで始められるように。</b>新機能ですが、読者側に判断が生じません。</p>
+        <p class="lead"><b>OpenRouter に3モデルが追加</b>（Qwen3.8 Flash、Meta Muse Image、Ling 3.0 Flash Fin）。並んだだけで、対応は不要です。なお Ling 3.0 Flash Fin は Hugging Face にも ModelScope にも該当リポジトリが見つからず、<b>オープンウェイトかどうかは確認できていません</b>。</p>
+        <p class="lead"><b>OpenAIほか100社超のサイバー防御に関する共同書簡。</b>強制力のない声明で、読者の対応がありません。加えて <code>openai.com</code> はこの環境から403で、<b>本文を直接読めていません</b>。読めていないものを要約はしません。</p>
+      </details>
+
+      <details class="note-d">
+        <summary>障害は4件あったが、いずれも復旧済み</summary>
+        <p class="lead">対象期間に GitHub で3件（Actions と Pull Requests、Copilot のモデルプロバイダ、Billing）、OpenAI で1件（Workspace Agents / ChatGPT Work のエラー率上昇）の障害がありましたが、<b>すべて期間内に解決済み</b>です。読者が今から何かする必要はないので項目にしていません。Anthropic は期間内のインシデントがゼロでした。</p>
+      </details>
+
+      <p class="lead">最後に、<b>今日うまくいかなかったこと</b>を書いておきます。X（旧Twitter）の公式アカウント巡回は、<mark>23アカウント中13でレート制限（HTTP 429）に当たり、取得できていません</mark>。取れたのは @AnthropicAI・@OpenAI・@GoogleDeepMind・@OpenRouter・@cursor_ai ほか10アカウントです。</p>
+
+      <p class="lead">取れなかったぶんは、各社の公式ブログ・changelog・ステータスページを直接見て補いました（DeepSeek・xAI・Mistral・Meta・Kimi・Docker・Laravel・Chromium・Android・Unity・AWS）。<b>ただし「Xが初出の告知」は、この補完では拾えません。</b>取りこぼしがあり得ます。429は「到達できなかった」であって、「投稿が無かった」ではありません。</p>
+
+      <p class="lead">Hugging Face の新規公開も見ましたが、期間内に作られたものはすべて個人の実験・チェックポイントで、注目に値するものはありませんでした。直近で伸びている Qwen3.8-Flash-Next と GLM-5.3-Flash は作成が8月24日・25日で期間外、かつ8月27日号で扱っています。</p>
+    </article>
+  </section>
+
+  <!-- ============ 参考文献 ============ -->
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark>掲載した全URLは取得時にHTTPステータスを確認しています。再現用の一式は <code>_labs/2026-08-28_001/</code> に置いてあります。</p>
+
+      <p class="lead">今日から、<b>貼った英語原文が一次資料と一字一句合っているかを、目視ではなくコードで照合しています</b>（<code>_labs/2026-08-28_001/check_quotes.py</code>）。この号で回したところ、<mark>3種類の改変が見つかりました</mark>。矢印 <code>→</code> を <code>&gt;</code> に書き換えていた箇所、原文に無いバッククォートを足していた箇所、アポストロフィ <code>’</code> を <code>&#39;</code> に置き換えていた箇所です。<b>いずれも読めば意味は通るので、目で見ても気づけません。</b>3つとも直したうえで公開しています。</p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Claude Code CLI reference」<i>Claude Code 公式ドキュメント</i>, <code>--restricted</code> の項.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: オプション表の <code>--restricted</code> の行。原文は「Start in restricted mode. Use it when an evaluation harness drives claude on a shared machine and Claude Code must not run commands or read that machine’s user and project settings. Claude Code removes the built-in tools that run commands or code, and WebFetch, unless you name them individually in --tools, not through its default preset. It also confines the built-in file tools to the working directories, loads only managed settings and --settings, and refuses bypassPermissions. Requires Claude Code v2.1.248 or later」。同じ表の <code>--safe-mode</code> の行「Start with all customizations (CLAUDE.md, skills, plugins, hooks, MCP servers, custom commands and agents, output styles, workflows, custom themes, keybindings, and more) disabled — useful for troubleshooting a broken configuration.」は、記事の <code>&lt;details&gt;</code> の対比に使った（この行はローカルの <code>claude --help</code> から取得したもので、文言はドキュメントの記述と同旨）。<b>記事に貼った原文は改行位置だけを幅に合わせて折り、語句は一字も変えていない。</b></span></details>
+          <a href="https://code.claude.com/docs/en/cli-reference">https://code.claude.com/docs/en/cli-reference</a>（2026年8月28日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Claude Code CHANGELOG」<i>anthropics/claude-code リポジトリ・main ブランチ</i>, 2.1.248 の節.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: <code>## 2.1.248</code> のブロック全49行。引用した1行は「Fixed <code>/ultrareview</code> and locally seeded cloud sessions uploading uncommitted edits to <code>prod.env</code>-style and <code>*.tfvars</code> files, or to editor swap, temp, and backup copies of credential files (e.g. <code>key.pem.tmp</code>, <code>id_rsa.swo</code>); they now stay on your machine」。<code>--restricted</code> の追加行は「Added <code>--restricted</code> (or <code>CLAUDE_CODE_RESTRICTED=1</code>): removes the built-in tools that run commands or code and <code>WebFetch</code> (unless named in <code>--tools</code>), keeps file tools inside the working directory, refuses <code>bypassPermissions</code>, and ignores user, project and local settings files」。<b>いつから混入していたか・上がった先で何が起きたかは、このブロックにも公式ドキュメントにも書かれていない。</b>だから記事でも書いていない。<b>github.com はこの環境から403のため raw.githubusercontent.com 経由で取得した。</b>同じ内容は code.claude.com/docs/en/changelog でも到達を確認している。</span></details>
+          <a href="https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md">https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md</a>（2026年8月28日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Claude Code 2.1.248 の <code>--restricted</code> を実際に叩いた結果と、2.1.248 の変更行49件の内訳。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月28日、この記事を書いたコンテナ（Linux 6.18.44）で実行した。入っていたのは 2.1.248（<code>claude --version</code> で確認。更新はしていない）。<code>COLUMNS=40</code> を付けて取得し、<b>出力は加工せずそのまま貼った</b>。<code>--help</code> の生出力は左に40桁の固定の溝があり幅40に収まらないため、記事には貼らず公式ドキュメントの原文を引用した。エラー行は1行53桁で幅40を超えるが、プログラムの出力なので書き換えていない。<code>## 2.1.248</code> ブロックの箇条書きを機械的に数えた結果は Fixed 30 / Added 7 / Improved 5 / Changed 5 / [VSCode] 1 / Windows 1 = 49行で、記事で扱った2件と落とした47件の合計と一致する。公開時刻は npm レジストリの <code>time</code> フィールドで <code>2026-08-27T20:35:36.671Z</code>（JST 8/28 5:35）。同レジストリで <code>next</code> タグの 2.1.250 が <code>2026-08-27T22:27:48.314Z</code> に出ているが、<b>CHANGELOG にこの版の記載がまだ無いので扱っていない</b>。再現一式は <code>_labs/2026-08-28_001/restricted.txt</code>。</span></details>
+          <a href="https://registry.npmjs.org/@anthropic-ai/claude-code">https://registry.npmjs.org/@anthropic-ai/claude-code</a>（2026年8月28日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Claude gets its own browser in Cowork」<i>Claude Blog</i>, 2026年8月26日付.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 冒頭「Claude now has a browser built into Claude Cowork on the desktop app. When a task needs to use a website, a browser opens in the side panel and Claude navigates webpages, reads them, clicks, and types.」、Which browser, when の節「It's Claude's browser, not yours. The built-in browser is separate from your own. Claude never sees your tabs, bookmarks, or passwords. To stay signed in to your sites, you can bring your logins over site by site, from Chrome, Edge, or Firefox on macOS and from Firefox on Windows and Linux. Banking, email, and single sign-on sites are left out unless you choose to include them.」および「If you already use Claude in Chrome, it keeps working and stays your default; otherwise Claude uses the built-in browser. Switch anytime in Settings → Cowork → Preferred browser.」、Staying in control の節「Those measures meaningfully reduce the risk but can't eliminate it, so we recommend starting on sites you trust.」、Getting started の節（記事に原文を貼った箇所）。ページの Date 欄は「August 26, 2026」。<b>記事に貼った原文は改行位置だけを幅に合わせて折り、語句は一字も変えていない</b>（<code>&gt;</code> は <code>&amp;gt;</code> にエスケープした）。</span></details>
+          <a href="https://claude.com/blog/cowork-built-in-browser">https://claude.com/blog/cowork-built-in-browser</a>（2026年8月28日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Cowork のブラウザの記事を、昨日の号が扱っていなかったことの確認。
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月28日、<code>https://claude.com/sitemap.xml</code>（HTTP 200、1,458,612バイト）を取得し、<code>claude.com/blog/</code> 配下229件の <code>lastmod</code> を機械的に抽出した。<code>cowork-built-in-browser</code> は <code>2026-08-27T00:30:59.718Z</code> で、同じ日に更新された他の4件（<code>claude-in-chrome-generally-available</code> ほか）が揃って持つ <code>2026-08-26T20:46:51.070Z</code> とは別の値だった。<b><code>lastmod</code> は「最終更新」であって「初出」ではないので、これで公開時刻は決められない。</b>実際、他の4件のうち <code>claude-in-chrome-generally-available</code> は昨日の号（対象期間 8/27 5:00 JST まで）で扱っており、<code>lastmod</code> がその期間より後であることと矛盾しない。<b>初出時刻は公表されていないため、この項目が昨日の対象期間の内か外かは判定していない。</b>確かなのは、昨日の号の全7項目にこの記事が含まれていないことだけで、今日は取りこぼしの回収として載せている。ページ本文の Date 欄は「August 26, 2026」。</span></details>
+          <a href="https://claude.com/sitemap.xml">https://claude.com/sitemap.xml</a>（2026年8月28日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Composer「CHANGELOG」<i>composer/composer リポジトリ・2.10.3 タグ</i>, 2026年8月27日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: <code>### [2.10.3] 2026-08-27</code> のブロック全10行。冒頭4行が記事に貼った <code>Security:</code> の行で、残り6行は PHP 8.6 の非推奨警告、ポリシーで版がブロックされたときの出力、ロックファイルの content-hash、並列実行時のディレクトリ作成の競合、forgejo の空リポジトリ、<code>FilterListApiClient</code> の transport options の修正。<b>github.com はこの環境から403のため、jsdelivr のCDN経由で 2.10.3 タグの実体を取得した。</b>公開時刻は Packagist のAPIで <code>2026-08-27T11:34:23+00:00</code>（JST 8/27 20:34）。<b>記事に貼った原文は改行位置だけを幅に合わせて折り、語句は一字も変えていない。</b></span></details>
+          <a href="https://cdn.jsdelivr.net/gh/composer/composer@2.10.3/CHANGELOG.md">https://cdn.jsdelivr.net/gh/composer/composer@2.10.3/CHANGELOG.md</a>（2026年8月28日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          CVE-2026-59944 ほか、Composer 2.10.3 で直った4件の影響バージョン範囲と深刻度.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">3つの経路を当たったが、どれからも読めなかった。(1) Packagist のセキュリティアドバイザリAPI（<code>packagist.org/api/security-advisories/?packages[]=composer/composer</code>、HTTP 200、15件）は<b>2.10.2 のときの3件（CVE-2026-59946 / 59947 / 59948、報告日 2026-07-20）が最新</b>で、2.10.3 の4件が未収録。(2) GitHub の Advisory（GHSA-96h3-5x6v-m776 ほか）は<b>この環境から403</b>で到達できない。(3) NVD の CVE-2026-59944 は HTTP 200 だが <code>totalResults: 0</code> で未公開。<b>したがって記事では影響範囲もCVSSも書いていない。</b>「自分の版が安全か判定できない」と書いたのは、この3つの結果に基づく。403 と 404 は「到達できなかった」であって、「存在しない」の証拠ではない。</span></details>
+          <a href="https://packagist.org/api/security-advisories/?packages%5B%5D=composer/composer">https://packagist.org/api/security-advisories/?packages[]=composer/composer</a>（2026年8月28日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          GitHub「Actions retention will cover checks, workflow runs, and statuses」<i>GitHub Changelog</i>, 2026年8月27日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 冒頭段落（記事に貼った箇所）、What's changing の4項目（「The setting label in the UI will be updated to read "Check, workflow run, status, artifact and log retention"」「For public repositories, the maximum retention for checks, workflow runs, and statuses is 90 days」「<b>The change is not retroactive.</b> Adjusting your retention setting will not restore data that was previously evicted due to a retention policy.」）、Billing and storage implications の節（「repositories that previously kept artifacts and logs around longer than their configured setting may see a reduction in billable Actions storage usage」）。<b>公開時刻はページ内の JSON-LD の <code>datePublished</code> で <code>2026-08-27T21:50:39+00:00</code>（JST 8/28 6:50）。</b></span></details>
+          <a href="https://github.blog/changelog/2026-08-27-actions-retention-will-cover-checks-workflow-runs-and-statuses">https://github.blog/changelog/2026-08-27-actions-retention-will-cover-checks-workflow-runs-and-statuses</a>（2026年8月28日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          The PHP Group「PHP 8 ChangeLog」<i>php.net</i>, Version 8.4.25（27 Aug 2026）の節.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: <code>Version 8.4.25 / 27 Aug 2026</code> の PCRE の項。原文は「Fixed bug GH-21134 (Crash with \C + UTF-8). Using \C in UTF-8 patterns is now forbidden.」。同じ節にある他の項目（Core / Date / DOM / LibXML / MBString / Opcache / OpenSSL / Reflection / Session / SimpleXML / Sockets / SQLite / Standard / Streams / Sysvshm）は<b>すべて "Fixed bug" の形で、挙動が変わると書かれているのはこの1行だけ</b>だった。<b>php.net はこの環境から断続的にTLSの接続リセット（curl 35）を返す。</b>再試行して HTTP 200・696,427バイトを取得したうえで読んだ。</span></details>
+          <a href="https://www.php.net/ChangeLog-8.php">https://www.php.net/ChangeLog-8.php</a>（2026年8月28日参照。取得時 HTTP 200）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google DeepMind（William Isaac, Sol Messing, Kristian Lum）「Piloting the world's first double-blind AI evaluations」<i>Google DeepMind Blog</i>, 2026年8月27日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 導入部「Today, we're introducing the world's first double-blind evaluation of a proprietary, frontier class AI model, which keeps external evaluations confined to a cryptographic "box" ... We're partnering with the Singapore AI Safety Institute, OpenMined, AVERI, and MLCommons, to test a Gemini Flash Lite model against confidential benchmarks in a privacy-preserving environment」、How double-blind evaluations work の節（記事の対比表と、貼った原文の出どころ。「Historically, high-stakes external evaluations required a tradeoff. Either evaluators handed over their testing prompts ... or the model provider handed over their model weights」）。<b>「まだパイロットで全モデルに適用されたわけではない」と書いたのは、本文が「this pilot」と呼び、対象を "a Gemini Flash Lite model"（単数）と書いているため。</b>技術レポートへのリンクが本文にあるが、<b>そのレポート本体は読んでいない</b>ので内容に触れていない。</span></details>
+          <a href="https://deepmind.google/blog/piloting-the-worlds-first-double-blind-ai-evaluations/">https://deepmind.google/blog/piloting-the-worlds-first-double-blind-ai-evaluations/</a>（2026年8月28日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Previewing the Model Hardware Standard」<i>Anthropic News</i>, 2026年8月27日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 冒頭「We're opening a research preview of the Model Hardware Standard (MHS), a shared specification for AI agents to safely operate physical devices, to a first group of scientific research labs and advanced manufacturers.」「The development of MHS began as a collaboration between Anthropic and HHMI Janelia Research Campus.」、記事に貼った「MHS works with any device that has a programmable interface. It is also model-agnostic, and any agent harness can access it using standard protocols, such as the Model Context Protocol.」とその直前の「ahead of making the standard open source」、How MHS works の節「MHS addresses these challenges by introducing a standardized driver」と <code>read</code> / <code>write</code> のプリミティブの説明。<b>オープンソース化の時期は本文に書かれていない</b>ため、記事でも書いていない。</span></details>
+          <a href="https://www.anthropic.com/news/model-hardware-standard-research-preview">https://www.anthropic.com/news/model-hardware-standard-research-preview</a>（2026年8月28日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Gemini API changelog」<i>Google AI for Developers</i>, August 27, 2026 の項.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: <code>August 27, 2026</code> の見出しの下、Gemini Omni Flash generally available (GA) の項全体。記事に貼った1文のほか、Video extension / Interpolation (first + last frame) / Resolution control の3項目と「1080p and 4K outputs are generated using upscaling.」。<b>料金は公式ブログ側に表があるが、画像のキャプション（"Pricing table for Gemini Omni 1.1 Flash."）としてしか存在せず、文字として読めなかった。</b>そのため記事に金額を1つも書いていない。</span></details>
+          <a href="https://ai.google.dev/gemini-api/docs/changelog">https://ai.google.dev/gemini-api/docs/changelog</a>（2026年8月28日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          対象期間に「載せるものが無かった」ことの確認（AWS・arXiv ほか）.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月28日に取得して機械的に絞り込んだ。<b>AWS</b>: What's New の RSS（HTTP 200、100件）を <code>pubDate</code> で 2026-08-26 20:00Z 〜 2026-08-27 20:00Z に絞ると12件。加えてセキュリティ速報のRSS（最新 8/25 19:09Z）、News Blog の RSS（最新 8/25）、Service Status の RSS（期間内の項目なし）、カスタマーアグリーメントの変更履歴（最新 August 14, 2026）を確認した。<b>arXiv</b>: <code>cat:cs.AI</code> を <code>submittedDate</code> の降順で引くと、索引されている最新は <code>2026-08-26T17:59:51Z</code>（JST 8/27 2:59）で、対象期間の開始より前。期間を指定した検索は0件。<b>Claude Code</b>: <code>## 2.1.248</code> の箇条書きを種類別に数えて Fixed 30 / Added 7 / Improved 5 / Changed 5 / [VSCode] 1 / Windows 1 = 49行。<b>X の巡回</b>: syndication 経由で23アカウントを試み、10アカウントで取得成功、13アカウントが HTTP 429。<b>取れなかったぶんを「投稿が無かった」とは書いていない。</b></span></details>
+          <a href="https://aws.amazon.com/about-aws/whats-new/recent/feed/">https://aws.amazon.com/about-aws/whats-new/recent/feed/</a>（2026年8月28日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Elevating app quality: Reducing memory usage and improving device migration」<i>Android Developers Blog</i>, 2026年8月26日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: Reducing app memory usage and optimizing code の節（3つの指標の定義。DEXは「apps published on Google Play must be optimized with a minimum of 25% coverage across optimization, shrinking, and obfuscation using a tool such as R8 or any other shrinking tool.」）、Enforcement timeline の節（記事に原文を貼った箇所。「Additional details will be provided later this year.」も同じ段落）、Providing a secure &amp; seamless device migration experience の節（「Starting in April 2027, Google Play will require apps to meet the Zero Tap Sign-In requirement to maintain full publishing capabilities and optimal visibility in the Play Store.」「While games are currently exempt from the Zero-Tap Sign-In requirement」）。ページ上部の日付表記は「26 August 2026」で、<b>公開時刻は同ブログのAtomフィードの <code>published</code> に <code>2026-08-26T10:00:00.000-07:00</code>（JST 8/27 2:00）とある</b>（ページ本文にはタイムスタンプが無いため、フィード側で確認した）。<b>記事に貼った原文は改行位置だけを幅に合わせて折り、途中の省略は「(中略)」で明示した。語句は一字も変えていない。</b>WebViewがこの指標に乗るという説明は、Anonymous RSS の定義（「the memory used for your app's private data storage」「It excludes files stored on the device, such as code or assets.」）からの筆者の解釈であって、公式がWebViewを名指ししているわけではない。</span></details>
+          <a href="https://android-developers.googleblog.com/2026/08/app-quality-memory-optimization-secure-onboarding.html">https://android-developers.googleblog.com/2026/08/app-quality-memory-optimization-secure-onboarding.html</a>（2026年8月28日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Google「Play Console technical quality requirements」<i>Play Console ヘルプ</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: Upcoming requirements の冒頭「As announced on August 26, 2026, there are upcoming technical quality requirements for apps and games that publish on Google Play.」、Reduced memory usage の節「Like existing Android vitals metrics with Bad behavior thresholds, Play uses the last 28 days of data to evaluate your app's quality.」、しきい値の表4つ。記事の表は<b>1つ目（アプリ）と2つ目（ゲーム）の Foreground 列だけ</b>を並べたもので、原表にはさらに User-perceived services / Background / Cached の3列がある（アプリ4GBなら順に 1 GB / 1 GB / -）。ビットマップの表は Foreground が空欄、User-perceived services と Background が「&gt; 200 MB」、Cached が「&gt; 400 MB」。DEXの表は「Games with &gt; 50 MB DEX code」「Apps with &gt; 10 MB DEX code」。Zero-Tap の Exceptions and scope の節（記事に原文を貼った箇所）に加えて「Permanently private and enterprise device management apps are outside the scope of this requirement.」と、金融・医療などの規制対象アプリは Play Console から免除申請できる旨がある。</span></details>
+          <a href="https://support.google.com/googleplay/android-developer/answer/17492799">https://support.google.com/googleplay/android-developer/answer/17492799</a>（2026年8月28日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          VRChat（strasz）「Developer Update - 27 August 2026」<i>VRChat Ask Forum</i>, 2026年8月27日.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: Spookality!! の節（記事に原文を貼った箇所。直前に「here's a head's up on the timeline we're expecting for Spookality this year」とあり、確定ではなく見込みだと分かる）、Unity 6, the SDK, and VCC の節「We're hard at work on the Unity 6 SDK and VCC support! As of right now everything is going through QA to make sure creators get a smooth upgrade experience. Once we get to open beta, creators will be able to automatically install Unity 6 via VCC and migrate their projects with just a couple of clicks!」、Material Contacts の節「if enabled on a receiver, you select up to four target MeshRenderer components that will then have the full world-space transform matrix of each of the receiver's four nearest contacting senders written to their material properties」「As part of this, we're also planning to drop the update rate limit of 60 times per second currently applied to contacts.」。<b>本文は同URLに <code>.json</code> を付けて取得し、<code>created_at</code> が <code>2026-08-27T19:36:07.929Z</code>（JST 8/28 4:36）であることを確認した。</b>同じ投稿には Action Drivers と Variable Width Avatar Parameters というアバター専用の項目が2つあるが、<b>この媒体はワールド側だけを扱うため意図的に外している</b>（CLAUDE.md 第13節）。</span></details>
+          <a href="https://ask.vrchat.com/t/developer-update-27-august-2026/48877">https://ask.vrchat.com/t/developer-update-27-august-2026/48877</a>（2026年8月28日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          Contacts に「毎秒60回」の更新レート制限があるという記述の裏付け.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">Developer Update は「the update rate limit of 60 times per second currently applied to contacts」と、既存の制限として書いている。しかし <code>creators.vrchat.com</code> の Contacts のドキュメント本文を取得して探しても、<b>この数値の記載が見つからなかった</b>。したがって記事では「出どころは Developer Update だけ」と明記し、公式ドキュメントに裏付けがあるようには書いていない。無いことの証明ではなく、<b>見つけられなかった</b>という報告である。</span></details>
+          <a href="https://creators.vrchat.com/releases/">https://creators.vrchat.com/releases/</a>（2026年8月28日参照。SDKの最新が 3.10.4 のままであることの確認にも使用）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Claude Code on the web」<i>Claude Code 公式ドキュメント</i>, Send local repositories without GitHub の節.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 「When you run <code>claude --cloud</code> from a repository that isn't connected to GitHub, Claude Code bundles your local repository and uploads it directly to the cloud session. The bundle includes your full repository history across all branches, plus any uncommitted changes to tracked files.」と、その下の制限リストの「Untracked files are not included; run <code>git add</code> on files you want the cloud session to see」。記事の「追跡していないファイルは元から入らない」「上がったのは <code>git add</code> されていた場合」という記述は、この2文と 2.1.248 の CHANGELOG を突き合わせた筆者の読みであって、<b>Anthropicがその経緯を説明しているわけではない</b>。</span></details>
+          <a href="https://code.claude.com/docs/en/claude-code-on-the-web">https://code.claude.com/docs/en/claude-code-on-the-web</a>（2026年8月28日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          追跡下に認証情報らしきファイルがあるか数えるコマンドと、その出力.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">2026年8月28日、この記事を書いているリポジトリ（ai-news-dev の作業コピー）で <code>COLUMNS=40</code> を付けて実行した。<b>出力の <code>0</code> は加工していない実結果である。</b>コマンドが正しく数えられることを確かめるため、<code>/tmp</code> に空のgitリポジトリを作って <code>prod.tfvars</code> を1つ <code>git add</code> してから同じコマンドを叩き、<code>1</code> が返ることも確認した（この対照実験の出力は記事には貼っていない）。<b>このコマンドは名前でしか見ていない</b>ので、別名を付けた認証情報は見つけられない。再現一式は <code>_labs/2026-08-28_001/</code>。</span></details>
+          <a href="https://git-scm.com/docs/git-ls-files">https://git-scm.com/docs/git-ls-files</a>（2026年8月28日参照）
+        </li>
+      </ol>
+    </article>
+  </section>
+
+
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

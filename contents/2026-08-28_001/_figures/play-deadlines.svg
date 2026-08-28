@@ -1,0 +1,30 @@
+<svg viewBox="0 0 460 240" xmlns="http://www.w3.org/2000/svg">
+<g font-family="'Noto Sans JP','IPAGothic','DejaVu Sans',sans-serif">
+  <text x="10" y="24" font-size="19" font-weight="bold" fill="var(--fg)">Google Play の3つの締切</text>
+
+  <line x1="30" y1="130" x2="440" y2="130" stroke="var(--track)" stroke-width="6" stroke-linecap="round"/>
+
+  <circle cx="76" cy="130" r="13" fill="var(--c)"/>
+  <line x1="76" y1="117" x2="76" y2="82" stroke="var(--c)" stroke-width="3"/>
+  <text x="76" y="76" font-size="26" font-weight="bold" fill="var(--fg)" text-anchor="middle">9/30</text>
+  <text x="76" y="52" font-size="14" fill="var(--sub)" text-anchor="middle">2026年</text>
+  <text x="76" y="158" font-size="15" font-weight="bold" fill="var(--c)" text-anchor="middle">Block Store</text>
+  <text x="76" y="176" font-size="14" fill="var(--sub)" text-anchor="middle">までに入れれば</text>
+  <text x="76" y="193" font-size="14" fill="var(--sub)" text-anchor="middle">右端は免除</text>
+
+  <circle cx="250" cy="130" r="10" fill="none" stroke="var(--sub)" stroke-width="4"/>
+  <line x1="250" y1="120" x2="250" y2="92" stroke="var(--sub)" stroke-width="2"/>
+  <text x="250" y="84" font-size="17" font-weight="bold" fill="var(--sub)" text-anchor="middle">2027年2月</text>
+  <text x="250" y="158" font-size="14" fill="var(--sub)" text-anchor="middle">メモリ・DEX</text>
+  <text x="250" y="176" font-size="14" fill="var(--sub)" text-anchor="middle">のしきい値</text>
+
+  <circle cx="396" cy="130" r="10" fill="none" stroke="var(--sub)" stroke-width="4"/>
+  <line x1="396" y1="120" x2="396" y2="92" stroke="var(--sub)" stroke-width="2"/>
+  <text x="396" y="84" font-size="17" font-weight="bold" fill="var(--sub)" text-anchor="middle">2027年4月</text>
+  <text x="396" y="158" font-size="14" fill="var(--sub)" text-anchor="middle">ゼロタップの</text>
+  <text x="396" y="176" font-size="14" fill="var(--sub)" text-anchor="middle">サインイン復元</text>
+
+  <rect x="10" y="206" width="6" height="30" fill="var(--c)"/>
+  <text x="28" y="230" font-size="19" font-weight="bold" fill="var(--fg)">動くなら、いちばん左が先</text>
+</g>
+</svg>

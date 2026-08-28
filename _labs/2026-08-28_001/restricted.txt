@@ -1,0 +1,61 @@
+# 2026-08-28_001 の検証記録
+
+実行環境: この記事を書いたコンテナ (Linux 6.18.44)。2026年8月28日 JST 午前。
+Claude Code は環境に最初から入っていたものを、更新せずそのまま使った。
+
+## 1. claude --version
+2.1.248 (Claude Code)
+
+## 2. claude --help の --restricted の項（そのまま）
+  --restricted                          Restricted mode: removes the built-in
+                                        tools that run commands or code (Bash,
+                                        PowerShell, REPL and the other
+                                        code-running tools) and WebFetch unless
+                                        --tools names them, and ignores user,
+                                        project and local settings files
+                                        (managed settings and --settings still
+                                        apply; add --strict-mcp-config to skip
+                                        MCP servers too). Also confines the file
+                                        tools to the working directories
+                                        (--add-dir included), refuses
+                                        bypassPermissions, and lets only a
+                                        person or the configured permission
+                                        handler approve writes to settings, git
+                                        and tool-configuration files.
+
+## 3. claude --help の --safe-mode の項（対比のため）
+  --safe-mode                           Start with all customizations
+                                        (CLAUDE.md, skills, plugins, hooks, MCP
+                                        servers, custom commands and agents,
+                                        output styles, workflows, custom themes,
+                                        keybindings, and more) disabled — useful
+                                        for troubleshooting a broken
+                                        configuration. Admin-managed (policy)
+                                        settings still apply. Auth, model
+                                        selection, built-in tools, and
+
+## 4. restricted モードで bypassPermissions を渡す
+$ claude --restricted \
+    --permission-mode bypassPermissions \
+    -p "say hi"
+Error: bypassPermissions not supported in restricted mode
+[exit 1]
+
+記事に貼った出力は加工していない。COLUMNS=40 で取得したが、
+claude --help は左に40桁の固定の溝を持つため幅40に収まらない。
+そのため記事には --help の生出力を貼らず、公式ドキュメントの原文を引用した。
+エラー行は1行53桁で幅40を超えるが、プログラムの出力なので書き換えていない。
+## 5. 追跡下に認証情報らしきファイルがあるか数える
+
+### 5-1. この記事のリポジトリ（ai-news-dev）
+$ git ls-files | grep -cE \
+    '\.tfvars$|prod\.env|\.pem$|id_rsa'
+0
+
+### 5-2. 対照実験: prod.tfvars を1つ add した空リポジトリ
+(記事には貼っていない。コマンドが数えられることの確認のみ)
+$ git ls-files | grep -cE \
+    '\.tfvars$|prod\.env|\.pem$|id_rsa'
+1
+
+注: このコマンドは名前でしか見ていない。別名を付けた認証情報は見つけられない。

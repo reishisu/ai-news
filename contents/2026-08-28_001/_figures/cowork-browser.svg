@@ -1,0 +1,26 @@
+<svg viewBox="0 0 460 256" xmlns="http://www.w3.org/2000/svg">
+<g font-family="'Noto Sans JP','IPAGothic','DejaVu Sans',sans-serif">
+  <text x="10" y="26" font-size="20" font-weight="bold" fill="var(--fg)">Coworkでサイトを開かせると</text>
+
+  <rect x="10" y="46" width="132" height="60" rx="10" fill="var(--track)"/>
+  <text x="76" y="72" font-size="15" fill="var(--fg)" text-anchor="middle">Chrome拡張を</text>
+  <text x="76" y="92" font-size="15" fill="var(--fg)" text-anchor="middle">入れている？</text>
+
+  <path d="M142 62 H176 V52 H210" stroke="var(--sub)" stroke-width="2" fill="none"/>
+  <text x="176" y="44" font-size="14" fill="var(--sub)" text-anchor="middle">はい</text>
+
+  <path d="M142 90 H176 V140 H210" stroke="var(--c)" stroke-width="3" fill="none"/>
+  <text x="168" y="120" font-size="15" font-weight="bold" fill="var(--c)" text-anchor="end">いいえ</text>
+
+  <rect x="212" y="30" width="238" height="44" rx="10" fill="none" stroke="var(--track)" stroke-width="3"/>
+  <text x="331" y="58" font-size="16" fill="var(--sub)" text-anchor="middle">これまでどおり Chrome</text>
+
+  <rect x="212" y="108" width="238" height="64" rx="10" fill="var(--c)"/>
+  <text x="331" y="135" font-size="23" font-weight="bold" fill="var(--bg)" text-anchor="middle">Claude専用の</text>
+  <text x="331" y="161" font-size="23" font-weight="bold" fill="var(--bg)" text-anchor="middle">ブラウザが開く</text>
+
+  <rect x="10" y="208" width="6" height="42" fill="var(--c)"/>
+  <text x="28" y="228" font-size="21" font-weight="bold" fill="var(--fg)">届いた時点で既にオン</text>
+  <text x="28" y="248" font-size="15" fill="var(--sub)">切るのは 設定 → Cowork → Preferred browser</text>
+</g>
+</svg>

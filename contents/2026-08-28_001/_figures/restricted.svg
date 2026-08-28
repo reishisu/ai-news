@@ -1,0 +1,46 @@
+<svg viewBox="0 0 460 316" xmlns="http://www.w3.org/2000/svg">
+<g font-family="'Noto Sans JP','IPAGothic','DejaVu Sans',sans-serif">
+  <text x="10" y="26" font-size="20" font-weight="bold" fill="var(--fg)">起動時に使える道具</text>
+
+  <text x="10" y="58" font-size="15" fill="var(--sub)">これまでの起動</text>
+
+  <rect x="10" y="70" width="104" height="52" rx="9" fill="var(--track)"/>
+  <text x="62" y="93" font-size="15" fill="var(--fg)" text-anchor="middle">コマンド</text>
+  <text x="62" y="112" font-size="15" fill="var(--fg)" text-anchor="middle">実行</text>
+
+  <rect x="126" y="70" width="104" height="52" rx="9" fill="var(--track)"/>
+  <text x="178" y="102" font-size="15" fill="var(--fg)" text-anchor="middle">WebFetch</text>
+
+  <rect x="242" y="70" width="104" height="52" rx="9" fill="var(--track)"/>
+  <text x="294" y="93" font-size="15" fill="var(--fg)" text-anchor="middle">ファイル</text>
+  <text x="294" y="112" font-size="15" fill="var(--fg)" text-anchor="middle">読み書き</text>
+
+  <rect x="358" y="70" width="92" height="52" rx="9" fill="var(--track)"/>
+  <text x="404" y="93" font-size="15" fill="var(--fg)" text-anchor="middle">個人の</text>
+  <text x="404" y="112" font-size="15" fill="var(--fg)" text-anchor="middle">設定</text>
+
+  <text x="10" y="168" font-size="15" fill="var(--sub)">--restricted を付けた起動</text>
+
+  <rect x="10" y="180" width="104" height="52" rx="9" fill="none" stroke="var(--old)" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="62" y="203" font-size="15" fill="var(--old)" text-anchor="middle">コマンド</text>
+  <text x="62" y="222" font-size="15" fill="var(--old)" text-anchor="middle">実行</text>
+  <line x1="22" y1="228" x2="102" y2="184" stroke="var(--old)" stroke-width="3"/>
+
+  <rect x="126" y="180" width="104" height="52" rx="9" fill="none" stroke="var(--old)" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="178" y="212" font-size="15" fill="var(--old)" text-anchor="middle">WebFetch</text>
+  <line x1="138" y1="228" x2="218" y2="184" stroke="var(--old)" stroke-width="3"/>
+
+  <rect x="242" y="180" width="104" height="52" rx="9" fill="var(--c)"/>
+  <text x="294" y="203" font-size="17" font-weight="bold" fill="var(--bg)" text-anchor="middle">作業場所の</text>
+  <text x="294" y="223" font-size="17" font-weight="bold" fill="var(--bg)" text-anchor="middle">中だけ</text>
+
+  <rect x="358" y="180" width="92" height="52" rx="9" fill="none" stroke="var(--old)" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="404" y="203" font-size="15" fill="var(--old)" text-anchor="middle">個人の</text>
+  <text x="404" y="222" font-size="15" fill="var(--old)" text-anchor="middle">設定</text>
+  <line x1="368" y1="228" x2="440" y2="184" stroke="var(--old)" stroke-width="3"/>
+
+  <rect x="10" y="262" width="6" height="42" fill="var(--c)"/>
+  <text x="28" y="282" font-size="21" font-weight="bold" fill="var(--fg)">残るのは読み書きだけ</text>
+  <text x="28" y="302" font-size="15" fill="var(--sub)">それも作業ディレクトリの中に限られる</text>
+</g>
+</svg>
