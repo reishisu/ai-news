@@ -1,0 +1,20 @@
+<svg viewBox="0 0 460 280" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="23" font-weight="700" fill="var(--fg)">addが保証するのは1つだけ</text>
+
+  <g data-step="1">
+    <rect x="14" y="52" width="432" height="76" rx="10" fill="var(--track)"/>
+    <text x="30" y="82" font-size="17" font-family="ui-monospace, monospace" fill="var(--sub)">claude mcp add</text>
+    <text x="30" y="112" font-size="26" font-weight="700" fill="var(--sub)">設定を書いた</text>
+  </g>
+
+  <g data-step="2">
+    <line x1="230" y1="136" x2="230" y2="160" stroke="var(--sub)" stroke-width="3"/>
+    <polygon points="230,170 223.5,157 236.5,157" fill="var(--sub)"/>
+  </g>
+
+  <g data-step="3">
+    <rect x="14" y="180" width="432" height="84" rx="10" fill="var(--new)" opacity="0.42"/>
+    <text x="30" y="210" font-size="17" font-family="ui-monospace, monospace" fill="var(--fg)">claude mcp list</text>
+    <text x="30" y="242" font-size="26" font-weight="700" fill="var(--fg)">繋いでみた</text>
+  </g>
+</svg>

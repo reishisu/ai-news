@@ -1,19 +1,26 @@
 <svg viewBox="0 0 460 380" xmlns="http://www.w3.org/2000/svg" role="img">
   <text x="14" y="28" font-size="22" font-weight="700" fill="var(--fg)">読まれるのは上の2行だけ</text>
 
+  <g data-step="1">
   <rect x="14" y="46" width="434" height="142" rx="10" fill="var(--track)"/>
   <text x="30" y="72" font-size="17" font-weight="700" fill="var(--sub)">SKILL.md</text>
+  </g>
 
+  <g data-step="2">
   <rect x="30" y="84" width="402" height="48" rx="8" fill="var(--new)" opacity="0.42"/>
   <text x="44" y="106" font-size="17" font-family="ui-monospace, monospace" fill="var(--fg)">name: release-check</text>
   <text x="44" y="125" font-size="17" font-family="ui-monospace, monospace" fill="var(--fg)">description: リリース…</text>
+  </g>
 
   <rect x="30" y="140" width="402" height="40" rx="8" fill="var(--sub)" opacity="0.16"/>
   <text x="44" y="166" font-size="17" font-family="ui-monospace, monospace" fill="var(--fg)">1. git status が空 …</text>
 
+  <g data-step="3">
   <line x1="230" y1="192" x2="230" y2="214" stroke="var(--sub)" stroke-width="3"/>
   <polygon points="230,224 223.5,211 236.5,211" fill="var(--sub)"/>
+  </g>
 
+  <g data-step="4">
   <rect x="14" y="232" width="212" height="134" rx="10" fill="var(--new)" opacity="0.42"/>
   <text x="30" y="266" font-size="25" font-weight="700" fill="var(--fg)">いつも載る</text>
   <text x="30" y="300" font-size="18" fill="var(--fg)">名前と説明</text>
@@ -25,4 +32,5 @@
   <text x="252" y="300" font-size="18" fill="var(--fg)">本文</text>
   <text x="252" y="328" font-size="17" fill="var(--sub)">長くても</text>
   <text x="252" y="352" font-size="17" fill="var(--sub)">普段はタダ</text>
+  </g>
 </svg>

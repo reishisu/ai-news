@@ -1,0 +1,33 @@
+<svg viewBox="0 0 460 300" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="30" font-size="23" font-weight="700" fill="var(--fg)">中身は同じ。置き場所だけ違う</text>
+
+  <g data-step="1">
+    <text x="14" y="70" font-size="16" fill="var(--sub)">-s local</text>
+    <rect x="14" y="82" width="196" height="76" rx="10" fill="var(--track)"/>
+    <text x="30" y="112" font-size="17" font-family="ui-monospace, monospace" fill="var(--sub)">~/.claude.json</text>
+    <text x="30" y="142" font-size="27" font-weight="700" fill="var(--sub)">繋がった</text>
+  </g>
+
+  <g data-step="2">
+    <text x="250" y="70" font-size="16" fill="var(--sub)">-s project</text>
+    <rect x="250" y="82" width="196" height="76" rx="10" fill="var(--new)" opacity="0.42"/>
+    <text x="266" y="112" font-size="17" font-family="ui-monospace, monospace" fill="var(--fg)">.mcp.json</text>
+    <text x="266" y="142" font-size="27" font-weight="700" fill="var(--fg)">承認待ち</text>
+  </g>
+
+  <g data-step="3">
+    <line x1="112" y1="170" x2="112" y2="196" stroke="var(--sub)" stroke-width="3"/>
+    <polygon points="112,206 105.5,193 118.5,193" fill="var(--sub)"/>
+    <rect x="14" y="214" width="196" height="64" rx="10" fill="var(--track)"/>
+    <text x="30" y="242" font-size="18" fill="var(--sub)">すぐ使える</text>
+    <text x="30" y="266" font-size="16" fill="var(--sub)">自分だけ</text>
+  </g>
+
+  <g data-step="4">
+    <line x1="348" y1="170" x2="348" y2="196" stroke="var(--sub)" stroke-width="3"/>
+    <polygon points="348,206 341.5,193 354.5,193" fill="var(--sub)"/>
+    <rect x="250" y="214" width="196" height="64" rx="10" fill="var(--new)" opacity="0.42"/>
+    <text x="266" y="242" font-size="18" fill="var(--fg)">承認が要る</text>
+    <text x="266" y="266" font-size="16" fill="var(--sub)">チームで共有</text>
+  </g>
+</svg>

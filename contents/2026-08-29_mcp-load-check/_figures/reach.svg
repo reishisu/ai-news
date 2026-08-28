@@ -1,0 +1,26 @@
+<svg viewBox="0 0 460 316" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="30" font-size="23" font-weight="700" fill="var(--fg)">承認待ちの1台を、2通りで見る</text>
+
+  <g data-step="1">
+    <rect x="14" y="52" width="432" height="106" rx="10" fill="var(--track)"/>
+    <text x="30" y="80" font-size="17" font-family="ui-monospace, monospace" fill="var(--sub)">claude mcp list</text>
+    <rect x="30" y="92" width="192" height="48" rx="8" fill="var(--sub)" opacity="0.16"/>
+    <text x="46" y="123" font-size="25" font-weight="700" fill="var(--sub)">承認待ち</text>
+  </g>
+  <g data-step="2">
+    <text x="242" y="112" font-size="17" fill="var(--sub)">対話の話を</text>
+    <text x="242" y="134" font-size="17" fill="var(--sub)">見せている</text>
+  </g>
+
+  <g data-step="3">
+    <rect x="14" y="176" width="432" height="126" rx="10" fill="var(--new)" opacity="0.42"/>
+    <text x="30" y="204" font-size="17" font-family="ui-monospace, monospace" fill="var(--fg)">claude -p</text>
+    <rect x="30" y="216" width="192" height="48" rx="8" fill="var(--new)"/>
+    <text x="46" y="247" font-size="25" font-weight="700" fill="var(--fg)">呼べた</text>
+  </g>
+  <g data-step="4">
+    <text x="242" y="236" font-size="17" fill="var(--fg)">聞かずに</text>
+    <text x="242" y="258" font-size="17" fill="var(--fg)">読み込む</text>
+    <text x="30" y="288" font-size="16" fill="var(--sub)">設定は1文字も変えていない</text>
+  </g>
+</svg>

@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude CodeのMCPサーバーが読み込まれたか確かめる — addが成功しても繋がっていない</title>
+<meta name="description" content="claude mcp add は存在しないファイルを指しても成功します。繋がったかどうかは claude mcp list で初めて分かります。さらに .mcp.json のサーバーは一覧で「承認待ち」と出たまま、claude -p からは呼べました。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claude CodeのMCPサーバーが読み込まれたか確かめる — addが成功しても繋がっていない">
+<meta property="og:description" content="add は設定を書いただけ。繋がったかは list で確かめます。さらに一覧が「承認待ち」でも、claude -p からは呼べました。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-29_mcp-load-check/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-29_mcp-load-check/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=081fefa4">
+
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">AIで作る技術 ｜ 2026年8月29日(土)</div>
+    <h1>Claude CodeのMCPサーバーが読み込まれたか確かめる — addが成功しても繋がっていない</h1>
+    <div class="range">MCPサーバーを入れたのに、AIがそのツールを使ってくれない。原因は<b>入れ方ではなく、確かめ方</b>にあることがあります。この記事のログはすべて Claude Code 2.1.251 での実測です。<b>行を省いた箇所は「(中略)」と書きました。</b></div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 自分の設定を見るのは約3分</span>
+      <span class="tag">全部コピペOK</span>
+      <span class="tag">依存ライブラリなし</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li><b><code>claude mcp add</code> は、存在しないファイルを指しても成功します。</b><span>打ち間違えたパスでも <code>Added ...</code> と出ます。<mark>「追加できた」は「設定を書いた」という意味しかありません。</mark></span></li>
+      <li><b>繋がったかどうかは <code>claude mcp list</code> が初めて教えます。</b><span>ここで <code>√ Connected</code> になって、やっとモデルから呼べます。実際に呼ばせて確かめました。</span></li>
+      <li><b>ただし一覧の「承認待ち」は、一覧だけの話でした。</b><span><code>.mcp.json</code> のサーバーは <code>⏸ Pending approval</code> と出たままなのに、<mark><code>claude -p</code> からは普通に呼べました。</mark>公式ドキュメントにもそう書いてあります。</span></li>
+    </ol>
+
+    <div class="table">
+      <table>
+        <thead><tr><th>先に4語だけ</th><th>意味</th></tr></thead>
+        <tbody>
+          <tr><td>MCP</td><td data-label="意味">AIに外部の道具（GitHub、Notionなど）を繋ぐための共通の決まりごと。<b>M</b>odel <b>C</b>ontext <b>P</b>rotocol の略</td></tr>
+          <tr><td>MCPサーバー</td><td data-label="意味">その道具の側。AIから呼べる関数を並べて待っているプログラム</td></tr>
+          <tr><td>stdio</td><td data-label="意味">繋ぎ方の1つ。サーバーを<b>自分のPCで起動して</b>、その入出力で会話する（この記事はこれだけ扱う）</td></tr>
+          <tr><td>スコープ</td><td data-label="意味">設定をどのファイルに書くか。<code>local</code> / <code>project</code> / <code>user</code> の3つ</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">「追加できた」は「繋がった」ではない</a></li>
+      <li><a href="#s2">同じサーバーでも、置き場所が違うと片方だけ繋がらない</a></li>
+      <li><a href="#s3">承認待ちのまま、<code>claude -p</code> からは呼べた</a></li>
+      <li><a href="#s4">締め出したいときに効いた2つ</a></li>
+      <li><a href="#s5">確認の手順</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>「追加できた」は「繋がった」ではない</h2>
+
+    <article class="item">
+      <h3>存在しないファイルを指しても、addは成功する</h3>
+
+      <p class="lead">検証用に、依存ライブラリのいらない最小のMCPサーバーを1つ書きました。ツールは <code>hello</code> 1つだけです。全文は <code>_labs/</code> にあります。</p>
+
+      <p class="lead">まず<b>わざとファイル名を打ち間違えて</b>登録します。<code>hello.py</code> を <code>helo.py</code> と打ちました。</p>
+
+      <div class="code term"><div class="code-head">わざと間違えて追加する</div><pre>$ claude mcp add demo -- python3 helo.py
+<span class="ok-line">Added stdio MCP server demo with command: python3 helo.py to local config</span></pre></div>
+
+      <p class="lead"><mark><code>helo.py</code> は存在しないのに、成功しました。</mark>ここで作業を終えると、あとで「入れたのに動かない」になります。</p>
+
+      <p class="lead">一覧を見ると、初めて分かります。</p>
+
+      <div class="code term"><div class="code-head">claude mcp list（間違ったまま）</div><pre>$ claude mcp list
+Checking MCP server health…
+
+<span class="ng-line">demo: python3 helo.py - × Failed to connect — CONNECTION_CLOSED: Connection closed</span></pre></div>
+
+      <p class="lead"><b>この記事の端末ログには、幅40桁に収まらない行があります。</b>枠の中を右へスクロールしてください。サーバーのパスは短くしてから測り直しましたが、<code>Failed to connect — CONNECTION_CLOSED…</code> の部分は <code>claude</code> 自身が出す文言です。<b>こちらで縮めると書き換えになるので、そのまま貼っています。</b></p>
+
+      <p class="lead">パスを直して入れ直すと、通りました。</p>
+
+      <div class="code term"><div class="code-head">直したあと</div><pre>$ claude mcp remove demo
+$ claude mcp add demo -- python3 hello.py
+$ claude mcp list
+Checking MCP server health…
+
+<span class="ok-line">demo: python3 hello.py - √ Connected</span></pre></div>
+
+      <p class="lead">この <code>√</code> と <code>×</code> は、この環境の端末での見え方です。公式ドキュメントでは <code>✔</code> と <code>✘</code> で書かれています。</p>
+
+      <p class="lead">公式ドキュメントも、<code>add</code> と <code>list</code> の役割をはっきり分けています。</p>
+
+      <div class="code wrap"><div class="code-head">Claude Code Docs「MCP」Server status より（原文）</div><pre>claude mcp add confirms a successful add by printing an Added ... line, which means the configuration was written. claude mcp list then shows a health status next to each server it lists, such as ✔ Connected, ! Needs authentication, or ✘ Failed to connect.</pre></div>
+
+      <p class="lead">「which means the configuration was written」がすべてです。<b><code>add</code> が保証するのは、設定ファイルに書けたことだけ</b>です。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/add-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/add.png" alt="addは設定を書くだけで、listが実際に接続を試す" loading="lazy">
+        </picture>
+        <figcaption><code>add</code> と <code>list</code> は別の仕事をしている。繋いでみるのは <code>list</code> のほう。</figcaption>
+      </figure>
+
+    </article>
+
+    <article class="item">
+      <h3>一覧が通ったら、モデルからも本当に呼べた</h3>
+
+      <p class="lead">一覧の <code>√ Connected</code> は、<code>claude</code> が接続を試した結果です。では、AIから見えているのか。実際に呼ばせました。</p>
+
+      <div class="code term"><div class="code-head">モデルにツールを呼ばせる</div><pre>$ claude -p "mcp__demo__hello を name=めたん で呼ぶ" \
+  --allowedTools "mcp__demo__hello"
+<span class="ok-line">応答: 「こんにちは、めたん」</span></pre></div>
+
+      <p class="lead">サーバーが返す文字列がそのまま出ました。<mark>一覧が <code>√ Connected</code> なら、モデルからも呼べます。</mark>ここまでは素直な話です。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>同じサーバーでも、置き場所が違うと片方だけ繋がらない</h2>
+
+    <article class="item">
+      <h3>スコープを変えて、同じサーバーをもう1台足した</h3>
+
+      <p class="lead">MCPサーバーの設定は、3か所のどれかに書かれます。<code>-s</code> で選びます。</p>
+
+      <div class="table">
+        <table>
+          <thead><tr><th>スコープ</th><th>書かれる場所</th><th>誰のものか</th></tr></thead>
+          <tbody>
+            <tr><td><code>local</code>（既定）</td><td data-label="書かれる場所"><code>~/.claude.json</code></td><td data-label="誰のものか">自分だけ。いまのプロジェクトのみ</td></tr>
+            <tr><td><code>project</code></td><td data-label="書かれる場所"><code>.mcp.json</code>（プロジェクト直下）</td><td data-label="誰のものか">チーム全員。gitに入れて共有する</td></tr>
+            <tr><td><code>user</code></td><td data-label="書かれる場所"><code>~/.claude.json</code></td><td data-label="誰のものか">自分だけ。全プロジェクトで使える</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="lead">さっきの <code>demo</code>（local）を残したまま、<b>まったく同じサーバー</b>を <code>team</code> という名前で project スコープに足しました。</p>
+
+      <div class="code term"><div class="code-head">project スコープで追加</div><pre>$ claude mcp add -s project team -- python3 hello.py
+<span class="ok-line">Added stdio MCP server team with command: python3 hello.py to project config</span></pre></div>
+
+      <p class="lead">できた <code>.mcp.json</code> は、<code>demo</code> と同じ中身を指しています。</p>
+
+      <div class="code"><div class="code-head">.mcp.json</div><pre>{
+  "mcpServers": {
+    "team": {
+      "type": "stdio",
+      "command": "python3",
+      "args": [
+        "hello.py"
+      ],
+      "env": {}
+    }
+  }
+}</pre></div>
+
+      <p class="lead">同じコマンド、同じファイル、同じツール。<b>違うのは書かれた場所だけ</b>です。一覧を見ます。</p>
+
+      <div class="code term"><div class="code-head">claude mcp list（2台）</div><pre>$ claude mcp list
+Checking MCP server health…
+
+<span class="ng-line">team: python3 hello.py - ⏸ Pending approval (run `claude` to approve)</span>
+<span class="ok-line">demo: python3 hello.py - √ Connected</span></pre></div>
+
+      <p class="lead"><mark>片方だけ「承認待ち」になりました。</mark>中身は1文字も違いません。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/scope-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/scope.png" alt="同じサーバーでも、localは繋がり、projectは承認待ちになる" loading="lazy">
+        </picture>
+        <figcaption>同じサーバーを2つのスコープに入れた結果。差は置き場所だけ。</figcaption>
+      </figure>
+
+      <p class="lead">理由は公式ドキュメントに書いてあります。<b><code>.mcp.json</code> は git で配られてくるファイル</b>なので、他人が書いたコマンドが黙って動くと困る、ということです。</p>
+
+      <div class="code wrap"><div class="code-head">Claude Code Docs「MCP」Project scope より（原文）</div><pre>For security reasons, Claude Code prompts for approval in interactive sessions before using project-scoped servers from .mcp.json files. To reset those approval choices, run claude mcp reset-project-choices.</pre></div>
+
+      <p class="lead">承認するには <code>claude</code> を対話で起動します。<b>この記事の実測は無人実行の環境で取ったので、承認ダイアログそのものは出していません。</b>対話側の挙動は上の引用が根拠で、自分では確かめていません。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s3">
+    <h2><span class="step">3</span>承認待ちのまま、<code>claude -p</code> からは呼べた</h2>
+
+    <article class="item">
+      <h3>一覧の表示と、実際に読み込まれるかは別だった</h3>
+
+      <p class="lead">ここが今回いちばん意外だったところです。<code>demo</code>（local）を消して、<b>承認待ちの <code>team</code> だけ</b>にしました。</p>
+
+      <div class="code term"><div class="code-head">承認待ちの1台だけにする</div><pre>$ claude mcp remove demo
+$ claude mcp list
+Checking MCP server health…
+
+<span class="ng-line">team: python3 hello.py - ⏸ Pending approval (run `claude` to approve)</span></pre></div>
+
+      <p class="lead">この状態で、そのツールを呼ばせてみます。<b>設定は1文字も変えていません。</b></p>
+
+      <div class="code term"><div class="code-head">承認していないのに呼んでみる</div><pre>$ claude -p "mcp__team__hello を name=ずんだもん で呼ぶ" \
+  --allowedTools "mcp__team__hello"
+<span class="ok-line">「こんにちは、ずんだもん」という応答が返ってきました。</span></pre></div>
+
+      <p class="lead"><mark>呼べました。</mark>承認していないのにです。念のため、承認の記録が付いていないことも確かめました。</p>
+
+      <div class="code term"><div class="code-head">承認の記録は空のまま</div><pre>$ python3 -c "...(~/.claude.json を読む)"
+enabledMcpjsonServers = []
+disabledMcpjsonServers = []</pre></div>
+
+      <figure>
+        <picture>
+          <source srcset="images/reach-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/reach.png" alt="同じ承認待ちのサーバーが、mcp listでは承認待ち、claude -pでは呼べる" loading="lazy">
+        </picture>
+        <figcaption>同じ1台を2通りで見た結果。一覧の状態と、実際に読み込まれるかは一致しない。</figcaption>
+      </figure>
+
+      <p class="lead">これは不具合ではありません。公式ドキュメントに明記されています。</p>
+
+      <div class="code wrap"><div class="code-head">Claude Code Docs「MCP」Project scope より（原文）</div><pre>In claude -p runs, Agent SDK sessions, and cloud sessions, Claude Code can't show that prompt: it loads project-scoped servers without asking.</pre></div>
+
+      <p class="lead">承認ダイアログは<b>画面に出すもの</b>なので、画面のない実行経路では出せません。出せないので、<b>聞かずに読み込みます。</b></p>
+
+      <p class="lead">一覧の側にも、同じことが別の言い方で書いてあります。</p>
+
+      <div class="code wrap"><div class="code-head">Claude Code Docs「MCP」Server status より（原文）</div><pre>The statuses in this list report a configuration decision rather than a connection attempt, so Claude Code prints them without connecting to the server:</pre></div>
+
+      <p class="lead">つまり <code>⏸ Pending approval</code> は<b>接続を試した結果ではありません</b>。<code>√ Connected</code> だけが実際に繋いだ結果で、承認待ちは「対話で起動したらこうなる」という予告です。</p>
+
+      <ul class="points">
+        <li><b>CI・自動実行では、承認待ちのサーバーも動きます。</b>「一覧が承認待ちだから止まっている」と思っていると、実際には読み込まれています。</li>
+        <li><b>逆に、対話で使えていたものがCIで止まることは、この理由では起きません。</b>止まるとしたら別の原因です。</li>
+        <li><b>他人の <code>.mcp.json</code> を <code>git pull</code> したときは、中身を読んでください。</b>対話なら聞かれますが、自動実行では聞かれません。</li>
+      </ul>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s4">
+    <h2><span class="step">4</span>締め出したいときに効いた2つ</h2>
+
+    <article class="item">
+      <h3>どちらも、この環境で実際に効いた</h3>
+
+      <p class="lead">「自動実行では聞かれない」なら、聞かれなくても入らないようにする方法が要ります。公式ドキュメントが挙げている手段のうち、<b>2つを実際に試しました。</b></p>
+
+      <p class="lead">1つ目は <code>--strict-mcp-config</code>。<code>--mcp-config</code> で明示的に渡したサーバー以外を全部無視します。</p>
+
+      <div class="code term"><div class="code-head">--strict-mcp-config を付ける</div><pre>$ claude -p "mcp__team__hello を呼ぶ。無ければツールが無いと言う" \
+  --allowedTools "mcp__team__hello" \
+  --strict-mcp-config
+<span class="ng-line">mcp__team__hello というツールはありません。</span></pre></div>
+
+      <p class="lead">2つ目は <code>disabledMcpjsonServers</code>。プロジェクトの <code>.claude/settings.json</code> に名前を並べます。</p>
+
+      <div class="code"><div class="code-head">.claude/settings.json</div><pre>{
+  "disabledMcpjsonServers": ["team"]
+}</pre></div>
+
+      <div class="code term"><div class="code-head">拒否された状態</div><pre>$ claude mcp get team
+team:
+  Scope: Project config (shared via .mcp.json)
+<span class="ng-line">  Status: × Rejected (see disabledMcpjsonServers in settings)</span></pre></div>
+
+      <p class="lead">この状態で呼ばせると、今度はツールがありませんでした。</p>
+
+      <div class="code term"><div class="code-head">拒否中に呼んでみる</div><pre>$ claude -p "mcp__team__hello を呼ぶ。無ければツールが無いと言う" \
+  --allowedTools "mcp__team__hello"
+<span class="ng-line">mcp__team__hello というツールは存在しません。</span></pre></div>
+
+      <p class="lead">ここでもう1つ、引っかかりやすい挙動が出ました。<b>拒否したサーバーは、一覧から丸ごと消えます。</b></p>
+
+      <div class="code term"><div class="code-head">拒否中の claude mcp list</div><pre>$ claude mcp list
+<span class="ng-line">No MCP servers configured. Use `claude mcp add` to add a server.</span></pre></div>
+
+      <p class="lead"><mark><code>.mcp.json</code> は残っているのに「1台も設定されていません」と出ます。</mark>公式ドキュメントは、この状態が <code>get</code> にだけ出ると書いています。</p>
+
+      <div class="code wrap"><div class="code-head">Claude Code Docs「MCP」Server status より（原文）</div><pre>✘ Rejected (see disabledMcpjsonServers in settings): a .mcp.json server that a disabledMcpjsonServers entry rejects. Claude Code shows it only in claude mcp get &lt;name&gt;.</pre></div>
+
+      
+      <figure>
+        <picture>
+          <source srcset="images/rejected-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/rejected.png" alt="拒否したサーバーはlistから消えるが、getには出る" loading="lazy">
+        </picture>
+        <figcaption>同じ1台。<code>list</code> からは名前ごと消え、<code>get</code> には残る。</figcaption>
+      </figure>
+
+      <p class="lead">なので<b><code>list</code> が空でも、設定が無いとは限りません。</b>名前が分かっているなら <code>claude mcp get &lt;名前&gt;</code> で見てください。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s5">
+    <h2><span class="step">5</span>確認の手順</h2>
+
+    <article class="item">
+      <h3>入れたあと、この順で見る</h3>
+
+      <p class="lead">今回分かったことを、そのまま手順にするとこうなります。</p>
+
+      <figure>
+        <picture>
+          <source srcset="images/steps-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/steps.png" alt="listで繋がりを見て、getで補い、最後に使う経路で1回呼ばせる" loading="lazy">
+        </picture>
+        <figcaption>最後の1段が要。一覧で止めず、実際に使う経路で呼ばせるまでやる。</figcaption>
+      </figure>
+
+
+      <ul class="checklist" data-key="mcp-load-check-2026-08-29">
+        <li><label><input type="checkbox"><span><b>入れたあと <code>claude mcp list</code> を叩いた。</b><code>Added</code> が出たことは根拠になりません</span></label></li>
+        <li><label><input type="checkbox"><span><b><code>√ Connected</code> になっているか見た。</b><code>× Failed to connect</code> ならパスかコマンドの誤りです</span></label></li>
+        <li><label><input type="checkbox"><span><b>一覧が空でも <code>claude mcp get &lt;名前&gt;</code> を見た。</b>拒否されたサーバーは一覧から消えます</span></label></li>
+        <li><label><input type="checkbox"><span><b>実際に使う経路で1回呼ばせた。</b>対話と <code>claude -p</code> では読み込まれる範囲が違います</span></label></li>
+      </ul>
+      <p class="lead">上から順に潰してください。<span class="cl-count">0 / 4</span></p>
+
+      <p class="lead">最後の1行が、この記事の結論です。<b>一覧は「対話で起動したらどうなるか」を見せています。</b>CIや自動実行で使うつもりなら、その経路で1回呼ばせるまで確認は終わりません。</p>
+
+      <details>
+        <summary>今回試していないこと</summary>
+        <ul class="points">
+          <li><b>対話セッションは踏んでいません。</b>無人実行の環境なので、承認ダイアログを出す経路そのものがありません。</li>
+          <li><b>stdio 以外は試していません。</b>HTTP / SSE のサーバーと、<code>! Needs authentication</code> の状態は再現していません。</li>
+          <li><b>実在のMCPサーバーには接続していません。</b>全部、自分で書いた最小のサーバーです。</li>
+          <li><b><code>user</code> スコープと <code>reset-project-choices</code> は実行していません。</b>承認済みの状態を作れなかったので、戻す対象がありませんでした。</li>
+        </ul>
+      </details>
+    </article>
+  </section>
+
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Connect Claude Code to tools via MCP」<i>Claude Code Documentation</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: Server status 節 —「claude mcp add confirms a successful add by printing an Added ... line, which means the configuration was written.」および「The statuses in this list report a configuration decision rather than a connection attempt…」、「✘ Rejected …: Claude Code shows it only in claude mcp get &lt;name&gt;.」。Project scope 節 —「For security reasons, Claude Code prompts for approval in interactive sessions…」および「In claude -p runs, Agent SDK sessions, and cloud sessions, Claude Code can't show that prompt: it loads project-scoped servers without asking.」。MCP installation scopes 節のスコープ表（local / project / user の保存先）。全文1,471行を curl で取得して該当節を読んだ。</span>
+          </details>
+          <a href="https://code.claude.com/docs/en/mcp">https://code.claude.com/docs/en/mcp</a>（2026年8月29日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Claude Code 2.1.251 / Ubuntu 24.04.4 LTS（Linux 6.18.44）/ Python 3.11.15。2026年8月29日 05:00〜06:00 JST に実行。
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">再現一式は <code>_labs/2026-08-29_mcp-load-check/</code>（<code>run_all.sh</code> / <code>hello_server.py</code> / <code>output.txt</code>）。記事に貼った端末ログは <code>output.txt</code> からの抜粋で、<b>1文字も加工していない</b>。<code>export COLUMNS=40</code> を付けて実行し、サーバーのパスを短くしてから測り直した（出力形式を先に直す、CLAUDE.md 第4節）。それでも40桁に収まらない行は <code>claude</code> 自身の文言なので、そのまま貼った。各段は1回ずつ実行しており、繰り返し試行はしていない。</span>
+          </details>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          第5節の確認手順は、標準でも公式の推奨でもありません。<b>今回の実測から筆者が組んだ運用上の目安</b>です。
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          対話セッションでの承認ダイアログの見た目と操作、<code>! Needs authentication</code> の状態、HTTP / SSE トランスポートの挙動。<b>この環境は無人実行のため踏めていません。</b>本文では公式ドキュメントの記述としてのみ扱い、実測とは分けて書きました。
+        </li>
+      </ol>
+    </article>
+  </section>
+
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>AIニュース デイリーダイジェスト</p>
+</footer>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

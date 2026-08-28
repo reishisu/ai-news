@@ -1,0 +1,9 @@
+{
+  "category": "AIで作る技術",
+  "tags": ["Claude Code", "MCP", "実測", "公式ドキュメント", "入門"],
+  "featured": true,
+  "title": "Claude CodeのMCPサーバーが読み込まれたか確かめる — addが成功しても繋がっていない",
+  "summary": "claude mcp add は存在しないファイルを指しても成功します。繋がったかどうかは claude mcp list で初めて分かりました。さらに .mcp.json のサーバーは一覧に「承認待ち」と出たまま、claude -p からは普通に呼べました。一覧の表示と、実際に読み込まれる範囲は別物です。",
+  "thumbnail": "images/thumb.png",
+  "thumb": { "main": "MCPを入れたら｜必ず確かめる", "sub": "add が成功しても繋がっていない" }
+}

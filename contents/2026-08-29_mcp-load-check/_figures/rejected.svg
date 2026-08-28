@@ -1,0 +1,21 @@
+<svg viewBox="0 0 460 300" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="30" font-size="23" font-weight="700" fill="var(--fg)">拒否した1台を、2通りで見る</text>
+
+  <g data-step="1">
+    <rect x="14" y="52" width="432" height="98" rx="10" fill="var(--track)"/>
+    <text x="30" y="80" font-size="17" font-family="ui-monospace, monospace" fill="var(--sub)">claude mcp list</text>
+    <text x="30" y="116" font-size="26" font-weight="700" fill="var(--sub)">1台も無い</text>
+    <text x="30" y="140" font-size="16" fill="var(--sub)">名前ごと消える</text>
+  </g>
+
+  <g data-step="2">
+    <rect x="14" y="166" width="432" height="98" rx="10" fill="var(--new)" opacity="0.42"/>
+    <text x="30" y="194" font-size="17" font-family="ui-monospace, monospace" fill="var(--fg)">claude mcp get</text>
+    <text x="30" y="230" font-size="26" font-weight="700" fill="var(--fg)">Rejected</text>
+    <text x="30" y="254" font-size="16" fill="var(--sub)">こちらには出る</text>
+  </g>
+
+  <g data-step="3">
+    <text x="14" y="288" font-size="18" fill="var(--sub)">.mcp.json は消えていない</text>
+  </g>
+</svg>

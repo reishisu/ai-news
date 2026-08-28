@@ -1,0 +1,22 @@
+<svg viewBox="0 0 460 296" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="23" font-weight="700" fill="var(--fg)">確かめる順番</text>
+
+  <g data-step="1">
+    <rect x="14" y="50" width="432" height="62" rx="10" fill="var(--track)"/>
+    <text x="30" y="76" font-size="17" font-family="ui-monospace, monospace" fill="var(--sub)">claude mcp list</text>
+    <text x="30" y="100" font-size="18" fill="var(--sub)">繋がったか</text>
+  </g>
+
+  <g data-step="2">
+    <rect x="14" y="122" width="432" height="62" rx="10" fill="var(--track)"/>
+    <text x="30" y="148" font-size="17" font-family="ui-monospace, monospace" fill="var(--sub)">claude mcp get</text>
+    <text x="30" y="172" font-size="18" fill="var(--sub)">一覧が空でも見る</text>
+  </g>
+
+  <g data-step="3">
+    <rect x="14" y="194" width="432" height="88" rx="10" fill="var(--new)" opacity="0.42"/>
+    <text x="30" y="222" font-size="17" font-family="ui-monospace, monospace" fill="var(--fg)">claude -p</text>
+    <text x="30" y="254" font-size="26" font-weight="700" fill="var(--fg)">1回呼ばせる</text>
+    <text x="30" y="274" font-size="16" fill="var(--sub)">使う経路で確かめる</text>
+  </g>
+</svg>

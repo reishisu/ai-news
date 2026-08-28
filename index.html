@@ -30,16 +30,16 @@
 <main class="container">
 
   <section class="hero">
-    <a class="hero-card" href="contents/2026-08-28_001/">
-      <img class="hero-thumb" src="contents/2026-08-28_001/images/thumb.png" alt="" width="1280" height="720" fetchpriority="high">
+    <a class="hero-card" href="contents/2026-08-29_mcp-load-check/">
+      <img class="hero-thumb" src="contents/2026-08-29_mcp-load-check/images/thumb.png" alt="" width="1280" height="720" fetchpriority="high">
       <div class="hero-body">
         <div class="hero-meta">
           <span class="hero-badge">最新号</span>
-          <span class="hero-cat">デイリーダイジェスト</span>
-          <span class="hero-date">2026年8月28日(金)</span>
+          <span class="hero-cat">AIで作る技術</span>
+          <span class="hero-date">2026年8月29日(土)</span>
         </div>
-        <h1 class="hero-title">AI-news：2026/08/28 — Composer 2.10.3 はセキュリティ修正が4件</h1>
-        <p class="hero-sum">Composer 2.10.3 はCHANGELOGの先頭4行が全部セキュリティ修正で、1件目は悪意あるパッケージを入れるだけで踏みうると読めます。GitHub Actions の実行履歴は10月1日から既定90日で消えるようになります。Claude Code 2.1.248 の --restricted を実際に叩いて、bypassPermissions が拒否されることを確かめました。</p>
+        <h1 class="hero-title">Claude CodeのMCPサーバーが読み込まれたか確かめる — addが成功しても繋がっていない</h1>
+        <p class="hero-sum">claude mcp add は存在しないファイルを指しても成功します。繋がったかどうかは claude mcp list で初めて分かりました。さらに .mcp.json のサーバーは一覧に「承認待ち」と出たまま、claude -p からは普通に呼べました。一覧の表示と、実際に読み込まれる範囲は別物です。</p>
         <span class="hero-go">この号を読む</span>
       </div>
     </a>
@@ -73,7 +73,7 @@
   <section class="posts">
     <div class="posts-head">
       <h2>記事一覧</h2>
-      <span class="posts-count"><b id="hitCount">43</b>件</span>
+      <span class="posts-count"><b id="hitCount">44</b>件</span>
     </div>
 
     <div class="finder">
@@ -84,13 +84,13 @@
       </div>
       <div class="tag-bar" id="tagBar">
       <button class="tag-chip is-on" type="button" data-tag="">すべて</button>
-      <button class="tag-chip" type="button" data-tag="実測">#実測<i>27</i></button>
-      <button class="tag-chip" type="button" data-tag="公式ドキュメント">#公式ドキュメント<i>21</i></button>
-      <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>17</i></button>
+      <button class="tag-chip" type="button" data-tag="実測">#実測<i>28</i></button>
+      <button class="tag-chip" type="button" data-tag="公式ドキュメント">#公式ドキュメント<i>22</i></button>
+      <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>18</i></button>
       <button class="tag-chip" type="button" data-tag="AWS">#AWS<i>12</i></button>
       <button class="tag-chip" type="button" data-tag="WebView">#WebView<i>12</i></button>
       <button class="tag-chip" type="button" data-tag="セキュリティ">#セキュリティ<i>11</i></button>
-      <button class="tag-chip" type="button" data-tag="入門">#入門<i>10</i></button>
+      <button class="tag-chip" type="button" data-tag="入門">#入門<i>11</i></button>
       <button class="tag-chip" type="button" data-tag="Laravel">#Laravel<i>8</i></button>
       <button class="tag-chip" type="button" data-tag="Anthropic">#Anthropic<i>6</i></button>
       <button class="tag-chip" type="button" data-tag="Android">#Android<i>5</i></button>
@@ -112,6 +112,7 @@
       <button class="tag-chip" type="button" data-tag="Copilot">#Copilot<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="Gemini">#Gemini<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="IAM">#IAM<i>2</i></button>
+      <button class="tag-chip" type="button" data-tag="MCP">#MCP<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="デプロイ">#デプロイ<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="フック">#フック<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="料金改定">#料金改定<i>2</i></button>
@@ -119,6 +120,18 @@
     </div>
 
     <div class="post-list" id="postList">
+      <a class="post-card" href="contents/2026-08-29_mcp-load-check/"
+         data-tags="Claude Code|MCP|実測|公式ドキュメント|入門" data-category="AIで作る技術"
+         data-date="2026-08-29" data-search="claude codeのmcpサーバーが読み込まれたか確かめる — addが成功しても繋がっていない claude mcp add は存在しないファイルを指しても成功します。繋がったかどうかは claude mcp list で初めて分かりました。さらに .mcp.json のサーバーは一覧に「承認待ち」と出たまま、claude -p からは普通に呼べました。一覧の表示と、実際に読み込まれる範囲は別物です。 aiで作る技術 claude code mcp 実測 公式ドキュメント 入門 claude codeのmcpサーバーが読み込まれたか確かめる — addが成功しても繋がっていない aiニュース デイリーダイジェスト aiで作る技術 ｜ 2026年8月29日(土) claude codeのmcpサーバーが読み込まれたか確かめる — addが成功しても繋がっていない mcpサーバーを入れたのに、aiがそのツールを使ってくれない。原因は 入れ方ではなく、確かめ方 にあることがあります。この記事のログはすべて claude code 2.1.251 での実測です。 行を省いた箇所は「(中略)」と書きました。 ⏱ 自分の設定を見るのは約3分 全部コピペok 依存ライブラリなし ⭐ 3行で言うと claude mcp add は、存在しないファイルを指しても成功します。 打ち間違えたパスでも added ... と出ます。 「追加できた」は「設定を書いた」という意味しかありません。 繋がったかどうかは claude mcp list が初めて教えます。 ここで √ connected になって、やっとモデルから呼べます。実際に呼ばせて確かめました。 ただし一覧の「承認待ち」は、一覧だけの話でした。 .mcp.json のサーバーは ⏸ pending approval と出たままなのに、 claude -p からは普通に呼べました。 公式ドキュメントにもそう書いてあります。 先に4語だけ 意味 mcp aiに外部の道具（github、notionなど）を繋ぐための共通の決まりごと。 m odel c ontext p rotocol の略 mcpサーバー その道具の側。aiから呼べる関数を並べて待っているプログラム stdio 繋ぎ方の1つ。サーバーを 自分のpcで起動して 、その入出力で会話する（この記事はこれだけ扱う） スコープ 設定をどのファイルに書くか。 local / project / user の3つ 目次 「追加できた」は「繋がった」ではない 同じサーバーでも、置き場所が違うと片方だけ繋がらない 承認待ちのまま、 claude -p からは呼べた 締め出したいときに効いた2つ 確認の手順 参考文献 1 「追加できた」は「繋がった」ではない 存在しないファイルを指しても、addは成功する 検証用に、依存ライブラリのいらない最小のmcpサーバーを1つ書きました。ツールは hello 1つだけです。全文は _labs/ にあります。 まず わざとファイル名を打ち間違えて 登録します。 hello.py を helo.py と打ちました。 わざと間違えて追加する $ claude mcp add demo -- python3 helo.py added stdio mcp server demo with command: python3 helo.py to local config helo.py は存在しないのに、成功しました。 ここで作業を終えると、あとで「入れたのに動かない」になります。 一覧を見ると、初めて分かります。 claude mcp list（間違ったまま） $ claude mcp list checking mcp server health… demo: python3 helo.py - × failed to connect — connection_closed: connection closed この記事の端末ログには、幅40桁に収まらない行があります。 枠の中を右へスクロールしてください。サーバーのパスは短くしてから測り直しましたが、 failed to connect — connection_closed… の部分は claude 自身が出す文言です。 こちらで縮めると書き換えになるので、そのまま貼っています。 パスを直して入れ直すと、通りました。 直したあと $ claude mcp remove demo $ claude mcp add demo -- python3 hello.py $ claude mcp list checking mcp server health… demo: python3 hello.py - √ connected この √ と × は、この環境の端末での見え方です。公式ドキュメントでは ✔ と ✘ で書かれています。 公式ドキュメントも、 add と list の役割をはっきり分けています。 claude code docs「mcp」server status より（原文） claude mcp add confirms a successful add by printing an added ... line, which means the configuration was written. claude mcp list then shows a health status next to each server it lists, such as ✔ connected, ! needs authentication, or ✘ failed to connect. 「which means the configuration was written」がすべてです。 add が保証するのは、設定ファイルに書けたことだけ です。 add と list は別の仕事をしている。繋いでみるのは list のほう。 一覧が通ったら、モデルからも本当に呼べた 一覧の √ connected は、 claude が接続を試した結果です。では、aiから見えているのか。実際に呼ばせました。 モデルにツールを呼ばせる $ claude -p &quot;mcp__demo__hello を name=めたん で呼ぶ&quot; \ --allowedtools &quot;mcp__demo__hello&quot; 応答: 「こんにちは、めたん」 サーバーが返す文字列がそのまま出ました。 一覧が √ connected なら、モデルからも呼べます。 ここまでは素直な話です。 2 同じサーバーでも、置き場所が違うと片方だけ繋がらない スコープを変えて、同じサーバーをもう1台足した mcpサーバーの設定は、3か所のどれかに書かれます。 -s で選びます。 スコープ 書かれる場所 誰のものか local （既定） ~/.claude.json 自分だけ。いまのプロジェクトのみ project .mcp.json （プロジェクト直下） チーム全員。gitに入れて共有する user ~/.claude.json 自分だけ。全プロジェクトで使える さっきの demo （local）を残したまま、 まったく同じサーバー を team という名前で project スコープに足しました。 project スコープで追加 $ claude mcp add -s project team -- python3 hello.py added stdio mcp server team with command: python3 hello.py to project config できた .mcp.json は、 demo と同じ中身を指しています。 .mcp.json { &quot;mcpservers&quot;: { &quot;team&quot;: { &quot;type&quot;: &quot;stdio&quot;, &quot;command&quot;: &quot;python3&quot;, &quot;args&quot;: [ &quot;hello.py&quot; ], &quot;env&quot;: {} } } } 同じコマンド、同じファイル、同じツール。 違うのは書かれた場所だけ です。一覧を見ます。 claude mcp list（2台） $ claude mcp list checking mcp server health… team: python3 hello.py - ⏸ pending approval (run `claude` to approve) demo: python3 hello.py - √ connected 片方だけ「承認待ち」になりました。 中身は1文字も違いません。 同じサーバーを2つのスコープに入れた結果。差は置き場所だけ。 理由は公式ドキュメントに書いてあります。 .mcp.json は git で配られてくるファイル なので、他人が書いたコマンドが黙って動くと困る、ということです。 claude code docs「mcp」project scope より（原文） for security reasons, claude code prompts for approval in interactive sessions before using project-scoped servers from .mcp.json files. to reset those approval choices, run claude mcp reset-project-choices. 承認するには claude を対話で起動します。 この記事の実測は無人実行の環境で取ったので、承認ダイアログそのものは出していません。 対話側の挙動は上の引用が根拠で、自分では確かめていません。 3 承認待ちのまま、 claude -p からは呼べた 一覧の表示と、実際に読み込まれるかは別だった ここが今回いちばん意外だったところです。 demo （local）を消して、 承認待ちの team だけ にしました。 承認待ちの1台だけ">
+        <img class="post-thumb" src="contents/2026-08-29_mcp-load-check/images/thumb.png" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;post-thumb-ph&quot;>📰</div>'">
+        <div class="post-body">
+          <div class="post-date"><span class="post-cat">AIで作る技術</span>2026年8月29日(土)</div>
+          <h3 class="post-title">Claude CodeのMCPサーバーが読み込まれたか確かめる — addが成功しても繋がっていない</h3>
+          <p class="post-summary">claude mcp add は存在しないファイルを指しても成功します。繋がったかどうかは claude mcp list で初めて分かりました。さらに .mcp.json のサーバーは一覧に「承認待ち」と出たまま、claude -p からは普通に呼べました。一覧の表示と、実際に読み込まれる範囲は別物です。</p>
+          <div class="post-tags"><span class="post-tag">#Claude Code</span><span class="post-tag">#MCP</span><span class="post-tag">#実測</span><span class="post-tag">#公式ドキュメント</span></div>
+          <span class="post-more">続きを読む →</span>
+        </div>
+      </a>
       <a class="post-card" href="contents/2026-08-28_001/"
          data-tags="Composer|Claude Code|セキュリティ|WebView|VRChat|実測" data-category="デイリーダイジェスト"
          data-date="2026-08-28" data-search="ai-news：2026/08/28 — composer 2.10.3 はセキュリティ修正が4件 composer 2.10.3 はchangelogの先頭4行が全部セキュリティ修正で、1件目は悪意あるパッケージを入れるだけで踏みうると読めます。github actions の実行履歴は10月1日から既定90日で消えるようになります。claude code 2.1.248 の --restricted を実際に叩いて、bypasspermissions が拒否されることを確かめました。 デイリーダイジェスト composer claude code セキュリティ webview vrchat 実測 ai-news：2026/08/28 — composer 2.10.3 はセキュリティ修正が4件 aiニュース デイリーダイジェスト 2026年8月28日(金) ai-news：2026/08/28 — composer 2.10.3 はセキュリティ修正が4件 対象期間: 8月27日(木) 5:00 〜 8月28日(金) 9:00 jst（窓を延ばした理由は末尾に） ▶ この号を動画で見る（10分） ずんだもん×四国めたんの掛け合い・毎朝更新のyoutube版 ▶ cowork の専用ブラウザを動画で見る（8分） 届いた時点でオン。切り方まで、掛け合いで ⭐ 今日の3行まとめ composer 2.10.3 は、セキュリティ修正が4件 1件目は 悪意あるパッケージを入れるだけで踏みうる と読めます。影響バージョンの範囲はまだ公表されていないので、いま安全かは判定できません。 github actions の実行履歴が、10月1日から消えるようになる 400日以上残っていたものが 既定90日 に。遡って復元はできません。 claude code 2.1.248 に、コマンドを実行しない起動モードが付いた --restricted で実行系と webfetch が外れます。 bypasspermissions を渡すと起動せず終了コード1 で止まることを実測しました。 目次 実務者向けのai開発ツール(3件) claude code の --restricted / *.tfvars の流出修正 / cowork の専用ブラウザ web開発・インフラ(3件) composer 2.10.3 / github actions は10月1日 / php 8.4.25 クライアント技術(3件) google play の要件と9月30日の締切 / vrchat の spookality 技術・研究(2件) 二重盲検の評価 / model hardware standard モデル・業界(1件) gemini の動画モデル、プレビュー版は9月30日まで 何を見て「無い」と判断したか 参考文献 🧰 実務者向けのai開発ツール 3件 anthropic claude code 2.1.248 に --restricted が付いた — コマンドを実行させない起動モード claude code を使う人 新機能 セキュリティ 8/28 5:35 公開 claude code 2.1.248 に、起動オプション --restricted が増えました。付けて起動すると、コマンドやコードを走らせる道具が全部外れます。 外れるのは bash・powershell・repl などの実行系と、 webfetch （ネットからページを取ってくる道具）です。残るのはファイルの読み書きだけで、それも 作業ディレクトリの中に閉じ込められます 。 残るのはファイルの読み書きだけ。それも作業ディレクトリの中に限られる。 道具だけの話ではありません。 設定ファイルの読み方も変わります。 公式ドキュメント（cli reference の --restricted ） start in restricted mode. use it when an evaluation harness drives claude on a shared machine and claude code must not run commands or read that machine’s user and project settings. claude code removes the built-in tools that run commands or code, and webfetch, unless you name them individually in --tools, not through its default preset. it also confines the built-in file tools to the working directories, loads only managed settings and --settings, and refuses bypasspermissions. requires claude code v2.1.248 or later つまり ~/.claude/settings.json のような個人の設定・プロジェクトの設定・ローカルの設定を読みません。読むのは組織が配る managed settings と、コマンドラインで渡した --settings だけです。 「他人の機械の設定を当てにしないで動かしたい」ときのためのモードだと、公式ドキュメントは書いています。共有マシンで採点用のハーネスが claude を回す場面が例に挙がっています。 実際に動くのか確かめました。この環境に入っているのは 2.1.248 です。 bypasspermissions （権限の確認を全部飛ばす指定）を一緒に渡すと、 起動せずに終了します 。 実行した結果（幅40桁で取得） $ claude --restricted \ --permission-mode bypasspermissions \ -p &quot;say hi&quot; error: bypasspermissions not supported in restricted mode [exit 1] 終了コードは 1 でした。警告して続行するのではなく、止まります。ciやスクリプトから呼んでいるなら、この違いは効きます。 --safe-mode と何が違うのか 同じヘルプの並びに --safe-mode もありますが、狙いが逆です。 --safe-mode は claude.md・スキル・プラグイン・フック・mcpサーバー・カスタムコマンドといったカスタマイズを全部止めて、壊れた設定を切り分けるためのものです。道具そのものは残ります。 --restricted は逆に、道具のほうを削って、その機械に手を出させないためのものです。片方は自分の設定を疑うとき、もう片方は他人の機械を守るときに使います。 今やること。 共有マシンや採点環境で claude code を無人で走らせているなら、 --restricted を付けられるか検討する。そうでなければ対応は不要。 anthropic /ultrareview が *.tfvars をクラウドへ上げていた — 経緯は公表されていない クラウドセッションを使う人 セキュリティ 8/28 5:35 修正 同じ 2.1.248 に、修正が1行あります。 不具合の修正ですが、これは載せます。 何が外へ出ていたかが分かると、更新するかどうかの判断が変わるからです。 changelog 2.1.248 の原文 fixed `/ultrareview` and locally seeded cloud sessions uploading uncommitted edits to `prod.env`-style and `*.tfvars` files, or to editor swap, temp, and backup copies of credential files (e.g. `key.pem.tmp`, `id_rsa.swo`); they now stay on your machine q. クラウドセッションに送られるのは、次のどれ？ 作業ディレクトリの中身すべて 追跡下にあるファイルの、未コミットの変更 コミット済みの履歴だけ 2つ目です。公式ドキュメントに「 untracked files are not included 」と明記されています。ただしこれは 仕様の説明 で、今回直ったのは、そのとおりに動いていなかった不具合のほうです。 id_rsa.swo がなぜ上がったのかは公表されていません。 クラウドセッションは、手元のリポジトリを丸ごと束ねて向こうへ送ります。そうしないと同じ状態を再現できないからです。その束に何が入るかは、公式ドキュメントに書いてあります。 公式ドキュメント（send local repositories without github） the bundle includes your full repository history across all branches, plus any uncommitted changes to tracked files. untracked files are not included; run git add on files you want the cloud session to see ドキュメント上は、入るのは 追跡下にあるファイル の未コミットの変更だけで、追跡していないファイルは入りません。 ただしこれは 本来こう動くはず という仕様の説明です。今回直ったのは、その仕様どおりに動いていなかった不具合のほうです。名指しされた key.pem.tmp や id_rsa.swo は普通 git add しません。 追跡下に入っていた場合だけなのか、未追跡の一時ファイルまで拾っていたのかは書かれていません。 読者のスタックで直接効くのは *.tfvars です。terraform に渡す変数を書くファイルで、awsのキーやdbのパスワードが入ります">

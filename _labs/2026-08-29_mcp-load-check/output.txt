@@ -1,0 +1,90 @@
+
+##### 0. 環境 #####
+2.1.251 (Claude Code)
+Python 3.11.15
+
+##### 1. まっさらな状態 #####
+No MCP servers configured. Use `claude mcp add` to add a server.
+
+##### 2. パスを打ち間違えて追加する #####
+Added stdio MCP server demo with command: python3 helo.py to local config
+
+##### 3. 一覧で確かめる #####
+Checking MCP server health…
+
+demo: python3 helo.py - × Failed to connect — CONNECTION_CLOSED: Connection closed
+
+##### 4. 消して、正しいパスで入れ直す #####
+Removed MCP server "demo" from local config
+Added stdio MCP server demo with command: python3 hello.py to local config
+
+##### 5. もう一度一覧 #####
+Checking MCP server health…
+
+demo: python3 hello.py - √ Connected
+
+##### 6. get で1台だけ見る #####
+demo:
+  Scope: Local config (private to you in this project)
+  Status: √ Connected
+  Type: stdio
+  Command: python3
+  Args: hello.py
+  Environment:
+
+To remove this server, run: claude mcp remove demo -s local
+
+##### 7. モデルから本当に呼べるか #####
+応答: 「こんにちは、めたん」
+
+##### 8. 同じサーバーを project スコープでも追加する #####
+Added stdio MCP server team with command: python3 hello.py to project config
+{
+  "mcpServers": {
+    "team": {
+      "type": "stdio",
+      "command": "python3",
+      "args": [
+        "hello.py"
+      ],
+      "env": {}
+    }
+  }
+}
+##### 9. 一覧: 中身は同じなのに片方だけ繋がらない #####
+Checking MCP server health…
+
+team: python3 hello.py - ⏸ Pending approval (run `claude` to approve)
+demo: python3 hello.py - √ Connected
+
+##### 10. local の方を消し、承認待ちの1台だけにする #####
+Removed MCP server "demo" from local config
+Checking MCP server health…
+
+team: python3 hello.py - ⏸ Pending approval (run `claude` to approve)
+
+##### 11. 承認待ちのまま -p で呼べるか #####
+「こんにちは、ずんだもん」という応答が返ってきました。
+
+##### 12. 承認の記録は空のまま #####
+enabledMcpjsonServers = []
+disabledMcpjsonServers = []
+
+##### 13. --strict-mcp-config で締め出す #####
+mcp__team__hello というツールはありません。
+
+##### 14. disabledMcpjsonServers で拒否する #####
+{
+  "disabledMcpjsonServers": ["team"]
+}
+team:
+  Scope: Project config (shared via .mcp.json)
+  Status: × Rejected (see disabledMcpjsonServers in settings)
+
+##### 15. 拒否中の一覧 #####
+No MCP servers configured. Use `claude mcp add` to add a server.
+
+##### 16. 拒否中に -p で呼べるか #####
+mcp__team__hello というツールは存在しません。
+
+##### おわり #####
