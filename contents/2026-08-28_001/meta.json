@@ -10,7 +10,7 @@
   ],
   "featured": true,
   "title": "AI-news：2026/08/28 — Composer 2.10.3 はセキュリティ修正が4件",
-  "summary": "Composer 2.10.3 はCHANGELOGの先頭4行が全部セキュリティ修正で、1件目は悪意あるパッケージを入れるだけで踏みうる経路です。GitHub Actions の実行履歴は10月1日から既定90日で消えるようになります。Claude Code 2.1.248 の --restricted を実際に叩いて、bypassPermissions が拒否されることを確かめました。",
+  "summary": "Composer 2.10.3 はCHANGELOGの先頭4行が全部セキュリティ修正で、1件目は悪意あるパッケージを入れるだけで踏みうると読めます。GitHub Actions の実行履歴は10月1日から既定90日で消えるようになります。Claude Code 2.1.248 の --restricted を実際に叩いて、bypassPermissions が拒否されることを確かめました。",
   "thumbnail": "images/thumb.png",
   "thumb": {
     "main": "Composer 2.10.3｜セキュリティ4件",
