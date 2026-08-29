@@ -1,0 +1,14 @@
+<svg viewBox="0 0 460 220" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">入れるものは1つも無い</text>
+  <g data-step="1">
+    <rect x="14" y="48" width="432" height="48" rx="10" fill="var(--fg)"/>
+    <text x="30" y="78" font-size="18" font-family="ui-monospace, monospace" fill="var(--bg)">npx ccusage daily</text>
+  </g>
+  <g data-step="2">
+    <line x1="230" y1="102" x2="230" y2="126" stroke="var(--sub)" stroke-width="3"/>
+    <polygon points="230,136 224,124 236,124" fill="var(--sub)"/>
+    <rect x="14" y="144" width="432" height="60" rx="10" fill="var(--b)" opacity="0.24"/>
+    <text x="30" y="170" font-size="17" fill="var(--fg)">日付ごとの表が出る</text>
+    <text x="30" y="192" font-size="17" fill="var(--fg)">日付 / トークン / 換算コスト($)</text>
+  </g>
+</svg>

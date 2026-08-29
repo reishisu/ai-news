@@ -1,0 +1,15 @@
+<svg viewBox="0 0 460 240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">トークンの96%はキャッシュ読み出し</text>
+  <g data-step="1">
+    <rect x="14" y="56" width="415" height="44" rx="8" fill="var(--b)" opacity="0.8"/>
+    <text x="30" y="84" font-size="18" font-weight="700" fill="#fff">cache_read 36.9億 (96%)</text>
+  </g>
+  <g data-step="2">
+    <rect x="429" y="56" width="17" height="44" rx="4" fill="var(--c)"/>
+    <text x="14" y="132" font-size="17" fill="var(--fg)">残り4%: cache作成 1.3億 / 出力 963万 / 入力 1.8万</text>
+  </g>
+  <g data-step="3">
+    <text x="14" y="176" font-size="18" font-weight="700" fill="var(--fg)">キャッシュ読み出しは単価が別（安い）。</text>
+    <text x="14" y="202" font-size="18" fill="var(--fg)">数だけ見ると膨らんで見えるのはこのせい</text>
+  </g>
+</svg>

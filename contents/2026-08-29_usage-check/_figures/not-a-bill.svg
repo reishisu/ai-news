@@ -1,0 +1,16 @@
+<svg viewBox="0 0 460 240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">この$は、何の数字か</text>
+  <g data-step="1">
+    <text x="30" y="74" font-size="21" font-weight="700" fill="var(--sub)">請求される金額？</text>
+  </g>
+  <g data-step="2">
+    <line x1="24" y1="67" x2="216" y2="67" stroke="var(--c)" stroke-width="4"/>
+    <rect x="14" y="92" width="432" height="58" rx="10" fill="var(--b)" opacity="0.24"/>
+    <text x="30" y="118" font-size="21" font-weight="700" fill="var(--b)">API単価に換算した推定値</text>
+    <text x="30" y="142" font-size="17" fill="var(--fg)">公式の説明も Estimate（推定）</text>
+  </g>
+  <g data-step="3">
+    <text x="14" y="186" font-size="18" font-weight="700" fill="var(--fg)">定額の人の使いみち:</text>
+    <text x="14" y="212" font-size="18" fill="var(--fg)">「APIで払ったら幾らぶんか」＝元を取れているか</text>
+  </g>
+</svg>

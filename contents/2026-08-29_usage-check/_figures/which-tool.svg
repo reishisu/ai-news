@@ -1,0 +1,18 @@
+<svg viewBox="0 0 460 260" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="23" font-weight="700" fill="var(--fg)">見たいものごとに、道具が違う</text>
+  <g data-step="1">
+    <rect x="14" y="48" width="432" height="52" rx="10" fill="var(--b)" opacity="0.24"/>
+    <text x="30" y="70" font-size="17" font-weight="700" fill="var(--fg)">日ごと・月ごとの量と換算$</text>
+    <text x="30" y="92" font-size="16" font-family="ui-monospace, monospace" fill="var(--fg)">npx ccusage daily / monthly</text>
+  </g>
+  <g data-step="2">
+    <rect x="14" y="110" width="432" height="52" rx="10" fill="var(--track)"/>
+    <text x="30" y="132" font-size="17" font-weight="700" fill="var(--fg)">いまの5時間枠の残り</text>
+    <text x="30" y="154" font-size="16" font-family="ui-monospace, monospace" fill="var(--fg)">npx ccusage blocks</text>
+  </g>
+  <g data-step="3">
+    <rect x="14" y="172" width="432" height="52" rx="10" fill="var(--track)"/>
+    <text x="30" y="194" font-size="17" font-weight="700" fill="var(--fg)">プラン上限に対する%</text>
+    <text x="30" y="216" font-size="16" fill="var(--fg)">対話の /usage だけ（今回は未確認・第8章）</text>
+  </g>
+</svg>

@@ -1,0 +1,14 @@
+<svg viewBox="0 0 460 250" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="22" font-weight="700" fill="var(--fg)">11日で、API換算2,830ドル</text>
+  <g data-step="1">
+    <text x="14" y="66" font-size="17" fill="var(--sub)">この機械のログ 8/19〜8/29</text>
+    <rect x="14" y="78" width="432" height="56" rx="10" fill="var(--b)" opacity="0.85"/>
+    <text x="30" y="114" font-size="27" font-weight="700" fill="#fff">$2,830.08</text>
+  </g>
+  <g data-step="2">
+    <text x="14" y="176" font-size="17" fill="var(--sub)">Max 20x の月額</text>
+    <rect x="14" y="188" width="31" height="40" rx="8" fill="var(--track)"/>
+    <text x="56" y="216" font-size="21" font-weight="700" fill="var(--fg)">$200</text>
+    <text x="150" y="216" font-size="18" fill="var(--sub)">幅が使った量の比(約14倍)</text>
+  </g>
+</svg>

@@ -1,0 +1,22 @@
+<svg viewBox="0 0 460 240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="23" font-weight="700" fill="var(--fg)">数字は全部、自分の機械の中</text>
+  <g data-step="1">
+    <rect x="14" y="50" width="130" height="60" rx="10" fill="var(--track)"/>
+    <text x="30" y="76" font-size="18" font-weight="700" fill="var(--fg)">Claude</text>
+    <text x="30" y="98" font-size="18" font-weight="700" fill="var(--fg)">Code</text>
+  </g>
+  <g data-step="2">
+    <line x1="152" y1="80" x2="186" y2="80" stroke="var(--sub)" stroke-width="3"/>
+    <polygon points="196,80 184,74 184,86" fill="var(--sub)"/>
+    <rect x="204" y="50" width="242" height="60" rx="10" fill="var(--b)" opacity="0.28"/>
+    <text x="220" y="76" font-size="16" font-family="ui-monospace, monospace" fill="var(--fg)">~/.claude/projects/</text>
+    <text x="220" y="98" font-size="16" fill="var(--fg)">会話ログ(JSONL)に usage が残る</text>
+  </g>
+  <g data-step="3">
+    <line x1="325" y1="118" x2="325" y2="146" stroke="var(--sub)" stroke-width="3"/>
+    <polygon points="325,156 319,144 331,144" fill="var(--sub)"/>
+    <rect x="204" y="164" width="242" height="52" rx="10" fill="var(--track)"/>
+    <text x="220" y="188" font-size="17" font-weight="700" fill="var(--fg)">読むのは自分（ccusage も</text>
+    <text x="220" y="208" font-size="17" font-weight="700" fill="var(--fg)">これを読むだけ。送信しない）</text>
+  </g>
+</svg>

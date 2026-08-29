@@ -1,0 +1,15 @@
+<svg viewBox="0 0 460 240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="27" font-weight="700" fill="var(--fg)">確認は朝の1行から</text>
+  <g data-step="1">
+    <rect x="14" y="48" width="432" height="50" rx="10" fill="var(--b)" opacity="0.8"/>
+    <text x="30" y="80" font-size="19" font-weight="700" fill="#fff">1. npx ccusage daily で昨日を見る</text>
+  </g>
+  <g data-step="2">
+    <rect x="14" y="110" width="432" height="50" rx="10" fill="var(--track)"/>
+    <text x="30" y="142" font-size="19" font-weight="700" fill="var(--fg)">2. 使いすぎた日は blocks で時間帯を特定</text>
+  </g>
+  <g data-step="3">
+    <rect x="14" y="172" width="432" height="50" rx="10" fill="var(--track)"/>
+    <text x="30" y="204" font-size="19" font-weight="700" fill="var(--fg)">3. $は請求額ではなく換算値、と思い出す</text>
+  </g>
+</svg>

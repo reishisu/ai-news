@@ -1,0 +1,17 @@
+<svg viewBox="0 0 460 230" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">/cost が見るのは「いまの会話」だけ</text>
+  <g data-step="1">
+    <rect x="14" y="50" width="200" height="120" rx="10" fill="var(--b)" opacity="0.24"/>
+    <text x="30" y="78" font-size="18" font-weight="700" fill="var(--fg)">いまのセッション</text>
+    <text x="30" y="104" font-size="17" fill="var(--fg)">/cost が数える範囲</text>
+  </g>
+  <g data-step="2">
+    <rect x="240" y="50" width="206" height="120" rx="10" fill="var(--track)"/>
+    <text x="256" y="78" font-size="18" font-weight="700" fill="var(--sub)">過去の全セッション</text>
+    <text x="256" y="104" font-size="17" fill="var(--sub)">ここは見ない</text>
+    <text x="256" y="130" font-size="17" fill="var(--fg)">→ 見たいなら ccusage</text>
+  </g>
+  <g data-step="3">
+    <text x="14" y="206" font-size="18" font-weight="700" fill="var(--fg)">-p は毎回まっさら → /cost は毎回 $0.0000</text>
+  </g>
+</svg>

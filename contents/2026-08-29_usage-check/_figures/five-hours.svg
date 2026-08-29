@@ -1,0 +1,13 @@
+<svg viewBox="0 0 460 240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">5時間の枠は blocks で見る</text>
+  <g data-step="1">
+    <rect x="14" y="56" width="432" height="40" rx="8" fill="var(--track)"/>
+    <rect x="14" y="56" width="48" height="40" rx="8" fill="var(--b)"/>
+    <text x="14" y="122" font-size="17" fill="var(--fg)">ACTIVE: いまの枠。33分経過・残り4時間26分</text>
+  </g>
+  <g data-step="2">
+    <text x="14" y="160" font-size="17" fill="var(--sub)">PROJECTED: いまのペースが続いたら</text>
+    <rect x="14" y="172" width="432" height="40" rx="8" fill="var(--c)" opacity="0.24"/>
+    <text x="30" y="198" font-size="18" font-weight="700" fill="var(--c)">枠の263%（超える見込み）と出る</text>
+  </g>
+</svg>
