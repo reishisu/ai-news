@@ -1,0 +1,26 @@
+<svg viewBox="0 0 460 340" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">無人で置くときの4点</text>
+  <g data-step="1">
+    <rect x="14" y="48" width="432" height="56" rx="10" fill="var(--track)"/>
+    <text x="30" y="72" font-size="19" font-weight="700" fill="var(--sub)">1. 道具を名指しする</text>
+    <text x="30" y="94" font-size="16" fill="var(--sub)">--allowedTools</text>
+  </g>
+  <g data-step="2">
+    <rect x="14" y="114" width="432" height="56" rx="10" fill="var(--track)"/>
+    <text x="30" y="138" font-size="19" font-weight="700" fill="var(--sub)">2. 上限を置く</text>
+    <text x="30" y="160" font-size="16" fill="var(--sub)">--max-turns / --max-budget-usd</text>
+  </g>
+  <g data-step="3">
+    <rect x="14" y="180" width="432" height="56" rx="10" fill="var(--track)"/>
+    <text x="30" y="204" font-size="19" font-weight="700" fill="var(--sub)">3. denials を読む</text>
+    <text x="30" y="226" font-size="16" fill="var(--sub)">--output-format json</text>
+  </g>
+  <g data-step="4">
+    <rect x="14" y="246" width="432" height="60" rx="10" fill="var(--b)" opacity="0.30"/>
+    <text x="30" y="272" font-size="19" font-weight="700" fill="var(--b)">4. 結果そのものを確かめる</text>
+    <text x="30" y="294" font-size="16" fill="var(--fg)">ファイルはあるか。commitは載ったか</text>
+  </g>
+  <g data-step="5">
+    <text x="14" y="330" font-size="18" font-weight="700" fill="var(--fg)">4だけは、道具に任せられない</text>
+  </g>
+</svg>

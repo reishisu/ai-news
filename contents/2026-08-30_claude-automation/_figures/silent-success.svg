@@ -1,0 +1,30 @@
+<svg viewBox="0 0 460 300" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">「成功」して、何もしない</text>
+  <g data-step="1">
+    <rect x="14" y="48" width="120" height="52" rx="10" fill="var(--track)"/>
+    <text x="74" y="72" font-size="17" font-weight="700" fill="var(--sub)" text-anchor="middle">cron</text>
+    <text x="74" y="92" font-size="15" fill="var(--sub)" text-anchor="middle">毎朝5:00</text>
+  </g>
+  <g data-step="2">
+    <line x1="138" y1="74" x2="168" y2="74" stroke="var(--sub)" stroke-width="3"/>
+    <polygon points="168,68 180,74 168,80" fill="var(--sub)"/>
+    <rect x="184" y="48" width="150" height="52" rx="10" fill="var(--track)"/>
+    <text x="259" y="79" font-size="18" font-weight="700" fill="var(--sub)" text-anchor="middle">claude -p</text>
+  </g>
+  <g data-step="3">
+    <line x1="338" y1="74" x2="368" y2="74" stroke="var(--sub)" stroke-width="3"/>
+    <polygon points="368,68 380,74 368,80" fill="var(--sub)"/>
+    <rect x="384" y="48" width="62" height="52" rx="10" fill="var(--b)" opacity="0.30"/>
+    <text x="415" y="79" font-size="20" font-weight="700" fill="var(--b)" text-anchor="middle">exit 0</text>
+  </g>
+  <g data-step="4">
+    <rect x="14" y="124" width="432" height="60" rx="10" fill="var(--track)"/>
+    <text x="30" y="150" font-size="18" font-weight="700" fill="var(--sub)">ログに出るのは</text>
+    <text x="30" y="174" font-size="18" fill="var(--sub)">終了コード 0 だけ</text>
+  </g>
+  <g data-step="5">
+    <rect x="14" y="200" width="432" height="84" rx="10" fill="var(--c)" opacity="0.24"/>
+    <text x="30" y="232" font-size="26" font-weight="700" fill="var(--c)">ファイルは無い</text>
+    <text x="30" y="264" font-size="18" fill="var(--fg)">権限が要る操作は素通りする</text>
+  </g>
+</svg>

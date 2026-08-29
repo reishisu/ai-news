@@ -1,0 +1,9 @@
+{
+  "category": "AIで作る技術",
+  "tags": ["Claude Code", "自動化", "実測", "入門"],
+  "featured": true,
+  "title": "Claude Codeの自動化 — 無人で走らせると「成功」して何もしないことがある",
+  "summary": "claude -p を cron に置くと、権限が要る操作は実行されないまま終了コード0で終わります。JSONでも is_error は false、subtype は success。違うのは permission_denials の1か所だけです。しかもその記録は、同じ命令を3回叩くと 0・2・0 と揺れました。直し方と、結果の確かめ方を実測でまとめます。",
+  "thumbnail": "images/thumb.png",
+  "thumb": { "main": "claude -p が｜空振りする", "sub": "成功と出るのに、何もしていない" }
+}

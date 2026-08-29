@@ -1,0 +1,23 @@
+<svg viewBox="0 0 460 300" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">26個のうち、使うのは4つ</text>
+  <g data-step="1">
+    <rect x="14" y="48" width="432" height="52" rx="10" fill="var(--track)"/>
+    <text x="30" y="80" font-size="20" font-weight="700" fill="var(--sub)">返ってくるキー   26</text>
+  </g>
+  <g data-step="2">
+    <rect x="14" y="112" width="210" height="46" rx="8" fill="var(--b)" opacity="0.30"/>
+    <text x="119" y="141" font-size="18" font-weight="700" fill="var(--b)" text-anchor="middle">is_error</text>
+    <rect x="236" y="112" width="210" height="46" rx="8" fill="var(--b)" opacity="0.30"/>
+    <text x="341" y="141" font-size="18" font-weight="700" fill="var(--b)" text-anchor="middle">denials</text>
+  </g>
+  <g data-step="3">
+    <rect x="14" y="164" width="210" height="46" rx="8" fill="var(--b)" opacity="0.30"/>
+    <text x="119" y="193" font-size="18" font-weight="700" fill="var(--b)" text-anchor="middle">result</text>
+    <rect x="236" y="164" width="210" height="46" rx="8" fill="var(--b)" opacity="0.30"/>
+    <text x="341" y="193" font-size="18" font-weight="700" fill="var(--b)" text-anchor="middle">session_id</text>
+  </g>
+  <g data-step="4">
+    <text x="14" y="248" font-size="18" font-weight="700" fill="var(--fg)">残りは所要時間・トークン・</text>
+    <text x="14" y="274" font-size="18" font-weight="700" fill="var(--fg)">内部の事情。読まなくてよい</text>
+  </g>
+</svg>

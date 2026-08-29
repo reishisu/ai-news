@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Codeの自動化 — 無人で走らせると「成功」して何もしないことがある</title>
+<meta name="description" content="claude -p を cron に置くと、権限が要る操作は実行されないまま終了コード0で終わります。JSONでも is_error は false、subtype は success です。違いは permission_denials の1か所だけ。しかもその記録は同じ命令を3回叩くと 0・2・0 と揺れました。実測した直し方と、確かめ方をまとめます。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claude Codeの自動化 — 無人で走らせると「成功」して何もしないことがある">
+<meta property="og:description" content="権限が要る操作は実行されないまま exit 0 で終わる。JSONでも success。違いは permission_denials だけで、その記録も揺れる。実測した直し方をまとめます。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-30_claude-automation/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-30_claude-automation/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=081fefa4">
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">AIで作る技術 ｜ 2026年8月30日(日)</div>
+    <h1>Claude Codeの自動化 — 無人で走らせると「成功」して何もしないことがある</h1>
+    <div class="range">「Claude Code を毎朝 cron で回したい」——その一歩目でだいたい踏む穴を、実際に踏んでから直しました。<b>権限が要る操作は、黙って飛ばされます。</b>終了コードは 0、JSONの <code>is_error</code> も <code>false</code> です。この記事のログはすべて Claude Code 2.1.251 での実測で、加工していません。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 直すのは旗を1つ足すだけ・約1分</span>
+      <span class="tag">全部コピペOK</span>
+      <span class="tag">追加インストール不要</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li><b><code>claude -p</code> は、権限が要る操作を実行しないまま「成功」で終わります。</b>ファイルを作らせる命令を出したのに、ファイルは出来ず、終了コードは 0 でした。cron のログには何も残りません。</li>
+      <li><b>直し方は <code>--allowedTools</code> で道具を名指しすること。</b><code>--allowedTools Write</code> を足しただけで、同じ命令が通りました。<code>Bash(git status:*)</code> のようにコマンド単位でも渡せます。</li>
+      <li><b>ただし「やったか」を CLI の自己申告で判定してはいけません。</b>唯一の手がかりに見えた <code>permission_denials</code> は、同じ命令を3回叩くと <mark>0・2・0</mark> と揺れました。結果そのものを自分で確かめるしかありません。</li>
+    </ol>
+    <div>
+      <details>
+        <summary>先に5語だけ意味</summary>
+        <ul class="points">
+          <li><b>ヘッドレス / 非対話</b> — 人が画面に付かずに動かすこと。<code>-p</code> がその旗</li>
+          <li><b>終了コード</b> — コマンドが終わるときに残す数字。0が成功、それ以外が失敗の合図</li>
+          <li><b>ツール（道具）</b> — Claude がファイルを書く・コマンドを打つといった、外に手を出す機能</li>
+          <li><b>権限（パーミッション）</b> — その道具を使ってよいかの許可。対話画面では人がその都度押している</li>
+          <li><b>cron</b> — 決まった時刻にコマンドを自動で走らせる、Linux の標準の仕組み</li>
+        </ul>
+      </details>
+    </div>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">ファイルを作らせたのに、出来ていなかった</a></li>
+      <li><a href="#s2">終了コードも <code>is_error</code> も、成功と言っている</a></li>
+      <li><a href="#s2b">JSONには26個のキーが入っている。使うのは4つ</a></li>
+      <li><a href="#s3">直し方その1 — 使う道具を名指しする</a></li>
+      <li><a href="#s4">直し方その2 — <code>--permission-mode</code> で束ねて渡す</a></li>
+      <li><a href="#s5"><code>Bash</code> は丸ごとでなく、コマンド単位で渡せる</a></li>
+      <li><a href="#s6">本物のエラーなら、終了コードは 1 になる</a></li>
+      <li><a href="#s7">許可の外を頼んだときの記録は、揺れる</a></li>
+      <li><a href="#s8">止まる場所を、先に決めておく</a></li>
+      <li><a href="#s9">材料は標準入力から渡す</a></li>
+      <li><a href="#s10">前半と後半に割って、続きから走らせる</a></li>
+      <li><a href="#s11">無人で置くときの4点</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>ファイルを作らせたのに、出来ていなかった</h2>
+    <article class="item">
+      <p class="lead">まず、いちばん素朴な使い方から始めます。<code>-p</code>（<code>--print</code>）を付けると、Claude Code は対話画面を開かずに、答えを標準出力に吐いて終わります。パイプに繋げる形です。</p>
+      <div class="code"><div class="code-head">計算させるだけなら、何も要らない</div><pre>claude -p "1+1は？数字だけ"</pre></div>
+      <div class="code term"><div class="code-head">段2 の実出力</div><pre><span class="ok-line">2</span>
+exit=0</pre></div>
+      <p class="lead">ここまでは期待どおりです。では、<mark>ファイルを1つ作らせて</mark>みます。自動化でやりたいのは、たいていこちら側です。</p>
+      <div class="code"><div class="code-head">同じ形で、書き込みを頼む</div><pre>claude -p "hello.txt を作り中身を hi に"</pre></div>
+      <div class="code term"><div class="code-head">段3 の実出力</div><pre>exit=0
+--- 応答 ---
+ファイル書き込みの許可が必要なようです
+--- 出来たファイル ---
+<span class="ng-line">(hello.txt は無い)</span></pre></div>
+      <p class="lead">Claude は「許可が要る」と言い、そこで終わりました。<b>ファイルは1つも出来ていません。</b>それでも終了コードは <code>0</code> です。</p>
+      <p class="lead">対話画面なら、ここで「許可しますか？」と聞かれて人が押します。<mark>無人だと、押す人がいません。</mark>押されないまま、Claude は「できませんでした」と丁寧に報告して正常終了します。</p>
+      <p class="lead">cron に置いた場合、ログに残るのは終了コードだけです。0 が返っているので、監視の仕組みは何も鳴りません。<b>毎朝そのまま、何もしない仕事が走り続けます。</b></p>
+      <figure>
+        <picture>
+          <source srcset="images/silent-success-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/silent-success.png" alt="cronからclaude -pを呼ぶとexit 0が返るが、ファイルは作られていないことを示す図" loading="lazy">
+        </picture>
+        <figcaption>終了コードだけを見ていると、素通りに気づけない。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>終了コードも <code>is_error</code> も、成功と言っている</h2>
+    <article class="item">
+      <p class="lead">「終了コードが雑なだけで、機械が読む形式なら分かるのでは」と考えるのが自然です。<code>--output-format json</code> を付けると、結果が1つのJSONで返ります。</p>
+      <div class="code"><div class="code-head">JSONで受け取る</div><pre>claude -p "hello.txt を作り中身を hi に" \
+  --output-format json</pre></div>
+      <div class="code term"><div class="code-head">段4 の実出力（権限を渡していない側）</div><pre>exit=0
+is_error       False
+subtype        success
+num_turns      2
+permission_denials ['Write']
+total_cost_usd 0.0178</pre></div>
+      <p class="lead"><code>is_error</code> は <code>False</code>。<code>subtype</code> は <code>success</code>。<b>JSONも「成功」と言っています。</b></p>
+      <p class="lead">同じ命令に許可を渡して成功させた側（次章）と並べると、違いは1か所しかありませんでした。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>見る場所</th><th>やれた</th><th>やれていない</th></tr></thead>
+          <tbody>
+            <tr><td>終了コード</td><td data-label="やれた">0</td><td data-label="やれていない">0</td></tr>
+            <tr><td><code>is_error</code></td><td data-label="やれた">false</td><td data-label="やれていない">false</td></tr>
+            <tr><td><code>subtype</code></td><td data-label="やれた">success</td><td data-label="やれていない">success</td></tr>
+            <tr><td><code>permission_denials</code></td><td data-label="やれた">[ ]</td><td data-label="やれていない"><b>['Write']</b></td></tr>
+            <tr><td>料金</td><td data-label="やれた">$0.0186</td><td data-label="やれていない">$0.0178</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead"><mark><code>permission_denials</code> だけが違います。</mark>拒否された道具の名前と、渡そうとしていた引数がそのまま入っていました。</p>
+      <div class="code wrap"><div class="code-head">permission_denials の中身（段4 と同じ実行のもの）</div><pre>[{"tool_name": "Write",
+  "tool_use_id": "toolu_018bAx...",
+  "tool_input": {"file_path": ".../hello.txt",
+                 "content": "hi"}}]</pre></div>
+      <p class="lead">もう1つ、地味に効く事実があります。<b>料金はほとんど変わりません。</b>何もしなかった側が $0.0178、やり遂げた側が $0.0186 でした。<mark>空振りにも、ほぼ同じだけ払っています。</mark></p>
+      <figure>
+        <picture>
+          <source srcset="images/three-signals-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/three-signals.png" alt="終了コード・is_error・subtypeは両者とも同じで、permission_denialsだけが異なることを示す表" loading="lazy">
+        </picture>
+        <figcaption>4つの手がかりのうち、3つは役に立たない。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s2b">
+    <h2><span class="step">3</span>JSONには26個のキーが入っている。使うのは4つ</h2>
+    <article class="item">
+      <p class="lead">前章で見た JSON には、実際どれだけ入っているのか。1回叩いて全部並べました。</p>
+      <div class="code term"><div class="code-head">keys.sh の実出力（抜粋）</div><pre>api_error_status       NoneType
+duration_api_ms        int
+is_error               bool
+modelUsage             dict
+num_turns              int
+permission_denials     list
+result                 str
+session_id             str
+stop_reason            str
+subtype                str
+terminal_reason        str
+total_cost_usd         float
+usage                  dict
+(中略)
+<span class="ok-line">キーの数: 26</span></pre></div>
+      <p class="lead"><b>26個あります。</b>ただし自動化で読む必要があるのは、多くありません。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>キー</th><th>何に使うか</th></tr></thead>
+          <tbody>
+            <tr><td><code>result</code></td><td data-label="何に使うか">答えの本文。次の処理へ渡すのはこれ</td></tr>
+            <tr><td><code>permission_denials</code></td><td data-label="何に使うか">拒否された道具。空でなければ確実に失敗</td></tr>
+            <tr><td><code>is_error</code></td><td data-label="何に使うか">本物の異常かどうか。終了コードと連動する</td></tr>
+            <tr><td><code>session_id</code></td><td data-label="何に使うか">続きから走らせるときの手がかり（第11章）</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">残りは所要時間（<code>duration_ms</code>）、トークンの内訳（<code>usage</code> / <code>modelUsage</code>）、内部の事情（<code>warm_spare_claimed</code> など）です。<mark>監視に載せるなら、上の4つで足ります。</mark></p>
+      <details>
+        <summary>26個の全部を見る</summary>
+        <div class="code wrap"><pre>api_error_status / duration_api_ms /
+duration_ms / fast_mode_disabled_reason /
+fast_mode_state / is_error / modelUsage /
+num_turns / permission_denials /
+queued_turn_count / result / session_id /
+stop_reason / subagent_stats / subtype /
+terminal_reason / time_origin_ms /
+time_to_request_from_spawn_ms /
+time_to_request_ms / total_cost_usd /
+ttft_ms / ttft_stream_ms / type / usage /
+uuid / warm_spare_claimed</pre></div>
+        <p class="lead">この一覧は 2026年8月30日 の 2.1.251 で採ったものです。<b>版が上がれば増減します。</b>キーの有無に依存する処理を書くなら、<code>.get()</code> のように無くても落ちない読み方にしてください。</p>
+      </details>
+      <p class="lead">なお <code>result</code> は<b>文章</b>です。数字だけを頼んでも、説明が混ざることがあります。数値として扱うなら、受け取ってから検証する1行を必ず挟んでください。</p>
+      <figure>
+        <picture>
+          <source srcset="images/json-keys-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/json-keys.png" alt="JSONの26個のキーのうち自動化で使うのはresult・permission_denials・is_error・session_idの4つであることを示す図" loading="lazy">
+        </picture>
+        <figcaption>監視に載せるのは4つで足りる。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s3">
+    <h2><span class="step">4</span>直し方その1 — 使う道具を名指しする</h2>
+    <article class="item">
+      <p class="lead">直し方は単純です。<code>--allowedTools</code> に、使わせたい道具の名前を渡します。</p>
+      <div class="code"><div class="code-head">Write だけを許可する</div><pre>claude -p "hello.txt を作り中身を hi に" \
+  --allowedTools Write \
+  --output-format json</pre></div>
+      <div class="code term"><div class="code-head">段5 の実出力</div><pre>exit=0
+is_error       False
+permission_denials []
+total_cost_usd 0.0186
+--- hello.txt の中身 ---
+<span class="ok-line">hi</span></pre></div>
+      <p class="lead"><b>旗を1つ足しただけで通りました。</b>命令文は1文字も変えていません。<code>permission_denials</code> も空になっています。</p>
+      <p class="lead">道具の名前は、対話画面で見かけるものと同じです。<code>Read</code>（読む）、<code>Write</code>（新規に書く）、<code>Edit</code>（既存を書き換える）、<code>Bash</code>（コマンドを打つ）、<code>Glob</code>・<code>Grep</code>（探す）など。<mark>スペースかカンマで区切って複数渡せます。</mark></p>
+      <div class="code"><div class="code-head">よく使う組み合わせ</div><pre># 書き換えと検索まで許す
+--allowedTools Read Edit Write Grep Glob</pre></div>
+      <p class="lead">逆に、渡さなかった道具は使われません。ここが自動化では効きます。<b>「読ませるだけの仕事」なら <code>Write</code> を渡さなければ、書き換える事故が構造的に起きません。</b></p>
+      <p class="lead">なお <code>--disallowedTools</code> という逆向きの旗もあります（<code>--help</code> に記載）。ただし今回は使っていないので、挙動は測っていません。</p>
+      <figure>
+        <picture>
+          <source srcset="images/allowed-tools-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/allowed-tools.png" alt="旗を書かないと読むだけ、--allowedTools Writeを足すと書けるようになることを示す図" loading="lazy">
+        </picture>
+        <figcaption>渡していない道具は使われない。それが安全側に働く。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s4">
+    <h2><span class="step">5</span>直し方その2 — <code>--permission-mode</code> で束ねて渡す</h2>
+    <article class="item">
+      <p class="lead">道具を1つずつ挙げるのが面倒なときは、<code>--permission-mode</code> でまとめて態度を決められます。</p>
+      <div class="code"><div class="code-head">編集を許す姿勢にする</div><pre>claude -p "hello.txt を作り中身を hi に" \
+  --permission-mode acceptEdits \
+  --output-format json</pre></div>
+      <div class="code term"><div class="code-head">段6 の実出力</div><pre>exit=0
+is_error       False
+permission_denials []
+--- hello.txt ---
+<span class="ok-line">hi</span></pre></div>
+      <p class="lead">こちらも通りました。<code>--allowedTools Write</code> と同じ結果です。</p>
+      <p class="lead">選べる語は <code>--help</code> に列挙されています。原文はこうです。</p>
+      <div class="code wrap"><div class="code-head">claude --help より（原文）</div><pre>--permission-mode &lt;mode&gt;  Permission mode to use for the
+session (choices: "acceptEdits", "auto",
+"bypassPermissions", "manual", "dontAsk", "plan")</pre></div>
+      <p class="lead"><b>この6語のうち、実際に動かしたのは <code>acceptEdits</code> だけです。</b>残り5つの挙動は測っていないので、この記事では書きません。名前から想像して書くと、それは実測ではなくなります。</p>
+      <p class="lead">1つだけ注意を書いておきます。<code>bypassPermissions</code>（および <code>--dangerously-skip-permissions</code>）は、名前のとおり確認を全部飛ばす旗です。<code>--help</code> には <mark>「Recommended only for sandboxes with no internet access」</mark>（ネットに繋がっていないサンドボックス向け）と書かれています。<b>自分の作業マシンの cron で常用する旗ではありません。</b></p>
+      <p class="lead">どちらを使うかの目安は、<b>仕事の幅</b>です。やることが決まっているなら <code>--allowedTools</code> で狭く。ファイル編集を広く任せる前提の仕事なら <code>acceptEdits</code>。これは規格ではなく、今回の実測を踏まえた運用上の目安です。</p>
+      <figure>
+        <picture>
+          <source srcset="images/permission-modes-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/permission-modes.png" alt="permission-modeの6つの選択肢のうち、実際に測ったのはacceptEditsだけであることを示す図" loading="lazy">
+        </picture>
+        <figcaption>一覧は <code>--help</code> から。中身を測ったのは1つだけ。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s5">
+    <h2><span class="step">6</span><code>Bash</code> は丸ごとでなく、コマンド単位で渡せる</h2>
+    <article class="item">
+      <p class="lead"><code>--allowedTools Bash</code> と書くと、<b>あらゆるコマンドが打てるようになります。</b>無人で走らせる場所では、これは広すぎます。</p>
+      <p class="lead">丸括弧を付けると、コマンドを絞れます。</p>
+      <div class="code"><div class="code-head">git status だけを許す</div><pre>claude -p "git status を実行し1行目だけ答えて" \
+  --allowedTools "Bash(git status:*)" \
+  --output-format json</pre></div>
+      <div class="code term"><div class="code-head">段8 の実出力</div><pre>exit=0
+permission_denials []
+result         <span class="ok-line">On branch master</span></pre></div>
+      <p class="lead">許可したコマンドは通りました。<code>:*</code> は「そのあとに何が続いてもよい」という書き方です。<code>--help</code> の例示にも <code>"Bash(git *) Edit"</code> の形が載っています。</p>
+      <p class="lead">では、許可していないコマンドを頼むとどうなるか。<mark>同じ許可リストのまま、ファイルを消すよう頼みました。</mark></p>
+      <div class="code term"><div class="code-head">段9b の実出力（3回）</div><pre>1回目 exit=0 denials=1 <span class="ok-line">f.txt=のこる</span>
+2回目 exit=0 denials=2 <span class="ok-line">f.txt=のこる</span>
+3回目 exit=0 denials=5 <span class="ok-line">f.txt=のこる</span></pre></div>
+      <p class="lead"><b>3回とも、ファイルは残りました。</b>絞り込みは効いています。</p>
+      <p class="lead">対照実験として、<code>rm</code> のほうを許可した場合も測りました。</p>
+      <div class="code term"><div class="code-head">段9a の実出力（3回）</div><pre>1回目 exit=0 denials=0 <span class="ng-line">f.txt=きえた</span>
+2回目 exit=0 denials=0 <span class="ng-line">f.txt=きえた</span>
+3回目 exit=0 denials=0 <span class="ng-line">f.txt=きえた</span></pre></div>
+      <p class="lead">許可すれば3回とも消えました。<b>つまり「消えなかった」のは、この環境がたまたま <code>rm</code> を禁じているからではなく、許可リストが効いた結果です。</b></p>
+      <p class="lead">これは念のための確認ではありません。段9b で Claude 自身が返した説明は、こうでした。</p>
+      <div class="code wrap"><div class="code-head">段9b の応答の一例</div><pre>パスは作業ディレクトリと一致していますが、
+サンドボックスのセキュリティ制限で</pre></div>
+      <p class="lead"><mark>Claude は「サンドボックスの制限」のせいだと説明しています。</mark>しかし段9a で同じ <code>rm</code> が動いている以上、この説明は正確ではありません。<b>止まった理由についての自己申告も、鵜呑みにはできません。</b></p>
+      <figure>
+        <picture>
+          <source srcset="images/bash-scope-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/bash-scope.png" alt="Bashを丸ごと許可すると何でも打てるが、Bash(git status:*)なら git status だけが通ることを示す図" loading="lazy">
+        </picture>
+        <figcaption>丸ごと許可すると、消す操作も同じ1語で通ってしまう。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s6">
+    <h2><span class="step">7</span>本物のエラーなら、終了コードは 1 になる</h2>
+    <article class="item">
+      <p class="lead">ここまで読むと「終了コードは当てにならない」と思えますが、それは言い過ぎでした。<b>本物の異常では、ちゃんと 1 が返ります。</b></p>
+      <p class="lead">まず、存在しないモデル名を渡してみます。</p>
+      <div class="code"><div class="code-head">綴りを間違える</div><pre>claude -p "1+1" --model no-such-model-xyz</pre></div>
+      <div class="code term"><div class="code-head">段7a の実出力</div><pre>exit=1
+<span class="ng-line">There's an issue with the selected mod</span></pre></div>
+      <p class="lead">次に、ターン数の上限で打ち切らせます。<code>--max-turns</code> は、Claude が道具を使って考え直せる回数の上限です。</p>
+      <div class="code"><div class="code-head">3つ作らせるのに、1ターンしか与えない</div><pre>claude -p "a.txt と b.txt と c.txt を順に作って" \
+  --allowedTools Write --max-turns 1 \
+  --output-format json</pre></div>
+      <div class="code term"><div class="code-head">段7b の実出力</div><pre>exit=1
+is_error       True
+subtype        <span class="ng-line">error_max_turns</span>
+terminal_reason max_turns</pre></div>
+      <p class="lead"><code>is_error</code> が <code>True</code>、<code>subtype</code> に理由が入りました。<b>ここは素直です。</b></p>
+      <p class="lead">つまり境界はこうなっています。<mark>「動かして失敗した」は 1 になり、「そもそもやらなかった」は 0 のままです。</mark>後者は Claude にとってエラーではなく、指示に従って確認を求めただけだからです。</p>
+      <p class="lead">なお段7b では、<code>--allowedTools Write</code> を渡していたのに<b>ファイルは1つも出来ませんでした</b>。途中まで作って止まる、という形ではありません。中途半端な成果物が残ることを心配していたなら、この回に関してはその心配は要りませんでした。</p>
+      <figure>
+        <picture>
+          <source srcset="images/real-errors-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/real-errors.png" alt="モデル名の誤りやターン上限はexit 1、権限で止まった場合はexit 0になることを示す分岐図" loading="lazy">
+        </picture>
+        <figcaption>「やらなかった」は、エラーとして数えられていない。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s7">
+    <h2><span class="step">8</span>許可の外を頼んだときの記録は、揺れる</h2>
+    <article class="item">
+      <p class="lead">第2章の結論は「<code>permission_denials</code> を見ればよい」でした。<b>それを検算したら、崩れました。</b></p>
+      <p class="lead">第6章の段9b と<mark>まったく同じ許可リスト・まったく同じ目的</mark>で、命令の文面だけを変えて3回叩きます。「<code>f.txt</code> を rm で消して」を「<code>rm -rf f.txt</code> を実行して」にしただけです。</p>
+      <div class="code term"><div class="code-head">段9c の実出力（3回）</div><pre>1回目 exit=0 <span class="ng-line">denials=0</span> f.txt=のこる
+2回目 exit=0 denials=2 f.txt=のこる
+3回目 exit=0 <span class="ng-line">denials=0</span> f.txt=のこる</pre></div>
+      <p class="lead"><b>3回のうち2回、<code>permission_denials</code> は空でした。</b>それでいて、ファイルは3回とも残っています。<mark>やっていないのに、拒否の記録も残っていない。</mark></p>
+      <p class="lead">理由は、探りの段階で1度見えていました。Claude が道具を呼ばずに、文章で聞き返して終わることがあるのです。</p>
+      <div class="code wrap"><div class="code-head">探りの段階で観測した応答</div><pre>f.txt はGit管理外の2バイトのファイルです。
+削除してよろしいですか?(この操作は元に戻せません)</pre></div>
+      <p class="lead">道具を呼んでいないので、拒否も発生しません。記録は空のままです。<b>そして無人なので、誰も答えません。</b></p>
+      <p class="lead">段9b では <code>denials</code> が 1・2・5 と散らばり、段9c では 0・2・0 でした。<mark>同じ穴を狙っても、返り方は毎回違います。</mark>回数が揺れるのは、Claude が言い方を変えて何度か試すことがあるためです。</p>
+      <p class="lead">ここから言えることは1つです。<b><code>permission_denials</code> は「出ていたら確実に失敗」と言える材料ですが、「出ていないから成功した」とは言えません。</b>片側にしか使えない検査です。</p>
+      <figure>
+        <picture>
+          <source srcset="images/ask-back-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/ask-back.png" alt="同じ命令を3回実行するとdenialsが0・2・0と揺れるが、ファイルは3回とも残ることを示す表" loading="lazy">
+        </picture>
+        <figcaption>記録の有無は揺れる。やっていない事実だけが変わらない。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s8">
+    <h2><span class="step">9</span>止まる場所を、先に決めておく</h2>
+    <article class="item">
+      <p class="lead">無人で回すときに、もう1つ怖いのは逆方向です。<b>止まらずに走り続けて、請求だけが伸びること。</b></p>
+      <p class="lead">上限は2種類あります。回数で止める <code>--max-turns</code>（第7章）と、金額で止める <code>--max-budget-usd</code> です。</p>
+      <div class="code"><div class="code-head">極端に低い上限を置いてみる</div><pre>claude -p "1から100までの素数を全部数えて説明して" \
+  --max-budget-usd 0.001 \
+  --output-format json</pre></div>
+      <div class="code term"><div class="code-head">段10 の実出力</div><pre>exit=1
+is_error       True
+subtype        <span class="ng-line">error_max_budget_usd</span>
+total_cost_usd 0.0143</pre></div>
+      <p class="lead">きちんと <code>exit=1</code> で止まり、理由も入りました。ここは検出できます。</p>
+      <p class="lead">ただし<mark>数字をよく見てください。上限は $0.001 なのに、止まった時点の集計は $0.0143 です。</mark>14倍あります。</p>
+      <p class="lead"><b>これは「使い切ったら次を始めない」型の上限であって、途中で切り上げる仕組みではありません。</b>1回のやりとりが上限より高ければ、超えてから気づいて止まります。<mark>厳密な上限として設計してはいけません。</mark></p>
+      <p class="lead">実運用では、桁で効かせるのが現実的です。1回 $0.05 前後の仕事なら、上限は $1 のように「事故のときだけ効く」高さに置く。これは規格ではなく、今回の実測からの目安です。</p>
+      <p class="lead">なお、時間で止めたい場合は Claude Code 側の旗ではなく、OS の <code>timeout</code> を被せるのが確実です（この記事では測っていません）。</p>
+      <figure>
+        <picture>
+          <source srcset="images/budget-stop-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/budget-stop.png" alt="max-budget-usdに0.001を指定しても、止まった時点の集計は0.0143だったことを示す図" loading="lazy">
+        </picture>
+        <figcaption>上限は「厳密な天井」ではなく「これ以上は始めない」線。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s9">
+    <h2><span class="step">10</span>材料は標準入力から渡す</h2>
+    <article class="item">
+      <p class="lead">自動化では、その場で採れたデータを読ませたい場面がほとんどです。<b>命令文に埋め込まなくても、パイプで流し込めます。</b></p>
+      <div class="code"><div class="code-head">ログを流して数えさせる</div><pre>cat log.txt | claude -p "ERRORの行数を数字だけで"</pre></div>
+      <div class="code term"><div class="code-head">段11 の実出力（log.txt は ERROR 2行・INFO 1行）</div><pre><span class="ok-line">2</span>
+exit=0</pre></div>
+      <p class="lead">正しく 2 が返りました。<mark>数字だけを返させれば、その先の処理にそのまま渡せます。</mark></p>
+      <p class="lead">この形が効くのは、読むだけの仕事だからです。<b>第4章の話と繋がります。</b>集計・要約・分類は <code>Write</code> を渡す必要がありません。渡さなければ、書き換え事故が起きようがない。</p>
+      <p class="lead">出力を機械で受けるなら、<code>--output-format json</code> にして <code>result</code> を取り出すほうが安全です。文章が混ざったときに、そのまま数値として扱ってしまう事故を防げます。</p>
+      <div class="code"><div class="code-head">結果だけを取り出す</div><pre>cat log.txt | claude -p "ERRORの行数を数字だけで" \
+  --output-format json \
+  | python3 -c "import json,sys; \
+print(json.load(sys.stdin)['result'])"</pre></div>
+      <p class="lead">なお <code>--json-schema</code> で出力の形を指定する旗も <code>--help</code> にありますが、今回は使っていません。</p>
+      <figure>
+        <picture>
+          <source srcset="images/feed-input-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/feed-input.png" alt="log.txtをcatでclaude -pに流し込むと2という数字だけが返ることを示す図" loading="lazy">
+        </picture>
+        <figcaption>読むだけの仕事なら、書く道具を渡す必要がない。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s10">
+    <h2><span class="step">11</span>前半と後半に割って、続きから走らせる</h2>
+    <article class="item">
+      <p class="lead">長い仕事を1回のコマンドに押し込むと、途中で落ちたときに全部やり直しになります。<b>分けて走らせて、文脈だけ引き継げます。</b></p>
+      <p class="lead">やり方は、自分で作った ID を渡しておいて、次のプロセスでその ID を指すだけです。</p>
+      <div class="code"><div class="code-head">IDを決めて、2本に分ける</div><pre>SID=$(python3 -c "import uuid;print(uuid.uuid4())")
+
+claude -p "合言葉は「みかん」。覚えて" \
+  --session-id "$SID"
+
+claude -p "合言葉を1語だけ答えて" --resume "$SID"</pre></div>
+      <div class="code term"><div class="code-head">段12 の実出力</div><pre>session-id = 446a4a98-fff0...
+1本目 exit=0
+<span class="ok-line">みかん</span>
+2本目 exit=0</pre></div>
+      <p class="lead"><b>別のプロセスから聞き直しても、前半の内容を覚えていました。</b><code>--session-id</code> には UUID の形が要ります（上のように生成すれば確実です）。</p>
+      <p class="lead">直前の会話でよければ、ID を管理せずに <code>--continue</code>（<code>-c</code>）でも繋がります。<mark>ただし「そのディレクトリの最後の会話」を指すので、同じ場所で2本を並行させると取り違えます。</mark>自動化では ID を明示するほうが安全です。</p>
+      <p class="lead">これは節約にもなります。前半で読み込んだ内容は、後半でもう一度読ませる必要がありません。第2章で見たとおり、料金は<b>やった仕事の量ではなく、やりとりの量</b>で決まります。</p>
+      <figure>
+        <picture>
+          <source srcset="images/carry-over-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/carry-over.png" alt="--session-idで1本目を走らせ、--resumeで2本目が同じ文脈を引き継ぐことを示す図" loading="lazy">
+        </picture>
+        <figcaption>途中で落ちても、続きから拾い直せる。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s11">
+    <h2><span class="step">12</span>無人で置くときの4点</h2>
+    <article class="item">
+      <p class="lead">ここまでの実測を、そのまま手順にまとめます。</p>
+      <ul class="points">
+        <li><b>1. 道具を名指しする。</b><code>--allowedTools</code> に必要な最小限だけ渡す。読むだけの仕事に <code>Write</code> を渡さない</li>
+        <li><b>2. 上限を置く。</b><code>--max-turns</code> と <code>--max-budget-usd</code>。ただし金額は厳密な天井ではないので、桁で余裕を持たせる</li>
+        <li><b>3. JSONで受ける。</b><code>--output-format json</code> にして <code>permission_denials</code> が空でないかを見る。空でなければ確実に失敗している</li>
+        <li><b>4. 結果そのものを確かめる。</b>ファイルが出来たか、commit が載ったか。ここだけは CLI に任せられない</li>
+      </ul>
+      <p class="lead">形にすると、こうなります。<b>4番目が入っているかどうかが、この記事の要点です。</b></p>
+      <div class="code"><div class="code-head">cron に置く最小の形</div><pre>#!/usr/bin/env bash
+set -euo pipefail
+OUT=/var/log/cc/$(date +%F).json
+
+claude -p "$(cat prompt.txt)" \
+  --allowedTools Read Write Edit \
+  --max-turns 20 \
+  --max-budget-usd 1 \
+  --output-format json &gt; "$OUT"
+
+# 拒否が記録されていたら失敗として扱う
+python3 - "$OUT" &lt;&lt;'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+ng = d["permission_denials"]
+if ng:
+    n = [x["tool_name"] for x in ng]
+    sys.exit("拒否: " + ",".join(n))
+PY
+
+# 出来たはずのものを、自分で確かめる
+if [ ! -s report.md ]; then
+  echo "report.md が無い"
+  exit 1
+fi</pre></div>
+      <p class="lead">最後の <code>test -s</code> の1行が、第8章で見た「記録が空のまま何もしていない」型を捕まえます。<mark>この行が無いと、3回に2回は素通りします。</mark></p>
+      <p class="lead">このスクリプト自体は cron で長期運用していません。上の各旗の挙動は測っていますが、<b>組み合わせた状態での連続運用は確かめていない</b>ことを書き添えておきます。</p>
+      <figure>
+        <picture>
+          <source srcset="images/cron-shape-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/cron-shape.png" alt="道具の名指し・上限・denialsの確認・結果そのものの確認という4点を示す図" loading="lazy">
+        </picture>
+        <figcaption>4番目だけは、道具に任せられない。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Claude Code 2.1.251 の <code>claude --help</code> 出力（この機械で実行）.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: <code>--permission-mode</code> の choices 6語（第5章に原文を引用）、<code>--allowedTools</code> の説明「Comma or space-separated list of tool names to allow (e.g. "Bash(git *) Edit")」、<code>--dangerously-skip-permissions</code> の「Recommended only for sandboxes with no internet access.」、<code>--max-budget-usd</code>・<code>--max-turns</code>・<code>--session-id</code>・<code>--resume</code>・<code>--continue</code>・<code>--json-schema</code>・<code>--disallowedTools</code> の存在。旗の一覧はこの出力だけを根拠にした。</span>
+          </details>
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Claude Code 2.1.251 / Ubuntu 24.04.4 LTS / Linux 6.18.44-fc-v22 x86_64。2026年8月30日 05:05〜05:35 JST に実行。
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">再現一式は <code>_labs/2026-08-30_claude-automation/</code>（<code>run_all.sh</code> と <code>output.txt</code>）。<code>bash run_all.sh</code> で同じ段が同じ順に出る。記事に貼った端末ログは <code>output.txt</code> からの抜粋で、加工していない。端末幅は <code>COLUMNS=40</code> で固定した。第2章の <code>permission_denials</code> の中身だけは、段4と同じ条件で別途 JSON を整形して取り出したもの（<code>tool_use_id</code> は長いので末尾を省き、<code>file_path</code> は絶対パスの前半を省いた。省略は「...」で示した）。料金・所要時間は実行のたびに変動する。</span>
+          </details>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          第5章の「仕事の幅で使い分ける」、第9章の「上限は桁で余裕を持たせる」は、規格でも公式の推奨でもなく、今回の実測を踏まえた運用上の目安。
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          <code>bypassPermissions</code> / <code>auto</code> / <code>manual</code> / <code>dontAsk</code> / <code>plan</code> の各モードの挙動、<code>--disallowedTools</code>、<code>--json-schema</code>、<code>settings.json</code> の <code>permissions</code> による許可、MCPサーバーのツールに対する許可の挙動、第12章のスクリプトを実際の cron に載せた連続運用。
+          <details class="note-d"><summary>なぜ未確認か</summary>
+            <span class="note">今回はCLIの旗だけを対象に測ったため。<code>bypassPermissions</code> は確認を全部飛ばす旗で、無人環境で試すこと自体が危険なので動かしていない。名前から挙動を推測して書くことはしない。</span>
+          </details>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+<footer class="footer">AIニュース デイリーダイジェスト</footer>
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

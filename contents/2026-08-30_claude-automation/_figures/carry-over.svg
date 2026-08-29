@@ -1,0 +1,23 @@
+<svg viewBox="0 0 460 260" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">続きから走らせる</text>
+  <g data-step="1">
+    <rect x="14" y="52" width="196" height="72" rx="10" fill="var(--track)"/>
+    <text x="112" y="80" font-size="17" font-weight="700" fill="var(--sub)" text-anchor="middle">1本目</text>
+    <text x="112" y="104" font-size="16" fill="var(--sub)" text-anchor="middle">--session-id</text>
+  </g>
+  <g data-step="2">
+    <line x1="214" y1="88" x2="244" y2="88" stroke="var(--sub)" stroke-width="3"/>
+    <polygon points="244,82 256,88 244,94" fill="var(--sub)"/>
+    <rect x="260" y="52" width="186" height="72" rx="10" fill="var(--b)" opacity="0.30"/>
+    <text x="353" y="80" font-size="17" font-weight="700" fill="var(--b)" text-anchor="middle">2本目</text>
+    <text x="353" y="104" font-size="16" fill="var(--b)" text-anchor="middle">--resume</text>
+  </g>
+  <g data-step="3">
+    <rect x="14" y="142" width="432" height="56" rx="10" fill="var(--b)" opacity="0.30"/>
+    <text x="30" y="166" font-size="16" fill="var(--fg)">別プロセスで聞き直しても</text>
+    <text x="30" y="190" font-size="22" font-weight="700" fill="var(--b)">「みかん」と答えた</text>
+  </g>
+  <g data-step="4">
+    <text x="14" y="234" font-size="18" font-weight="700" fill="var(--fg)">前半と後半に割って回せる</text>
+  </g>
+</svg>

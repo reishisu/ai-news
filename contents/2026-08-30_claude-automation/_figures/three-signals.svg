@@ -1,0 +1,32 @@
+<svg viewBox="0 0 460 320" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">違うのは、下の1行だけ</text>
+  <text x="150" y="58" font-size="17" font-weight="700" fill="var(--sub)" text-anchor="middle">やれた</text>
+  <text x="340" y="58" font-size="17" font-weight="700" fill="var(--sub)" text-anchor="middle">やれてない</text>
+  <g data-step="1">
+    <rect x="14" y="68" width="432" height="44" rx="8" fill="var(--track)"/>
+    <text x="26" y="96" font-size="17" fill="var(--sub)">終了コード</text>
+    <text x="150" y="96" font-size="19" font-weight="700" fill="var(--sub)" text-anchor="middle">0</text>
+    <text x="340" y="96" font-size="19" font-weight="700" fill="var(--sub)" text-anchor="middle">0</text>
+  </g>
+  <g data-step="2">
+    <rect x="14" y="118" width="432" height="44" rx="8" fill="var(--track)"/>
+    <text x="26" y="146" font-size="17" fill="var(--sub)">is_error</text>
+    <text x="150" y="146" font-size="19" font-weight="700" fill="var(--sub)" text-anchor="middle">false</text>
+    <text x="340" y="146" font-size="19" font-weight="700" fill="var(--sub)" text-anchor="middle">false</text>
+  </g>
+  <g data-step="3">
+    <rect x="14" y="168" width="432" height="44" rx="8" fill="var(--track)"/>
+    <text x="26" y="196" font-size="17" fill="var(--sub)">subtype</text>
+    <text x="150" y="196" font-size="19" font-weight="700" fill="var(--sub)" text-anchor="middle">success</text>
+    <text x="340" y="196" font-size="19" font-weight="700" fill="var(--sub)" text-anchor="middle">success</text>
+  </g>
+  <g data-step="4">
+    <rect x="14" y="218" width="432" height="52" rx="8" fill="var(--b)" opacity="0.30"/>
+    <text x="26" y="250" font-size="18" font-weight="700" fill="var(--b)">denials</text>
+    <text x="150" y="250" font-size="20" font-weight="700" fill="var(--b)" text-anchor="middle">[ ]</text>
+    <text x="340" y="250" font-size="20" font-weight="700" fill="var(--b)" text-anchor="middle">[Write]</text>
+  </g>
+  <g data-step="5">
+    <text x="14" y="298" font-size="18" font-weight="700" fill="var(--fg)">料金は $0.0178 と $0.0186</text>
+  </g>
+</svg>

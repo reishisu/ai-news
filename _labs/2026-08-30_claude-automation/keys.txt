@@ -1,0 +1,30 @@
+exit=0
+--- 返ってきたキー ---
+api_error_status       NoneType
+duration_api_ms        int
+duration_ms            int
+fast_mode_disabled_reason str
+fast_mode_state        str
+is_error               bool
+modelUsage             dict
+num_turns              int
+permission_denials     list
+queued_turn_count      int
+result                 str
+session_id             str
+stop_reason            str
+subagent_stats         dict
+subtype                str
+terminal_reason        str
+time_origin_ms         float
+time_to_request_from_spawn_ms int
+time_to_request_ms     int
+total_cost_usd         float
+ttft_ms                int
+ttft_stream_ms         int
+type                   str
+usage                  dict
+uuid                   str
+warm_spare_claimed     bool
+
+キーの数: 26

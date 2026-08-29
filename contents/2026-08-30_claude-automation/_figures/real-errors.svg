@@ -1,0 +1,24 @@
+<svg viewBox="0 0 460 300" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">終了コードが立つのはどこか</text>
+  <g data-step="1">
+    <rect x="14" y="48" width="432" height="40" rx="8" fill="var(--track)"/>
+    <text x="30" y="75" font-size="18" font-weight="700" fill="var(--sub)">何かがおかしい</text>
+  </g>
+  <g data-step="2">
+    <rect x="14" y="98" width="210" height="96" rx="10" fill="var(--b)" opacity="0.30"/>
+    <text x="119" y="124" font-size="22" font-weight="700" fill="var(--b)" text-anchor="middle">exit 1</text>
+    <text x="119" y="152" font-size="16" fill="var(--fg)" text-anchor="middle">モデル名の誤り</text>
+    <text x="119" y="176" font-size="16" fill="var(--fg)" text-anchor="middle">ターン上限・予算超過</text>
+  </g>
+  <g data-step="3">
+    <rect x="236" y="98" width="210" height="96" rx="10" fill="var(--c)" opacity="0.24"/>
+    <text x="341" y="124" font-size="22" font-weight="700" fill="var(--c)" text-anchor="middle">exit 0</text>
+    <text x="341" y="152" font-size="16" fill="var(--fg)" text-anchor="middle">権限で止まった</text>
+    <text x="341" y="176" font-size="16" fill="var(--fg)" text-anchor="middle">聞き返して終わった</text>
+  </g>
+  <g data-step="4">
+    <rect x="14" y="212" width="432" height="72" rx="10" fill="var(--c)" opacity="0.24"/>
+    <text x="30" y="242" font-size="20" font-weight="700" fill="var(--c)">やらなかった、は</text>
+    <text x="30" y="270" font-size="20" font-weight="700" fill="var(--c)">エラーではない</text>
+  </g>
+</svg>

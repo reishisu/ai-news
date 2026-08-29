@@ -1,0 +1,22 @@
+<svg viewBox="0 0 460 240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">材料は標準入力から渡せる</text>
+  <g data-step="1">
+    <rect x="14" y="52" width="176" height="64" rx="10" fill="var(--track)"/>
+    <text x="102" y="80" font-size="17" font-weight="700" fill="var(--sub)" text-anchor="middle">log.txt</text>
+    <text x="102" y="102" font-size="15" fill="var(--sub)" text-anchor="middle">ERROR 2行</text>
+  </g>
+  <g data-step="2">
+    <line x1="194" y1="84" x2="224" y2="84" stroke="var(--sub)" stroke-width="3"/>
+    <polygon points="224,78 236,84 224,90" fill="var(--sub)"/>
+    <rect x="240" y="52" width="206" height="64" rx="10" fill="var(--track)"/>
+    <text x="343" y="90" font-size="17" font-weight="700" fill="var(--sub)" text-anchor="middle">cat | claude -p</text>
+  </g>
+  <g data-step="3">
+    <rect x="14" y="136" width="432" height="60" rx="10" fill="var(--b)" opacity="0.30"/>
+    <text x="30" y="176" font-size="26" font-weight="700" fill="var(--b)">2</text>
+    <text x="70" y="176" font-size="18" fill="var(--fg)">とだけ返ってきた</text>
+  </g>
+  <g data-step="4">
+    <text x="14" y="228" font-size="18" font-weight="700" fill="var(--fg)">数字だけ返せば、そのまま次へ渡せる</text>
+  </g>
+</svg>

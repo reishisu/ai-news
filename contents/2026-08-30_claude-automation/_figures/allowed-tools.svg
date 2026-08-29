@@ -1,0 +1,20 @@
+<svg viewBox="0 0 460 280" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">名指しした道具だけが動く</text>
+  <g data-step="1">
+    <rect x="14" y="48" width="432" height="56" rx="10" fill="var(--track)"/>
+    <text x="30" y="72" font-size="16" fill="var(--sub)">書かないとき</text>
+    <text x="30" y="94" font-size="19" font-weight="700" fill="var(--sub)">claude -p "..."</text>
+  </g>
+  <g data-step="2">
+    <rect x="14" y="114" width="432" height="46" rx="8" fill="var(--c)" opacity="0.24"/>
+    <text x="30" y="144" font-size="20" font-weight="700" fill="var(--c)">読むだけ。書けない</text>
+  </g>
+  <g data-step="3">
+    <rect x="14" y="176" width="432" height="56" rx="10" fill="var(--b)" opacity="0.30"/>
+    <text x="30" y="200" font-size="16" fill="var(--b)">名指しするとき</text>
+    <text x="30" y="222" font-size="19" font-weight="700" fill="var(--b)">--allowedTools Write</text>
+  </g>
+  <g data-step="4">
+    <text x="30" y="264" font-size="22" font-weight="700" fill="var(--b)">書ける</text>
+  </g>
+</svg>

@@ -1,0 +1,26 @@
+<svg viewBox="0 0 460 280" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">Bashはコマンド単位で渡す</text>
+  <rect x="14" y="48" width="432" height="76" rx="10" fill="var(--track)"/>
+  <g data-step-until="1">
+    <text x="30" y="76" font-size="19" font-weight="700" fill="var(--c)">--allowedTools Bash</text>
+    <text x="30" y="104" font-size="18" fill="var(--fg)">何でも打てる</text>
+  </g>
+  <g data-step="2">
+    <text x="30" y="76" font-size="19" font-weight="700" fill="var(--b)">Bash(git status:*)</text>
+    <text x="30" y="104" font-size="18" fill="var(--fg)">git status だけ</text>
+  </g>
+  <g data-step="3">
+    <rect x="14" y="140" width="210" height="60" rx="10" fill="var(--b)" opacity="0.30"/>
+    <text x="119" y="166" font-size="17" font-weight="700" fill="var(--b)" text-anchor="middle">git status</text>
+    <text x="119" y="188" font-size="20" font-weight="700" fill="var(--b)" text-anchor="middle">通る</text>
+  </g>
+  <g data-step="4">
+    <rect x="236" y="140" width="210" height="60" rx="10" fill="var(--c)" opacity="0.24"/>
+    <text x="341" y="166" font-size="17" font-weight="700" fill="var(--c)" text-anchor="middle">rm -rf</text>
+    <text x="341" y="188" font-size="20" font-weight="700" fill="var(--c)" text-anchor="middle">通らない</text>
+  </g>
+  <g data-step="5">
+    <text x="14" y="238" font-size="18" font-weight="700" fill="var(--fg)">丸ごと許可すると、消す操作も</text>
+    <text x="14" y="262" font-size="18" font-weight="700" fill="var(--fg)">同じ1語で通ってしまう</text>
+  </g>
+</svg>

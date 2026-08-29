@@ -1,0 +1,25 @@
+<svg viewBox="0 0 460 320" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">束ねて渡す --permission-mode</text>
+  <g data-step="1">
+    <rect x="14" y="48" width="432" height="48" rx="8" fill="var(--b)" opacity="0.30"/>
+    <text x="28" y="70" font-size="19" font-weight="700" fill="var(--b)">acceptEdits</text>
+    <text x="28" y="90" font-size="16" fill="var(--fg)">この記事で実際に試した1つ</text>
+  </g>
+  <g data-step="2">
+    <rect x="14" y="106" width="432" height="40" rx="8" fill="var(--track)"/>
+    <text x="28" y="132" font-size="18" font-weight="700" fill="var(--sub)">auto / manual / dontAsk</text>
+  </g>
+  <g data-step="3">
+    <rect x="14" y="156" width="432" height="40" rx="8" fill="var(--track)"/>
+    <text x="28" y="182" font-size="18" font-weight="700" fill="var(--sub)">plan</text>
+  </g>
+  <g data-step="4">
+    <rect x="14" y="206" width="432" height="48" rx="8" fill="var(--c)" opacity="0.24"/>
+    <text x="28" y="228" font-size="19" font-weight="700" fill="var(--c)">bypassPermissions</text>
+    <text x="28" y="248" font-size="16" fill="var(--fg)">全部素通り。試していない</text>
+  </g>
+  <g data-step="5">
+    <text x="14" y="284" font-size="18" font-weight="700" fill="var(--fg)">6語は --help の一覧から。</text>
+    <text x="14" y="308" font-size="18" font-weight="700" fill="var(--fg)">中身を測ったのは上の1つだけ</text>
+  </g>
+</svg>

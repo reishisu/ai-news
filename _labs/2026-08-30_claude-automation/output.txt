@@ -1,0 +1,84 @@
+===== 段1 環境 =====
+2.1.251 (Claude Code)
+OS       Linux-6.18.44-fc-v22-x86_64-with-g
+UTC     2026-08-29 20:16
+
+===== 段2 素の -p は動く =====
+2
+exit=0
+
+===== 段3 権限が要る仕事 =====
+exit=0
+--- 応答 ---
+ファイル書き込みの許可が必要なようです
+--- 出来たファイル ---
+(hello.txt は無い)
+
+===== 段4 JSONで見ると success =====
+exit=0
+is_error       False
+subtype        success
+num_turns      2
+permission_denials ['Write']
+total_cost_usd 0.0178
+
+===== 段5 直す --allowedTools =====
+exit=0
+is_error       False
+permission_denials []
+total_cost_usd 0.0186
+--- hello.txt の中身 ---
+hi
+===== 段6 直す --permission-mode =====
+exit=0
+is_error       False
+permission_denials []
+--- hello.txt ---
+hi
+===== 段7 本物のエラーは exit 1 =====
+--- 7a 存在しないモデル ---
+exit=1
+There's an issue with the selected mod
+--- 7b ターン上限 ---
+exit=1
+is_error       True
+subtype        error_max_turns
+terminal_reason max_turns
+
+===== 段8 Bashは部分許可できる =====
+exit=0
+permission_denials []
+result         On branch master
+
+===== 段9 許可の外を頼むと =====
+--- 9a rm を許可した場合(3回) ---
+1回目 exit=0 denials=0 f.txt=きえた
+2回目 exit=0 denials=0 f.txt=きえた
+3回目 exit=0 denials=0 f.txt=きえた
+--- 9b rm を許可しない場合(3回) ---
+1回目 exit=0 denials=1 f.txt=のこる
+2回目 exit=0 denials=2 f.txt=のこる
+3回目 exit=0 denials=5 f.txt=のこる
+--- 9c 命令文だけ変えて3回 ---
+1回目 exit=0 denials=0 f.txt=のこる
+2回目 exit=0 denials=2 f.txt=のこる
+3回目 exit=0 denials=0 f.txt=のこる
+--- 9b の応答の一例 ---
+パスは作業ディレクトリと一致していますが、サンドボックスのセキュリティ制限で
+===== 段10 予算で止める =====
+exit=1
+is_error       True
+subtype        error_max_budget_usd
+total_cost_usd 0.0143
+
+===== 段11 stdin から渡す =====
+2
+exit=0
+
+===== 段12 続きから走らせる =====
+session-id = 446a4a98-fff0...
+1本目 exit=0
+みかん
+2本目 exit=0
+
+===== おわり =====

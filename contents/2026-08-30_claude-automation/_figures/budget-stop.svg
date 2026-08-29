@@ -1,0 +1,19 @@
+<svg viewBox="0 0 460 280" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">止まる場所を先に決める</text>
+  <g data-step="1">
+    <rect x="14" y="48" width="432" height="56" rx="10" fill="var(--track)"/>
+    <text x="30" y="72" font-size="18" font-weight="700" fill="var(--sub)">--max-budget-usd 0.001</text>
+    <text x="30" y="94" font-size="16" fill="var(--sub)">お金で止める</text>
+  </g>
+  <g data-step="2">
+    <line x1="230" y1="110" x2="230" y2="132" stroke="var(--sub)" stroke-width="3"/>
+    <polygon points="224,132 230,144 236,132" fill="var(--sub)"/>
+    <rect x="14" y="150" width="432" height="60" rx="10" fill="var(--b)" opacity="0.30"/>
+    <text x="30" y="176" font-size="20" font-weight="700" fill="var(--b)">exit 1</text>
+    <text x="30" y="200" font-size="17" fill="var(--fg)">error_max_budget_usd</text>
+  </g>
+  <g data-step="3">
+    <text x="14" y="242" font-size="18" font-weight="700" fill="var(--fg)">上限は $0.001。止まった時点の</text>
+    <text x="14" y="266" font-size="18" font-weight="700" fill="var(--fg)">集計は $0.0143 だった</text>
+  </g>
+</svg>
