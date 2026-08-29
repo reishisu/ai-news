@@ -6,9 +6,9 @@
     <text x="30" y="114" font-size="27" font-weight="700" fill="#fff">$2,830.08</text>
   </g>
   <g data-step="2">
-    <text x="14" y="176" font-size="17" fill="var(--sub)">Max 20x の月額</text>
-    <rect x="14" y="188" width="31" height="40" rx="8" fill="var(--track)"/>
-    <text x="56" y="216" font-size="21" font-weight="700" fill="var(--fg)">$200</text>
-    <text x="150" y="216" font-size="18" fill="var(--sub)">幅が使った量の比(約14倍)</text>
+    <text x="14" y="176" font-size="17" fill="var(--sub)">Max プランの月額（公式の表記）</text>
+    <rect x="14" y="188" width="16" height="40" rx="6" fill="var(--track)"/>
+    <text x="42" y="216" font-size="21" font-weight="700" fill="var(--fg)">From $100</text>
+    <text x="190" y="216" font-size="18" fill="var(--sub)">幅が金額の比（28倍）</text>
   </g>
 </svg>

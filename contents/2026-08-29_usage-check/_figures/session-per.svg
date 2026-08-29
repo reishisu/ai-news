@@ -1,0 +1,14 @@
+<svg viewBox="0 0 460 240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="28" font-size="24" font-weight="700" fill="var(--fg)">「どの作業が食ったか」まで割れる</text>
+  <g data-step="1">
+    <text x="14" y="64" font-size="17" fill="var(--sub)">セッション＝1回の作業のまとまり</text>
+    <rect x="14" y="76" width="432" height="40" rx="8" fill="var(--b)" opacity="0.7"/>
+    <text x="30" y="102" font-size="18" font-weight="700" fill="#fff">作業A（大きな修正）  $10.90</text>
+  </g>
+  <g data-step="2">
+    <rect x="14" y="124" width="320" height="40" rx="8" fill="var(--b)" opacity="0.4"/>
+    <text x="30" y="150" font-size="18" font-weight="700" fill="var(--fg)">作業B  $8.12</text>
+    <rect x="14" y="172" width="140" height="40" rx="8" fill="var(--track)"/>
+    <text x="30" y="198" font-size="18" font-weight="700" fill="var(--fg)">作業C  $3.56</text>
+  </g>
+</svg>

@@ -1,0 +1,8 @@
+{
+  "category": "AIで作る技術",
+  "tags": ["Claude Code", "料金", "使用量", "ccusage", "実測"],
+  "featured": true,
+  "title": "Claude Codeの使用量と料金の確かめ方 — この機械は11日でAPI換算2,830ドル使っていた",
+  "summary": "使った量は全部ローカルのログに残っています。npx ccusage daily の1行で日別の表が出ます。ただしその$は請求額ではなく、API単価に換算した推定値です。/cost が -p で常に$0になる理由、5時間枠の見方、セッション別の内訳まで実測しました。",
+  "thumbnail": "images/thumb.png"
+}

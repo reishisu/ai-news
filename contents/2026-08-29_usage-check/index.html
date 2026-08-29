@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Codeの使用量と料金の確かめ方 — この機械は11日でAPI換算2,830ドル使っていた</title>
+<meta name="description" content="使った量は全部ローカルのログに残っています。npx ccusage daily の1行で日別の表が出ます。ただしその$は請求額ではなく、API単価に換算した推定値です。/cost が -p で常に$0になる理由も実測しました。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claude Codeの使用量と料金の確かめ方 — この機械は11日でAPI換算2,830ドル使っていた">
+<meta property="og:description" content="使った量はローカルのログに全部残っている。npx ccusage の1行で表になる。ただしその$は請求額ではなく換算値。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-29_usage-check/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-29_usage-check/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=081fefa4">
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">AIで作る技術 ｜ 2026年8月29日(土)</div>
+    <h1>Claude Codeの使用量と料金の確かめ方 — この機械は11日でAPI換算2,830ドル使っていた</h1>
+    <div class="range">「課金の確認にいつも時間がかかる。何か良いツールは？」——競合動画のコメント欄でいちばん具体的だった質問に、実測で答えます。<b>使った量は、全部自分の機械のログに残っています。</b>この記事のログはすべて Claude Code 2.1.251 と ccusage 20.0.20 での実測です。行を省いた箇所は「(中略)」と書きました。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 自分の使用量を見るのは1コマンド・約2分</span>
+      <span class="tag">全部コピペOK</span>
+      <span class="tag">インストール不要(npx)</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li><b><code>npx ccusage daily</code> の1行で、日ごとの使用量とドル換算の表が出ます。</b>インストールも設定も要りません。この機械では11日分・$2,830.08 と出ました。</li>
+      <li><b>その$は請求額ではありません。</b>ツールの公式説明も Estimate（推定）と書いています。定額プランの人にとっては「APIで払ったら幾らぶんか」＝元を取れているかの物差しです。</li>
+      <li><b><code>/cost</code> は「いまの会話」しか数えません。</b><code>claude -p</code> で叩くと毎回 $0.0000 です。過去ぶんを見たいときの道具ではありませんでした。</li>
+    </ol>
+    <div>
+      <details>
+        <summary>先に4語だけ意味</summary>
+        <ul class="points">
+          <li><b>トークン</b> — AIが読み書きする文字の単位。使用量はこれで数える</li>
+          <li><b>ccusage</b> — 会話ログを読んで使用量を表にする、コミュニティ製のコマンド</li>
+          <li><b>キャッシュ読み出し</b> — 前に送った文脈を安い単価で読み直す仕組み。今回の主役</li>
+          <li><b>5時間ブロック</b> — 定額プランの使用量が数えられる時間の枠</li>
+        </ul>
+      </details>
+    </div>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">この機械は、11日で2,830ドルぶん使っていた</a></li>
+      <li><a href="#s2">数字の出どころは、全部自分の機械の中</a></li>
+      <li><a href="#s3">入れるものは1つも無い。<code>npx ccusage</code> で表が出る</a></li>
+      <li><a href="#s4">その$は、請求額ではない</a></li>
+      <li><a href="#s5">トークンの96%は、キャッシュの読み出しだった</a></li>
+      <li><a href="#s6">5時間の枠は <code>blocks</code> で見る</a></li>
+      <li><a href="#s6b">どの作業が食ったかは <code>session</code> で見る</a></li>
+      <li><a href="#s7"><code>/cost</code> は -p だと、いつも0ドル</a></li>
+      <li><a href="#s8">見たいものごとに、道具が違う</a></li>
+      <li><a href="#s9">毎朝の1行にする</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>この機械は、11日で2,830ドルぶん使っていた</h2>
+    <article class="item">
+      <h3>まず結果から。1コマンドでこの表が出ます</h3>
+      <p class="lead">この記事を書いている機械で、いま測った数字です。日付ごとの使用量を、ドル換算つきで出しました。</p>
+      <div class="code wrap"><div class="code-head">ccusage の日別集計（JSONを表に整形。整形前の生の表は第3章）</div><pre>$ npx ccusage daily --json | python3 daily_table.py   # 全文は _labs/
+日付              換算コスト            トークン計
+2026-08-19  $ 163.01       68,935,195
+2026-08-20  $ 116.92      125,281,479
+2026-08-21  $ 283.02      314,481,457
+2026-08-22  $  60.42       84,881,330
+2026-08-23  $ 153.20      173,130,651
+2026-08-24  $ 423.95      456,283,857
+2026-08-25  $ 330.67      322,300,732
+2026-08-26  $ 342.71      309,662,062
+2026-08-27  $ 365.95      444,948,034
+2026-08-28  $ 578.34      419,351,858
+2026-08-29  $  11.89       10,751,355
+合計 11日  $2830.08</pre></div>
+      <p class="lead">11日で <b>$2,830.08</b>。この機械はAIに毎日長時間の作業をさせているので極端な例ですが、だからこそ確かめる意味がありました。Max プランの月額は公式ページの表記で「From $100」です。<b>もしAPIの従量課金で同じことをしていたら、11日で月額の28倍を払っていた</b>計算になります。</p>
+      <p class="lead">表の読み方を2つ。まず<b>日によって10倍近い波があります</b>（最小 $60.42、最大 $578.34）。使い方が同じでも、長い作業を回した日は跳ねます。次に、8/29 の行が小さいのは<b>その日の途中で撮ったから</b>です。当日の行は1日の終わりまで確定しません。</p>
+      <figure>
+        <picture>
+          <source srcset="images/eleven-days-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/eleven-days.png" alt="11日でAPI換算2,830ドル。Maxの月額 From $100 との棒の比較" loading="lazy">
+        </picture>
+        <figcaption>11日で$2,830。下の棒がMaxの月額（From $100・幅は金額の比）。</figcaption>
+      </figure>
+      <p class="lead">表には出しませんでしたが、生の出力ではモデル別の内訳行も付きます。この機械のログには複数の系統のモデルが混ざって記録されていて、換算はモデルごとの単価で行われています。ここから、この数字の出どころと、<b>この$を何と読むべきか</b>を順に確かめます。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>数字の出どころは、全部自分の機械の中</h2>
+    <article class="item">
+      <h3>会話ログに、1メッセージずつ使用量が書いてある</h3>
+      <p class="lead">Claude Code は会話のログを、自分の機械の <code>~/.claude/projects/</code> にJSONL形式で残しています。プロジェクトごとにフォルダが切られます。</p>
+      <div class="code wrap"><div class="code-head">ログの置き場所</div><pre>$ ls ~/.claude/projects/
+-home-user-ai-news-video
+-tmp-claude-0--home-user-ai-news-video-(中略)-scratchpad
+-workspace-ai-news-dev</pre></div>
+      <p class="lead">この中の1行1行に、そのやり取りが使ったトークン数が <code>usage</code> として記録されています。実物から1件抜き出すとこうです。</p>
+      <div class="code wrap"><div class="code-head">ログ1行の usage（整形して表示）</div><pre>{
+ "input_tokens": 2,
+ "output_tokens": 449,
+ "cache_read_input_tokens": 506458,
+ "cache_creation_input_tokens": 2811
+}</pre></div>
+      <figure>
+        <picture>
+          <source srcset="images/where-logs-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/where-logs.png" alt="Claude Code → ~/.claude/projects/ のJSONL → 読むのは自分" loading="lazy">
+        </picture>
+        <figcaption>数字の経路。ログは手元に残り、読むのも手元。</figcaption>
+      </figure>
+      <p class="lead">4つの数字の意味はこうです。<code>input</code> は新しく打った入力、<code>output</code> はAIの返答、<code>cache_read</code> は前に送った文脈の読み直し、<code>cache_creation</code> はその文脈をキャッシュに積んだ分。この1件では、新しい入力が2トークンに対して、キャッシュの読み直しが50万トークンあります。<b>会話が長くなるほど、毎回のやり取りは「過去の読み直し」が支配的になります</b>。この比率は第5章でもう一度出てきます。</p>
+      <p class="lead">つまり使用量の確認に、どこかのサイトにログインする必要はありません。<b>数える材料は最初から手元に全部あります。</b>これを読みやすくしてくれるのが、次の ccusage です。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s3">
+    <h2><span class="step">3</span>入れるものは1つも無い。<code>npx ccusage</code> で表が出る</h2>
+    <article class="item">
+      <h3>インストールせずに1回だけ実行する</h3>
+      <p class="lead">ccusage はコミュニティ製のコマンドで、いまのログを読んで表にします。<code>npx</code> で呼べばインストールは不要です。</p>
+      <div class="code wrap"><div class="code-head">日別の表（実際の出力・末尾だけ）</div><pre>$ npx ccusage daily
+(中略)
+│ 2026     │ All        │        │       20 │    6,037 │
+│ 08-29    │            │        │          │          │
+(中略)
+│ Total    │            │        │   22,429 │ 6,058,0… │ $2823.76 │</pre></div>
+      <p class="lead">公式サイトはこのツールをこう説明しています。</p>
+      <div class="code wrap"><div class="code-head">ccusage 公式サイトより（原文）</div><pre>Reads local usage logs from Claude Code, (中略) without uploading your data</pre></div>
+      <p class="lead"><b>ローカルのログを読む。データはアップロードしない。</b>第2章で見た経路のとおりです。</p>
+      <figure>
+        <picture>
+          <source srcset="images/one-command-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/one-command.png" alt="npx ccusage daily → 日付ごとの表" loading="lazy">
+        </picture>
+        <figcaption>1行で表。<code>--json</code> を付ければ機械可読にもなる。</figcaption>
+      </figure>
+      <p class="lead">期間の切り口も変えられます。月ごとの合計と、日付で絞る <code>--since</code> も実際に叩きました。</p>
+      <div class="code wrap"><div class="code-head">月ごとの合計（実際の出力・抜粋）</div><pre>$ npx ccusage monthly
+(中略)
+│ 2026-08  │ All        │        │   22,441 │ 6,063,3… │ $2827.26 │</pre></div>
+      <div class="code wrap"><div class="code-head">日付で絞る</div><pre>$ npx ccusage daily --since 20260827   # 8/27以降だけ</pre></div>
+      <p class="lead">細かい注意を1つ。第1章の表（合計 $2,830.08）とこの表（$2,823.76）、月次（$2,827.26）は<b>数分ずれた別々のスナップショット</b>で、撮っている間もこのセッション自身がログを増やしているので末尾が一致しません。使うときは1回の出力の中で読んでください。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s4">
+    <h2><span class="step">4</span>その$は、請求額ではない</h2>
+    <article class="item">
+      <h3>ツール自身が「推定」と書いている</h3>
+      <p class="lead">ここがこの記事でいちばん大事な1行です。ccusage の公式サイトは、この$の意味をこう書いています。</p>
+      <div class="code wrap"><div class="code-head">ccusage 公式サイトより（原文）</div><pre>Estimate USD spend from token counts and model pricing, with cache token accounting where available</pre></div>
+      <p class="lead">トークン数とモデルの単価から<b>推定（Estimate）</b>した金額です。APIの従量課金で使っている人には概算の目安になりますが、<b>Pro や Max の定額プランなら、これは請求額ではありません</b>。定額プランの請求は月額のままです。</p>
+      <figure>
+        <picture>
+          <source srcset="images/not-a-bill-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/not-a-bill.png" alt="請求される金額？に取り消し線。API単価に換算した推定値" loading="lazy">
+        </picture>
+        <figcaption>この$の正体。定額の人には「元を取れているか」の物差し。</figcaption>
+      </figure>
+      <p class="lead">では定額の人に何の役に立つのか。<b>「APIで払ったら幾らぶん使ったか」</b>が分かります。第1章の $2,830 は、月額 From $100 のプランで11日にそれだけの量を使った、という意味です。逆にこの換算値が月額を下回り続けるなら、APIの従量課金のほうが安い、という判断材料にもなります。</p>
+      <p class="lead">コメント欄の「課金の確認に時間がかかる」は、おそらくこの区別が曖昧なまま、請求のページと使用量の画面を行き来していた時間です。<b>定額プランなら、月の請求は変わりません。</b>確かめる意味があるのは請求ではなく量のほうで、量はこの1行で出ます。ここが切り分けられると、確認は速くなります。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s5">
+    <h2><span class="step">5</span>トークンの96%は、キャッシュの読み出しだった</h2>
+    <article class="item">
+      <h3>ツールを使わずに、生ログを自力で数える</h3>
+      <p class="lead">ccusage を信用してよいかも、自分で確かめられます。ログを直接数える15行のスクリプトを書きました（全文は <code>_labs/count_tokens.py</code>）。依存ライブラリはありません。</p>
+      <div class="code wrap"><div class="code-head">生ログの合計（種類別）</div><pre>$ python3 count_tokens.py
+input_tokens                             18,201
+output_tokens                         9,631,726
+cache_read_input_tokens           3,687,253,350
+cache_creation_input_tokens         126,936,427</pre></div>
+      <p class="lead">合計38億トークンのうち、<b>36.9億（96%）が <code>cache_read</code></b>——前に送った文脈をキャッシュから読み直した分です。純粋な新しい入力（<code>input_tokens</code>）は1.8万しかありません。</p>
+      <figure>
+        <picture>
+          <source srcset="images/token-mix-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/token-mix.png" alt="トークンの96%はキャッシュ読み出し" loading="lazy">
+        </picture>
+        <figcaption>内訳はほぼキャッシュ。単価が別なので、数の印象と金額は一致しない。</figcaption>
+      </figure>
+      <p class="lead">なぜここまで偏るのか。Claude Code は毎回のやり取りで、<b>それまでの会話・開いているファイル・作業の指示を丸ごと文脈として持ち直します</b>。その持ち直しがキャッシュ読み出しです。第2章で見た「新しい入力2トークンに対して読み直し50万」が、何千回も積み重なった結果が36.9億です。</p>
+      <p class="lead">これが分かると、表の読み方が変わります。<b>「38億トークン」という数字だけ見て慌てる必要はありません。</b>キャッシュ読み出しは単価の安い区分で、ccusage の換算も先ほどの原文どおり「with cache token accounting」——区分ごとの単価で計算されています。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s6">
+    <h2><span class="step">6</span>5時間の枠は <code>blocks</code> で見る</h2>
+    <article class="item">
+      <h3>「上限に当たりそうか」は、この画面がいちばん近い</h3>
+      <p class="lead">定額プランの使用量は5時間の枠で数えられます。<code>ccusage blocks</code> は、ログをこの枠に区切って見せてくれます。いまの枠がどれだけ進んだかも出ます。</p>
+      <div class="code wrap"><div class="code-head">いまの5時間枠（実際の出力・抜粋）</div><pre>$ npx ccusage blocks
+(中略)
+│ 8/29/20… │ ACTIVE     │ -      │ 5,557,3… │     3.2% │    $6.17 │
+│ 12:00:00 │            │ fable… │          │          │          │
+│ AM (0h   │            │        │          │          │          │
+│ 33m      │            │        │          │          │          │
+│ elapsed, │            │        │          │          │          │
+│ 4h 26m   │            │        │          │          │          │
+│ remaini… │            │        │          │          │          │
+(中略)
+│ (assumi… │ PROJECTED  │        │ 463,260… │   263.9% │  $514.20 │</pre></div>
+      <p class="lead">読み方はこうです。いまの枠は<b>開始33分・残り4時間26分</b>。もしいまのペースが5時間続いたら、推定した枠の<b>263.9%</b>——つまり超える見込み、と出ています。</p>
+      <figure>
+        <picture>
+          <source srcset="images/five-hours-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/five-hours.png" alt="5時間枠のACTIVEとPROJECTED" loading="lazy">
+        </picture>
+        <figcaption>ACTIVE＝いまの枠の消化。PROJECTED＝このペースが続いたら。</figcaption>
+      </figure>
+      <p class="lead">実務での使いどころは「あと何時間で枠が明けるか」です。上限に当たって作業が止まったとき、この画面の <code>remaining</code> を見れば、再開できる時刻の見当が付きます。</p>
+      <p class="lead">1つ正直に書いておきます。この画面の「枠の上限」は表示に <code>(assuming 175,534,… token limit)</code> とあるとおり、<b>過去の実績から仮定した値</b>です。プランの本当の上限そのものを返すAPIは、今回の実測の範囲では見つけていません（第9章）。「当たりそうかの目安」として使うのが正しい距離感です。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s6b">
+    <h2><span class="step">7</span>どの作業が食ったかは <code>session</code> で見る</h2>
+    <article class="item">
+      <h3>1回の作業ごとに、換算$が1行ずつ出る</h3>
+      <p class="lead">「今日は多かった」の次に知りたいのは<b>何に使ったか</b>です。<code>ccusage session</code> は、会話のまとまり（セッション）ごとに1行にしてくれます。</p>
+      <div class="code wrap"><div class="code-head">セッション別（実際の出力・抜粋）</div><pre>$ npx ccusage session
+(中略)
+│ wf_b9cf… │ Claude     │ -      │      258 │  153,118 │   $10.90 │
+│          │            │ opus-5 │          │          │          │
+│ wf_d5a1… │ Claude     │ -      │      218 │  102,544 │    $8.12 │
+│ wf_843b… │ Claude     │ -      │       56 │   17,366 │    $3.56 │</pre></div>
+      <p class="lead">この機械では、動画パイプラインが並列で走らせた下請け作業（<code>wf_</code> で始まる行）が1行ずつ見えました。<b>大きい作業から順に潰す</b>という当たり前の節約が、初めて数字でできるようになります。</p>
+      <figure>
+        <picture>
+          <source srcset="images/session-per-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/session-per.png" alt="セッションごとの換算コストの棒" loading="lazy">
+        </picture>
+        <figcaption>作業単位の内訳。長い1本の会話は、それだけで上位に来る。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s7">
+    <h2><span class="step">8</span><code>/cost</code> は -p だと、いつも0ドル</h2>
+    <article class="item">
+      <h3>Claude Code 本体のコマンドが見ているもの</h3>
+      <p class="lead">Claude Code には <code>/cost</code> というコマンドがあります。これを画面を開かない実行（<code>claude -p</code>）で叩くと、こうなります。</p>
+      <div class="code wrap"><div class="code-head">-p で /cost を叩く</div><pre>$ claude -p "/cost" &lt; /dev/null
+Total cost:            $0.0000
+Total duration (API):  0s
+Total duration (wall): 2s
+Total code changes:    0 lines added, 0 lines removed</pre></div>
+      <p class="lead">何度やっても $0.0000 です。壊れているのではありません。<b><code>/cost</code> が数えるのは「いまのセッション」だけ</b>で、<code>-p</code> は毎回まっさらなセッションを作って即終了するからです。「昨日どれだけ使ったか」をこれで見ることはできません。</p>
+      <figure>
+        <picture>
+          <source srcset="images/session-scope-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/session-scope.png" alt="/cost が見るのはいまのセッションだけ" loading="lazy">
+        </picture>
+        <figcaption>/cost の守備範囲。過去の合計を見たいなら ccusage の側。</figcaption>
+      </figure>
+      <p class="lead">同じ方法で <code>/usage</code> も叩きましたが、出力は上とまったく同じ形でした。プランの消化率のような画面は、<code>-p</code> からは出せませんでした。</p>
+      <div class="code wrap"><div class="code-head">-p で /usage を叩く</div><pre>$ claude -p "/usage" &lt; /dev/null
+Total cost:            $0.0000
+Total duration (API):  0s
+Total duration (wall): 1s
+Total code changes:    0 lines added, 0 lines removed</pre></div>
+      <p class="lead">では <code>/cost</code> はいつ使うものか。<b>対話で長い作業をしている最中に、いまの作業がどれだけ食っているかをその場で見る</b>ためのものです。作業単位の振り返りなら第7章の <code>session</code>、日をまたぐ集計なら <code>daily</code>。守備範囲が違うだけで、どれも壊れてはいません。</p>
+      <p class="lead">おまけの実測を1つ。コマンドの末尾に <code>&lt; /dev/null</code> を付けているのは飾りではありません。付けずに叩くと、3秒待ってから警告が出ます。</p>
+      <div class="code wrap"><div class="code-head">付けないとこうなる</div><pre>$ claude -p "/cost"
+Warning: no stdin data received in 3s, proceeding without it. If piping from a slow command, redirect stdin explicitly: &lt; /dev/null to skip, or wait longer.</pre></div>
+      <p class="lead">結果は同じですが毎回3秒待たされます。スクリプトに入れるなら付けておくものです。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s8">
+    <h2><span class="step">9</span>見たいものごとに、道具が違う</h2>
+    <article class="item">
+      <h3>3つの問いに、3つの答え</h3>
+      <p class="lead">ここまでを整理すると、「使用量を確かめたい」は実は3つの別の問いでした。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>見たいもの</th><th>道具</th><th>今回の実測</th></tr></thead>
+          <tbody>
+            <tr><td>日ごと・月ごとの量と換算$</td><td><code>npx ccusage daily</code> / <code>monthly</code></td><td>✓ 動いた（第1・3章）</td></tr>
+            <tr><td>いまの5時間枠の消化と見込み</td><td><code>npx ccusage blocks</code></td><td>✓ 動いた（第6章）</td></tr>
+            <tr><td>どの作業が食ったか</td><td><code>npx ccusage session</code></td><td>✓ 動いた（第7章）</td></tr>
+            <tr><td>プラン上限に対する公式の%</td><td>対話画面の <code>/usage</code></td><td>─ 未確認（下の注）</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <figure>
+        <picture>
+          <source srcset="images/which-tool-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/which-tool.png" alt="見たいものごとの道具の分岐" loading="lazy">
+        </picture>
+        <figcaption>問いを分けると道具が決まる。</figcaption>
+      </figure>
+      <details>
+        <summary>今回試していないこと</summary>
+        <ul class="points">
+          <li><b>対話画面の <code>/usage</code> は開いていません。</b>この実測は無人実行の環境で取ったので、対話セッションの画面そのものを出せませんでした。第7章のとおり <code>-p</code> 経由では代わりになりません。</li>
+          <li><b>APIの従量課金アカウントでの突き合わせはしていません。</b>換算値と実請求の差は、このログでは検証できません。</li>
+          <li><b>ccusage の他エージェント対応（Codex 等）は試していません。</b>今回は Claude Code のログだけです。</li>
+        </ul>
+      </details>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s9">
+    <h2><span class="step">10</span>毎朝の1行にする</h2>
+    <article class="item">
+      <h3>覚えて帰るのは3つ</h3>
+      <p class="lead">コメント欄の質問は「課金の確認にいつも時間がかかる」でした。今回の実測での答えはこうなります。</p>
+      <ul class="checklist">
+        <li>朝に <code>npx ccusage daily</code> を1回。昨日の行だけ見る</li>
+        <li>使いすぎた日は <code>blocks</code> で、どの5時間に集中していたかを見る</li>
+        <li>$の桁に驚いたら、第4章を思い出す。それは請求額ではなく換算値</li>
+      </ul>
+      <figure>
+        <picture>
+          <source srcset="images/morning-3-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/morning-3.png" alt="朝の3手順" loading="lazy">
+        </picture>
+        <figcaption>時間がかかっていたのは、見る場所が散らばっていたから。1行に寄せる。</figcaption>
+      </figure>
+      <p class="lead">最後に、確認そのものに時間を使いすぎないことです。数字は毎日見ても、打ち手は「大きい作業を減らす」「枠が明けるまで待つ」の2つしかありません。<b>朝の1行で足りる理由は、打ち手が少ないからです。</b></p>
+      <p class="lead">この記事のコマンドと出力は、すべて <code>_labs/2026-08-29_usage-check/</code> に再現一式ごと置いてあります。<code>bash run_all.sh</code> で同じものが出ます（数字はあなたのログの中身になります）。</p>
+    </article>
+  </section>
+
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          ccusage 公式サイト.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: トップページの機能説明 —「Reads local usage logs from Claude Code, Codex, OpenCode, (中略) without uploading your data」および「Estimate USD spend from token counts and model pricing, with cache token accounting where available」。金額が推定である根拠と、データを送信しない根拠はこの2文。</span>
+          </details>
+          <a href="https://ccusage.com/">https://ccusage.com/</a>（2026年8月29日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Pricing」<i>claude.com</i>.
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">参照箇所: Max プランの料金表記「From $100 Per month」。20x の個別金額はページに明記されていないため、本文では「From $100」のみを使った。</span>
+          </details>
+          <a href="https://claude.com/pricing">https://claude.com/pricing</a>（2026年8月29日参照）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          Claude Code 2.1.251 / ccusage 20.0.20 / Ubuntu 24.04.4 LTS / Python 3.11.15。2026年8月29日 09:45〜10:30 JST に実行。
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">再現一式は <code>_labs/2026-08-29_usage-check/</code>（<code>run_all.sh</code> / <code>count_tokens.py</code> / <code>daily_table.py</code> / <code>output.txt</code>）。記事に貼った端末ログは <code>output.txt</code> からの抜粋で、表の罫線の間引きと「(中略)」以外は加工していない。ccusage の表は幅が広いため <code>COLUMNS=60</code> で実行した。$2,830.08（第1章）と $2,823.76（第3章）が一致しないのは、数分ずれた2回のスナップショットの間にもこのセッションがログを増やしているため。</span>
+          </details>
+        </li>
+        <li>
+          <span class="flag caution">未確認</span>
+          対話画面の <code>/usage</code> の表示内容、プラン上限の公式値、換算値と実請求の突き合わせ。無人実行の環境のため対話画面を開けず、従量課金アカウントも無いため検証できていない。本文では「未確認」と明示した。
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  <section class="section" id="comments">
+    <h2>コメント</h2>
+    <p class="lead">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの GitHub Discussions に保存されます。</p>
+    <div class="giscus"></div>
+  </section>
+
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+<footer class="footer">AIニュース デイリーダイジェスト</footer>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+</body>
+</html>
