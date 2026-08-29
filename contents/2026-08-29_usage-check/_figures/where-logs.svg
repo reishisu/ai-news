@@ -10,7 +10,7 @@
     <polygon points="196,80 184,74 184,86" fill="var(--sub)"/>
     <rect x="204" y="50" width="242" height="60" rx="10" fill="var(--b)" opacity="0.28"/>
     <text x="220" y="76" font-size="16" font-family="ui-monospace, monospace" fill="var(--fg)">~/.claude/projects/</text>
-    <text x="220" y="98" font-size="16" fill="var(--fg)">会話ログ(JSONL)に usage が残る</text>
+    <text x="220" y="98" font-size="16" fill="var(--fg)">会話ログに usage が残る</text>
   </g>
   <g data-step="3">
     <line x1="325" y1="118" x2="325" y2="146" stroke="var(--sub)" stroke-width="3"/>
