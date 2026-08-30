@@ -1,0 +1,17 @@
+Scope note: `git diff main...HEAD` is empty on `lab/review-test`; the review scope is the uncommitted change to `render_video.py` (10 removals of `encoding="utf-8", errors="replace"`, plus one deleted local variable).
+
+Findings:
+
+- **render_video.py:3301 — `render_clip` raises `NameError: n_slides`.** The diff deletes the `n_slides = ctx.get("n_slides") or total` binding, but line 3301's progress `print` still references it. There is no module-level `n_slides` (the only other binding is a local inside `render()` at 3343). Every `kind:"clip"` slide now crashes *after* doing all its synthesis and encoding work. The other two uses in the function survive only because they read `ctx.get("n_slides")` inline.
+
+- **render_video.py:185 — `media_seconds`: `run.stderr` can be None → `TypeError`.** `locale.getpreferredencoding(False)` is `cp932` on this machine, so `text=True` alone decodes ffmpeg stderr as cp932 with `errors='strict'`. I reproduced it: an mp3 at a path with Japanese characters makes subprocess's reader thread die with `UnicodeDecodeError: 'cp932' codec can't decode byte 0x86`, the exception is swallowed inside the thread, and `run.stderr` comes back `None`. `re.search(..., run.stderr)` then raises `TypeError`. CLAUDE.md records these kwargs were added deliberately (2026/8/30, `3269e9e`) for exactly this.
+
+- **render_video.py:2605 — `probe_video`: `info` None → `TypeError`** instead of parsing the clip dimensions or hitting the intended `SystemExit`. Hit by every clip slide via `cut_plan`.
+
+- **render_video.py:2127 — `bgm_loop_wav`: `det` None → `TypeError` in `re.findall`.** The project's own `assets/bgm/houdou-times.mp3` already has Japanese ID3 tags — I confirmed its banner decodes to cp932 mojibake (`繝輔Μ繝ｼ蝣ｱ驕薙ちイ繝ス`, incl. private-use U+F8F0). Any tag bytes forming a cp932-illegal sequence kills the BGM step at the end of a full render.
+
+- **render_video.py:2095 — `measure_loudness`: `r` None → `TypeError`**, and the existing `if not m: return None` fallback becomes unreachable in that case.
+
+- **render_video.py:2072 — ffmpeg error handlers slice `run.stderr`, which can be None.** Affects encode_segment (2072), bgm trim (2144), finish_audio (2201), concat_segments (2258), grab_poster (2689), encode_clip (2762). On a genuine ffmpeg failure the diagnostic `f"...{run.stderr[-1200:]}"` raises `TypeError: 'NoneType' object is not subscriptable`, destroying the real error; in the milder case the pasted stderr is unreadable mojibake.
+
+The fix for all ten is to restore `encoding="utf-8", errors="replace"`; the `n_slides` deletion should be reverted or the `print` switched to `ctx.get("n_slides") or total`.

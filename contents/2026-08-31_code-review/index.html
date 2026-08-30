@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Codeにコードレビューさせる — 実際に埋まっていたバグ2件で測った</title>
+<meta name="description" content="このリポジトリに本当に埋まっていたバグ2件を差分に戻し、pyflakes と /code-review にかけて比べました。静的解析は0.27秒・0円で1件。AIレビューは111〜247秒・$0.80〜1.70で同じ1件＋静的解析が原理的に出せない1件を、実機で再現して示しました。良性の変更に対する誤検知は0件です。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claude Codeにコードレビューさせる — 実際に埋まっていたバグ2件で測った">
+<meta property="og:description" content="静的解析0.27秒・0円で1件。AIレビュー135秒・$0.80で2件＋実機での再現。誤検知は0件。全部この機械での実測です。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-31_code-review/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-31_code-review/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=3b6fe47d">
+<link rel="stylesheet" href="../../css/shared.css?v=27aa1abf">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">AIで作る技術 ｜ 2026年8月31日(日)</div>
+    <h1>Claude Codeにコードレビューさせる — 実際に埋まっていたバグ2件で測った</h1>
+    <div class="range">「AIにコードレビューさせると役に立つのか」を、<b>作り物のバグではなく、このリポジトリに本当に埋まっていたバグ2件</b>で測りました。片方は静的解析が0.27秒・0円で見つけます。<mark>もう片方は静的解析には原理的に出せません</mark>。そこがこの記事の主題です。ログはすべて Claude Code 2.1.251 での実測で、加工していません。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 同じ計測は約10分</span>
+      <span class="tag">全部コピペOK</span>
+      <span class="tag">Windows実測</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li><b>静的解析は0.27秒・0円で1件。</b><code>pyflakes</code> は未定義変数（<code>NameError</code>）を即座に指摘しました。速さと値段では勝負になりません。</li>
+      <li><b>AIレビューは同じ1件に加えて、静的解析が出せない1件を見つけました。</b><code>subprocess.run(..., text=True)</code> がロケール依存で落ちる問題です。しかも<mark>実際にこのマシンで再現して見せました</mark> — プロジェクト自身のBGMファイルに日本語のID3タグがあることまで突き止めています。</li>
+      <li><b>誤検知は0件でした。</b>良性の変更だけを見せたときは <code>No findings.</code>。関数の失敗経路を3種類の入力で実行して確かめたうえで、化粧的な指摘は「findings に入れない」と自分で判断していました。かかったのは111.6秒・$0.885です。</li>
+    </ol>
+    <div>
+      <details>
+        <summary>先に4語だけ意味</summary>
+        <ul class="points">
+          <li><b>静的解析</b> — プログラムを動かさずに、字面だけで誤りを探す道具。<code>pyflakes</code> はその一つ</li>
+          <li><b><code>/code-review</code></b> — Claude Code に入っている、いまの差分をレビューさせる指示</li>
+          <li><b>ロケール</b> — その機械の「既定の文字コード」。日本語Windowsでは <code>cp932</code></li>
+          <li><b>ID3タグ</b> — mp3の中に埋まっている曲名などの情報。日本語が入ることがある</li>
+        </ul>
+      </details>
+    </div>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">何を測ったか — 作り物ではなく、実際に埋まっていたバグ</a></li>
+      <li><a href="#s2">バグ1: 使っていない変数を参照していた</a></li>
+      <li><a href="#s3">バグ2: ロケール依存で落ちる（Linuxでは起きない）</a></li>
+      <li><a href="#s4">静的解析 — 0.27秒・0円・1件</a></li>
+      <li><a href="#s5">AIレビュー — 同じ1件と、出せないはずの1件</a></li>
+      <li><a href="#s6">決定的だったのは「再現までやる」こと</a></li>
+      <li><a href="#s7">影響は6関数10箇所に広がっていた</a></li>
+      <li><a href="#s8">誤検知は0件だった</a></li>
+      <li><a href="#s9">実験設計の穴を、レビューに見抜かれた</a></li>
+      <li><a href="#s10">時間と料金 — 4回の実測</a></li>
+      <li><a href="#s11">使い分け — 結論</a></li>
+      <li><a href="#s12">やっていないこと</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>何を測ったか — 作り物ではなく、実際に埋まっていたバグ</h2>
+    <article class="item">
+      <p class="lead">AIレビューの実力を測る記事はたくさんありますが、多くは<b>そのために作ったバグ</b>を使います。それだと「わざと分かりやすくした問題を見つけた」以上のことが分かりません。</p>
+      <p class="lead">この記事では、<mark>このリポジトリ（動画を作る自作ツール・約3,700行）に本当に埋まっていたバグ2件</mark>を差分に戻して測りました。どちらも2026年8月30日に実際に踏んで、直したものです。</p>
+      <div class="code term"><div class="code-head">実行環境（すべてこの機械での実測）</div><pre>claude     2.1.251 (Claude Code)
+python     3.10.6
+git        2.52.0.windows.1
+OS         Microsoft Windows 11 Pro 10.0.26200
+PowerShell 7.6.5
+CPU        AMD Ryzen 7 5800X (8コア16スレッド)
+<span class="ok-line">locale.getpreferredencoding() = cp932</span>   ← ここが後で効きます</pre></div>
+      <p class="lead">測り方は単純です。<b>バグを戻した差分</b>を作り、①静的解析（<code>pyflakes</code>）②AIレビュー（<code>claude -p "/code-review"</code>）の両方にかけて、何を見つけるか・いくらかかるかを記録しました。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>バグ1: 使っていない変数を参照していた</h2>
+    <article class="item">
+      <p class="lead">1件目は素直な <code>NameError</code> です。関数の中で <code>n_slides</code> という変数を使っているのに、その変数を作る行が無い、という状態でした。</p>
+      <div class="code"><div class="code-head">バグのある状態（render_video.py の render_clip）</div><pre>def render_clip(ctx, i, slide):
+    ffmpeg, work, only = ctx["ffmpeg"], ctx["work"], ctx["only"]
+    dirname, cat, total = ctx["dirname"], ctx["cat"], ctx["total"]
+    <span class="bad-line"># ここに n_slides = ... の行が無い</span>
+    cuts = slide.get("cuts") or []
+    ...
+    print(f"  slide {i + 1}/<span class="bad-line">{n_slides}</span> [実録] カット{n_cut}本 ...")</pre></div>
+      <p class="lead">この関数は「実録の画面録画を動画に差し込む」処理で、<b>実装されてから一度も呼ばれていませんでした</b>。だから誰も気づかないまま残っていて、初めて使おうとした日に落ちました。しかも落ちるのは<mark>動画の書き出しが全部終わったあと</mark>です。</p>
+    </article>
+  </section>
+
+  <section class="section section-d" id="s3">
+    <h2><span class="step">3</span>バグ2: ロケール依存で落ちる（Linuxでは起きない）</h2>
+    <article class="item">
+      <p class="lead">2件目はもっと厄介です。Pythonで外部コマンド（ここでは <code>ffmpeg</code>）を呼んで出力を読む、というだけのコードです。</p>
+      <div class="code"><div class="code-head">バグのある状態</div><pre>run = subprocess.run([ffmpeg, "-i", str(path)], <span class="bad-line">capture_output=True, text=True</span>)
+m = re.search(r"Duration: (\d+):(\d+):([\d.]+)", run.stderr)</pre></div>
+      <p class="lead"><code>text=True</code> は「出力を文字列として受け取る」という意味ですが、<b>何の文字コードで読むかは指定していません</b>。この場合Pythonは、その機械の既定（ロケール）を使います。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>環境</th><th>既定の文字コード</th><th>結果</th></tr></thead>
+          <tbody>
+            <tr><td>Linux（開発時）</td><td data-label="既定の文字コード">UTF-8</td><td data-label="結果">問題なし</td></tr>
+            <tr><td><b>日本語Windows</b></td><td data-label="既定の文字コード"><b>cp932</b></td><td data-label="結果"><mark>UTF-8の出力を読むと落ちる</mark></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">しかも落ち方が悪質です。<b>例外は出力を読むスレッドの中で握り潰され</b>、<code>run.stderr</code> は <code>None</code> になって返ってきます。呼び出し側は「なぜか中身が空」という状態を受け取り、その次の行の <code>re.search(..., None)</code> で <code>TypeError</code> になります。<mark>本当の原因（文字コード）はどこにも出ません。</mark></p>
+      <p class="lead"><b>これは静的解析には見つけられません。</b>字面としては完全に正しいコードで、問題は「実行する機械のロケール」という外部条件にあるからです。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s4">
+    <h2><span class="step">4</span>静的解析 — 0.27秒・0円・1件</h2>
+    <article class="item">
+      <p class="lead">まず <code>pyflakes</code> です。Pythonの定番の静的解析で、<code>pip install pyflakes</code> だけで入ります。</p>
+      <div class="code"><div class="code-head">打ったコマンド</div><pre>python -m pyflakes render_video.py</pre></div>
+      <div class="code term"><div class="code-head">出力（実測）</div><pre><span class="ok-line">render_video.py:3301:30: undefined name 'n_slides'</span>
+  -&gt; 0.27 秒 / 0円 / 1件</pre></div>
+      <p class="lead"><b>バグ1は即座に、正確な行番号つきで出ました。</b>0.27秒、料金は0円です。この速さと値段には、AIレビューは絶対に勝てません。</p>
+      <p class="lead">そして<b>バグ2については何も言いません</b>。これは静的解析の欠陥ではなく、原理です。<code>subprocess.run(..., text=True)</code> は文法的にも型的にも正しく、問題は実行環境の側にあるからです。</p>
+      <figure>
+        <img src="images/shot-pyflakes.png" alt="pyflakes が render_video.py:3301 の未定義変数 n_slides を0.27秒で指摘している実際の画面" loading="lazy">
+        <figcaption>実際の画面。0.27秒で1件。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s5">
+    <h2><span class="step">5</span>AIレビュー — 同じ1件と、出せないはずの1件</h2>
+    <article class="item">
+      <p class="lead">次に Claude Code のコードレビューです。<code>/code-review</code> は「いまの差分を見てレビューする」指示で、対話画面を開かずに <code>-p</code> で1回実行できます。</p>
+      <div class="code"><div class="code-head">打ったコマンド</div><pre>claude -p "/code-review" --allowedTools Bash Read Glob Grep --output-format json</pre></div>
+      <p class="lead">バグ1についての指摘は、静的解析と同じ場所を指しつつ、<b>影響まで書いてありました</b>。</p>
+      <blockquote class="quote">
+        <p><code>render_video.py:3301</code> — <code>render_clip</code> raises <code>NameError: n_slides</code>. （中略）Every <code>kind:"clip"</code> slide now crashes <i>after</i> doing all its synthesis and encoding work.</p>
+        <cite>1回目の実行より（原文ママ）</cite>
+      </blockquote>
+      <p class="lead">「<b>音声合成と書き出しを全部やったあとで落ちる</b>」という部分は、静的解析には書けません。この関数が何をする関数なのかを読んで初めて言えることです。</p>
+    </article>
+  </section>
+
+  <section class="section section-d" id="s6">
+    <h2><span class="step">6</span>決定的だったのは「再現までやる」こと</h2>
+    <article class="item">
+      <p class="lead">この記事で一番驚いたのはここです。バグ2について、AIレビューは<b>指摘しただけでなく、この機械で実際に再現しました</b>。</p>
+      <blockquote class="quote">
+        <p><code>locale.getpreferredencoding(False)</code> is <code>cp932</code> on this machine, so <code>text=True</code> alone decodes ffmpeg stderr as cp932 with <code>errors='strict'</code>. <b>I reproduced it</b>: an mp3 at a path with Japanese characters makes subprocess's reader thread die with <code>UnicodeDecodeError: 'cp932' codec can't decode byte 0x86</code>, the exception is swallowed inside the thread, and <code>run.stderr</code> comes back <code>None</code>.</p>
+        <cite>1回目の実行より（原文ママ）</cite>
+      </blockquote>
+      <p class="lead">さらに、<mark>プロジェクト自身のBGMファイルを調べていました</mark>。</p>
+      <blockquote class="quote">
+        <p>The project's own <code>assets/bgm/houdou-times.mp3</code> already has Japanese ID3 tags — I confirmed its banner decodes to cp932 mojibake (<code>繝輔Μ繝ｼ蝣ｱ驕薙ちイ繝ス</code>, incl. private-use U+F8F0). Any tag bytes forming a cp932-illegal sequence kills the BGM step at the end of a full render.</p>
+        <cite>1回目の実行より（原文ママ）</cite>
+      </blockquote>
+      <p class="lead">つまり「理屈の上では落ちうる」ではなく、<b>「このプロジェクトのこのファイルで、フルレンダリングの最後に落ちる」</b>と特定しています。これは<mark>コードを読むだけでは出せない指摘</mark>で、実際に手を動かせる道具（Bash）を渡してあるから出てきたものです。</p>
+      <figure>
+        <img src="images/shot-review.png" alt="AIレビューが NameError と cp932 の両方を指摘し、影響が6関数10箇所に及ぶと示している実際の画面" loading="lazy">
+        <figcaption>実際の画面。上が静的解析と同じ指摘、下が静的解析には出せない指摘。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s7">
+    <h2><span class="step">7</span>影響は6関数10箇所に広がっていた</h2>
+    <article class="item">
+      <p class="lead">私が「バグ2」と数えていたものは、<b>実際には10箇所ありました</b>。AIレビューはそれを全部たどって、それぞれ何が起きるかを分けて書いています。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>場所</th><th>関数</th><th>起きること</th></tr></thead>
+          <tbody>
+            <tr><td><code>:185</code></td><td data-label="関数">media_seconds</td><td data-label="起きること"><code>re.search(..., None)</code> で TypeError</td></tr>
+            <tr><td><code>:2095</code></td><td data-label="関数">measure_loudness</td><td data-label="起きること">同上。既存の <code>if not m: return None</code> の逃げ道が届かなくなる</td></tr>
+            <tr><td><code>:2127</code></td><td data-label="関数">bgm_loop_wav</td><td data-label="起きること"><b>BGMのID3タグで実際に落ちる</b></td></tr>
+            <tr><td><code>:2605</code></td><td data-label="関数">probe_video</td><td data-label="起きること">「録画に映像が見つかりません」という親切なエラーが TypeError に化ける</td></tr>
+            <tr><td><code>:2072</code> ほか5箇所</td><td data-label="関数">encode_segment ほか</td><td data-label="起きること"><code>run.stderr[-1200:]</code> が <mark>本当のffmpegエラーを握り潰す</mark></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">最後の行が地味に一番怖いところです。エラー処理のコード自体が落ちるので、<b>本当の失敗理由が表示されずに消えます</b>。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s8">
+    <h2><span class="step">8</span>誤検知は0件だった</h2>
+    <article class="item">
+      <p class="lead">AIレビューでいちばん怖いのは「見つけすぎ」です。何にでも文句をつけるなら、読むだけ時間の無駄になります。そこで<b>バグを一切含まない差分</b>を見せました。</p>
+      <p class="lead">見せたのは、エラーメッセージに「探した場所」を足すだけの変更です。動きは何も変わりません。</p>
+      <div class="code term"><div class="code-head">結果（実測・111.6秒・$0.8851）</div><pre><span class="ok-line">No findings.</span></pre></div>
+      <p class="lead">ただ「問題なし」と言ったのではなく、<b>確かめたうえで</b>言っていました。</p>
+      <blockquote class="quote">
+        <p>I executed the function's failure path against relative, absolute, and <code>..</code>-relative <code>src</code> values; the message renders correctly in all three and no <code>TypeError</code>/formatting error occurs on <code>Path</code> objects.</p>
+        <cite>誤検知テストより（原文ママ）</cite>
+      </blockquote>
+      <p class="lead">さらに、<mark>気づいた小さな点を「findings には入れない」と自分で判断して</mark>いました。</p>
+      <blockquote class="quote">
+        <p>Only cosmetic nit (not reported as a finding): when <code>src</code> is absolute, ... the "探した場所" list prints the same path four times. Harmless — it does not affect resolution, only the diagnostic text.</p>
+        <cite>同上（原文ママ）</cite>
+      </blockquote>
+      <p class="lead">この「指摘しない判断」ができるかどうかが、実務で使えるかの分かれ目だと思います。</p>
+    </article>
+  </section>
+
+  <section class="section section-d" id="s9">
+    <h2><span class="step">9</span>実験設計の穴を、レビューに見抜かれた</h2>
+    <article class="item">
+      <p class="lead">正直に書きます。<b>誤検知テストは1回失敗しています。</b>私の作り方が悪く、「バグを含むコミット」と「それを打ち消す未コミットの変更」が同時に存在する状態になっていました。</p>
+      <p class="lead">レビューはそれを自分で見抜いて、レビュー対象を選び直しました。</p>
+      <blockquote class="quote">
+        <p>There is also an uncommitted change to that same file which is an <i>exact revert</i> of the commit (<code>git diff main</code> is empty). I reviewed the committed diff as the PR — the working-tree revert appears to be leftover from a previous run, not part of the change.</p>
+        <cite>3回目の実行より（原文ママ）</cite>
+      </blockquote>
+      <p class="lead"><b>「差し戻しは前の実験の残骸だろう」という推測まで当たっています。</b>そのとおりでした。私はこの指摘を受けて、コミットの構造を作り直してから測り直しています（それが第8章の結果です）。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s10">
+    <h2><span class="step">10</span>時間と料金 — 4回の実測</h2>
+    <article class="item">
+      <p class="lead">同じ指示を4回実行しました。<b>ばらつきは小さくありません。</b></p>
+      <div class="table">
+        <table>
+          <thead><tr><th>回</th><th>対象</th><th>所要</th><th>料金</th><th>結果</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td data-label="対象">バグ2件の差分</td><td data-label="所要">147秒</td><td data-label="料金">未計測</td><td data-label="結果">2件とも検出＋再現</td></tr>
+            <tr><td>2</td><td data-label="対象">同上</td><td data-label="所要">134.8秒</td><td data-label="料金">$0.795</td><td data-label="結果"><b>同じ行番号</b>を指摘</td></tr>
+            <tr><td>3</td><td data-label="対象">設計ミスの状態</td><td data-label="所要">246.7秒</td><td data-label="料金">$1.702</td><td data-label="結果">対象を選び直して検出</td></tr>
+            <tr><td>4</td><td data-label="対象">良性の変更のみ</td><td data-label="所要">111.6秒</td><td data-label="料金">$0.885</td><td data-label="結果"><b>No findings</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead"><b>時間は111〜247秒（2.2倍）、料金は$0.80〜$1.70（2.1倍）</b>の幅がありました。深く調べた回ほど高くなります。3回目が突出しているのは、構文木まで見て「<code>n_slides</code> はグローバルでも引数でもない」と確かめていたからです。</p>
+      <p class="lead">一方で<b>指摘の中身は安定していました</b>。1回目と2回目は同じ2つの根本原因・同じ行番号を出しています。違ったのは再現の見せ方だけ（1回目はBGMのタグ、2回目は日本語を含む録画のパス）でした。</p>
+      <div class="note">
+        <p>この計測1本ぶんで <b>合計約$4.2（約630円）</b>使っています。毎回のレビューにこれを払うかは、直す価値のあるバグが埋まっているかによります。</p>
+      </div>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s11">
+    <h2><span class="step">11</span>使い分け — 結論</h2>
+    <article class="item">
+      <p class="lead">4回測って出た結論は、<b>「どちらか」ではなく「両方、順番に」</b>です。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th></th><th>静的解析（pyflakes）</th><th>AIレビュー（/code-review）</th></tr></thead>
+          <tbody>
+            <tr><td>所要</td><td data-label="静的解析"><b>0.27秒</b></td><td data-label="AIレビュー">111〜247秒</td></tr>
+            <tr><td>料金</td><td data-label="静的解析"><b>0円</b></td><td data-label="AIレビュー">$0.80〜1.70</td></tr>
+            <tr><td>未定義変数</td><td data-label="静的解析">見つける</td><td data-label="AIレビュー">見つける</td></tr>
+            <tr><td>環境依存の不具合</td><td data-label="静的解析"><b>原理的に不可</b></td><td data-label="AIレビュー"><b>再現つきで指摘</b></td></tr>
+            <tr><td>影響範囲の展開</td><td data-label="静的解析">しない</td><td data-label="AIレビュー">6関数10箇所</td></tr>
+            <tr><td>誤検知</td><td data-label="静的解析">—</td><td data-label="AIレビュー"><b>0件</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead"><b>静的解析は毎回かける。</b>0.27秒・0円なので、かけない理由がありません。実際、今回の <code>NameError</code> は私自身がこれで見つけました。</p>
+      <p class="lead"><b>AIレビューは「動かないと分からない類」に効きます。</b>ロケール・OS・実データの中身に依存する不具合は、字面を見るだけの道具では出せません。今回それを、実際に手を動かして再現するところまでやりました。</p>
+      <p class="lead">同じことをやるなら、この2コマンドです。</p>
+      <div class="code"><div class="code-head">同じ計測をやる2コマンド</div><pre># 1. 静的解析（毎回・0円）
+python -m pyflakes <span class="nb">対象.py</span>
+
+# 2. AIレビュー（差分がある状態で）
+claude -p "/code-review" --allowedTools Bash Read Glob Grep --output-format json</pre></div>
+      <p class="lead"><code>--allowedTools</code> に <code>Bash</code> を入れているのが要点です。<mark>入れないと「再現して確かめる」ができません</mark>。今回いちばん価値のあった指摘は、全部この道具から出ています。</p>
+    </article>
+  </section>
+
+  <section class="section section-d" id="s12">
+    <h2><span class="step">12</span>やっていないこと</h2>
+    <article class="item">
+      <p class="lead">この記事で測っていないことを、はっきり書いておきます。</p>
+      <ul class="points">
+        <li><b>他の静的解析との比較をしていません。</b>測ったのは <code>pyflakes</code> だけです。<code>ruff</code> や <code>mypy</code> なら別の結果になります</li>
+        <li><b>他の言語・他の規模で測っていません。</b>対象はPython 1ファイル・約3,700行です</li>
+        <li><b>見逃しの母数を測っていません。</b>「埋まっていた2件を見つけた」であって、「このリポジトリに他にバグが無い」ことは確かめていません</li>
+        <li><b>誤検知は1パターンしか試していません。</b>良性の変更1件に対して0件だった、というだけです</li>
+        <li><b>料金は4回のうち3回ぶんです。</b>1回目は <code>--output-format json</code> を付け忘れて記録していません</li>
+        <li><b>他のAIレビューと比べていません。</b>GitHub Copilot や CodeRabbit との比較はしていません</li>
+      </ul>
+    </article>
+  </section>
+
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Python Software Foundation「subprocess — Subprocess management」<i>Python 3.10 documentation</i>.
+          <span class="note">参照箇所: <code>subprocess.run</code> の <code>text</code> / <code>encoding</code> 引数の説明。<code>encoding</code> を指定しない場合にロケールの既定が使われることの確認に用いた。</span>
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Python Software Foundation「locale.getpreferredencoding」<i>Python 3.10 documentation</i>.
+          <span class="note">参照箇所: 既定の文字コードの決まり方。実際の値はこの機械で確認した（cp932）。</span>
+        </li>
+        <li>
+          <span class="flag">自分の実測</span>
+          本記事のすべての数値（0.27秒 / 111.6〜246.7秒 / $0.795〜$1.702 / 6関数10箇所 / 誤検知0件）。
+          <span class="note">2026年8月31日、Windows 11 Pro・Claude Code 2.1.251 で実行。生ログは検証物として保存している。</span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p>AIニュース デイリーダイジェスト</p>
+</footer>
+
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=9deba8ad" defer></script>
+<script src="../../js/article.js?v=bc96e7a3" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

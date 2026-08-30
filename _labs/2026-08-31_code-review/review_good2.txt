@@ -1,0 +1,12 @@
+**No findings.**
+
+Scope determination:
+- No upstream is configured for `lab/review-test`, and `git diff main...HEAD` is **empty** — the branch content is byte-identical to `main` (verified: `git diff 5786f97 HEAD` is empty; commits `31d409e`/`61be649` are a measurement revert followed by its restore, so they cancel out).
+- The only real change under review is the uncommitted working-tree edit to `D:\ainews-studio\ai-news-video\render_video.py` (`clip_source`, lines 2617–2630).
+- `git diff HEAD~1` was also reviewed for completeness (the `encoding="utf-8", errors="replace"` additions on ~10 `subprocess.run` ffmpeg calls, plus the `n_slides` local in `render_clip`). All of those are restorations of known-good code and are internally consistent — `n_slides` at line 3218 is consumed at line 3304, and every `encoding=` addition sits on a call that already had `text=True`.
+
+Review of the `clip_source` change:
+- The candidate list was hoisted from the `for` header into a `tried` tuple and reused in the error message. Search order, membership, and the `p.is_file()` / `p.resolve()` semantics are unchanged.
+- Implicit string-literal concatenation binds before `+`, so the four adjacent literals form one string and the `"\n".join(...)` is appended correctly — no precedence bug.
+- I executed the function's failure path against relative, absolute, and `..`-relative `src` values; the message renders correctly in all three and no `TypeError`/formatting error occurs on `Path` objects.
+- Only cosmetic nit (not reported as a finding): when `src` is absolute, `HERE / src` and the two other joins all collapse to the same path, so the "探した場所" list prints the same path four times. Harmless — it does not affect resolution, only the diagnostic text.

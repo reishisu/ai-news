@@ -13,8 +13,8 @@
 <meta property="og:url" content="https://reishisu.github.io/ai-news/">
 <meta property="og:image" content="https://reishisu.github.io/ai-news/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="css/style.css?v=eab6f6e4">
-<link rel="stylesheet" href="css/shared.css?v=7e35954d">
+<link rel="stylesheet" href="css/style.css?v=2bff2823">
+<link rel="stylesheet" href="css/shared.css?v=27aa1abf">
 </head>
 <body>
 
@@ -30,16 +30,15 @@
 <main class="container">
 
   <section class="hero">
-    <a class="hero-card" href="contents/2026-08-30_webapp-build/">
-      <img class="hero-thumb" src="contents/2026-08-30_webapp-build/images/thumb.png" alt="" width="1280" height="720" fetchpriority="high">
+    <a class="hero-card" href="contents/2026-08-31_code-review/">
       <div class="hero-body">
         <div class="hero-meta">
           <span class="hero-badge">最新号</span>
           <span class="hero-cat">AIで作る技術</span>
-          <span class="hero-date">2026年8月30日(日)</span>
+          <span class="hero-date">2026年8月31日(月)</span>
         </div>
-        <h1 class="hero-title">Claude CodeでWebアプリを作る — 2コマンド・167秒・$0.98の実測</h1>
-        <p class="hero-sum">claude -p にメモ帳アプリを頼んだら69秒・$0.44でindex.html1枚が完成。ただしAIは動作確認をしていない（Bash拒否4回・「コードレビューで代替」と自己申告）。Playwrightでの実測とダークモード追加までの全数字。</p>
+        <h1 class="hero-title">Claude Codeにコードレビューさせる — 実際に埋まっていたバグ2件で測った</h1>
+        <p class="hero-sum">このリポジトリに本当に埋まっていたバグ2件を差分に戻し、pyflakes と /code-review にかけて比べました。静的解析は0.26秒・0円で1件。AIレビューは111〜247秒・$0.80〜1.70で同じ1件＋静的解析が原理的に出せない1件を、実機で再現して示しました。良性の変更に対する誤検知は0件。</p>
         <span class="hero-go">この号を読む</span>
       </div>
     </a>
@@ -73,7 +72,7 @@
   <section class="posts">
     <div class="posts-head">
       <h2>記事一覧</h2>
-      <span class="posts-count"><b id="hitCount">47</b>件</span>
+      <span class="posts-count"><b id="hitCount">48</b>件</span>
     </div>
 
     <div class="finder">
@@ -84,9 +83,9 @@
       </div>
       <div class="tag-bar" id="tagBar">
       <button class="tag-chip is-on" type="button" data-tag="">すべて</button>
-      <button class="tag-chip" type="button" data-tag="実測">#実測<i>31</i></button>
+      <button class="tag-chip" type="button" data-tag="実測">#実測<i>32</i></button>
+      <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>22</i></button>
       <button class="tag-chip" type="button" data-tag="公式ドキュメント">#公式ドキュメント<i>22</i></button>
-      <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>21</i></button>
       <button class="tag-chip" type="button" data-tag="AWS">#AWS<i>12</i></button>
       <button class="tag-chip" type="button" data-tag="WebView">#WebView<i>12</i></button>
       <button class="tag-chip" type="button" data-tag="入門">#入門<i>12</i></button>
@@ -114,6 +113,7 @@
       <button class="tag-chip" type="button" data-tag="IAM">#IAM<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="MCP">#MCP<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="デプロイ">#デプロイ<i>2</i></button>
+      <button class="tag-chip" type="button" data-tag="ハウツー">#ハウツー<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="フック">#フック<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="料金改定">#料金改定<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="自動化">#自動化<i>2</i></button>
@@ -121,6 +121,18 @@
     </div>
 
     <div class="post-list" id="postList">
+      <a class="post-card" href="contents/2026-08-31_code-review/"
+         data-tags="Claude Code|実測|コードレビュー|静的解析|ハウツー" data-category="AIで作る技術"
+         data-date="2026-08-31" data-search="claude codeにコードレビューさせる — 実際に埋まっていたバグ2件で測った このリポジトリに本当に埋まっていたバグ2件を差分に戻し、pyflakes と /code-review にかけて比べました。静的解析は0.26秒・0円で1件。aiレビューは111〜247秒・$0.80〜1.70で同じ1件＋静的解析が原理的に出せない1件を、実機で再現して示しました。良性の変更に対する誤検知は0件。 aiで作る技術 claude code 実測 コードレビュー 静的解析 ハウツー claude codeにコードレビューさせる — 実際に埋まっていたバグ2件で測った aiニュース デイリーダイジェスト aiで作る技術 ｜ 2026年8月31日(日) claude codeにコードレビューさせる — 実際に埋まっていたバグ2件で測った 「aiにコードレビューさせると役に立つのか」を、 作り物のバグではなく、このリポジトリに本当に埋まっていたバグ2件 で測りました。片方は静的解析が0.27秒・0円で見つけます。 もう片方は静的解析には原理的に出せません 。そこがこの記事の主題です。ログはすべて claude code 2.1.251 での実測で、加工していません。 ⏱ 同じ計測は約10分 全部コピペok windows実測 ⭐ 3行で言うと 静的解析は0.27秒・0円で1件。 pyflakes は未定義変数（ nameerror ）を即座に指摘しました。速さと値段では勝負になりません。 aiレビューは同じ1件に加えて、静的解析が出せない1件を見つけました。 subprocess.run(..., text=true) がロケール依存で落ちる問題です。しかも 実際にこのマシンで再現して見せました — プロジェクト自身のbgmファイルに日本語のid3タグがあることまで突き止めています。 誤検知は0件でした。 良性の変更だけを見せたときは no findings. 。関数の失敗経路を3種類の入力で実行して確かめたうえで、化粧的な指摘は「findings に入れない」と自分で判断していました。かかったのは111.6秒・$0.885です。 先に4語だけ意味 静的解析 — プログラムを動かさずに、字面だけで誤りを探す道具。 pyflakes はその一つ /code-review — claude code に入っている、いまの差分をレビューさせる指示 ロケール — その機械の「既定の文字コード」。日本語windowsでは cp932 id3タグ — mp3の中に埋まっている曲名などの情報。日本語が入ることがある 目次 何を測ったか — 作り物ではなく、実際に埋まっていたバグ バグ1: 使っていない変数を参照していた バグ2: ロケール依存で落ちる（linuxでは起きない） 静的解析 — 0.27秒・0円・1件 aiレビュー — 同じ1件と、出せないはずの1件 決定的だったのは「再現までやる」こと 影響は6関数10箇所に広がっていた 誤検知は0件だった 実験設計の穴を、レビューに見抜かれた 時間と料金 — 4回の実測 使い分け — 結論 やっていないこと 参考文献 1 何を測ったか — 作り物ではなく、実際に埋まっていたバグ aiレビューの実力を測る記事はたくさんありますが、多くは そのために作ったバグ を使います。それだと「わざと分かりやすくした問題を見つけた」以上のことが分かりません。 この記事では、 このリポジトリ（動画を作る自作ツール・約3,700行）に本当に埋まっていたバグ2件 を差分に戻して測りました。どちらも2026年8月30日に実際に踏んで、直したものです。 実行環境（すべてこの機械での実測） claude 2.1.251 (claude code) python 3.10.6 git 2.52.0.windows.1 os microsoft windows 11 pro 10.0.26200 powershell 7.6.5 cpu amd ryzen 7 5800x (8コア16スレッド) locale.getpreferredencoding() = cp932 ← ここが後で効きます 測り方は単純です。 バグを戻した差分 を作り、①静的解析（ pyflakes ）②aiレビュー（ claude -p &quot;/code-review&quot; ）の両方にかけて、何を見つけるか・いくらかかるかを記録しました。 2 バグ1: 使っていない変数を参照していた 1件目は素直な nameerror です。関数の中で n_slides という変数を使っているのに、その変数を作る行が無い、という状態でした。 バグのある状態（render_video.py の render_clip） def render_clip(ctx, i, slide): ffmpeg, work, only = ctx[&quot;ffmpeg&quot;], ctx[&quot;work&quot;], ctx[&quot;only&quot;] dirname, cat, total = ctx[&quot;dirname&quot;], ctx[&quot;cat&quot;], ctx[&quot;total&quot;] # ここに n_slides = ... の行が無い cuts = slide.get(&quot;cuts&quot;) or [] ... print(f&quot; slide {i + 1}/ {n_slides} [実録] カット{n_cut}本 ...&quot;) この関数は「実録の画面録画を動画に差し込む」処理で、 実装されてから一度も呼ばれていませんでした 。だから誰も気づかないまま残っていて、初めて使おうとした日に落ちました。しかも落ちるのは 動画の書き出しが全部終わったあと です。 3 バグ2: ロケール依存で落ちる（linuxでは起きない） 2件目はもっと厄介です。pythonで外部コマンド（ここでは ffmpeg ）を呼んで出力を読む、というだけのコードです。 バグのある状態 run = subprocess.run([ffmpeg, &quot;-i&quot;, str(path)], capture_output=true, text=true ) m = re.search(r&quot;duration: (\d+):(\d+):([\d.]+)&quot;, run.stderr) text=true は「出力を文字列として受け取る」という意味ですが、 何の文字コードで読むかは指定していません 。この場合pythonは、その機械の既定（ロケール）を使います。 環境 既定の文字コード 結果 linux（開発時） utf-8 問題なし 日本語windows cp932 utf-8の出力を読むと落ちる しかも落ち方が悪質です。 例外は出力を読むスレッドの中で握り潰され 、 run.stderr は none になって返ってきます。呼び出し側は「なぜか中身が空」という状態を受け取り、その次の行の re.search(..., none) で typeerror になります。 本当の原因（文字コード）はどこにも出ません。 これは静的解析には見つけられません。 字面としては完全に正しいコードで、問題は「実行する機械のロケール」という外部条件にあるからです。 4 静的解析 — 0.27秒・0円・1件 まず pyflakes です。pythonの定番の静的解析で、 pip install pyflakes だけで入ります。 打ったコマンド python -m pyflakes render_video.py 出力（実測） render_video.py:3301:30: undefined name 'n_slides' -&gt; 0.27 秒 / 0円 / 1件 バグ1は即座に、正確な行番号つきで出ました。 0.27秒、料金は0円です。この速さと値段には、aiレビューは絶対に勝てません。 そして バグ2については何も言いません 。これは静的解析の欠陥ではなく、原理です。 subprocess.run(..., text=true) は文法的にも型的にも正しく、問題は実行環境の側にあるからです。 実際の画面。0.27秒で1件。 5 aiレビュー — 同じ1件と、出せないはずの1件 次に claude code のコードレビューです。 /code-review は「いまの差分を見てレビューする」指示で、対話画面を開かずに -p で1回実行できます。 打ったコマンド claude -p &quot;/code-review&quot; --allowedtools bash read glob grep --output-format json バグ1についての指摘は、静的解析と同じ場所を指しつつ、 影響まで書いてありました 。 render_video.py:3301 — render_clip raises nameerror: n_slides . （中略）every kind:&quot;clip&quot; slide now crashes after doing all its synthesis and encoding work. 1回目の実行より（原文ママ） 「 音声合成と書き出しを全部やったあとで落ちる 」という部分は、静的解析には書けません。この関数が何をする関数なのかを読んで初めて言えることです。 6 決定的だったのは「再現までやる」こと この記事で一番驚いたのはここです。バグ2について、aiレビューは 指摘しただけでなく、この機械で実際に再現しました 。 locale.getpreferredencoding(false) is cp932 on this machine, so text=true alone decodes ffmpeg stderr as cp932 with errors='strict' . i reproduced it : an mp3 at a path with japanese characters makes subprocess's reader thread die with unicodede">
+        <div class="post-thumb-ph">📰</div>
+        <div class="post-body">
+          <div class="post-date"><span class="post-cat">AIで作る技術</span>2026年8月31日(月)</div>
+          <h3 class="post-title">Claude Codeにコードレビューさせる — 実際に埋まっていたバグ2件で測った</h3>
+          <p class="post-summary">このリポジトリに本当に埋まっていたバグ2件を差分に戻し、pyflakes と /code-review にかけて比べました。静的解析は0.26秒・0円で1件。AIレビューは111〜247秒・$0.80〜1.70で同じ1件＋静的解析が原理的に出せない1件を、実機で再現して示しました。良性の変更に対する誤検知は0件。</p>
+          <div class="post-tags"><span class="post-tag">#Claude Code</span><span class="post-tag">#実測</span><span class="post-tag">#コードレビュー</span><span class="post-tag">#静的解析</span></div>
+          <span class="post-more">続きを読む →</span>
+        </div>
+      </a>
       <a class="post-card" href="contents/2026-08-30_webapp-build/"
          data-tags="Claude Code|実測|Webアプリ|自動化|ハウツー" data-category="AIで作る技術"
          data-date="2026-08-30" data-search="claude codeでwebアプリを作る — 2コマンド・167秒・$0.98の実測 claude -p にメモ帳アプリを頼んだら69秒・$0.44でindex.html1枚が完成。ただしaiは動作確認をしていない（bash拒否4回・「コードレビューで代替」と自己申告）。playwrightでの実測とダークモード追加までの全数字。 aiで作る技術 claude code 実測 webアプリ 自動化 ハウツー claude codeでwebアプリを作る — 2コマンド・167秒・$0.98の実測 aiニュース デイリーダイジェスト aiで作る技術 ｜ 2026年8月30日(日) claude codeでwebアプリを作る — 2コマンド・167秒・$0.98の実測 「claude code でwebアプリが作れる」は本当か、どこまで本当かを、実際に作って測りました。 1コマンド目でメモ帳アプリが出来て、2コマンド目でダークモードが付きました。 ただし、aiは自分が作ったものの動作確認をしていません。この記事のログはすべて claude code 2.1.251 での実測で、加工していません。 ▶ この記事を動画で見る（8分） ずんだもん×四国めたんの掛け合い・実演つきの解説 ⏱ 同じものを作るのは2コマンド・約3分 全部コピペok 外部ライブラリ不使用 ⭐ 3行で言うと 1コマンドでアプリが出来ました。 「メモ帳アプリを index.html 1枚だけで」と頼むと、69秒・7ターン・$0.44 で 11,511 bytes のファイルが1枚。作成・編集・削除・localstorage保存・検索まで入っていました。 ただしaiは動作確認をしていません。 確認用の bash を許可していなかったので4回拒否され、 「動作確認のためのシェル実行は権限待ちで止まったため、コードレビューで代替しています」 と自己申告して終わりました。動くかどうかは、こちらで playwright を書いて確かめました（全機能動きました）。 機能追加も1コマンドでした。 「ダークモード切替を足して」で 98秒・16ターン・$0.54。 作るより足すほうが高い という結果です。合計 $0.98・167秒。 先に4語だけ意味 claude -p — 対話画面を開かず、1回の指示で答えて終わる使い方（前日の記事で実測済み） ターン — claude が道具を使って考え直せる回数。jsonの num_turns に出る localstorage — ブラウザがサイトごとに持つ保存領域。サーバー無しでデータが残る playwright — ブラウザを機械で操作する道具。人の代わりにクリックして確かめる 目次 1コマンド目 — 69秒で index.html が1枚できた 打ったコマンドの3つの部品 出来たアプリに入っていたもの aiは動作確認をしていない 動作は playwright で自分で確かめた 試験側の罠 — ブラウザは起動ごとに新品になる 2コマンド目 — ダークモードを足させる いくらかかったか — 作る$0.44、足す$0.54 指定が効いた2語 —「1枚だけ」「外部ライブラリ無し」 同じことをやる2コマンドの型 参考文献 1 1コマンド目 — 69秒で index.html が1枚できた 頼んだのはこの1行です。作業用の空フォルダで打ちました。 打ったコマンド（段2） claude -p &quot;ブラウザで動くメモ帳アプリを index.html 1枚だけで作って。複数メモの作成・編集・削除、localstorage保存、日本語ui。外部ライブラリ無し&quot; \ --allowedtools write --output-format json 段2 の実測 exit=0 wall=69s is_error false subtype success num_turns 7 total_cost_usd 0.4426 --- 出来たファイル --- index.html 11,511 bytes (1枚だけ) 69秒で、index.html が1枚だけ出来ました。 7ターン、$0.44。頼んだとおりファイルは増えていません。 競合の解説動画は「30分で作れた」「1時間で完成」を見出しにしていますが、この規模（1画面のメモ帳）なら 体感は1分ちょっと です。もちろん規模が大きければ伸びます。この記事は「この頼み方で、この規模なら、この数字だった」という1点の実測です。 1コマンドの中身と、出てきたもの。 2 打ったコマンドの3つの部品 コマンドは3つの部品で出来ています。どれも前日の記事（ claude codeの自動化 ）で1つずつ実測した旗です。 部品 何をしているか -p &quot;…&quot; 対話画面を開かず、1回の指示で終わる --allowedtools write ファイルを 書く道具だけ を許可する --output-format json 結果を機械が読める形で受け取る（ターン数・料金・拒否の記録が入る） 大事なのは --allowedtools write です。 渡していない道具は使われません。 今回は「書く」以外を渡していないので、コマンド実行やファイル削除は構造の上で起きません — そしてこの絞りが、第4章の面白い挙動を生みます。 3つの部品。すべて前日の記事で個別に実測済み。 3 出来たアプリに入っていたもの 出来た index.html をブラウザで開くと、2ペインのメモ帳が表示されます。実画面がこちらです。 実画面（playwrightで撮影）。左が一覧、右が編集欄。 頼んだのは「作成・編集・削除・localstorage保存・日本語ui」の5つですが、 頼んでいないものも入っていました。 検索ボックス、更新日時の表示、削除前の確認ダイアログ、空のときの案内文です。 頼んだもの 頼んでいないのに入っていたもの 複数メモの作成・編集・削除 メモの検索ボックス localstorage保存 更新日時の表示 日本語ui 削除前の確認ダイアログ 外部ライブラリ無し 「メモがありません」の案内 今回の4つはどれも妥当な補完でした。ただし 仕様を厳密にしたい仕事では、この「気を利かせる」ぶんが差分になる ので、要る・要らないは指示に書くのが確実です。 頼んだもの5つ、頼んでいない補完4つ。 4 aiは動作確認をしていない jsonの記録を見ると、面白いことが起きていました。 permission_denials （拒否された道具の記録）に bash が4回 並んでいます。 段2 の permission_denials（要約） permission_denials ['bash', 'bash', 'bash', 'bash'] 中身: ls での確認 / node --check での構文チェック ×3 claude は作ったあとに、自分で ls や node --check を打って確かめようとしています。でも許可したのは write だけなので、 全部拒否されました 。そして応答の冒頭で、こう自己申告しています。 応答の冒頭（原文） 実装完了しました。動作確認のためのシェル実行は 権限待ちで止まったため、コードレビューで代替して います(構文は単純なvanilla jsで問題ありません)。 つまりこの時点で、 「動く」とはai自身も言っていません 。「コードを読み直した限り問題ないはず」と言っているだけです。前日の記事の結論と同じ場所に戻ってきました — 出来たかどうかは、結果そのものを確かめるしかない。 作ったai自身は、動くことを確かめられていない。 5 動作は playwright で自分で確かめた なので、動くかどうかはこちらで測ります。playwright でブラウザを機械操作して、頼んだ機能を1つずつ確かめました。 段4 の実測 作成 → 一覧に「無題のメモ 実測メモ: これはテストです」 リロード → 残る (localstorage: simple-memo-app-notes) 削除 → localstorage は [] / 一覧は「メモがありません」 全部動きました。 作ったメモはリロード後も残り、削除すると localstorage からも消えます。検証スクリプトは _labs/2026-08-30_webapp-build/test_app.py にあり、そのまま流用できます。 確認の観点は「頼んだ機能の数」だけです。作成・編集・削除・保存の4点。 見た目の良し悪しはこの記事では測っていません （スクリーンショットを見て判断してください）。 作成→残る→消える。3点が通れば「動いた」と言える。 6 試験側の罠 — ブラウザは起動ごとに新品になる 正直に書くと、検証の途中で一度「保存が消えた」と誤判定しかけました。 原因はアプリではなく、試験のやり方です。 段5 の記録 ブラウザを起動し直すたびに新品のプロファイルになり、 localstorage が空で「メモが消えた」と誤判定しかけた。 保存の検査は同じセッション内のリロードで行う。 playwright が起動するブラウザは毎回まっさらなプロファイルです。localstorage も空から始まるので、 前回作ったメモが見えないのは当たり前 でした。保存の検査は「同じセッションの中でリロードして残るか」で行います。 aiの作ったものを疑うときは、 先に自分の試験を疑う 。この2日間で2回目の教訓です（前日は拒否の記録が揺れる話でした）。 消えたのではなく、別の引き出しを開けていた。 7 2コマンド目 — ダークモードを足させる 次に、出来たアプリへの機能追加を1コマンドで頼みます。今度は新規作成ではないので、 read と edit （既存ファイルの読みと書き換え）だけを渡しました。 打ったコマンド（段6） claude -p &quot;index.html のメモ帳にダークモード切替ボタンを足して。設定は">
@@ -697,7 +709,7 @@
 
 
 </div>
-<script src="js/home.js?v=e4e2d50d" defer></script>
+<script src="js/home.js?v=87d6e6c7" defer></script>
 
 
 <script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>

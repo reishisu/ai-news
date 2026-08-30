@@ -1,0 +1,11 @@
+**Scope note:** the branch `lab/review-test` has one commit (31d409e) touching only `render_video.py`. There is also an uncommitted change to that same file which is an *exact revert* of the commit (`git diff main` is empty). I reviewed the committed diff as the PR — the working-tree revert appears to be leftover from a previous run, not part of the change.
+
+Findings (all confirmed by running code on this machine):
+
+- **render_video.py:3214 — `render_clip()` reads `n_slides` at line 3301 but its binding was deleted.** AST check confirms `n_slides` is not a global, not a parameter, and never assigned in the function. Every `kind:"clip"` slide finishes its ffmpeg work and then dies with `NameError`; the caller at 3411 has no try/except, so the whole render aborts. CLAUDE.md requires demo chapters to use `kind:"clip"`, so this breaks the normal daily pipeline.
+
+- **render_video.py:185 — `encoding="utf-8", errors="replace"` removed from the ffmpeg calls whose stderr is parsed.** On this machine `locale.getpreferredencoding()` is `cp932`; I reproduced that `capture_output=True, text=True` on an mp3 with Japanese ID3 tags kills subprocess's reader thread with `UnicodeDecodeError` and leaves `run.stderr is None`. `media_seconds` then does `re.search(..., None)` → `TypeError`. Same at 2095 (`measure_loudness`), 2127 (`bgm_loop_wav`), 2605 (`probe_video`). This reverts commit 3269e9e and contradicts the explicit CLAUDE.md rule.
+
+- **render_video.py:2072 — same removal on the encode/concat calls makes the error handlers slice `None`.** When ffmpeg genuinely fails, `run.stderr[-1200:]` raises `TypeError: 'NoneType' object is not subscriptable`, so the real ffmpeg diagnostic is destroyed. Also at 2144, 2201, 2258, 2689, 2762.
+
+No other issues found in the diff.
