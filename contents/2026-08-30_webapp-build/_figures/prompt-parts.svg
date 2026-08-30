@@ -1,0 +1,21 @@
+<svg viewBox="0 0 460 240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="26" font-size="22" font-weight="700" fill="var(--fg)">機能の指定と、形の指定</text>
+  <g data-step="1">
+    <rect x="14" y="44" width="210" height="120" rx="10" fill="var(--track)"/>
+    <text x="30" y="70" font-size="15" font-weight="700" fill="var(--fg)">機能の指定</text>
+    <text x="30" y="96" font-size="14" fill="var(--fg)">作成・編集・削除</text>
+    <text x="30" y="118" font-size="14" fill="var(--fg)">localStorage保存</text>
+    <text x="30" y="140" font-size="14" fill="var(--fg)">日本語UI</text>
+  </g>
+  <g data-step="2">
+    <rect x="236" y="44" width="210" height="120" rx="10" fill="var(--b)" opacity="0.28"/>
+    <text x="252" y="70" font-size="15" font-weight="700" fill="var(--acc)">形の指定</text>
+    <text x="252" y="96" font-size="14" fill="var(--fg)">「1枚だけで」</text>
+    <text x="252" y="118" font-size="14" fill="var(--fg)">「外部ライブラリ無し」</text>
+    <text x="252" y="140" font-size="13" fill="var(--sub)">→ 書いたとおりになった</text>
+  </g>
+  <g data-step="3">
+    <rect x="14" y="180" width="432" height="40" rx="10" fill="var(--track)"/>
+    <text x="30" y="206" font-size="14" fill="var(--fg)">形の要件（持ち運び・オフライン）は1語ずつ書く</text>
+  </g>
+</svg>

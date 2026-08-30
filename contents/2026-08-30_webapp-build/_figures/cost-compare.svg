@@ -1,0 +1,19 @@
+<svg viewBox="0 0 460 240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="26" font-size="22" font-weight="700" fill="var(--fg)">作る < 足す</text>
+  <g data-step="1">
+    <text x="14" y="62" font-size="15" fill="var(--fg)">新規</text>
+    <rect x="70" y="46" width="196" height="24" rx="6" fill="var(--b)" opacity="0.55"/>
+    <text x="276" y="64" font-size="15" font-weight="700" fill="var(--fg)">$0.44 / 7ターン</text>
+  </g>
+  <g data-step="2">
+    <text x="14" y="102" font-size="15" fill="var(--fg)">追加</text>
+    <rect x="70" y="86" width="238" height="24" rx="6" fill="var(--acc)" opacity="0.75"/>
+    <text x="318" y="104" font-size="15" font-weight="700" fill="var(--acc)">$0.54 / 16ターン</text>
+  </g>
+  <g data-step="3">
+    <rect x="14" y="134" width="432" height="82" rx="10" fill="var(--track)"/>
+    <text x="30" y="162" font-size="15" font-weight="700" fill="var(--fg)">追加が高い理由（推定）</text>
+    <text x="30" y="186" font-size="14" fill="var(--fg)">既存コードを読み、壊さない場所を探す工程が乗る</text>
+    <text x="30" y="208" font-size="14" fill="var(--sub)">合計 $0.98・167秒・23ターン</text>
+  </g>
+</svg>

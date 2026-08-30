@@ -1,0 +1,451 @@
+<!DOCTYPE html><html lang="ja"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>メモ帳</title>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --panel: #ffffff;
+    --border: #e0e2e6;
+    --text: #23262b;
+    --sub: #6b7280;
+    --accent: #3b6fed;
+    --accent-hover: #2f59c4;
+    --danger: #e0483f;
+    --danger-hover: #c33a32;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .app {
+    display: flex;
+    height: 100vh;
+  }
+  .sidebar {
+    width: 280px;
+    min-width: 200px;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-header {
+    padding: 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+  }
+  .sidebar-header input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  .new-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .new-btn:hover { background: var(--accent-hover); }
+  .memo-list {
+    flex: 1;
+    overflow-y: auto;
+  }
+  .memo-item {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    position: relative;
+  }
+  .memo-item:hover { background: #f0f2f5; }
+  .memo-item.active {
+    background: #e8edfc;
+    border-left: 3px solid var(--accent);
+  }
+  .memo-title {
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+  .memo-preview {
+    font-size: 12px;
+    color: var(--sub);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .memo-date {
+    font-size: 11px;
+    color: var(--sub);
+    margin-top: 4px;
+  }
+  .memo-item .del-btn {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: none;
+    border: none;
+    color: var(--sub);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: none;
+  }
+  .memo-item:hover .del-btn { display: block; }
+  .memo-item .del-btn:hover {
+    background: var(--danger);
+    color: #fff;
+  }
+  .empty-list {
+    padding: 24px 14px;
+    color: var(--sub);
+    font-size: 13px;
+    text-align: center;
+  }
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .main-toolbar {
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--sub);
+  }
+  .toolbar-delete {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--danger);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .toolbar-delete:hover {
+    background: var(--danger);
+    color: #fff;
+    border-color: var(--danger);
+  }
+  .editor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 32px;
+    overflow-y: auto;
+  }
+  #title-input {
+    font-size: 24px;
+    font-weight: 700;
+    border: none;
+    outline: none;
+    background: transparent;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+  #body-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    resize: none;
+    background: transparent;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+    font-family: inherit;
+  }
+  .placeholder {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sub);
+    font-size: 15px;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .placeholder button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .placeholder button:hover { background: var(--accent-hover); }
+
+  @media (max-width: 640px) {
+    .app { flex-direction: column; }
+    .sidebar {
+      width: 100%;
+      height: 40%;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .main { height: 60%; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <input type="text" id="search-input" placeholder="メモを検索" style="">
+      <button class="new-btn" id="new-memo-btn" title="新しいメモ">＋</button>
+    </div>
+    <div class="memo-list" id="memo-list"><div class="empty-list">メモがありません。＋で作成してください</div></div>
+  </div>
+  <div class="main" id="main"><div class="placeholder"><div>メモを選択するか、新しく作成してください</div><button>＋ 新しいメモを作成</button></div></div>
+</div>
+
+<script>
+(() => {
+  const STORAGE_KEY = "simple-memo-app-notes";
+
+  /** @typedef {{id: string, title: string, body: string, updatedAt: number}} Memo */
+
+  /** @type {Memo[]} */
+  let memos = [];
+  let activeId = null;
+  let searchQuery = "";
+  let saveTimer = null;
+
+  const memoListEl = document.getElementById("memo-list");
+  const mainEl = document.getElementById("main");
+  const searchInput = document.getElementById("search-input");
+  const newMemoBtn = document.getElementById("new-memo-btn");
+
+  function loadMemos() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      memos = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(memos)) memos = [];
+    } catch (e) {
+      memos = [];
+    }
+  }
+
+  function persistMemos() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(memos));
+  }
+
+  function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function formatDate(ts) {
+    const d = new Date(ts);
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function firstLine(body) {
+    return (body || "").split("\n").find((line) => line.trim().length > 0) || "";
+  }
+
+  function createMemo() {
+    const memo = {
+      id: generateId(),
+      title: "",
+      body: "",
+      updatedAt: Date.now(),
+    };
+    memos.unshift(memo);
+    persistMemos();
+    activeId = memo.id;
+    render();
+    focusTitleInput();
+  }
+
+  function deleteMemo(id) {
+    const memo = memos.find((m) => m.id === id);
+    if (!memo) return;
+    const label = memo.title || "無題のメモ";
+    if (!confirm(`「${label}」を削除しますか？この操作は取り消せません。`)) return;
+    memos = memos.filter((m) => m.id !== id);
+    persistMemos();
+    if (activeId === id) {
+      activeId = memos.length > 0 ? memos[0].id : null;
+    }
+    render();
+  }
+
+  function updateMemo(id, patch) {
+    const memo = memos.find((m) => m.id === id);
+    if (!memo) return;
+    Object.assign(memo, patch, { updatedAt: Date.now() });
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      persistMemos();
+      renderList();
+    }, 300);
+  }
+
+  function getFilteredMemos() {
+    const sorted = [...memos].sort((a, b) => b.updatedAt - a.updatedAt);
+    if (!searchQuery) return sorted;
+    const q = searchQuery.toLowerCase();
+    return sorted.filter((m) =>
+      (m.title || "").toLowerCase().includes(q) ||
+      (m.body || "").toLowerCase().includes(q)
+    );
+  }
+
+  function renderList() {
+    const filtered = getFilteredMemos();
+    memoListEl.innerHTML = "";
+
+    if (filtered.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "empty-list";
+      empty.textContent = searchQuery ? "一致するメモがありません" : "メモがありません。＋で作成してください";
+      memoListEl.appendChild(empty);
+      return;
+    }
+
+    filtered.forEach((memo) => {
+      const item = document.createElement("div");
+      item.className = "memo-item" + (memo.id === activeId ? " active" : "");
+      item.dataset.id = memo.id;
+
+      const title = document.createElement("div");
+      title.className = "memo-title";
+      title.textContent = memo.title || "無題のメモ";
+
+      const preview = document.createElement("div");
+      preview.className = "memo-preview";
+      preview.textContent = firstLine(memo.body) || "（本文なし）";
+
+      const date = document.createElement("div");
+      date.className = "memo-date";
+      date.textContent = formatDate(memo.updatedAt);
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "del-btn";
+      delBtn.textContent = "削除";
+      delBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteMemo(memo.id);
+      });
+
+      item.appendChild(title);
+      item.appendChild(preview);
+      item.appendChild(date);
+      item.appendChild(delBtn);
+
+      item.addEventListener("click", () => {
+        activeId = memo.id;
+        render();
+      });
+
+      memoListEl.appendChild(item);
+    });
+  }
+
+  function renderMain() {
+    mainEl.innerHTML = "";
+    const memo = memos.find((m) => m.id === activeId);
+
+    if (!memo) {
+      const placeholder = document.createElement("div");
+      placeholder.className = "placeholder";
+      const text = document.createElement("div");
+      text.textContent = "メモを選択するか、新しく作成してください";
+      const btn = document.createElement("button");
+      btn.textContent = "＋ 新しいメモを作成";
+      btn.addEventListener("click", createMemo);
+      placeholder.appendChild(text);
+      placeholder.appendChild(btn);
+      mainEl.appendChild(placeholder);
+      return;
+    }
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "main-toolbar";
+    const dateSpan = document.createElement("span");
+    dateSpan.textContent = "最終更新: " + formatDate(memo.updatedAt);
+    const delBtn = document.createElement("button");
+    delBtn.className = "toolbar-delete";
+    delBtn.textContent = "このメモを削除";
+    delBtn.addEventListener("click", () => deleteMemo(memo.id));
+    toolbar.appendChild(dateSpan);
+    toolbar.appendChild(delBtn);
+
+    const editor = document.createElement("div");
+    editor.className = "editor";
+
+    const titleInput = document.createElement("input");
+    titleInput.type = "text";
+    titleInput.id = "title-input";
+    titleInput.placeholder = "タイトル";
+    titleInput.value = memo.title;
+    titleInput.addEventListener("input", () => {
+      updateMemo(memo.id, { title: titleInput.value });
+    });
+
+    const bodyInput = document.createElement("textarea");
+    bodyInput.id = "body-input";
+    bodyInput.placeholder = "メモを入力...";
+    bodyInput.value = memo.body;
+    bodyInput.addEventListener("input", () => {
+      updateMemo(memo.id, { body: bodyInput.value });
+    });
+
+    editor.appendChild(titleInput);
+    editor.appendChild(bodyInput);
+
+    mainEl.appendChild(toolbar);
+    mainEl.appendChild(editor);
+  }
+
+  function focusTitleInput() {
+    requestAnimationFrame(() => {
+      const el = document.getElementById("title-input");
+      if (el) el.focus();
+    });
+  }
+
+  function render() {
+    renderList();
+    renderMain();
+  }
+
+  newMemoBtn.addEventListener("click", createMemo);
+  searchInput.addEventListener("input", () => {
+    searchQuery = searchInput.value.trim();
+    renderList();
+  });
+
+  loadMemos();
+  if (memos.length > 0) {
+    activeId = [...memos].sort((a, b) => b.updatedAt - a.updatedAt)[0].id;
+  }
+  render();
+})();
+</script>
+
+
+</body></html>

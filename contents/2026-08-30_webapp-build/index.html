@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude CodeでWebアプリを作る — 2コマンド・167秒・$0.98の実測</title>
+<meta name="description" content="claude -p にメモ帳アプリを頼んだら、69秒・7ターン・$0.44でindex.html1枚が出来ました。ただしAIは動作確認をしていません（Bashを許可していないので4回拒否され、「コードレビューで代替」と自己申告）。Playwrightで作成・保存・削除を実測し、ダークモード追加まで含めた全数字を載せます。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claude CodeでWebアプリを作る — 2コマンド・167秒・$0.98の実測">
+<meta property="og:description" content="1コマンド目でアプリが出来て、2コマンド目でダークモードが付いた。ただしAIは動作確認をしていない。数字を全部載せます。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-08-30_webapp-build/">
+<meta property="og:image" content="https://reishisu.github.io/ai-news/contents/2026-08-30_webapp-build/images/thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../css/article.css?v=081fefa4">
+<link rel="stylesheet" href="../../css/shared.css?v=7e35954d">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+
+  <div class="masthead">
+    <div class="eyebrow">AIで作る技術 ｜ 2026年8月30日(日)</div>
+    <h1>Claude CodeでWebアプリを作る — 2コマンド・167秒・$0.98の実測</h1>
+    <div class="range">「Claude Code でWebアプリが作れる」は本当か、どこまで本当かを、実際に作って測りました。<b>1コマンド目でメモ帳アプリが出来て、2コマンド目でダークモードが付きました。</b>ただし、AIは自分が作ったものの動作確認をしていません。この記事のログはすべて Claude Code 2.1.251 での実測で、加工していません。</div>
+    <div class="meta-row">
+      <span class="time-chip">⏱ 同じものを作るのは2コマンド・約3分</span>
+      <span class="tag">全部コピペOK</span>
+      <span class="tag">外部ライブラリ不使用</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>⭐ 3行で言うと</h2>
+    <ol>
+      <li><b>1コマンドでアプリが出来ました。</b>「メモ帳アプリを index.html 1枚だけで」と頼むと、69秒・7ターン・$0.44 で 11,511 bytes のファイルが1枚。作成・編集・削除・localStorage保存・検索まで入っていました。</li>
+      <li><b>ただしAIは動作確認をしていません。</b>確認用の Bash を許可していなかったので4回拒否され、<mark>「動作確認のためのシェル実行は権限待ちで止まったため、コードレビューで代替しています」</mark>と自己申告して終わりました。動くかどうかは、こちらで Playwright を書いて確かめました（全機能動きました）。</li>
+      <li><b>機能追加も1コマンドでした。</b>「ダークモード切替を足して」で 98秒・16ターン・$0.54。<mark>作るより足すほうが高い</mark>という結果です。合計 $0.98・167秒。</li>
+    </ol>
+    <div>
+      <details>
+        <summary>先に4語だけ意味</summary>
+        <ul class="points">
+          <li><b><code>claude -p</code></b> — 対話画面を開かず、1回の指示で答えて終わる使い方（前日の記事で実測済み）</li>
+          <li><b>ターン</b> — Claude が道具を使って考え直せる回数。JSONの <code>num_turns</code> に出る</li>
+          <li><b>localStorage</b> — ブラウザがサイトごとに持つ保存領域。サーバー無しでデータが残る</li>
+          <li><b>Playwright</b> — ブラウザを機械で操作する道具。人の代わりにクリックして確かめる</li>
+        </ul>
+      </details>
+    </div>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">1コマンド目 — 69秒で index.html が1枚できた</a></li>
+      <li><a href="#s2">打ったコマンドの3つの部品</a></li>
+      <li><a href="#s3">出来たアプリに入っていたもの</a></li>
+      <li><a href="#s4">AIは動作確認をしていない</a></li>
+      <li><a href="#s5">動作は Playwright で自分で確かめた</a></li>
+      <li><a href="#s6">試験側の罠 — ブラウザは起動ごとに新品になる</a></li>
+      <li><a href="#s7">2コマンド目 — ダークモードを足させる</a></li>
+      <li><a href="#s8">いくらかかったか — 作る$0.44、足す$0.54</a></li>
+      <li><a href="#s9">指定が効いた2語 —「1枚だけ」「外部ライブラリ無し」</a></li>
+      <li><a href="#s10">同じことをやる2コマンドの型</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>1コマンド目 — 69秒で index.html が1枚できた</h2>
+    <article class="item">
+      <p class="lead">頼んだのはこの1行です。作業用の空フォルダで打ちました。</p>
+      <div class="code"><div class="code-head">打ったコマンド（段2）</div><pre>claude -p "ブラウザで動くメモ帳アプリを index.html 1枚だけで作って。複数メモの作成・編集・削除、localStorage保存、日本語UI。外部ライブラリ無し" \
+  --allowedTools Write --output-format json</pre></div>
+      <div class="code term"><div class="code-head">段2 の実測</div><pre>exit=0  wall=69s
+is_error       False
+subtype        success
+num_turns      7
+total_cost_usd 0.4426
+--- 出来たファイル ---
+<span class="ok-line">index.html  11,511 bytes (1枚だけ)</span></pre></div>
+      <p class="lead"><b>69秒で、index.html が1枚だけ出来ました。</b>7ターン、$0.44。頼んだとおりファイルは増えていません。</p>
+      <p class="lead">競合の解説動画は「30分で作れた」「1時間で完成」を見出しにしていますが、この規模（1画面のメモ帳）なら<mark>体感は1分ちょっと</mark>です。もちろん規模が大きければ伸びます。この記事は「この頼み方で、この規模なら、この数字だった」という1点の実測です。</p>
+      <figure>
+        <picture>
+          <source srcset="images/one-command-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/one-command.png" alt="1コマンドで69秒・7ターン・0.44ドル・index.html1枚が出来たことを示す図" loading="lazy">
+        </picture>
+        <figcaption>1コマンドの中身と、出てきたもの。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>打ったコマンドの3つの部品</h2>
+    <article class="item">
+      <p class="lead">コマンドは3つの部品で出来ています。どれも前日の記事（<a href="../2026-08-30_claude-automation/">Claude Codeの自動化</a>）で1つずつ実測した旗です。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>部品</th><th>何をしているか</th></tr></thead>
+          <tbody>
+            <tr><td><code>-p "…"</code></td><td data-label="何をしているか">対話画面を開かず、1回の指示で終わる</td></tr>
+            <tr><td><code>--allowedTools Write</code></td><td data-label="何をしているか">ファイルを<b>書く道具だけ</b>を許可する</td></tr>
+            <tr><td><code>--output-format json</code></td><td data-label="何をしているか">結果を機械が読める形で受け取る（ターン数・料金・拒否の記録が入る）</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">大事なのは <code>--allowedTools Write</code> です。<mark>渡していない道具は使われません。</mark>今回は「書く」以外を渡していないので、コマンド実行やファイル削除は構造の上で起きません — そしてこの絞りが、第4章の面白い挙動を生みます。</p>
+      <figure>
+        <picture>
+          <source srcset="images/command-anatomy-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/command-anatomy.png" alt="コマンドの3つの部品（-p、--allowedTools Write、--output-format json）の役割を示す図" loading="lazy">
+        </picture>
+        <figcaption>3つの部品。すべて前日の記事で個別に実測済み。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s3">
+    <h2><span class="step">3</span>出来たアプリに入っていたもの</h2>
+    <article class="item">
+      <p class="lead">出来た index.html をブラウザで開くと、2ペインのメモ帳が表示されます。実画面がこちらです。</p>
+      <figure>
+        <img src="images/shot-created.png" alt="出来上がったメモ帳アプリの実画面。左に一覧、右に編集欄" loading="lazy">
+        <figcaption>実画面（Playwrightで撮影）。左が一覧、右が編集欄。</figcaption>
+      </figure>
+      <p class="lead">頼んだのは「作成・編集・削除・localStorage保存・日本語UI」の5つですが、<b>頼んでいないものも入っていました。</b>検索ボックス、更新日時の表示、削除前の確認ダイアログ、空のときの案内文です。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>頼んだもの</th><th>頼んでいないのに入っていたもの</th></tr></thead>
+          <tbody>
+            <tr><td>複数メモの作成・編集・削除</td><td data-label="頼んでいないのに入っていたもの">メモの検索ボックス</td></tr>
+            <tr><td>localStorage保存</td><td data-label="頼んでいないのに入っていたもの">更新日時の表示</td></tr>
+            <tr><td>日本語UI</td><td data-label="頼んでいないのに入っていたもの">削除前の確認ダイアログ</td></tr>
+            <tr><td>外部ライブラリ無し</td><td data-label="頼んでいないのに入っていたもの">「メモがありません」の案内</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">今回の4つはどれも妥当な補完でした。ただし<mark>仕様を厳密にしたい仕事では、この「気を利かせる」ぶんが差分になる</mark>ので、要る・要らないは指示に書くのが確実です。</p>
+      <figure>
+        <picture>
+          <source srcset="images/asked-vs-got-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/asked-vs-got.png" alt="頼んだ5項目と、頼んでいないのに入っていた4項目を示す図" loading="lazy">
+        </picture>
+        <figcaption>頼んだもの5つ、頼んでいない補完4つ。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s4">
+    <h2><span class="step">4</span>AIは動作確認をしていない</h2>
+    <article class="item">
+      <p class="lead">JSONの記録を見ると、面白いことが起きていました。<code>permission_denials</code>（拒否された道具の記録）に <b>Bash が4回</b>並んでいます。</p>
+      <div class="code term"><div class="code-head">段2 の permission_denials（要約）</div><pre>permission_denials <span class="ng-line">['Bash', 'Bash', 'Bash', 'Bash']</span>
+中身: ls での確認 /
+      node --check での構文チェック ×3</pre></div>
+      <p class="lead">Claude は作ったあとに、自分で <code>ls</code> や <code>node --check</code> を打って確かめようとしています。でも許可したのは <code>Write</code> だけなので、<b>全部拒否されました</b>。そして応答の冒頭で、こう自己申告しています。</p>
+      <div class="code wrap"><div class="code-head">応答の冒頭（原文）</div><pre>実装完了しました。動作確認のためのシェル実行は
+権限待ちで止まったため、コードレビューで代替して
+います(構文は単純なVanilla JSで問題ありません)。</pre></div>
+      <p class="lead">つまりこの時点で、<mark>「動く」とはAI自身も言っていません</mark>。「コードを読み直した限り問題ないはず」と言っているだけです。前日の記事の結論と同じ場所に戻ってきました — <b>出来たかどうかは、結果そのものを確かめるしかない。</b></p>
+      <figure>
+        <picture>
+          <source srcset="images/no-verify-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/no-verify.png" alt="AIが動作確認しようとしてBashを4回拒否され、コードレビューで代替したことを示す図" loading="lazy">
+        </picture>
+        <figcaption>作ったAI自身は、動くことを確かめられていない。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s5">
+    <h2><span class="step">5</span>動作は Playwright で自分で確かめた</h2>
+    <article class="item">
+      <p class="lead">なので、動くかどうかはこちらで測ります。Playwright でブラウザを機械操作して、頼んだ機能を1つずつ確かめました。</p>
+      <div class="code term"><div class="code-head">段4 の実測</div><pre>作成      → 一覧に「無題のメモ 実測メモ: これはテストです」
+リロード  → <span class="ok-line">残る</span> (localStorage: simple-memo-app-notes)
+削除      → <span class="ok-line">localStorage は []</span> / 一覧は「メモがありません」</pre></div>
+      <p class="lead"><b>全部動きました。</b>作ったメモはリロード後も残り、削除すると localStorage からも消えます。検証スクリプトは <code>_labs/2026-08-30_webapp-build/test_app.py</code> にあり、そのまま流用できます。</p>
+      <p class="lead">確認の観点は「頼んだ機能の数」だけです。作成・編集・削除・保存の4点。<mark>見た目の良し悪しはこの記事では測っていません</mark>（スクリーンショットを見て判断してください）。</p>
+      <figure>
+        <picture>
+          <source srcset="images/verify-cycle-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/verify-cycle.png" alt="作成→リロードで残る→削除で消える、の検証サイクルを示す図" loading="lazy">
+        </picture>
+        <figcaption>作成→残る→消える。3点が通れば「動いた」と言える。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s6">
+    <h2><span class="step">6</span>試験側の罠 — ブラウザは起動ごとに新品になる</h2>
+    <article class="item">
+      <p class="lead">正直に書くと、検証の途中で一度「保存が消えた」と誤判定しかけました。<b>原因はアプリではなく、試験のやり方です。</b></p>
+      <div class="code term"><div class="code-head">段5 の記録</div><pre>ブラウザを起動し直すたびに新品のプロファイルになり、
+localStorage が空で「メモが消えた」と誤判定しかけた。
+<span class="ok-line">保存の検査は同じセッション内のリロードで行う。</span></pre></div>
+      <p class="lead">Playwright が起動するブラウザは毎回まっさらなプロファイルです。localStorage も空から始まるので、<mark>前回作ったメモが見えないのは当たり前</mark>でした。保存の検査は「同じセッションの中でリロードして残るか」で行います。</p>
+      <p class="lead">AIの作ったものを疑うときは、<b>先に自分の試験を疑う</b>。この2日間で2回目の教訓です（前日は拒否の記録が揺れる話でした）。</p>
+      <figure>
+        <picture>
+          <source srcset="images/fresh-profile-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/fresh-profile.png" alt="ブラウザ再起動でプロファイルが新品になりlocalStorageが空になることを示す図" loading="lazy">
+        </picture>
+        <figcaption>消えたのではなく、別の引き出しを開けていた。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s7">
+    <h2><span class="step">7</span>2コマンド目 — ダークモードを足させる</h2>
+    <article class="item">
+      <p class="lead">次に、出来たアプリへの機能追加を1コマンドで頼みます。今度は新規作成ではないので、<code>Read</code> と <code>Edit</code>（既存ファイルの読みと書き換え）だけを渡しました。</p>
+      <div class="code"><div class="code-head">打ったコマンド（段6）</div><pre>claude -p "index.html のメモ帳にダークモード切替ボタンを足して。設定はlocalStorageに保存、初期値はOSの設定に従う" \
+  --allowedTools "Read Edit" --output-format json</pre></div>
+      <div class="code term"><div class="code-head">段6 の実測</div><pre>exit=0  wall=98s
+is_error       False
+num_turns      16
+total_cost_usd 0.5371
+permission_denials ['Bash', 'Bash']</pre></div>
+      <p class="lead">98秒・16ターン・$0.54。ここでも Bash の確認を2回試みて、2回拒否されています。動作はまた Playwright で測りました。</p>
+      <div class="code term"><div class="code-head">段7 の実測</div><pre>背景 rgb(244,245,247) → <span class="ok-line">rgb(26,27,30)</span>
+リロード後も rgb(26,27,30) / localStorage theme=dark</pre></div>
+      <p class="lead"><b>切替も、リロード後の保持も動きました。</b>🌙ボタンが検索欄の隣に付き、設定は localStorage に入ります。</p>
+      <figure>
+        <img src="images/shot-dark.png" alt="ダークモードに切り替わったメモ帳アプリの実画面" loading="lazy">
+        <figcaption>実画面。2コマンド目のあと、背景が dark に切り替わる。</figcaption>
+      </figure>
+      <figure>
+        <picture>
+          <source srcset="images/add-feature-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/add-feature.png" alt="機能追加はRead/Editだけを許可して98秒・16ターン・0.54ドルだったことを示す図" loading="lazy">
+        </picture>
+        <figcaption>追加の1コマンド。渡す道具は Read と Edit に変わる。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s8">
+    <h2><span class="step">8</span>いくらかかったか — 作る$0.44、足す$0.54</h2>
+    <article class="item">
+      <p class="lead">2つのコマンドの数字を並べます。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th></th><th>1コマンド目（新規作成）</th><th>2コマンド目（機能追加）</th></tr></thead>
+          <tbody>
+            <tr><td>時間</td><td data-label="新規">69秒</td><td data-label="追加">98秒</td></tr>
+            <tr><td>ターン</td><td data-label="新規">7</td><td data-label="追加"><b>16</b></td></tr>
+            <tr><td>料金</td><td data-label="新規">$0.4426</td><td data-label="追加"><b>$0.5371</b></td></tr>
+            <tr><td>Bashの拒否</td><td data-label="新規">4回</td><td data-label="追加">2回</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead"><mark>ゼロから作るより、既存に足すほうが高くつきました。</mark>時間もターンも料金も、追加のほうが上です。既存のコードを読み、壊さない場所を探して差し込む工程が挟まるためと見られます（ターン数16のうち、読みに使った往復が乗っています）。</p>
+      <p class="lead">合計は <b>$0.98・167秒・23ターン</b>。この料金は API 従量課金の換算値で、定額プランなら請求は増えません（<a href="../2026-08-29_usage-check/">前々日の記事</a>で実測済み）。</p>
+      <figure>
+        <picture>
+          <source srcset="images/cost-compare-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/cost-compare.png" alt="新規作成と機能追加の時間・ターン・料金の比較図。追加のほうが高い" loading="lazy">
+        </picture>
+        <figcaption>作る < 足す。読みの工程が乗るぶん追加が高い。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s9">
+    <h2><span class="step">9</span>指定が効いた2語 —「1枚だけ」「外部ライブラリ無し」</h2>
+    <article class="item">
+      <p class="lead">頼み方の中で、結果にはっきり効いた指定が2つあります。</p>
+      <ul class="points">
+        <li><b>「index.html 1枚だけで」</b> — 出来たファイルは本当に1枚でした。この指定が無いと CSS や JS が別ファイルに割れることがあり、コピーして持ち運ぶのが面倒になります</li>
+        <li><b>「外部ライブラリ無し」</b> — 出来た HTML に CDN の読み込みは1行もありません。ネットが無くても開けます</li>
+      </ul>
+      <p class="lead">どちらも「動くか」ではなく<mark>「出来上がりの形」を縛る指定</mark>です。機能の列挙だけだと形はAI任せになります。持ち運びたい・オフラインで使いたいなど、形の要件があるなら1語ずつ書いてください。</p>
+      <p class="lead">なお「日本語UI」も効いています。ボタン・案内文・確認ダイアログまで全部日本語でした（第3章の実画面のとおり）。</p>
+      <figure>
+        <picture>
+          <source srcset="images/prompt-parts-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/prompt-parts.png" alt="頼み方の中の機能の指定と形の指定を分けて示す図" loading="lazy">
+        </picture>
+        <figcaption>機能の指定と、形の指定。効き方が違う。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s10">
+    <h2><span class="step">10</span>同じことをやる2コマンドの型</h2>
+    <article class="item">
+      <p class="lead">今日の実測を、そのまま使える形にまとめます。</p>
+      <div class="code"><div class="code-head">作る（新規）</div><pre>claude -p "〈何のアプリか〉を index.html 1枚だけで作って。
+〈機能を列挙〉、〈保存方法〉、日本語UI。外部ライブラリ無し" \
+  --allowedTools Write --output-format json</pre></div>
+      <div class="code"><div class="code-head">足す（追加）</div><pre>claude -p "index.html に〈機能〉を足して。〈保存や初期値の要件〉" \
+  --allowedTools "Read Edit" --output-format json</pre></div>
+      <ul class="points">
+        <li><b>1. 道具は工程に合わせて絞る。</b>新規は <code>Write</code>、追加は <code>Read Edit</code>。渡していない道具は使われない</li>
+        <li><b>2. 形の要件は言葉にする。</b>「1枚だけ」「外部ライブラリ無し」は書いたとおりになった</li>
+        <li><b>3. AIの「問題ありません」は動作確認ではない。</b>今回は2回とも Bash を拒否されており、AIはコードを読み直しただけ。動くかは自分で開いて確かめる</li>
+        <li><b>4. 保存の検査は同じセッションのリロードで。</b>ブラウザを起動し直すと localStorage は新品になる</li>
+      </ul>
+      <p class="lead">この型で出来るのは「1画面の道具アプリをローカルで動かす」ところまでです。<b>インターネットへの公開（デプロイ）は今回測っていません。</b></p>
+      <figure>
+        <picture>
+          <source srcset="images/recipe-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="images/recipe.png" alt="作る・確かめる・足す・確かめるの2コマンドの型を示す図" loading="lazy">
+        </picture>
+        <figcaption>作る→確かめる→足す→確かめる。確かめるのは毎回こちら側。</figcaption>
+      </figure>
+    </article>
+  </section>
+
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の資料と自分の実測だけに基づいています。<mark>読んでいない資料は引用しません。</mark></p>
+      <ol class="refs">
+        <li>
+          <span class="flag self">自分の実測</span>
+          Claude Code 2.1.251 / Linux x86_64。2026年8月30日 09:32〜09:40 JST に実行。
+          <details class="note-d"><summary>参照箇所を見る</summary>
+            <span class="note">再現一式は <code>_labs/2026-08-30_webapp-build/</code>（<code>run_all.sh</code>・<code>output.txt</code>・<code>step2.json</code>・<code>step6.json</code>・検証スクリプト <code>test_app.py</code>/<code>test_dark.py</code>）。記事の数字（69秒/98秒・7/16ターン・$0.4426/$0.5371・拒否4/2回・11,511 bytes）はすべて <code>--output-format json</code> の生データと実測ログから。実画面は Playwright のスクリーンショット。料金・時間・ターン数・「頼んでいない補完」の中身は実行のたびに変わりうる。</span>
+          </details>
+        </li>
+        <li>
+          <span class="flag self">自分の意見</span>
+          第3章「要る・要らないは指示に書くのが確実」、第9章「形の要件は1語ずつ書く」は、今回の実測を踏まえた運用上の目安。第8章の「追加が高いのは読みの工程が乗るため」は num_turns の差からの推定で、内部の仕様を確かめたものではない。
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          インターネットへの公開（デプロイ）、複数ファイル構成での挙動、もっと大きい規模のアプリ、<code>--permission-mode acceptEdits</code> でやった場合の差、同じ指示を複数回叩いたときの出来上がりのばらつき（1回ずつしか実行していない）。
+          <details class="note-d"><summary>なぜ未確認か</summary>
+            <span class="note">公開はこの検証環境から外部サービスへ出せないため。ばらつきは、今日の枠では1回ずつの実測に留めたため（コマンドと数字を残してあるので、回数を重ねれば分布が取れる）。</span>
+          </details>
+        </li>
+        <li>
+          <span class="flag primary">関連する自分の記事</span>
+          <a href="../2026-08-30_claude-automation/">Claude Codeの自動化</a>（-p・--allowedTools・permission_denials の個別実測）、<a href="../2026-08-29_usage-check/">使用量と料金の確かめ方</a>（$表示が請求額ではない話）。
+        </li>
+      </ol>
+    </article>
+  </section>
+
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+<footer class="footer">AIニュース デイリーダイジェスト</footer>
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=1f14af54" defer></script>
+<script src="../../js/article.js?v=05e9fbbe" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

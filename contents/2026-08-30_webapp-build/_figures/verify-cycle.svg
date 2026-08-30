@@ -1,0 +1,26 @@
+<svg viewBox="0 0 460 240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="26" font-size="22" font-weight="700" fill="var(--fg)">動作は自分で確かめる（Playwright）</text>
+  <g data-step="1">
+    <rect x="14" y="56" width="130" height="60" rx="10" fill="var(--track)"/>
+    <text x="34" y="82" font-size="16" font-weight="700" fill="var(--fg)">作成</text>
+    <text x="34" y="104" font-size="13" fill="var(--ok)">一覧に出る</text>
+  </g>
+  <g data-step="2">
+    <line x1="152" y1="86" x2="186" y2="86" stroke="var(--sub)" stroke-width="3"/>
+    <polygon points="196,86 184,80 184,92" fill="var(--sub)"/>
+    <rect x="204" y="56" width="130" height="60" rx="10" fill="var(--track)"/>
+    <text x="224" y="82" font-size="16" font-weight="700" fill="var(--fg)">リロード</text>
+    <text x="224" y="104" font-size="13" fill="var(--ok)">残る</text>
+  </g>
+  <g data-step="3">
+    <line x1="342" y1="86" x2="376" y2="86" stroke="var(--sub)" stroke-width="3"/>
+    <polygon points="386,86 374,80 374,92" fill="var(--sub)"/>
+    <rect x="316" y="140" width="130" height="60" rx="10" fill="var(--track)"/>
+    <text x="336" y="166" font-size="16" font-weight="700" fill="var(--fg)">削除</text>
+    <text x="336" y="188" font-size="13" fill="var(--ok)">[] になる</text>
+  </g>
+  <g data-step="4">
+    <rect x="14" y="150" width="270" height="44" rx="10" fill="var(--b)" opacity="0.28"/>
+    <text x="30" y="178" font-size="14" fill="var(--fg)">3点通れば「動いた」と言える</text>
+  </g>
+</svg>

@@ -1,0 +1,20 @@
+<svg viewBox="0 0 460 240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="26" font-size="22" font-weight="700" fill="var(--fg)">ブラウザは起動ごとに新品</text>
+  <g data-step="1">
+    <rect x="14" y="44" width="210" height="80" rx="10" fill="var(--track)"/>
+    <text x="30" y="70" font-size="15" font-weight="700" fill="var(--fg)">同じセッション内</text>
+    <text x="30" y="94" font-size="14" fill="var(--fg)">リロード → メモは</text>
+    <text x="30" y="114" font-size="14" font-weight="700" fill="var(--ok)">残る</text>
+  </g>
+  <g data-step="2">
+    <rect x="236" y="44" width="210" height="80" rx="10" fill="var(--track)"/>
+    <text x="252" y="70" font-size="15" font-weight="700" fill="var(--fg)">起動し直し</text>
+    <text x="252" y="94" font-size="14" fill="var(--fg)">新品プロファイル →</text>
+    <text x="252" y="114" font-size="14" font-weight="700" fill="var(--ng)">空に見える</text>
+  </g>
+  <g data-step="3">
+    <rect x="14" y="146" width="432" height="70" rx="10" fill="var(--b)" opacity="0.28"/>
+    <text x="30" y="174" font-size="15" font-weight="700" fill="var(--fg)">消えたのではなく、別の引き出し</text>
+    <text x="30" y="200" font-size="14" fill="var(--fg)">保存の検査は同じセッションのリロードで行う</text>
+  </g>
+</svg>

@@ -1,0 +1,24 @@
+<svg viewBox="0 0 460 240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="26" font-size="22" font-weight="700" fill="var(--fg)">2コマンドの型</text>
+  <g data-step="1">
+    <rect x="14" y="44" width="200" height="44" rx="10" fill="var(--track)"/>
+    <text x="34" y="72" font-size="16" font-weight="700" fill="var(--fg)">作る（Write）</text>
+  </g>
+  <g data-step="2">
+    <rect x="246" y="44" width="200" height="44" rx="10" fill="var(--b)" opacity="0.28"/>
+    <text x="266" y="72" font-size="16" font-weight="700" fill="var(--fg)">確かめる（自分）</text>
+  </g>
+  <g data-step="3">
+    <rect x="14" y="104" width="200" height="44" rx="10" fill="var(--track)"/>
+    <text x="34" y="132" font-size="16" font-weight="700" fill="var(--fg)">足す（Read Edit）</text>
+  </g>
+  <g data-step="4">
+    <rect x="246" y="104" width="200" height="44" rx="10" fill="var(--b)" opacity="0.28"/>
+    <text x="266" y="132" font-size="16" font-weight="700" fill="var(--fg)">確かめる（自分）</text>
+  </g>
+  <g data-step="5">
+    <rect x="14" y="164" width="432" height="56" rx="10" fill="var(--track)"/>
+    <text x="30" y="190" font-size="14" fill="var(--fg)">AIの「問題ありません」は動作確認ではない。</text>
+    <text x="30" y="211" font-size="14" font-weight="700" fill="var(--acc)">確かめるのは毎回こちら側</text>
+  </g>
+</svg>

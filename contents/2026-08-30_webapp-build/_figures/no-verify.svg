@@ -1,0 +1,21 @@
+<svg viewBox="0 0 460 240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="26" font-size="22" font-weight="700" fill="var(--fg)">AIは動作確認できていない</text>
+  <g data-step="1">
+    <rect x="14" y="44" width="200" height="56" rx="10" fill="var(--track)"/>
+    <text x="30" y="68" font-size="15" fill="var(--fg)">Claude「確認したい」</text>
+    <text x="30" y="90" font-size="14" font-family="ui-monospace, monospace" fill="var(--fg)">ls / node --check</text>
+  </g>
+  <g data-step="2">
+    <line x1="222" y1="72" x2="256" y2="72" stroke="var(--sub)" stroke-width="3"/>
+    <polygon points="266,72 254,66 254,78" fill="var(--sub)"/>
+    <rect x="274" y="44" width="172" height="56" rx="10" fill="var(--ng)" opacity="0.22"/>
+    <text x="290" y="68" font-size="16" font-weight="700" fill="var(--fg)">Bash 拒否 ×4</text>
+    <text x="290" y="90" font-size="14" fill="var(--fg)">Write しか許可がない</text>
+  </g>
+  <g data-step="3">
+    <rect x="14" y="122" width="432" height="94" rx="10" fill="var(--track)"/>
+    <text x="30" y="150" font-size="15" font-weight="700" fill="var(--fg)">応答の自己申告（原文）</text>
+    <text x="30" y="176" font-size="14" fill="var(--fg)">「動作確認のためのシェル実行は権限待ちで</text>
+    <text x="30" y="198" font-size="14" fill="var(--fg)">止まったため、コードレビューで代替しています」</text>
+  </g>
+</svg>

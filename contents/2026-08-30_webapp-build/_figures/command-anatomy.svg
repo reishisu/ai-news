@@ -1,0 +1,18 @@
+<svg viewBox="0 0 460 240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="26" font-size="22" font-weight="700" fill="var(--fg)">コマンドの3つの部品</text>
+  <g data-step="1">
+    <rect x="14" y="44" width="432" height="54" rx="10" fill="var(--track)"/>
+    <text x="30" y="66" font-size="17" font-family="ui-monospace, monospace" font-weight="700" fill="var(--acc)">-p "…"</text>
+    <text x="30" y="88" font-size="15" fill="var(--fg)">対話画面なしで、1回の指示で終わる</text>
+  </g>
+  <g data-step="2">
+    <rect x="14" y="108" width="432" height="54" rx="10" fill="var(--track)"/>
+    <text x="30" y="130" font-size="17" font-family="ui-monospace, monospace" font-weight="700" fill="var(--acc)">--allowedTools Write</text>
+    <text x="30" y="152" font-size="15" fill="var(--fg)">書く道具だけを許可（渡さない道具は使われない）</text>
+  </g>
+  <g data-step="3">
+    <rect x="14" y="172" width="432" height="54" rx="10" fill="var(--track)"/>
+    <text x="30" y="194" font-size="17" font-family="ui-monospace, monospace" font-weight="700" fill="var(--acc)">--output-format json</text>
+    <text x="30" y="216" font-size="15" fill="var(--fg)">ターン数・料金・拒否の記録を機械で読める形に</text>
+  </g>
+</svg>

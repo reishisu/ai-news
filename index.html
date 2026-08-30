@@ -30,16 +30,16 @@
 <main class="container">
 
   <section class="hero">
-    <a class="hero-card" href="contents/2026-08-30_claude-automation/">
-      <img class="hero-thumb" src="contents/2026-08-30_claude-automation/images/thumb.png" alt="" width="1280" height="720" fetchpriority="high">
+    <a class="hero-card" href="contents/2026-08-30_webapp-build/">
+      <img class="hero-thumb" src="contents/2026-08-30_webapp-build/images/thumb.png" alt="" width="1280" height="720" fetchpriority="high">
       <div class="hero-body">
         <div class="hero-meta">
           <span class="hero-badge">最新号</span>
           <span class="hero-cat">AIで作る技術</span>
           <span class="hero-date">2026年8月30日(日)</span>
         </div>
-        <h1 class="hero-title">Claude Codeの自動化 — 無人で走らせると「成功」して何もしないことがある</h1>
-        <p class="hero-sum">claude -p を cron に置くと、権限が要る操作は実行されないまま終了コード0で終わります。JSONでも is_error は false、subtype は success。違うのは permission_denials の1か所だけです。しかもその記録は、同じ命令を3回叩くと 0・2・0 と揺れました。直し方と、結果の確かめ方を実測でまとめます。</p>
+        <h1 class="hero-title">Claude CodeでWebアプリを作る — 2コマンド・167秒・$0.98の実測</h1>
+        <p class="hero-sum">claude -p にメモ帳アプリを頼んだら69秒・$0.44でindex.html1枚が完成。ただしAIは動作確認をしていない（Bash拒否4回・「コードレビューで代替」と自己申告）。Playwrightでの実測とダークモード追加までの全数字。</p>
         <span class="hero-go">この号を読む</span>
       </div>
     </a>
@@ -73,7 +73,7 @@
   <section class="posts">
     <div class="posts-head">
       <h2>記事一覧</h2>
-      <span class="posts-count"><b id="hitCount">46</b>件</span>
+      <span class="posts-count"><b id="hitCount">47</b>件</span>
     </div>
 
     <div class="finder">
@@ -84,9 +84,9 @@
       </div>
       <div class="tag-bar" id="tagBar">
       <button class="tag-chip is-on" type="button" data-tag="">すべて</button>
-      <button class="tag-chip" type="button" data-tag="実測">#実測<i>30</i></button>
+      <button class="tag-chip" type="button" data-tag="実測">#実測<i>31</i></button>
       <button class="tag-chip" type="button" data-tag="公式ドキュメント">#公式ドキュメント<i>22</i></button>
-      <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>20</i></button>
+      <button class="tag-chip" type="button" data-tag="Claude Code">#Claude Code<i>21</i></button>
       <button class="tag-chip" type="button" data-tag="AWS">#AWS<i>12</i></button>
       <button class="tag-chip" type="button" data-tag="WebView">#WebView<i>12</i></button>
       <button class="tag-chip" type="button" data-tag="入門">#入門<i>12</i></button>
@@ -116,10 +116,23 @@
       <button class="tag-chip" type="button" data-tag="デプロイ">#デプロイ<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="フック">#フック<i>2</i></button>
       <button class="tag-chip" type="button" data-tag="料金改定">#料金改定<i>2</i></button>
+      <button class="tag-chip" type="button" data-tag="自動化">#自動化<i>2</i></button>
       </div>
     </div>
 
     <div class="post-list" id="postList">
+      <a class="post-card" href="contents/2026-08-30_webapp-build/"
+         data-tags="Claude Code|実測|Webアプリ|自動化|ハウツー" data-category="AIで作る技術"
+         data-date="2026-08-30" data-search="claude codeでwebアプリを作る — 2コマンド・167秒・$0.98の実測 claude -p にメモ帳アプリを頼んだら69秒・$0.44でindex.html1枚が完成。ただしaiは動作確認をしていない（bash拒否4回・「コードレビューで代替」と自己申告）。playwrightでの実測とダークモード追加までの全数字。 aiで作る技術 claude code 実測 webアプリ 自動化 ハウツー claude codeでwebアプリを作る — 2コマンド・167秒・$0.98の実測 aiニュース デイリーダイジェスト aiで作る技術 ｜ 2026年8月30日(日) claude codeでwebアプリを作る — 2コマンド・167秒・$0.98の実測 「claude code でwebアプリが作れる」は本当か、どこまで本当かを、実際に作って測りました。 1コマンド目でメモ帳アプリが出来て、2コマンド目でダークモードが付きました。 ただし、aiは自分が作ったものの動作確認をしていません。この記事のログはすべて claude code 2.1.251 での実測で、加工していません。 ⏱ 同じものを作るのは2コマンド・約3分 全部コピペok 外部ライブラリ不使用 ⭐ 3行で言うと 1コマンドでアプリが出来ました。 「メモ帳アプリを index.html 1枚だけで」と頼むと、69秒・7ターン・$0.44 で 11,511 bytes のファイルが1枚。作成・編集・削除・localstorage保存・検索まで入っていました。 ただしaiは動作確認をしていません。 確認用の bash を許可していなかったので4回拒否され、 「動作確認のためのシェル実行は権限待ちで止まったため、コードレビューで代替しています」 と自己申告して終わりました。動くかどうかは、こちらで playwright を書いて確かめました（全機能動きました）。 機能追加も1コマンドでした。 「ダークモード切替を足して」で 98秒・16ターン・$0.54。 作るより足すほうが高い という結果です。合計 $0.98・167秒。 先に4語だけ意味 claude -p — 対話画面を開かず、1回の指示で答えて終わる使い方（前日の記事で実測済み） ターン — claude が道具を使って考え直せる回数。jsonの num_turns に出る localstorage — ブラウザがサイトごとに持つ保存領域。サーバー無しでデータが残る playwright — ブラウザを機械で操作する道具。人の代わりにクリックして確かめる 目次 1コマンド目 — 69秒で index.html が1枚できた 打ったコマンドの3つの部品 出来たアプリに入っていたもの aiは動作確認をしていない 動作は playwright で自分で確かめた 試験側の罠 — ブラウザは起動ごとに新品になる 2コマンド目 — ダークモードを足させる いくらかかったか — 作る$0.44、足す$0.54 指定が効いた2語 —「1枚だけ」「外部ライブラリ無し」 同じことをやる2コマンドの型 参考文献 1 1コマンド目 — 69秒で index.html が1枚できた 頼んだのはこの1行です。作業用の空フォルダで打ちました。 打ったコマンド（段2） claude -p &quot;ブラウザで動くメモ帳アプリを index.html 1枚だけで作って。複数メモの作成・編集・削除、localstorage保存、日本語ui。外部ライブラリ無し&quot; \ --allowedtools write --output-format json 段2 の実測 exit=0 wall=69s is_error false subtype success num_turns 7 total_cost_usd 0.4426 --- 出来たファイル --- index.html 11,511 bytes (1枚だけ) 69秒で、index.html が1枚だけ出来ました。 7ターン、$0.44。頼んだとおりファイルは増えていません。 競合の解説動画は「30分で作れた」「1時間で完成」を見出しにしていますが、この規模（1画面のメモ帳）なら 体感は1分ちょっと です。もちろん規模が大きければ伸びます。この記事は「この頼み方で、この規模なら、この数字だった」という1点の実測です。 1コマンドの中身と、出てきたもの。 2 打ったコマンドの3つの部品 コマンドは3つの部品で出来ています。どれも前日の記事（ claude codeの自動化 ）で1つずつ実測した旗です。 部品 何をしているか -p &quot;…&quot; 対話画面を開かず、1回の指示で終わる --allowedtools write ファイルを 書く道具だけ を許可する --output-format json 結果を機械が読める形で受け取る（ターン数・料金・拒否の記録が入る） 大事なのは --allowedtools write です。 渡していない道具は使われません。 今回は「書く」以外を渡していないので、コマンド実行やファイル削除は構造の上で起きません — そしてこの絞りが、第4章の面白い挙動を生みます。 3つの部品。すべて前日の記事で個別に実測済み。 3 出来たアプリに入っていたもの 出来た index.html をブラウザで開くと、2ペインのメモ帳が表示されます。実画面がこちらです。 実画面（playwrightで撮影）。左が一覧、右が編集欄。 頼んだのは「作成・編集・削除・localstorage保存・日本語ui」の5つですが、 頼んでいないものも入っていました。 検索ボックス、更新日時の表示、削除前の確認ダイアログ、空のときの案内文です。 頼んだもの 頼んでいないのに入っていたもの 複数メモの作成・編集・削除 メモの検索ボックス localstorage保存 更新日時の表示 日本語ui 削除前の確認ダイアログ 外部ライブラリ無し 「メモがありません」の案内 今回の4つはどれも妥当な補完でした。ただし 仕様を厳密にしたい仕事では、この「気を利かせる」ぶんが差分になる ので、要る・要らないは指示に書くのが確実です。 頼んだもの5つ、頼んでいない補完4つ。 4 aiは動作確認をしていない jsonの記録を見ると、面白いことが起きていました。 permission_denials （拒否された道具の記録）に bash が4回 並んでいます。 段2 の permission_denials（要約） permission_denials ['bash', 'bash', 'bash', 'bash'] 中身: ls での確認 / node --check での構文チェック ×3 claude は作ったあとに、自分で ls や node --check を打って確かめようとしています。でも許可したのは write だけなので、 全部拒否されました 。そして応答の冒頭で、こう自己申告しています。 応答の冒頭（原文） 実装完了しました。動作確認のためのシェル実行は 権限待ちで止まったため、コードレビューで代替して います(構文は単純なvanilla jsで問題ありません)。 つまりこの時点で、 「動く」とはai自身も言っていません 。「コードを読み直した限り問題ないはず」と言っているだけです。前日の記事の結論と同じ場所に戻ってきました — 出来たかどうかは、結果そのものを確かめるしかない。 作ったai自身は、動くことを確かめられていない。 5 動作は playwright で自分で確かめた なので、動くかどうかはこちらで測ります。playwright でブラウザを機械操作して、頼んだ機能を1つずつ確かめました。 段4 の実測 作成 → 一覧に「無題のメモ 実測メモ: これはテストです」 リロード → 残る (localstorage: simple-memo-app-notes) 削除 → localstorage は [] / 一覧は「メモがありません」 全部動きました。 作ったメモはリロード後も残り、削除すると localstorage からも消えます。検証スクリプトは _labs/2026-08-30_webapp-build/test_app.py にあり、そのまま流用できます。 確認の観点は「頼んだ機能の数」だけです。作成・編集・削除・保存の4点。 見た目の良し悪しはこの記事では測っていません （スクリーンショットを見て判断してください）。 作成→残る→消える。3点が通れば「動いた」と言える。 6 試験側の罠 — ブラウザは起動ごとに新品になる 正直に書くと、検証の途中で一度「保存が消えた」と誤判定しかけました。 原因はアプリではなく、試験のやり方です。 段5 の記録 ブラウザを起動し直すたびに新品のプロファイルになり、 localstorage が空で「メモが消えた」と誤判定しかけた。 保存の検査は同じセッション内のリロードで行う。 playwright が起動するブラウザは毎回まっさらなプロファイルです。localstorage も空から始まるので、 前回作ったメモが見えないのは当たり前 でした。保存の検査は「同じセッションの中でリロードして残るか」で行います。 aiの作ったものを疑うときは、 先に自分の試験を疑う 。この2日間で2回目の教訓です（前日は拒否の記録が揺れる話でした）。 消えたのではなく、別の引き出しを開けていた。 7 2コマンド目 — ダークモードを足させる 次に、出来たアプリへの機能追加を1コマンドで頼みます。今度は新規作成ではないので、 read と edit （既存ファイルの読みと書き換え）だけを渡しました。 打ったコマンド（段6） claude -p &quot;index.html のメモ帳にダークモード切替ボタンを足して。設定はlocalstorageに保存、初期値はosの設定に従う&quot; \ --allowedt">
+        <img class="post-thumb" src="contents/2026-08-30_webapp-build/images/thumb.png" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;post-thumb-ph&quot;>📰</div>'">
+        <div class="post-body">
+          <div class="post-date"><span class="post-cat">AIで作る技術</span>2026年8月30日(日)</div>
+          <h3 class="post-title">Claude CodeでWebアプリを作る — 2コマンド・167秒・$0.98の実測</h3>
+          <p class="post-summary">claude -p にメモ帳アプリを頼んだら69秒・$0.44でindex.html1枚が完成。ただしAIは動作確認をしていない（Bash拒否4回・「コードレビューで代替」と自己申告）。Playwrightでの実測とダークモード追加までの全数字。</p>
+          <div class="post-tags"><span class="post-tag">#Claude Code</span><span class="post-tag">#実測</span><span class="post-tag">#Webアプリ</span><span class="post-tag">#自動化</span></div>
+          <span class="post-more">続きを読む →</span>
+        </div>
+      </a>
       <a class="post-card" href="contents/2026-08-30_claude-automation/"
          data-tags="Claude Code|自動化|実測|入門" data-category="AIで作る技術"
          data-date="2026-08-30" data-search="claude codeの自動化 — 無人で走らせると「成功」して何もしないことがある claude -p を cron に置くと、権限が要る操作は実行されないまま終了コード0で終わります。jsonでも is_error は false、subtype は success。違うのは permission_denials の1か所だけです。しかもその記録は、同じ命令を3回叩くと 0・2・0 と揺れました。直し方と、結果の確かめ方を実測でまとめます。 aiで作る技術 claude code 自動化 実測 入門 claude codeの自動化 — 無人で走らせると「成功」して何もしないことがある aiニュース デイリーダイジェスト aiで作る技術 ｜ 2026年8月30日(日) claude codeの自動化 — 無人で走らせると「成功」して何もしないことがある 「claude code を毎朝 cron で回したい」——その一歩目でだいたい踏む穴を、実際に踏んでから直しました。 権限が要る操作は、黙って飛ばされます。 終了コードは 0、jsonの is_error も false です。この記事のログはすべて claude code 2.1.251 での実測で、加工していません。 ▶ この記事を動画で見る（11分） ずんだもん×四国めたんの掛け合い・実演つきの解説 ⏱ 直すのは旗を1つ足すだけ・約1分 全部コピペok 追加インストール不要 ⭐ 3行で言うと claude -p は、権限が要る操作を実行しないまま「成功」で終わります。 ファイルを作らせる命令を出したのに、ファイルは出来ず、終了コードは 0 でした。cron のログには何も残りません。 直し方は --allowedtools で道具を名指しすること。 --allowedtools write を足しただけで、同じ命令が通りました。 bash(git status:*) のようにコマンド単位でも渡せます。 ただし「やったか」を cli の自己申告で判定してはいけません。 唯一の手がかりに見えた permission_denials は、同じ命令を3回叩くと 0・2・0 と揺れました。結果そのものを自分で確かめるしかありません。 先に5語だけ意味 ヘッドレス / 非対話 — 人が画面に付かずに動かすこと。 -p がその旗 終了コード — コマンドが終わるときに残す数字。0が成功、それ以外が失敗の合図 ツール（道具） — claude がファイルを書く・コマンドを打つといった、外に手を出す機能 権限（パーミッション） — その道具を使ってよいかの許可。対話画面では人がその都度押している cron — 決まった時刻にコマンドを自動で走らせる、linux の標準の仕組み 目次 ファイルを作らせたのに、出来ていなかった 終了コードも is_error も、成功と言っている jsonには26個のキーが入っている。使うのは4つ 直し方その1 — 使う道具を名指しする 直し方その2 — --permission-mode で束ねて渡す bash は丸ごとでなく、コマンド単位で渡せる 本物のエラーなら、終了コードは 1 になる 許可の外を頼んだときの記録は、揺れる 止まる場所を、先に決めておく 材料は標準入力から渡す 前半と後半に割って、続きから走らせる 無人で置くときの4点 参考文献 1 ファイルを作らせたのに、出来ていなかった まず、いちばん素朴な使い方から始めます。 -p （ --print ）を付けると、claude code は対話画面を開かずに、答えを標準出力に吐いて終わります。パイプに繋げる形です。 計算させるだけなら、何も要らない claude -p &quot;1+1は？数字だけ&quot; 段2 の実出力 2 exit=0 ここまでは期待どおりです。では、 ファイルを1つ作らせて みます。自動化でやりたいのは、たいていこちら側です。 同じ形で、書き込みを頼む claude -p &quot;hello.txt を作り中身を hi に&quot; 段3 の実出力 exit=0 --- 応答 --- ファイル書き込みの許可が必要なようです --- 出来たファイル --- (hello.txt は無い) claude は「許可が要る」と言い、そこで終わりました。 ファイルは1つも出来ていません。 それでも終了コードは 0 です。 対話画面なら、ここで「許可しますか？」と聞かれて人が押します。 無人だと、押す人がいません。 押されないまま、claude は「できませんでした」と丁寧に報告して正常終了します。 cron に置いた場合、ログに残るのは終了コードだけです。0 が返っているので、監視の仕組みは何も鳴りません。 毎朝そのまま、何もしない仕事が走り続けます。 終了コードだけを見ていると、素通りに気づけない。 2 終了コードも is_error も、成功と言っている 「終了コードが雑なだけで、機械が読む形式なら分かるのでは」と考えるのが自然です。 --output-format json を付けると、結果が1つのjsonで返ります。 jsonで受け取る claude -p &quot;hello.txt を作り中身を hi に&quot; \ --output-format json 段4 の実出力（権限を渡していない側） exit=0 is_error false subtype success num_turns 2 permission_denials ['write'] total_cost_usd 0.0178 is_error は false 。 subtype は success 。 jsonも「成功」と言っています。 同じ命令に許可を渡して成功させた側（次章）と並べると、違いは1か所しかありませんでした。 見る場所 やれた やれていない 終了コード 0 0 is_error false false subtype success success permission_denials [ ] ['write'] 料金 $0.0186 $0.0178 permission_denials だけが違います。 拒否された道具の名前と、渡そうとしていた引数がそのまま入っていました。 permission_denials の中身（段4 と同じ実行のもの） [{&quot;tool_name&quot;: &quot;write&quot;, &quot;tool_use_id&quot;: &quot;toolu_018bax...&quot;, &quot;tool_input&quot;: {&quot;file_path&quot;: &quot;.../hello.txt&quot;, &quot;content&quot;: &quot;hi&quot;}}] もう1つ、地味に効く事実があります。 料金はほとんど変わりません。 何もしなかった側が $0.0178、やり遂げた側が $0.0186 でした。 空振りにも、ほぼ同じだけ払っています。 4つの手がかりのうち、3つは役に立たない。 3 jsonには26個のキーが入っている。使うのは4つ 前章で見た json には、実際どれだけ入っているのか。1回叩いて全部並べました。 keys.sh の実出力（抜粋） api_error_status nonetype duration_api_ms int is_error bool modelusage dict num_turns int permission_denials list result str session_id str stop_reason str subtype str terminal_reason str total_cost_usd float usage dict (中略) キーの数: 26 26個あります。 ただし自動化で読む必要があるのは、多くありません。 キー 何に使うか result 答えの本文。次の処理へ渡すのはこれ permission_denials 拒否された道具。空でなければ確実に失敗 is_error 本物の異常かどうか。終了コードと連動する session_id 続きから走らせるときの手がかり（第11章） 残りは所要時間（ duration_ms ）、トークンの内訳（ usage / modelusage ）、内部の事情（ warm_spare_claimed など）です。 監視に載せるなら、上の4つで足ります。 26個の全部を見る api_error_status / duration_api_ms / duration_ms / fast_mode_disabled_reason / fast_mode_state / is_error / modelusage / num_turns / permission_denials / queued_turn_count / result / session_id / stop_reason / subagent_stats / subtype / terminal_reason / time_origin_ms / time_to_request_from_spawn_ms / time_to_request_ms / total_cost_usd / ttft_ms / ttft_stream_ms / type / usage / uuid / warm_spare_claimed この一覧は 2026年8月30日 の 2.1.251 で採ったものです。 版が上がれば増減します。 キーの有無に依存する処理を書くなら、 .get() のように無くても落ちない読み方にしてください。 なお result は 文章 です。数字だけを頼んでも、説明が混ざることがあります。数値として扱うなら、受け取ってから検証する1行を必ず挟んでください。 監視に載せるのは4つで足りる。 4 直し方その1 — 使う道具を名指しする 直し方は単純です。 --allowedtools に、使わせたい道具の名前を渡します。 write だけを許可する claude -p &quot;hello.txt を作り中身を hi に&quot; \ --allowedtools ">
