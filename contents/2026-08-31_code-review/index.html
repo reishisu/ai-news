@@ -27,7 +27,11 @@
   <div class="masthead">
     <div class="eyebrow">AIで作る技術 ｜ 2026年8月31日(日)</div>
     <h1>Claude Codeにコードレビューさせる — 実際に埋まっていたバグ2件で測った</h1>
-    <div class="range">「AIにコードレビューさせると役に立つのか」を、<b>作り物のバグではなく、このリポジトリに本当に埋まっていたバグ2件</b>で測りました。片方は静的解析が0.27秒・0円で見つけます。<mark>もう片方は静的解析には原理的に出せません</mark>。そこがこの記事の主題です。ログはすべて Claude Code 2.1.251 での実測で、加工していません。</div>
+    <div class="range">「AIにコードレビューさせると役に立つのか」を、<b>作り物のバグではなく、このリポジトリに本当に埋まっていたバグ2件</b>で測りました。片方は静的解析が0.27秒・0円で見つけます。<mark>もう片方は、今回使った pyflakes には出せません</mark>。そこがこの記事の主題です。ログはすべて Claude Code 2.1.251 での実測で、加工していません。</div>
+  <a class="video-cta" href="https://youtu.be/UaE-fyQopIg" target="_blank" rel="noopener">
+    <span class="vc-play">▶</span>
+    <span class="vc-text"><b>この記事を動画で見る（15分）</b><span>ずんだもん×四国めたんの掛け合い・実際に走らせた画面つき</span></span>
+  </a>
     <div class="meta-row">
       <span class="time-chip">⏱ 同じ計測は約10分</span>
       <span class="tag">全部コピペOK</span>
@@ -122,7 +126,7 @@ m = re.search(r"Duration: (\d+):(\d+):([\d.]+)", run.stderr)</pre></div>
         </table>
       </div>
       <p class="lead">しかも落ち方が悪質です。<b>例外は出力を読むスレッドの中で握り潰され</b>、<code>run.stderr</code> は <code>None</code> になって返ってきます。呼び出し側は「なぜか中身が空」という状態を受け取り、その次の行の <code>re.search(..., None)</code> で <code>TypeError</code> になります。<mark>本当の原因（文字コード）はどこにも出ません。</mark></p>
-      <p class="lead"><b>これは静的解析には見つけられません。</b>字面としては完全に正しいコードで、問題は「実行する機械のロケール」という外部条件にあるからです。</p>
+      <p class="lead"><b>これは pyflakes のような「名前の辻褄を見る道具」には見つけられません。</b>字面としては完全に正しいコードで、問題は「実行する機械のロケール」という外部条件にあるからです（型を見る道具なら、空が返ったあとの扱いを捕まえられた可能性はあります。測っていないので断言はしません）。</p>
     </article>
   </section>
 
@@ -134,10 +138,10 @@ m = re.search(r"Duration: (\d+):(\d+):([\d.]+)", run.stderr)</pre></div>
       <div class="code term"><div class="code-head">出力（実測）</div><pre><span class="ok-line">render_video.py:3301:30: undefined name 'n_slides'</span>
   -&gt; 0.27 秒 / 0円 / 1件</pre></div>
       <p class="lead"><b>バグ1は即座に、正確な行番号つきで出ました。</b>0.27秒、料金は0円です。この速さと値段には、AIレビューは絶対に勝てません。</p>
-      <p class="lead">そして<b>バグ2については何も言いません</b>。これは静的解析の欠陥ではなく、原理です。<code>subprocess.run(..., text=True)</code> は文法的にも型的にも正しく、問題は実行環境の側にあるからです。</p>
+      <p class="lead">そして<b>バグ2については何も言いません</b>。これは pyflakes の欠陥ではなく、この道具が見ているものの範囲です。<code>subprocess.run(..., text=True)</code> は文法的にも型的にも正しく、問題は実行環境の側にあるからです。</p>
       <figure>
         <img src="images/shot-pyflakes.png" alt="pyflakes が render_video.py:3301 の未定義変数 n_slides を0.27秒で指摘している実際の画面" loading="lazy">
-        <figcaption>実際の画面。0.27秒で1件。</figcaption>
+        <figcaption>実際の画面。動画用に撮り直した回では <b>0.25秒で2件</b>（未定義変数に加えて、未使用変数も1件）でした。どちらも同じコマンドの実測です。</figcaption>
       </figure>
     </article>
   </section>
