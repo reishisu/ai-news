@@ -1,0 +1,7 @@
+取得 2026-09-02 / https://www.androidauthority.com/android-backup-google-storage-3684656/ / 公開 2026-07-07
+（引用は記事が使った文だけ。全文は出典URL）
+
+Google says the average backup will only use about 40MB of additional storage.
+Until now, most Android backups haven’t really eaten up your Google Account storage. The biggest exceptions were your Google Photos uploads and multimedia messages (MMS), such as photos and videos sent through text messages. Things like your SMS conversations, call logs, and many device settings were essentially stored without counting against your storage quota.
+The good news is that the impact should be tiny for most people. Google says the average Android backup will grow by only about 40MB. To put that into perspective, that’s often smaller than a handful of high-resolution photos. Unless your Google storage is already hanging by a thread, you probably won’t notice much difference.
+The company is also adding something many users will appreciate: more control. New toggles let you decide whether to include SMS and MMS messages, call history, and device settings in your backup. If there’s something you don’t care about restoring on a future phone, you can simply switch it off.

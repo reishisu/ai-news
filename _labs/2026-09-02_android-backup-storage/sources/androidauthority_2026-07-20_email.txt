@@ -1,0 +1,8 @@
+取得 2026-09-02 / https://www.androidauthority.com/google-android-backup-new-storage-policy-email-3689091/ / 公開 2026-07-20
+（引用は記事が使った文だけ。全文は出典URL）
+
+Users are getting a 45-day heads-up before the new policy kicks in.
+Google has started emailing Android users about an upcoming change to its backup storage policy, giving users a 45-day heads-up before the new rules take effect.
+Google also warns users that if their account exceeds its storage limit after the change, “automatic Android backups will pause” until they either free up storage or upgrade their Google storage plan.
+In my case, Google says my Android backup will increase by just “0.03GB (around 30MB)” after the policy takes effect. That’s broadly in line with what we reported earlier, when Google said the average increase in backup size would be around 40MB, making the impact negligible for most users.
+The email also confirms new granular Android backup controls. If you’re running Android 9 or later, you’ll be able to choose exactly which types of data and which individual apps are included in your backups. That means you can exclude the things you don’t want backed up or restored on a future device.

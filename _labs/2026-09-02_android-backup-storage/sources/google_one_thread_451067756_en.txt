@@ -1,0 +1,51 @@
+Skip to main content
+Google One Help
+Sign in
+Help Center
+Community
+Google One
+Back
+Monika Y
+Community Manager
+•
+Original Poster
+Jul 15, 2026
+Android device backup storage update & controls
+Announcement
+Hey everyone,
+ 
+We want to share an update on how your Android device backup works with your Google Account storage. Currently, data from MMS and some app data backed up from your Android device count toward your Google Account storage. In the coming weeks, we’re updating our policy so that all data backed up from your Android device counts toward your Google Account storage quota. 
+ 
+This helps create a more consistent experience and includes data types like:
+SMS and MMS messages
+Call history
+Device settings
+App data
+This update already applies to new Android backup users and rolls out to existing users in the coming weeks. 
+ 
+With this change, we're also introducing new controls on Android 9 and up. These controls allow you to select which data types and apps you want to back up, which gives you more control over your Android backup experience.
+ 
+To manage your storage space and clear unnecessary files, we recommend you review which items take up space in your storage.
+ 
+Thanks,
+Monika
+Community Manager (CM) - Google One team
+Details
+Storage
+Pinned
+Locked
+Informational notification.
+This question is locked and replying has been disabled.
+876
+Subscribe
+Community content may not be verified or up-to-date. Learn more.
+Last edited Jul 15, 2026
+No replies yet
+Related content
+Android device backup storage update & controls
+Back up photos & videos
+New storage rules for septembre 2026
+Free up space on your device
+Clean up & fix issues with your Google storage
+©2026 Google  Privacy Policy  Terms of Service  Community Policy  Community Overview
+ Send feedback about our Help Center
