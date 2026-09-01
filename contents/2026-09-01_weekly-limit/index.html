@@ -26,7 +26,7 @@
     <div class="eyebrow">AIで作る技術 ｜ 2026年9月1日(火)</div>
     <h1>Claude Codeの週間上限、いまと9月14日以降どっちが多い？現状比17%減</h1>
     <div class="range">「標準上限を25%引き上げ」だけを見ると増量です。しかし、現在は標準から50%増しの量が使えます。<b>9月14日からは、いま使える量の約83%です。</b>
-<a class="video-cta" href="https://youtu.be/8te8aYaMZj8" target="_blank" rel="noopener">
+<a class="video-cta" href="https://youtu.be/caRR6sid9bM" target="_blank" rel="noopener">
   <span class="vc-play">▶</span>
   <span class="vc-text"><b>この記事を動画で見る（3分）</b><span>ずんだもん×四国めたんの掛け合い・実演つきの解説</span></span>
 </a>
@@ -220,6 +220,21 @@
       <p class="lead">標準比の25%増で予定を広げるのではなく、現在比の17%減で縮めます。この機械の実測に当てはめるなら、週約30ブロックから、平均約5ブロック相当を入れない予算です。</p>
       <p class="lead">ここで確定している境目は、<b>9月14日から新上限</b>という点だけです。現在の50%増量の終了日は2社で1日ずれているため、それ以上は断定しません。一次情報も未読です。</p>
       <p class="lead">「25%増」は間違いではありません。ただし、いま使える量と比べるなら、視聴者にとっての結果は<b>約17%減</b>です。</p>
+    </article>
+    <article class="item">
+      <h3>自分が上限のどこにいるかは、Claude Code の <code>/usage</code> で分かる</h3>
+      <p class="lead">この記事では ccusage でトークン数を測りましたが、<b>「週の上限に対して何%か」は Claude Code 自身が表示します。</b>対話画面で <code>/usage</code> と打つと、現在のセッションと今週の使用率が百分率で出ます。ccusage はトークン数の集計で、上限に対する割合は出ません。</p>
+      <p class="lead">2026年9月1日にこの機械で実行した表示は次のとおりです。</p>
+      <table class="tbl">
+        <thead><tr><th>項目</th><th>表示</th></tr></thead>
+        <tbody>
+          <tr><td>Current session</td><td data-label="表示">8% used（Resets 5:19pm Asia/Tokyo）</td></tr>
+          <tr><td><b>Current week (all models)</b></td><td data-label="表示"><b>98% used</b>（Resets Sep 3, 8:59am Asia/Tokyo）</td></tr>
+          <tr><td>Current week (Fable)</td><td data-label="表示">77% used（Resets Sep 3, 8:59am Asia/Tokyo）</td></tr>
+        </tbody>
+      </table>
+      <p class="lead">画面には「Approximate, based on local sessions on this machine — does not include other devices or claude.ai」と注記があります。<b>この機械のローカルのセッションに基づく概算</b>で、他の端末や claude.ai の利用は含みません。</p>
+      <p class="lead">前章までの「週間上限を使い切るか」の判定は、この <b>Current week (all models)</b> の百分率で行えます。</p>
     </article>
   </section>
 
