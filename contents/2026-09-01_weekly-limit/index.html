@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Codeの週間上限、いまと9月14日以降どっちが多い？現状比17%減</title>
+<meta name="description" content="9月14日から標準の週あたり上限は25%増えますが、いま使える量からは約17%減ります。ccusageの実測から、同じペースが続く場合の影響を週換算しました。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claude Codeの週間上限、いまと9月14日以降どっちが多い？現状比17%減">
+<meta property="og:description" content="「25%増」の基準は標準上限。現在の50%増量と比べると、9月14日から約17%減です。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-09-01_weekly-limit/">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="../../css/article.css?v=3b6fe47d">
+<link rel="stylesheet" href="../../css/shared.css?v=27aa1abf">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+  <div class="masthead">
+    <div class="eyebrow">AIで作る技術 ｜ 2026年9月1日(火)</div>
+    <h1>Claude Codeの週間上限、いまと9月14日以降どっちが多い？現状比17%減</h1>
+    <div class="range">「標準上限を25%引き上げ」だけを見ると増量です。しかし、現在は標準から50%増しの量が使えます。<b>9月14日からは、いま使える量の約83%です。</b>
+<a class="video-cta" href="https://youtu.be/pWGlM-s8xgE" target="_blank" rel="noopener">
+  <span class="vc-play">▶</span>
+  <span class="vc-text"><b>この記事を動画で見る（20分）</b><span>ずんだもん×四国めたんの掛け合い・実演つきの解説</span></span>
+</a>
+</div>
+    <div class="meta-row">
+      <span class="time-chip">9月14日から新上限</span>
+      <span class="tag">標準比 +25%</span>
+      <span class="tag">現状比 約-17%</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>3行で言うと</h2>
+    <ol>
+      <li><b>9月14日から、Claude Codeの標準の週あたり上限は恒久的に25%引き上げられます。</b>対象は Pro、Max、Team、シート単位の Enterprise です。</li>
+      <li><b>現在の50%増量から比べると、約17%の減少です。</b>標準を100とすると、現在150から新上限125へ下がります。</li>
+      <li><b>同じペースでいまの週間上限を使い切る場合、この機械の実測では週約30ブロックのうち約5ブロック相当が収まらない試算です。</b></li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">答えは「標準比で増、現状比で減」</a></li>
+      <li><a href="#s2">9月14日から変わること</a></li>
+      <li><a href="#s3">50%増量の終了日は、2社で1日ずれている</a></li>
+      <li><a href="#s4">一次情報は403で読めず、日本語メディア2社で確認した</a></li>
+      <li><a href="#s5">実測は39時間20分で7ブロック</a></li>
+      <li><a href="#s6">同じペースを1週間に伸ばすと約30ブロック</a></li>
+      <li><a href="#s7">17%減で収まらないのは、平均約5ブロック分</a></li>
+      <li><a href="#s8">上限まで使わない人は、すぐに作業が減るとは限らない</a></li>
+      <li><a href="#s9">判断は「9月14日以降は今の83%で組む」</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>答えは「標準比で増、現状比で減」</h2>
+    <article class="item">
+      <p class="lead">「25%増」と「17%減」は、同じ変更を別の基準から見た数字です。標準の週あたり上限を100と置くと、現在の50%増量は150。9月14日以降の25%増は125です。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>比較する量</th><th>標準を100とした量</th><th>現在を100とした量</th></tr></thead>
+          <tbody>
+            <tr><td>従来の標準上限</td><td data-label="標準比">100</td><td data-label="現状比">約67</td></tr>
+            <tr><td>現在の50%増量</td><td data-label="標準比">150</td><td data-label="現状比">100</td></tr>
+            <tr><td>9月14日以降の恒久的な上限</td><td data-label="標準比"><b>125</b></td><td data-label="現状比"><b>約83</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">計算は <code>(150 - 125) / 150 = 1 / 6</code>。丸める前は16.666...、報道の表記で約17%減です。逆に従来の標準上限だけと比べれば、100から125なので25%増です。</p>
+      <p class="lead"><mark>いま使える量を基準にするかぎり、結論は「減る」です。</mark>数字の食い違いではなく、分母の違いです。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s2">
+    <h2><span class="step">2</span>9月14日から変わること</h2>
+    <article class="item">
+      <p class="lead">PC Watch と ITmedia の両方が、9月14日から標準の週あたり上限を恒久的に25%引き上げると報じています。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>項目</th><th>確認できた内容</th></tr></thead>
+          <tbody>
+            <tr><td>変更日</td><td data-label="内容"><b>9月14日から</b></td></tr>
+            <tr><td>変更</td><td data-label="内容">標準の週あたり上限を<b>恒久的に25%引き上げ</b></td></tr>
+            <tr><td>対象</td><td data-label="内容">Pro、Max、Team、シート単位の Enterprise</td></tr>
+            <tr><td>現状比</td><td data-label="内容"><b>約17%の減少</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">対象として書かれているのはこの4種類です。それ以外の契約に同じ変化があるとは、この2社の報道だけからは言いません。</p>
+      <p class="lead">日付について言い切れるのは、<b>「9月14日から新しい上限になる」</b>までです。現在の50%増量が終わる日の表現は、次のとおり揃っていません。</p>
+    </article>
+  </section>
+
+  <section class="section section-d" id="s3">
+    <h2><span class="step">3</span>50%増量の終了日は、2社で1日ずれている</h2>
+    <article class="item">
+      <p class="lead">現在の50%増量をいつまでと書いているかは、2社で1日ずれています。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>媒体</th><th>公開時刻</th><th>50%増量の記載</th><th>新上限の開始</th></tr></thead>
+          <tbody>
+            <tr><td>PC Watch</td><td data-label="公開時刻">2026/8/31 12:47</td><td data-label="50%増量"><b>9月13日まで</b></td><td data-label="新上限">9月14日から</td></tr>
+            <tr><td>ITmedia</td><td data-label="公開時刻">2026/8/31 09:51</td><td data-label="50%増量"><b>9月14日まで継続</b></td><td data-label="新上限">9月14日から</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">この記事では、どちらかに決めません。<b>「50%増量は9月13日まで」とも、「9月14日まで継続」とも言い切りません。</b></p>
+      <p class="lead">2社が一致しているのは、9月14日から新しい上限になることです。利用量の予定は、この一致点だけを境目にします。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s4">
+    <h2><span class="step">4</span>一次情報は403で読めず、日本語メディア2社で確認した</h2>
+    <article class="item">
+      <p class="lead">2社とも、一次情報は @ClaudeDevs の X 投稿だとしています。しかしこの環境から投稿URLを開くと<b>403 Forbidden</b>で、投稿本文を読めませんでした。</p>
+      <div class="code wrap"><div class="code-head">Xの一次情報へのアクセス結果</div><pre>https://x.com/ClaudeDevs/status/2093742321473065266
+403 Forbidden
+投稿本文は未読</pre></div>
+      <p class="lead">そのため、この記事は<b>PC Watch と ITmedia の日本語報道2本で確認</b>した内容です。「一次投稿を読んで確認した」とは書きません。だからこそ、前章の1日差を自分で埋めないことが重要です。</p>
+      <p class="lead">Anthropic の理由として、2社の報道から確認できるのは次の説明です。</p>
+      <blockquote class="quote">
+        <p>「ユーザーが『Claudeをより有効活用できている』と実感できるような、利用状況の可視性と管理性を高める変更に取り組んでいる」</p>
+        <cite>Anthropic の説明として日本語メディアが報道</cite>
+      </blockquote>
+      <p class="lead">この理由から、具体的な利用可能量を推測することはしません。ここからは、発表の比率を自分の実測に当てはめた結果だけを扱います。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s5">
+    <h2><span class="step">5</span>実測は39時間20分で7ブロック</h2>
+    <article class="item">
+      <p class="lead">Claude Codeを毎日使っているこの機械で、ccusage 20.0.20 を実行しました。表示されたうち、終了済みで利用のある7ブロックだけを集計しました。</p>
+      <div class="code wrap"><div class="code-head">実際に実行したコマンド</div><pre>npx --yes ccusage@latest blocks --timezone Asia/Tokyo --json</pre></div>
+      <div class="table">
+        <table>
+          <thead><tr><th>ブロック</th><th>entries</th><th>outputTokens</th><th>totalTokens</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td data-label="entries">208</td><td data-label="outputTokens">186,646</td><td data-label="totalTokens">23,532,470</td></tr>
+            <tr><td>2</td><td data-label="entries">229</td><td data-label="outputTokens">221,551</td><td data-label="totalTokens">79,757,747</td></tr>
+            <tr><td>3</td><td data-label="entries">395</td><td data-label="outputTokens">222,209</td><td data-label="totalTokens">200,747,549</td></tr>
+            <tr><td>4</td><td data-label="entries">91</td><td data-label="outputTokens">80,493</td><td data-label="totalTokens">40,434,899</td></tr>
+            <tr><td>5</td><td data-label="entries">412</td><td data-label="outputTokens">132,796</td><td data-label="totalTokens">183,579,498</td></tr>
+            <tr><td>6</td><td data-label="entries">173</td><td data-label="outputTokens">86,374</td><td data-label="totalTokens">22,994,093</td></tr>
+            <tr><td>7</td><td data-label="entries">393</td><td data-label="outputTokens">262,333</td><td data-label="totalTokens">91,656,907</td></tr>
+            <tr><td><b>合計</b></td><td data-label="entries"><b>1,901</b></td><td data-label="outputTokens"><b>1,192,402</b></td><td data-label="totalTokens"><b>642,703,163</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">最初の開始から最後の実際の終了までは<b>39時間20分07.599秒</b>。7ブロックの <code>totalTokens</code> は合計<b>642,703,163</b>、1ブロック平均<b>91,814,738</b>でした。</p>
+      <p class="lead">取得時点で進行中のブロックが1件ありましたが、値が増え続けるため数字ごと除外しました。利用のない gap 行も除外しました。個々の時刻を含む抜粋は<a href="../../_labs/2026-09-01_weekly-limit/ccusage-completed-blocks.json">生データ</a>にそのまま置いています。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s6">
+    <h2><span class="step">6</span>同じペースを1週間に伸ばすと約30ブロック</h2>
+    <article class="item">
+      <p class="lead">この39時間20分のペースが、1週間そのまま続くと仮定します。1週間は604,800秒。観測窓は141,607.599秒なので、週換算係数は4.270957239です。</p>
+      <div class="code wrap"><div class="code-head">ブロック数の週換算</div><pre>604,800 / 141,607.599 = 4.270957239
+7 * 4.270957239       = 29.8967
+                      ≈ 30ブロック/週</pre></div>
+      <p class="lead">約30ブロックは、「次の週も同じ量になる」と予測する数値ではありません。いま観測した7ブロックを、時間の比率だけで一週間へ引き伸ばした比較用の物差しです。</p>
+      <p class="lead">日付と時刻の幅がある数字を週へ換算したのは、「17%減」を作業の塊に言い換えるためです。次に、30ブロックのうち何ブロックが収まらなくなるかを計算します。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s7">
+    <h2><span class="step">7</span>17%減で収まらないのは、平均約5ブロック分</h2>
+    <article class="item">
+      <p class="lead">報道の「約17%」ではなく、元の比率150から125を使います。差は25、現在は150なので、減る割合は厳密には6分の1です。</p>
+      <div class="code wrap"><div class="code-head">現状比の減少率</div><pre>(1.50 - 1.25) / 1.50
+= 1/6
+= 16.666...%</pre></div>
+      <div class="table">
+        <table>
+          <thead><tr><th>実測ペースの週換算</th><th>現在相当</th><th>9月14日以降に収まる量</th><th>収まらない量</th></tr></thead>
+          <tbody>
+            <tr><td>ブロック</td><td data-label="現在">29.8967</td><td data-label="9月14日以降">24.9139</td><td data-label="差"><b>4.9828 ≈ 5</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead"><mark>同じ負荷が続き、いまの週間上限を使い切る場合、この実測ペースで新上限に収まらない試算は平均約5ブロック相当です。</mark></p>
+      <p class="lead">この「5ブロック」は、実行できる作業が必ず5回減るという意味ではありません。1ブロックの量は実測で大きく違います。この条件で収まらない量を、平均的なブロック数へ換算した目安です。</p>
+    </article>
+  </section>
+
+  <section class="section section-d" id="s8">
+    <h2><span class="step">8</span>上限まで使わない人は、すぐに作業が減るとは限らない</h2>
+    <article class="item">
+      <p class="lead">「現状比17%減」が、全員の作業を17%減らすわけではありません。週間上限まで使っていないなら、上限が下がっても実際の使用量はそのまま収まる可能性があります。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>現在の使い方</th><th>9月14日以降の見方</th></tr></thead>
+          <tbody>
+            <tr><td>週間上限まで使う</td><td data-label="見方"><b>今の6分の1を先に外す</b></td></tr>
+            <tr><td>新上限より少ない量しか使わない</td><td data-label="見方">すぐに作業が減るとは限らない</td></tr>
+            <tr><td>従来の標準上限100と比べる</td><td data-label="見方"><b>25%増</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">実測の5ブロック試算にも条件があります。<b>同じ負荷が続き、いまの週間上限を使い切る場合</b>です。ccusage の <code>totalTokens</code> は契約上限の残量ではなく、作業回数の保証でもありません。</p>
+      <p class="lead">だから判断は、「誰でも17%分の作業を捨てる」ではありません。上限近くまで使う人が、いまと同じ量の予定を入れないことです。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s9">
+    <h2><span class="step">9</span>判断は「9月14日以降は今の83%で組む」</h2>
+    <article class="item">
+      <p class="lead">最後に、1つの判断に戻します。<b>Claude Codeの現在の週間上限を使い切るなら、9月14日以降の週は、今の83%を予算にします。</b>上限近くまで使う場合も、安全側の予算として同じ比率を使えます。</p>
+      <p class="lead">標準比の25%増で予定を広げるのではなく、現在比の17%減で縮めます。この機械の実測に当てはめるなら、週約30ブロックから、平均約5ブロック相当を入れない予算です。</p>
+      <p class="lead">ここで確定している境目は、<b>9月14日から新上限</b>という点だけです。現在の50%増量の終了日は2社で1日ずれているため、それ以上は断定しません。一次情報も未読です。</p>
+      <p class="lead">「25%増」は間違いではありません。ただし、いま使える量と比べるなら、視聴者にとっての結果は<b>約17%減</b>です。</p>
+    </article>
+  </section>
+
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の発表事実は、日本語メディアの報道2本に基づきます。<mark>一次情報の X 投稿は403で読めていません。</mark>実測と報道内容は分けています。</p>
+      <ol class="refs">
+        <li>
+          <span class="flag unverified">二次報道</span>
+          「Claude Codeの週間上限、9月14日から25%増。現状比では17%減に」<i>PC Watch</i>, 2026年8月31日 12:47.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 変更日、標準比25%増、現状比約17%減、対象プラン。現在の50%増量は「9月13日まで」と記載。</span></details>
+          <a href="https://pc.watch.impress.co.jp/docs/news/2136857.html">https://pc.watch.impress.co.jp/docs/news/2136857.html</a>（2026年9月1日参照）
+        </li>
+        <li>
+          <span class="flag unverified">二次報道</span>
+          ITmedia「「Claude Code」の週次制限枠、9月14日に\"25％引き上げ\" 実質は現状比17％減に」<i>ITmedia AI＋</i>, 2026年8月31日 09:51.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 変更日、標準比25%増、現状比約17%減、対象プラン、Anthropicの説明。現在の50%増量は「9月14日まで継続」と記載。</span></details>
+          <a href="https://www.itmedia.co.jp/aiplus/article/2608/31/2000000951/">https://www.itmedia.co.jp/aiplus/article/2608/31/2000000951/</a>（2026年9月1日参照）
+        </li>
+        <li>
+          <span class="flag unverified">未確認</span>
+          @ClaudeDevs の X 投稿。
+          <span class="note">403 Forbidden のため投稿本文は未読。一次情報の内容を直接は引用していない。</span>
+          <a href="https://x.com/ClaudeDevs/status/2093742321473065266">https://x.com/ClaudeDevs/status/2093742321473065266</a>（2026年9月1日アクセス、403）
+        </li>
+        <li>
+          <span class="flag self">自分の実測</span>
+          ccusage 20.0.20 による完了済み7ブロックの集計。
+          <span class="note">2026年9月1日 11:54:41 JST 取得。進行中の1件と gap 行は除外。公開用の5フィールドだけを収録した。</span>
+          <a href="../../_labs/2026-09-01_weekly-limit/README.md">生データと計算式</a>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p>AIニュース デイリーダイジェスト</p>
+</footer>
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=9deba8ad" defer></script>
+<script src="../../js/article.js?v=bc96e7a3" defer></script>
+
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
