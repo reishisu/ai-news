@@ -1,0 +1,30 @@
+<svg viewBox="0 0 460 336" xmlns="http://www.w3.org/2000/svg" role="img">
+  <text x="14" y="30" font-size="26" font-weight="700" fill="var(--fg)">終わるのは24H2だけ</text>
+  <text x="14" y="56" font-size="15" fill="var(--sub)">サポート終了日（PT表記）</text>
+
+  <g data-step="1">
+    <rect x="14" y="70" width="432" height="56" rx="10" fill="var(--track)"/>
+    <text x="28" y="105" font-size="23" font-weight="700" fill="var(--c)">24H2</text>
+    <rect x="104" y="88" width="15" height="20" rx="4" fill="var(--c)"/>
+    <text x="436" y="105" font-size="21" font-weight="700" fill="var(--c)" text-anchor="end">2026/10/14</text>
+  </g>
+
+  <g data-step="2">
+    <rect x="14" y="136" width="432" height="56" rx="10" fill="var(--track)"/>
+    <text x="28" y="171" font-size="21" font-weight="700" fill="var(--sub)">25H2</text>
+    <rect x="104" y="154" width="146" height="20" rx="4" fill="var(--old)"/>
+    <text x="436" y="171" font-size="19" font-weight="700" fill="var(--sub)" text-anchor="end">2027/10/13</text>
+  </g>
+
+  <g data-step="3">
+    <rect x="14" y="202" width="432" height="56" rx="10" fill="var(--track)"/>
+    <text x="28" y="237" font-size="21" font-weight="700" fill="var(--sub)">26H1</text>
+    <rect x="104" y="220" width="200" height="20" rx="4" fill="var(--old)"/>
+    <text x="436" y="237" font-size="19" font-weight="700" fill="var(--sub)" text-anchor="end">2028/3/15</text>
+  </g>
+
+  <g data-step="4">
+    <text x="14" y="292" font-size="20" font-weight="700" fill="var(--fg)">25H2はまだ1年以上ある</text>
+    <text x="14" y="320" font-size="15" fill="var(--sub)">棒の長さは残りの期間。時刻はいずれも6:59:59 AM</text>
+  </g>
+</svg>

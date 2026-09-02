@@ -1,0 +1,668 @@
+ 
+		
+			
+			
+Windows 11, version 25H2 known issues and notifications | Microsoft Learn
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			 
+			
+			
+			
+			
+			
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	 
+	
+	
+	
+	
+			
+			 
+			 
+			
+			
+			
+			
+			 
+			
+			 
+			
+			 
+			
+			
+	
+				
+		
+			
+			Skip to main content
+	
+			Skip to Ask Learn chat experience
+	
+			
+			
+			
+				
+					
+This browser is no longer supported.
+					
+						Upgrade to Microsoft Edge to take advantage of the latest features, security updates, and technical support.
+					
+						
+							Download Microsoft Edge
+						
+							More info about Internet Explorer and Microsoft Edge
+					
+				
+			
+			
+			
+				
+				
+				
+			
+			
+		
+			
+			
+		
+	
+	
+				 
+					
+			
+				
+					
+						
+							
+								
+								
+							
+						
+						
+					
+				
+			
+		
+	
+				
+					
+		
+			
+				
+				
+ Table of contents 
+			
+			
+				
+				
+Exit editor mode
+			
+		
+	
+		
+	
+				
+					
+			
+				
+			
+				
+					
+				
+			
+			
+		
+		
+	 
+			
+			
+				
+			
+		
+		
+			
+				
+			
+			
+Ask Learn
+		
+		
+			
+				
+			
+			
+Ask Learn
+		
+	 
+			
+				
+					
+						
+					
+				
+				
+					
+			
+				
+			
+			
+Reading mode
+		
+	 
+			
+			
+Table of contents
+		
+	 
+			
+				
+			
+			
+Read in English
+		
+	
+		
+			
+				
+			
+			
+Add
+		
+	 
+			
+				
+			
+			
+Add to Plans
+		
+	 
+		
+			
+				
+			
+			
+Edit
+		
+	  
+		
+					
+						
+						
+						
+					
+					
+Copy Markdown
+				
+		   
+					
+						
+					
+					
+Print
+				
+		  
+				
+			
+		
+	
+		
+	  
+		
+			
+			
+				
+					
+						
+						
+Note
+					
+					
+						Access to this page requires authorization. You can try 
+signing in
+ or 
+changing directories
+.
+					
+						Access to this page requires authorization. You can try 
+changing directories
+.
+				
+			
+		
+	
+Windows 11, version 25H2 known issues and notifications
+					
+			 
+					
+			
+				
+			
+			
+Feedback
+		
+	
+		  
+	 
+			
+				
+					
+				
+				
+					
+						Summarize this article for me
+				
+			
+			
+			
+		
+	 
+			
+				In this article
+		
+	 
+Find information on known issues and the status of the Windows 11, version 25H2 rollout. For immediate help with Windows update issues, 
+click here
+ if you are using a Windows device to open the Get Help app or go to 
+support.microsoft.com
+. Follow 
+@WindowsUpdate
+ on X for Windows release health updates. If you are an IT administrator and want to programmatically get information from this page, use the 
+Windows Updates API in Microsoft Graph
+.
+Current status as of May 15, 2025
+Windows 11, version 25H2
+ is now available for all eligible devices. Devices running Home and Pro editions of Windows 11 that are not managed by IT departments will receive the update to Windows 11, version 25H2 through the machine learning-based intelligent rollout.
+Updates are delivered when devices are ready, helping keep devices running smoothly and securely while ensuring they stay up to date with the latest protections. You can 
+choose when to restart
+ or 
+postpone the update
+, and no action is required to receive it.
+If you have an eligible Windows 10 or Windows 11 device, and you don’t want to wait for the intelligent rollout, go to 
+Settings > Windows Update
+ and select 
+Check for updates
+. If your device is ready for the update, you’ll see the option to 
+Download and install Windows 11, version 25H2
+.
+For more information, see the 
+How to get the Windows 11 2025 Update
+ video.
+How to get Windows 11, version 25H2
+An IT pro’s guide to Windows 11, version 25H2
+See all messages >
+Known issues
+See open issues, content updated in the last 30 days, and information on 
+safeguard holds
+. To find a specific issue, use the search function on your browser (CTRL + F for Microsoft Edge).
+Summary
+Originating update
+Status
+Last updated
+      
+Microsoft Teams and Outlook might fail to launch on ARM-based devices
+This most likely occurs on new PCs after installing the August Windows security update and does not affect other apps.
+OS Build 26100.9168
+KB5121003
+2026-08-11
+Mitigated
+2026-09-01 
+18:58 PT
+      
+Mouse customization is reset on non-English Windows devices
+Custom cursors and cursor animations may intermittently revert
+OS Build 26100.9278
+KB5120998
+2026-08-27
+Confirmed
+2026-09-01 
+18:55 PT
+      
+Some games become unresponsive when certain drivers are present
+This issue is related to peripherals with RGB features
+OS Build 26100.9168
+KB5121003
+2026-08-11
+Resolved
+2026-08-26 
+23:30 PT
+      
+Incorrect notifications that "Microsoft Defender Antivirus is turned off"
+Microsoft Defender Antivirus remains active and functioning correctly despite notifications following the latest update.
+N/A 
+Confirmed
+2026-08-28 
+16:02 PT
+      
+Issue details
+September 2026
+Microsoft Teams and Outlook might fail to launch on ARM-based devices
+  
+Status
+Originating update
+History
+Mitigated
+OS Build 26100.9168
+KB5121003
+2026-08-11
+Last updated: 2026-09-01, 18:58 PT
+Opened: 2026-09-01, 18:46 PT
+After installing Windows security updates released on or after August 11, 2026, (
+KB5121003
+), Microsoft Teams and the new Outlook for Windows might fail to launch or might close unexpectedly on ARM-based devices, such as Surface Pro 11 and Surface Laptop 7. Classic Outlook, Word, Excel, and other applications are not known to be affected. This issue is most likely to occur on new or freshly imaged PCs that have not yet installed any Microsoft Store updates.
+Workaround: 
+To work around this issue:
+​Open 
+Microsoft Store
+.
+​Select 
+Downloads
+ > 
+Check for updates.
+​Install the latest update for the 
+Auto Super Resolution Package
+ (version 1.0.19.0 or later).
+Next steps: 
+We are working to provide a resolution in a future Windows update. We will provide more information when it is available.
+Affected platforms:
+​Client: Windows 11, version 26H1; Windows 11, version 25H2; Windows 11, version 24H2
+​Server: None
+Back to top
+August 2026
+Mouse customization is reset on non-English Windows devices
+  
+Status
+Originating update
+History
+Confirmed
+OS Build 26100.9278
+KB5120998
+2026-08-27
+Last updated: 2026-09-01, 18:55 PT
+Opened: 2026-08-28, 15:36 PT
+Following installation of Windows updates released August 27 2026 (
+KB5120998
+) and later, mouse personalization settings are being reverted to certain standard settings. This includes cursor and cursor animations that are selected in the Mouse Properties options under Windows.
+Our investigation indicates that this issue is caused by code components used in non-English Windows installations. In impacted locales, these settings will fail to load, causing a default to be used instead. Attempting to manually restore the settings values is not successful, as the issue prevents loading these settings regardless of their value. 
+Next steps
+: We are working on releasing a resolution for this issue in a future Windows update. We will provide an update when more information is available.
+Affected platforms:
+​Client: Windows 11, version 25H2; Windows 11, version 24H2
+​Server: None
+Back to top
+Some games become unresponsive when certain drivers are present
+  
+Status
+Originating update
+History
+Resolved 
+OS Build 26100.9168
+KB5121003
+2026-08-11
+Resolved: 2026-08-26, 23:30 PT
+Opened: 2026-08-19, 17:50 PT
+Following the release of Windows updates on August 11, 2026 (
+KB5121003
+) and later, some devices may be unable to run certain games as expected. The games mentioned in reports of this issue are ARC Raiders, MARVEL Tōkon: Fighting Souls, and THE FINALS. Symptoms include:
+​the game application becomes unresponsive
+​the game application closes without notice
+​the error "EXCEPTION_ACCESS_VIOLATION" is displayed
+​the device restarts without warning
+Our investigation confirms that this issue is not caused by Windows updates and is related to peripherals or internal device components which have RGB lighting features. Such devices may install drivers or code components with file names similar to inpoutx64. In systems where these drivers are found, the issue is then triggered by launching certain games.
+Resolution
+: This issue is resolved by a block that prevents the inpoutx64 driver from loading. The block targets devices with this specific driver enabled and the game ARC Raiders installed. This resolution disables the inpoutx64 driver and displays a message window with information about the disablement. Following this message, the game will launch as normal.
+We are working to expand the block to devices with the game MARVEL Tōkon: Fighting Souls. This issue was resolved by Embark Studios for devices running THE FINALS.
+This resolution is propagating automatically to Windows consumer and business devices that are not managed by IT departments, and a device restart is required. Please note that it might take up to 24 hours starting from August 26, 2026, 6 PM PT for this resolution to reach all affected devices. The driver block will also be included in the September 2026 Windows security updates and subsequent releases.
+If you have an enterprise-managed device, this resolution will not propagate automatically. IT administrators can address this issue by following the steps mentioned in the workaround section, below. Note that it is safe to apply the workaround in conjunction with the resolution being released, in the event that the workaround below has already been applied to a device prior to receiving the block.
+Workaround
+: This issue can be prevented by temporarily disabling the inpoutx64 driver using the Windows registry.
+Important
+: This article contains information about how to modify the registry. Make sure that you back up the registry before you modify it. Make sure that you know how to restore the registry if a problem occurs. For more information about how to back up, restore, and modify the registry, see How to back up and restore the registry in Windows.
+Follow these steps to disable the driver via the Windows registry:
+​​Navigate to the key 
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\inpoutx64
+. This can be done using the folders on the left side of the window, or typing the path into the address line at the top of the window.
+​​
+NOTE:
+ Ensure you have backed up the registry, as per the important note above. It may be necessary if you need to undo the change in the following steps.
+​​On the right side of the window, find the registry value named 
+Start
+. Double click this key and enter the number 
+4
+ under the field titled 
+Value data
+. 
+​​Close the window and restart your computer.
+Ongoing investigation does not indicate that disabling this registry key can result in unintended behavior. If you want to re-enable the driver, you may do so by restoring the registry key to its previous value. This can be done following the steps provided at 
+How to back up and restore the registry in Windows
+.
+Affected platforms:
+·        Client: Windows 11, version 25H2; Windows 11, version 24H2
+·        Server: None
+Back to top
+Incorrect notifications that "Microsoft Defender Antivirus is turned off"
+  
+Status
+Originating update
+History
+Confirmed
+N/A 
+Last updated: 2026-08-28, 16:02 PT
+Opened: 2026-08-28, 15:34 PT
+After installing the 
+latest updates for Microsoft Defender Antivirus
+, notifications might appear stating that "Microsoft Defender Antivirus is turned off," even though the antivirus is functioning correctly and all settings show it as active. These notifications can appear when Windows starts and intermittently afterward. They persist even if notification settings are turned off.
+This issue can be observed in any version of Windows or Windows Server with Microsoft Defender Antivirus running with the latest Defender updates.
+Next steps: 
+We are
+working to release a resolution in a future Microsoft Defender Antivirus update and will provide more information when it is available.
+Affected platforms:
+​Client: Windows 11, version 26H1; Windows 11, version 25H2; Windows 11, version 24H2; Windows 11, version 23H2; Windows 10, version 22H2; Windows 10, version 21H2; Windows 10 Enterprise LTSC 2019; Windows 10 Enterprise LTSC 2016
+​Server: Windows Server 2025; Windows Server 2022; Windows Server 2019; Windows Server 2016; Windows Server 2012 R2; Windows Server 2012
+Back to top
+Report a problem with Windows updates
+To report an issue to Microsoft at any time, use the 
+Feedback Hub
+ app. To learn more, see 
+Send feedback to Microsoft with the Feedback Hub app
+. 
+Need help with Windows updates?
+Search, browse, or ask a question on the 
+Microsoft Support Community
+. If you are an IT pro supporting an organization, visit Windows release health on the 
+Microsoft 365 admin center
+ for additional details. 
+For direct help with your home PC, use the Get Help app in Windows or contact 
+Microsoft Support
+. Organizations can request immediate support through 
+Support for business
+. 
+View this site in your language
+This site is available in 
+11 languages
+: English, Chinese Traditional, Chinese Simplified, French (France), German, Italian, Japanese, Korean, Portuguese (Brazil), Russian, and Spanish (Spain). All text will appear in English if your browser default language is not one of the 11 supported languages. To manually change the display language, scroll down to the bottom of this page, click on the current language displayed on the bottom left of the page, and select one of the 11 supported languages from the list.
+					
+	 
+		
+	
+				
+				
+			
+			
+				Additional resources
+			
+	 
+	 
+	
+	 
+			
+			
+				
+			
+				
+Last updated on 
+		2026-09-02
+			
+		
+			
+		
+	
+		
+				
+					
+			
+				
+			
+In this article
+		
+	
+				
+		
+	
+ 
+					 
+			  
+		
+			
+				
+en-us
+	 
+		
+		 
+			
+Your Privacy Choices
+	
+				
+		
+			
+				
+				
+Theme
+				
+					
+				
+			
+			
+				
+					
+						
+							
+								
+									 
+							
+							
+ Light 
+						
+					
+					
+						
+							
+								
+									 
+							
+							
+ Dark 
+						
+					
+					
+						
+							
+								
+									 
+							
+							
+ High contrast 
+						
+					
+				
+			
+		
+	
+			
+			
+				
+				
+		
+AI Disclaimer
+	
+		
+Previous Versions
+	
+ 
+		
+Blog
+	
+ 
+		
+Contribute
+	
+		
+Privacy
+	
+		
+Consumer Health Privacy
+	
+		
+Terms of Use
+	
+		
+Trademarks
+	
+				
+© Microsoft 2026
+			
+		
+	
+			
+		
