@@ -1,0 +1,8 @@
+{
+  "category": "デイリーダイジェスト",
+  "tags": ["Anthropic", "Claude Code", "OpenAI", "セキュリティ", "料金改定"],
+  "featured": true,
+  "title": "Claudeの週間上限が全員リセット。Fable 5.1が一般提供、Mythos 5.1は限定。OpenAIはAstraをCritical認定",
+  "date": "2026-09-02",
+  "summary": "AnthropicはFable 5.1の提供開始に合わせ、全ユーザーの5時間・週間の利用上限をリセットしました。Claude Fable 5.1が一般提供され、同じモデルのMythos 5.1はサイバーセキュリティ・生命科学向けの限定提供です。トークン課金ではキャッシュ読みが75%値下げされ、典型的な使い方で約25%安くなります。OpenAIは次期モデルAstraをサイバー能力のCriticalと認定しましたが、提供日は発表していません。"
+}

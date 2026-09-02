@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claudeの週間上限が全員リセット。Fable 5.1が一般提供、Mythos 5.1は限定。OpenAIはAstraをCritical指定</title>
+<meta name="description" content="AnthropicはFable 5.1の提供開始に合わせ、全ユーザーの5時間・週間の利用上限をリセットしました。Claude Fable 5.1は一般提供され、同じモデルのMythos 5.1は限定提供です。OpenAIは次期モデルAstraをサイバーセキュリティのCriticalと指定しましたが、提供日は発表されていません。">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="apple-touch-icon" href="../../favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claudeの週間上限が全員リセット。Fable 5.1が一般提供、Mythos 5.1は限定。OpenAIはAstraをCritical指定">
+<meta property="og:description" content="Fable 5.1の提供開始に合わせ、全ユーザーの5時間・週間の利用上限がリセットされました。Fable 5.1は一般提供、Mythos 5.1は限定提供。OpenAIの次期モデルAstraはCritical指定です。">
+<meta property="og:url" content="https://reishisu.github.io/ai-news/contents/2026-09-02_fable-5-1/">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="../../css/article.css?v=3b6fe47d">
+<link rel="stylesheet" href="../../css/shared.css?v=27aa1abf">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../../"><img src="../../favicon.svg" alt="" width="26" height="26">AIニュース デイリーダイジェスト</a>
+</header>
+
+<main class="article">
+  <div class="masthead">
+    <div class="eyebrow">デイリーダイジェスト ｜ 2026年9月2日</div>
+    <h1>Claudeの週間上限が全員リセット。Fable 5.1が一般提供、Mythos 5.1は限定。OpenAIはAstraをCritical指定</h1>
+    <div class="range">Claudeは新モデルを提供開始。OpenAIの次期モデルはサイバー能力を理由に、より強い安全策を伴います。</div>
+<a class="video-cta" href="https://youtu.be/4b-q-VECDmA" target="_blank" rel="noopener">
+  <span class="vc-play">▶</span>
+  <span class="vc-text"><b>動画で見る 1: 週間上限が全員リセット・Fable 5.1は今日から（5分）</b><span>ずんだもん×四国めたんの掛け合い・速報</span></span>
+</a>
+<a class="video-cta" href="https://youtu.be/svioP_-8gxg" target="_blank" rel="noopener">
+  <span class="vc-play">▶</span>
+  <span class="vc-text"><b>動画で見る 2: Fable 5.1の文章に入る見えない透かし（3分）</b><span>ずんだもん×四国めたんの掛け合い・速報</span></span>
+</a>
+<a class="video-cta" href="https://youtu.be/GWt9NQ7jAeE" target="_blank" rel="noopener">
+  <span class="vc-play">▶</span>
+  <span class="vc-text"><b>動画で見る 3: OpenAI Astraの初のCritical指定とMythos 5.1（4分）</b><span>ずんだもん×四国めたんの掛け合い・速報</span></span>
+</a>
+    <div class="meta-row">
+      <span class="time-chip">2026年9月1日発表</span>
+      <span class="tag">Claudeを使う人</span>
+      <span class="tag">ChatGPT・Codexを使う人</span>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2>3行で言うと</h2>
+    <ol>
+      <li><b>AnthropicはFable 5.1の提供開始に合わせ、全ユーザーの5時間・週間の利用上限をリセットしました。</b>（@ClaudeDevs、9月1日18時35分 UTC）</li>
+      <li><b>Claude Fable 5.1は一般提供され、claude.aiでも使えます。</b>同じモデルのMythos 5.1は、審査されたサイバーセキュリティ・生命科学の利用者だけが対象です。</li>
+      <li><b>OpenAIの次期モデルAstraは、まだ使えません。</b>提供は「soon」とだけ発表され、具体的な日付はありません。</li>
+    </ol>
+  </section>
+
+  <nav class="toc">
+    <h2>目次</h2>
+    <ol>
+      <li><a href="#s1">5時間と週間の上限が全員リセットされた</a></li>
+      <li><a href="#s2">Fable 5.1は一般提供、同じモデルのMythos 5.1は限定</a></li>
+      <li><a href="#s3">文脈は100万トークンが既定、出力は128k</a></li>
+      <li><a href="#s4">Fable 5.1の文章には透かしが入る</a></li>
+      <li><a href="#s5">トークン課金では典型的な使い方で約25%安くなる</a></li>
+      <li><a href="#s6">Claude Code 2.1.257で既定がFable 5.1に</a></li>
+      <li><a href="#s7">4つのベンチマークでFable 5を上回った</a></li>
+      <li><a href="#s8">誤検知を減らし、企業向けには新しい安全策を段階提供する</a></li>
+      <li><a href="#s9">OpenAIはAstraを初のCriticalモデルと指定した</a></li>
+      <li><a href="#s10">Astraの高度なサイバー機能は少数のテスターから始める</a></li>
+      <li><a href="#s11">8月7日の内部停止から、8月28日の大規模RL再開まで</a></li>
+      <li><a href="#s12">実測・実演・二次報道の利用はしていない</a></li>
+      <li><a href="#refs">参考文献</a></li>
+    </ol>
+  </nav>
+
+  <section class="section section-b" id="s1">
+    <h2><span class="step">1</span>5時間と週間の上限が全員リセットされた</h2>
+    <article class="item">
+      <p class="lead">Anthropicの開発者向け公式アカウント@ClaudeDevsは、Fable 5.1の提供開始に合わせ、<mark>全ユーザーの5時間の利用上限と週間の利用上限をリセットした</mark>と投稿しました。</p>
+      <p class="lead">週間上限を使い切っていた人も、リセット後の枠で今すぐFable 5.1を使えます。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s2">
+    <h2><span class="step">2</span>Fable 5.1は一般提供、同じモデルのMythos 5.1は限定</h2>
+    <article class="item">
+      <p class="lead">Anthropicは2026年9月1日（米国時間）、Claude Fable 5.1とClaude Mythos 5.1を発表しました。<mark>2つは同じモデルで、違うのはセーフガードの水準です。</mark></p>
+      <div class="table">
+        <table>
+          <thead><tr><th>モデル</th><th>提供範囲</th><th>セーフガード</th></tr></thead>
+          <tbody>
+            <tr><td>Claude Fable 5.1</td><td data-label="提供範囲"><b>一般提供</b></td><td data-label="セーフガード">通常の利用を対象にした水準</td></tr>
+            <tr><td>Claude Mythos 5.1</td><td data-label="提供範囲">審査を伴うtrusted access programのみ</td><td data-label="セーフガード">サイバーセキュリティと生命科学の専門作業向け</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">Fable 5.1はClaude API、Claude in Amazon Bedrock、Claude Platform on AWS、Claude on Google Cloud、Claude in Microsoft Foundryで提供されます。APIのモデル名は<code>claude-fable-5-1</code>です。</p>
+      <p class="lead">Fable 5.1はclaude.aiとClaude Codeでも使えます。Anthropicの発表では、effortの既定値がClaude CodeではHigh、claude.aiではMediumとされています。</p>
+      <p class="lead">Mythos 5.1のtrusted access programは、サイバー防御向けのCyber Verification Programと、生命科学向けのLife Sciences Verification Programです。CVPは現在Opus・Sonnetクラスのモデルを対象にしており、Mythosクラスのモデルは近く追加される予定です。LSVPは米政府と連携して最初の参加者を受け入れ済みで、生命科学の広い層へ拡大する計画です。発表時点では米国の組織だけが対象で、Anthropicは米政府と連携して国内外へ広げるとしています。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s3">
+    <h2><span class="step">3</span>文脈は100万トークンが既定、出力は128k</h2>
+    <article class="item">
+      <p class="lead">Fable 5.1とMythos 5.1は、どちらも<mark>100万トークンのコンテキストウィンドウが既定</mark>です。最大出力は128kトークンで、adaptive thinkingは常時オンです。</p>
+      <p class="lead">Mythos 5.1のAPIモデル名は<code>claude-mythos-5-1</code>で、Project Glasswingの参加者向けです。</p>
+      <p class="lead">両モデルとも30日間のデータ保持が必須です。Anthropicが明示的に許可しない限り、zero data retentionでは利用できません。</p>
+    </article>
+  </section>
+
+  <section class="section section-d" id="s4">
+    <h2><span class="step">4</span>Fable 5.1の文章には透かしが入る</h2>
+    <article class="item">
+      <p class="lead">Anthropicは2026年7月、ほか190の署名者（大手のAIモデル提供者数社を含む）とともに、EU AI Actの「Code of Practice on Transparency of AI-Generated Content」に署名しました。これにより、2026年8月2日より後にリリースしたモデルの出力には、<mark>Claudeが文章の作成に関与した可能性を数値で判定する透かし</mark>を入れる必要があります。</p>
+      <p class="lead">この透かしは、検出APIを持たない人には見えません。Claudeの出力の品質や内容に実質的な影響はなく、ユーザー、組織、Claudeとの会話に関する情報も含みません。</p>
+      <p class="lead">検出APIはprivate previewです。対象として、規制当局、法執行機関、メディア、ファクトチェッカー、独立研究者、教育機関、EUの市民社会団体などと、自社の法令順守のため透かしを検証する義務がある企業が挙げられています。Anthropicは今後、アクセスを拡大する予定です。</p>
+      <p class="lead">Fable 5.1とMythos 5.1が生成した文章には、この透かしが入ります。また、コード実行ツールでClaudeが作った対応画像・動画ファイルには、Claude APIのFiles API経由で取得するとC2PA Content Credentialsが付きます。リクエストやレスポンス処理の変更は不要です。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s5">
+    <h2><span class="step">5</span>トークン課金では典型的な使い方で約25%安くなる</h2>
+    <article class="item">
+      <p class="lead">Fable 5.1の通常料金は、入力100万トークンあたり10ドル、出力100万トークンあたり50ドルです。Fable 5から変わったのは、処理済みの入力を再利用するキャッシュ読みの料金です。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>課金対象</th><th>Fable 5.1の料金</th><th>変更</th></tr></thead>
+          <tbody>
+            <tr><td>入力</td><td data-label="料金">100万トークンあたり10ドル</td><td data-label="変更">Fable 5と同じ</td></tr>
+            <tr><td>出力</td><td data-label="料金">100万トークンあたり50ドル</td><td data-label="変更">Fable 5と同じ</td></tr>
+            <tr><td>キャッシュ読み</td><td data-label="料金"><b>100万トークンあたり0.25ドル</b></td><td data-label="変更">75%値下げ</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead"><mark>この値下げが効くのは、APIなど利用量をトークンで課金する場面です。</mark>サブスクリプション（月額プラン）の料金や利用上限そのものの変更は、今回の発表には書かれていません。Anthropicの2026年8月の実利用に基づく試算では、既定のeffortで同じ処理をした場合、典型的な使い方はFable 5より約25%安く、コンテキストやツールを多く使うエージェント的な作業では最大約45%安くなります。</p>
+      <p class="lead">effortの既定値は、Claude CodeがHigh、Claude Coworkとclaude.aiがMediumです。Anthropicは、LowまたはMediumでもFable 5と同等以上の結果になると説明しています。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s6">
+    <h2><span class="step">6</span>Claude Code 2.1.257で既定がFable 5.1に</h2>
+    <article class="item">
+      <p class="lead">Claude Code 2.1.257では、Fable 5.1（<code>claude-fable-5-1</code>）が追加され、Fableの既定モデルになりました。コンテキストは100万トークン、料金は入力100万トークンあたり10ドル、出力100万トークンあたり50ドル、キャッシュ読み100万トークンあたり0.25ドルです。</p>
+      <p class="lead">auto modeにはContainment Escape ruleが追加されました。クラウドのメタデータ認証情報の取得、外部送信制限の回避、テナントをまたぐ到達は、環境側で想定済みと印を付けない限り自動承認されません。</p>
+      <p class="lead"><code>/effort</code>に<code>s</code>が加わり、<code>/model</code>と同じく現在のセッションだけeffortを変更できます。auto modeでは、作業ディレクトリ外のファイルを初めて読む前に一度だけ確認が出ます。<code>permissions.blockReadsOutsideWorkingDirectories</code>を使えば、作業ディレクトリ外の読み取りを遮断できます。</p>
+      <p class="lead">Claude apps gatewayのセッションでは、<code>fable</code>と<code>best</code>は当面Fable 5のままです。Fable 5.1を未設定のgatewayが拒否するためで、<code>/model</code>からFable 5.1を選べば利用できます。この例外も2.1.257の変更点です。</p>
+      <p class="lead">次の2.1.258は修正のみで、macOS 12でClaude Codeが起動しない問題と、リモート実行・スケジュール実行が失敗する問題が修正されました。</p>
+    </article>
+  </section>
+
+  <section class="section section-d" id="s7">
+    <h2><span class="step">7</span>4つのベンチマークでFable 5を上回った</h2>
+    <article class="item">
+      <p class="lead">Anthropicが公表した比較では、Fable 5.1は次の4項目すべてでFable 5を上回りました。Terminal-Bench-Science 0.1は52.6%で、Fable 5の24.7%との差が大きく出ています。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>ベンチマーク</th><th>Fable 5.1</th><th>Mythos 5.1</th><th>Fable 5</th><th>Opus 5</th><th>GPT-5.6 Sol</th></tr></thead>
+          <tbody>
+            <tr><td>Terminal-Bench-Science 0.1</td><td data-label="Fable 5.1"><b>52.6%</b></td><td data-label="Mythos 5.1">発表に記載なし</td><td data-label="Fable 5">24.7%</td><td data-label="Opus 5">29.0%</td><td data-label="GPT-5.6 Sol">22.4%</td></tr>
+            <tr><td>Terminal-Bench 4.0</td><td data-label="Fable 5.1">55.8%</td><td data-label="Mythos 5.1"><b>60.9%</b></td><td data-label="Fable 5">42.0%</td><td data-label="Opus 5">52.3%</td><td data-label="GPT-5.6 Sol">37.3%</td></tr>
+            <tr><td>OSWorld 2.0（partial）</td><td data-label="Fable 5.1"><b>77.9%</b></td><td data-label="Mythos 5.1">発表に記載なし</td><td data-label="Fable 5">72.9%</td><td data-label="Opus 5">75.4%</td><td data-label="GPT-5.6 Sol">発表に記載なし</td></tr>
+            <tr><td>Humanity's Last Exam（ツールなし）</td><td data-label="Fable 5.1"><b>60.9%</b></td><td data-label="Mythos 5.1">発表に記載なし</td><td data-label="Fable 5">57.8%</td><td data-label="Opus 5">56.6%</td><td data-label="GPT-5.6 Sol">発表に記載なし</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">Terminal-Bench 4.0では、同じ基盤モデルでもFable 5.1が55.8%、セーフガードが異なるMythos 5.1が60.9%でした。Anthropicは差について、従来の精度が低いサイバーセーフガードが介入したタスクを反映すると説明しています。</p>
+      <p class="lead">Terminal-Bench-Science 0.1の標準誤差はモデルごとに±3.5〜4.5ポイントです。OSWorld 2.0は2026年8月公開のタスクを使っており、以前公表された同名ベンチマークとは直接比較できません。</p>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s8">
+    <h2><span class="step">8</span>誤検知を減らし、企業向けには新しい安全策を段階提供する</h2>
+    <article class="item">
+      <p class="lead">Fable 5.1のサイバーセーフガードは、害のない内容を止める誤検知が従来より60%減りました。ソフトウェアの脆弱性を発見する防御作業には使えますが、エクスプロイトの開発には使えません。</p>
+      <p class="lead">ペネトレーションテスト、エクスプロイト生成、バイナリを使った脆弱性スキャンなど、一部の両用タスクはOpusモデルへ振り分けられます。生命科学の高度な機能は、米政府と共同で作ったMythos 5.1のアクセスプログラムを通じて提供されます。</p>
+      <p class="lead">Enterprise Frontier Safeguards（EFS）は、顧客が管理するクラウド基盤にデータを置き、Anthropicではなく顧客自身が既定で人手の確認をする仕組みです。<mark>2026年秋から企業顧客へ段階的に提供され、それまでは対象顧客がzero data retentionでFable 5.1を使えます。</mark></p>
+      <p class="lead">EFSの対応先として、Claude Code、Claude Enterprise、Claude Platform、Amazon Bedrock、Claude Platform on AWS、Google's Agent Platform、Microsoft Foundryが挙げられています。</p>
+    </article>
+  </section>
+
+  <section class="section section-c" id="s9">
+    <h2><span class="step">9</span>OpenAIはAstraを初のCriticalモデルと指定した</h2>
+    <article class="item">
+      <p class="lead">OpenAIは2026年9月1日、次期モデルAstraがPreparedness Frameworkのサイバーセキュリティ能力でCriticalに達したと発表しました。OpenAIがこの水準に指定した最初のモデルです。</p>
+      <p class="lead">Criticalは、次のどちらか一方を満たす場合です。</p>
+      <ul class="points">
+        <li><b>人の介入なしに、</b>防御を固めた多数の現実の重要システムで、あらゆる深刻度の実用的なゼロデイ・エクスプロイトを特定し、開発できる。</li>
+        <li><b>高水準の目的だけを与えられ、</b>防御を固めた標的へのサイバー攻撃について、新しい戦略を端から端まで考案し、実行できる。</li>
+      </ul>
+      <p class="lead">既知の脆弱性からエクスプロイトを開発するExploitBenchでは100%でした。汚染の懸念から作った内部版は、2026年6月から8月に公開されたV8の高深刻度脆弱性20件で構成されています。なお、これらのAstraの結果はDaybreak Blueアクセスでの能力を示すもので、既定の提供構成の数値ではないとOpenAIは注記しています。</p>
+      <p class="lead">内部版でAstraは、GPT-5.6 Solより少ない出力トークンで、任意コード実行率が大幅に高かったとされています。正確な率は発表に記載がありません。評価中に2件のゼロデイ脆弱性を発見してエクスプロイトチェーンに利用し、OpenAIは保守担当者への開示を進めています。これらの結果は既定の本番構成ではなく、Daybreak Blueへのアクセスを与えた能力です。</p>
+    </article>
+  </section>
+
+  <section class="section section-d" id="s10">
+    <h2><span class="step">10</span>Astraの高度なサイバー機能は少数のテスターから始める</h2>
+    <article class="item">
+      <p class="lead">OpenAIはAstraを「soon」に提供する予定としています。<mark>具体的な提供日は発表に記載がなく、一般利用がいつ始まるかは分かりません。</mark></p>
+      <p class="lead">高度なサイバー作業は、最初に少数のアルファテスターへ提供されます。その後、防御用途を支援するDaybreak Blueを通じてアクセスを広げる計画です。</p>
+      <p class="lead">Astraのモデル自体は、不許可のサイバー支援を拒否する評価で91.5%となり、GPT-5.6 Solは59%でした。Hugging Faceの事案を踏まえた別のテストでは、サイバーセーフガードを外したGPT-5.6 Solが周囲の標的へアクセスしようとした割合は56%、Astraは0%でした。これはテスト条件での結果であり、通常の本番利用ではありません。</p>
+      <p class="lead">本番では、分類器がモデルの推論と操作を確認し、許可されていない可能性がある活動を自動停止します。正当な作業でも、サイバーと直接関係がない作業や長時間動くエージェントを含め、遅延・一時停止・停止が起きる場合があります。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>利用先</th><th>モニターが止めた場合</th></tr></thead>
+          <tbody>
+            <tr><td>ChatGPT・Codex</td><td data-label="止めた場合"><b>続ける前に操作の確認を求められる場合がある</b></td></tr>
+            <tr><td>APIなどその他の利用先</td><td data-label="止めた場合"><b>タスクが停止する</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+
+  <section class="section section-b" id="s11">
+    <h2><span class="step">11</span>8月7日の内部停止から、8月28日の大規模RL再開まで</h2>
+    <article class="item">
+      <div class="table">
+        <table>
+          <thead><tr><th>日付</th><th>OpenAIが公表した対応</th></tr></thead>
+          <tbody>
+            <tr><td>2026年8月7日</td><td data-label="対応">AstraのCritical能力を否定できないと発表。強化した安全管理の要件を満たさないAstraの内部活動を停止。</td></tr>
+            <tr><td>2026年8月18日</td><td data-label="対応">配備予定の最新モデルに対するRL訓練を2週間停止したと公表。研究環境の強化、レッドチーム評価、モニタリング範囲の拡大を実施。</td></tr>
+            <tr><td>2026年8月28日</td><td data-label="対応">新しい安全・セキュリティ要件を入れ、停止していた大規模なfrontier RLを再開。一部の小規模な実験訓練は引き続き保留。</td></tr>
+            <tr><td>2026年9月1日</td><td data-label="対応"><b>AstraがCriticalに達したと正式に発表。</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead">8月18日の公表では、Astraまたはサイバー関連モデルを扱う作業に最も厳しい安全策を求め、多数の作業を移行完了まで停止していました。モニタリングはSol相当以上のモデルでツールを使う全RL訓練・評価に必須となり、8月7日からはツールを使うAstraの全推論にも追加されました。推論計算に対する監視コストの見積もりは約20%です。</p>
+      <p class="lead"><mark>AstraはOpenAIとHugging Faceの事案には関与していません。</mark>OpenAIは同事案から得た知見をAstraの安全策に反映したと説明しています。</p>
+    </article>
+  </section>
+
+  <section class="section section-d" id="s12">
+    <h2><span class="step">12</span>実測・実演・二次報道の利用はしていない</h2>
+    <article class="item">
+      <p class="lead">この記事ではFable 5.1、Mythos 5.1、Astraを自分で試していません。料金の計算、ベンチマークの再現、サイバー能力やセーフガードの実演もしていません。</p>
+      <p class="lead">数値と提供条件は、AnthropicとOpenAIの公式発表7件だけに基づきます。報道記事などの二次情報は根拠に使っていません。</p>
+      <p class="lead"><mark>公式発表にないAstraの提供日、一般ユーザー向けの提供範囲、内部ベンチマークの正確な任意コード実行率は書いていません。</mark></p>
+    </article>
+  </section>
+
+  <section class="section section-d" id="refs">
+    <h2>参考文献</h2>
+    <article class="item">
+      <p class="lead">この記事の主張は、次の7件の公式発表だけに基づいています。<mark>実測と二次報道は使っていません。</mark></p>
+      <ol class="refs">
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Introducing Claude Fable 5.1 and Claude Mythos 5.1」<i>Anthropic</i>, 2026年9月1日発表.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 2モデルの関係、claude.aiとClaude Codeでのeffort既定値、料金、ベンチマーク、サイバー・生命科学のセーフガード、Enterprise Frontier Safeguards、EU AI Actに基づく文章の透かしと検出API。</span></details>
+          <a href="https://www.anthropic.com/claude-fable-and-mythos-5-1">https://www.anthropic.com/claude-fable-and-mythos-5-1</a>（2026年9月2日10時23分参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          OpenAI「Path to Astra: critical capabilities and frontier safeguards」<i>OpenAI</i>, 2026年9月1日公開.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: Criticalの定義、ExploitBench、内部評価、Astraの提供計画、安全策、ChatGPT・Codex・APIでモニターが停止した場合の挙動。</span></details>
+          <a href="https://openai.com/index/path-to-astra/">https://openai.com/index/path-to-astra/</a>（2026年9月2日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          OpenAI「Responding to the next frontier of critical cyber capabilities」<i>OpenAI</i>, 2026年8月7日公開.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: Critical能力を否定できないという判断、強化された要件を満たさないAstra内部活動の停止、Hugging Face事案への非関与。</span></details>
+          <a href="https://openai.com/index/responding-to-the-next-frontier-of-critical-cyber-capabilities/">https://openai.com/index/responding-to-the-next-frontier-of-critical-cyber-capabilities/</a>（2026年9月2日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          OpenAI「Pacing model development in an era of cyber-critical capabilities」<i>OpenAI</i>, 2026年8月18日公開.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: RL訓練の2週間停止、研究環境の安全策、モニタリング要件と計算コスト。</span></details>
+          <a href="https://openai.com/index/pacing-model-development-in-an-era-of-cyber-critical-capabilities/">https://openai.com/index/pacing-model-development-in-an-era-of-cyber-critical-capabilities/</a>（2026年9月2日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Claude Platform release notes」<i>Claude Docs</i>, 2026年9月1日更新.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: Fable 5.1とMythos 5.1のコンテキスト・最大出力・adaptive thinking、Project Glasswing、Claude APIと各クラウドでの提供先、文章の透かし、Files API経由の画像・動画へのC2PA Content Credentials、30日間のデータ保持。</span></details>
+          <a href="https://docs.claude.com/en/release-notes/overview">https://docs.claude.com/en/release-notes/overview</a>（2026年9月2日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic「Claude Code CHANGELOG」<i>GitHub</i>, 2026年9月2日取得.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: 2.1.257のFable 5.1既定化、Containment Escape rule、<code>/effort s</code>、作業ディレクトリ外の初回読み取り確認、Claude apps gatewayの例外、および2.1.258の修正。</span></details>
+          <a href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md">https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md</a>（2026年9月2日参照）
+        </li>
+        <li>
+          <span class="flag primary">一次資料</span>
+          Anthropic開発者向け公式アカウント @ClaudeDevs「With Fable 5.1 out today, we've also reset 5-hour and weekly limits for all users.」<i>X</i>, 2026年9月1日18時35分 UTC投稿.
+          <details class="note-d"><summary>参照箇所を見る</summary><span class="note">参照箇所: Fable 5.1の提供開始に合わせ、全ユーザーの5時間の利用上限と週間の利用上限をリセットしたこと。</span></details>
+          <a href="https://x.com/ClaudeDevs/status/2094856679250919746">https://x.com/ClaudeDevs/status/2094856679250919746</a>（2026年9月2日10時44分 JST取得）
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  <!-- ai-news-comments -->
+  <section class="section section-d" id="comments">
+    <h2>コメント</h2>
+    <article class="item">
+      <p class="lead comment-note">投稿には GitHub アカウントが必要です。書き込みはこのサイトのリポジトリの
+        <a href="https://github.com/reishisu/ai-news/discussions">GitHub Discussions</a> に保存されます。</p>
+      <script src="https://giscus.app/client.js"
+        data-repo="reishisu/ai-news"
+        data-repo-id="R_kgDOT35KIA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOT35KIM4DDatF"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="ja"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </article>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p>AIニュース デイリーダイジェスト</p>
+</footer>
+
+<script src="../../js/shared.js?v=9deba8ad" defer></script>
+<script src="../../js/article.js?v=bc96e7a3" defer></script>
+<script data-goatcounter="https://reishisu-ai-news.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<!-- ai-news-sharebar -->
+<div id="ai-news-sharebar" aria-label="SNSでシェア">
+  <div class="sb-menu">
+    <a class="sb-btn" data-share="x" target="_blank" rel="noopener" title="Xで共有"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg></a>
+    <a class="sb-btn" data-share="line" target="_blank" rel="noopener" title="LINEで送る"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.02 3.57 7.39 8.39 8.03.33.07.77.22.89.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1 .88.55 1.08-.46 5.8-3.42 7.92-5.85C21.53 13.55 22 11.92 22 10.12 22 5.64 17.52 2 12 2Z"/></svg></a>
+    <a class="sb-btn" data-share="fb" target="_blank" rel="noopener" title="Facebookで共有"><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07Z"/></svg></a>
+    <a class="sb-btn" data-share="hatena" target="_blank" rel="noopener" title="はてなブックマーク"><svg viewBox="0 0 24 24" fill="#00A4DE"><path d="M20.47 0H3.53A3.53 3.53 0 0 0 0 3.53v16.94A3.53 3.53 0 0 0 3.53 24h16.94A3.53 3.53 0 0 0 24 20.47V3.53A3.53 3.53 0 0 0 20.47 0ZM12.1 17.1c-.9.99-2.28 1.2-3.36 1.2H5.18V5.72h3.4c1.09 0 2.32.13 3.13 1 .65.7.77 1.51.77 2.19 0 .84-.34 1.64-1.11 2.13 1.02.42 1.62 1.4 1.62 2.66 0 .96-.28 2.4-.9 3.4Zm5.32 1.2a1.53 1.53 0 1 1 0-3.06 1.53 1.53 0 0 1 0 3.06Zm1.24-4.3h-2.48V5.72h2.48V14Z"/></svg></a>
+    <button class="sb-btn" data-share="copy" type="button" title="リンクをコピー"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+  </div>
+  <button class="sb-toggle" type="button" title="シェア" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+  <div class="sb-toast" role="status"></div>
+</div>
+<script src="../../js/shared.js?v=9deba8ad" defer></script>
+</body>
+</html>
